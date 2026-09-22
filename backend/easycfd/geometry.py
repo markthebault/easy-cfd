@@ -199,6 +199,14 @@ def persist_parts(folder, pieces):
     digest = hashlib.sha256()
     for part in parts:
         digest.update((folder / f"{part['id']}.stl").read_bytes())
+    # Frontal-area estimate: half the |x|-projected triangle area over all parts.
+    # Exact for a single closed convex solid; an upper bound otherwise because
+    # concavities and overlap between parts are counted, not hidden. A starting
+    # suggestion for the reference area, never applied silently.
+    frontal = 0.0
+    for _, mesh, _, _ in pieces:
+        normals = np.nan_to_num(np.asarray(mesh.face_normals), nan=0.0, posinf=0.0, neginf=0.0)
+        frontal += 0.5 * float(np.abs(normals[:, 0]) @ np.asarray(mesh.area_faces))
     return dict(
         parts=parts,
         bounds=[low.tolist(), high.tolist()],
@@ -206,6 +214,7 @@ def persist_parts(folder, pieces):
         triangles=total,
         errors=errors,
         fingerprint=digest.hexdigest(),
+        frontal_area_estimate=round(frontal, 4),
         warnings=[
             "Automatic checks do not establish that surfaces are free of intersections. Review the model and mesh.",
             "Small wheel-to-ground gaps avoid degenerate contact cells; ground clearance affects forces.",

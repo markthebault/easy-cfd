@@ -924,6 +924,10 @@ footer a {
   font-size: 12px;
   margin-bottom: 12px;
 }
+.section-title {
+  font-size: 12px;
+  margin: 22px 0 12px;
+}
 .diagnostics p {
   display: flex;
   align-items: center;

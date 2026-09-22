@@ -104,6 +104,53 @@ def coefficients(case, settings, freestream):
     )
 
 
+def role_forces(case, settings, freestream):
+    """Mean pressure/viscous force vectors per role group over the last 50 rows.
+
+    OpenFOAM v2412 writes postProcessing/<name>/*/force.dat with flat columns:
+    time, total xyz, pressure xyz, viscous xyz. The header is checked explicitly
+    so a different solver output format fails loudly instead of misparsing.
+    """
+    q_area = 0.5 * settings["density"] * freestream**2 * settings["reference_area"]
+    groups = {}
+    for name, role in (("forcesBody", "body"), ("forcesWheels", "wheels")):
+        candidates = list((case / f"postProcessing/{name}").glob("*/force.dat"))
+        if not candidates:
+            continue
+        lines = candidates[0].read_text().splitlines()
+        header = " ".join(line for line in lines if line.startswith("#"))
+        if not all(key in header for key in ("total_x", "pressure_x", "viscous_x")):
+            raise RuntimeError(f"Unrecognized OpenFOAM force output format in {name}.")
+        rows = []
+        for line in lines:
+            if not line or line.startswith("#"):
+                continue
+            try:
+                nums = [float(x) for x in line.split()]
+            except ValueError:
+                continue
+            if len(nums) == 10:
+                rows.append(nums)
+        data = np.array(rows)
+        if len(rows) < 2 or not np.isfinite(data).all():
+            raise RuntimeError(f"Force breakdown ({name}) is missing or non-finite.")
+        tail = data[-min(50, len(rows)) :]
+        pressure, viscous = tail[:, 4:7].mean(axis=0), tail[:, 7:10].mean(axis=0)
+        drag = float(pressure[0] + viscous[0])
+        lift = float(pressure[2] + viscous[2])
+        groups[role] = dict(
+            drag=drag,
+            downforce=-lift,
+            cd=drag / q_area,
+            cl=lift / q_area,
+            pressure_drag=float(pressure[0]),
+            viscous_drag=float(viscous[0]),
+            pressure_downforce=float(-pressure[2]),
+            viscous_downforce=float(-viscous[2]),
+        )
+    return groups
+
+
 def process(case, output, run, metadata):
     output.mkdir(exist_ok=True)
     reader = vtk.vtkOpenFOAMReader()
@@ -162,6 +209,21 @@ def process(case, output, run, metadata):
     tracer.Update()
     write_poly(tracer.GetOutput(), output / "streamlines.vtp")
     values = coefficients(case, run["settings"], metadata["freestream"])
+    breakdown_roles = role_forces(case, run["settings"], metadata["freestream"])
+    pressure_drag = sum(g["pressure_drag"] for g in breakdown_roles.values())
+    viscous_drag = sum(g["viscous_drag"] for g in breakdown_roles.values())
+    # The role groups partition every car patch, so their summed drag must
+    # reconcile with the total coefficient drag. If not, the split is unusable.
+    consistent = abs(pressure_drag + viscous_drag - values["drag"]) <= 0.05 * max(
+        abs(values["drag"]), 1.0
+    )
+    breakdown = {
+        **breakdown_roles,
+        "pressure_drag": pressure_drag,
+        "viscous_drag": viscous_drag,
+        "consistent": consistent,
+    }
+    blockage = float(metadata.get("blockage_ratio", 0))
     log = (case / "log.simpleFoam").read_text(errors="replace")
     residuals = {}
     final_iteration_log = log.rsplit("\nTime = ", 1)[-1]
@@ -185,6 +247,16 @@ def process(case, output, run, metadata):
     warnings.append(
         "No experimental validation for this car. Mesh refinement and physical testing are still needed."
     )
+    if blockage > 0.05:
+        warnings.append(
+            f"Tunnel blockage is {blockage:.1%}, above the ~5% guideline. "
+            "Confinement may inflate forces; use a larger domain or correct for blockage."
+        )
+    if not consistent:
+        warnings.append(
+            "Force breakdown does not reconcile with total drag. "
+            "Treat the body/wheel and pressure/viscous split as unreliable."
+        )
     yplus = []
     for file in (case / "postProcessing/yPlus").glob("*/yPlus.dat"):
         for line in file.read_text().splitlines():
@@ -212,6 +284,8 @@ def process(case, output, run, metadata):
         warnings.append("Near-wall y+ coverage could not be assessed.")
     return dict(
         **values,
+        breakdown=breakdown,
+        blockage_ratio=blockage,
         wall_target_fraction=wall_fraction,
         residuals=residuals,
         residual_converged=converged,

@@ -12,7 +12,7 @@ This document separates software functionality, numerical behavior, and physical
 
 ## Automated checks
 
-`uv run pytest -q`: **19 passed**. Checks cover STEP embedded units, STL units/orientation/clearance, open surfaces, model confirmation, immutable geometry/settings snapshots, duplication, invalid imports, pressure conversion, drag/downforce signs, coefficient normalization, force stability, cancellation, stage failures, runtime memory budgets, comparison mismatches, near-zero percentages, reference-case Reynolds scaling, and inconclusive refinement results.
+`uv run pytest -q`: **25 passed**. Checks cover STEP embedded units, STL units/orientation/clearance, open surfaces, model confirmation, immutable geometry/settings snapshots, duplication, invalid imports, pressure conversion, drag/downforce signs, coefficient normalization, force stability, cancellation, stage failures, runtime memory budgets, comparison mismatches, near-zero percentages, reference-case Reynolds scaling, inconclusive refinement results, frontal-area estimates, per-role force objects in the solver dictionaries, tunnel blockage ratios, pressure/viscous breakdown parsing with format and non-finite rejection, and breakdown-aware comparison.
 
 `npm --prefix frontend run build` runs TypeScript checks and produces the browser application.
 

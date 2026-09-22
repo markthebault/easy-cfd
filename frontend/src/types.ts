@@ -25,6 +25,7 @@ export type Geometry = {
   warnings: string[];
   triangles: number;
   fingerprint: string;
+  frontal_area_estimate: number;
 };
 export type Project = {
   id: string;
@@ -33,6 +34,23 @@ export type Project = {
   settings: Settings;
   geometry: Geometry | null;
   sample?: string;
+};
+export type RoleBreakdown = {
+  drag: number;
+  downforce: number;
+  cd: number;
+  cl: number;
+  pressure_drag: number;
+  viscous_drag: number;
+  pressure_downforce: number;
+  viscous_downforce: number;
+};
+export type Breakdown = {
+  body: RoleBreakdown;
+  wheels?: RoleBreakdown;
+  pressure_drag: number;
+  viscous_drag: number;
+  consistent: boolean;
 };
 export type Result = {
   drag: number;
@@ -45,6 +63,8 @@ export type Result = {
   cells: number;
   iteration: number;
   warnings: string[];
+  breakdown?: Breakdown;
+  blockage_ratio?: number;
   ranges: Record<string, number[]>;
   history: { iteration: number; cd: number; cl: number }[];
   timings: Record<string, number>;

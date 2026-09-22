@@ -39,6 +39,8 @@ def generate(
         from .benchmark import domain
 
         xmin, xmax, ymin, ymax, _, zmax = domain()
+    cross_section = (ymax - ymin) * zmax
+    blockage_ratio = settings.reference_area / cross_section
     cell = p["cell"] * length / 4.2
     counts = [math.ceil((xmax - xmin) / cell), math.ceil((ymax - ymin) / cell), math.ceil(zmax / cell)]
     if math.prod(counts) > p["max_cells"] // 2:
@@ -136,6 +138,19 @@ mergeTolerance 1e-6;
     if reference_case == "ahmedml-run-1":
         k, omega = 0.000054 * speed**2, 14.4 * speed
     patches = " ".join(part["id"] for part in geometry["parts"])
+    # Per-role integrated forces give the body/wheel and pressure/viscous split.
+    # The groups always partition every car patch, so their sum must reconcile
+    # with the total coefficients; results.py checks that agreement.
+    role_functions = ""
+    for name, group in (
+        ("forcesBody", " ".join(p["id"] for p in geometry["parts"] if p["role"] != "wheel")),
+        ("forcesWheels", " ".join(p["id"] for p in geometry["parts"] if p["role"] == "wheel")),
+    ):
+        if group:
+            role_functions += f"""{name} {{type forces; libs (forces); patches ({group});
+p p; U U; rho rhoInf; rhoInf {settings.density}; CofR (0 0 0);
+writeControl timeStep; writeInterval 1; log false;}}
+"""
     write(
         case / "system/controlDict",
         f"""
@@ -149,7 +164,7 @@ p p; U U; rho rhoInf; rhoInf {settings.density};
 CofR (0 0 0); liftDir (0 0 1); dragDir (1 0 0); pitchAxis (0 1 0);
 magUInf {mag}; lRef {length}; Aref {settings.reference_area};
 writeControl timeStep; writeInterval 1; log true;}}
-yPlus {{type yPlus; libs (fieldFunctionObjects); writeControl writeTime;}}
+{role_functions}yPlus {{type yPlus; libs (fieldFunctionObjects); writeControl writeTime;}}
 }}
 """,
     )
@@ -238,4 +253,6 @@ relaxationFactors {fields {p .3;} equations {U .7; k .7; omega .7;}}
         freestream=mag,
         base_cells=math.prod(counts),
         preset=p,
+        tunnel_cross_section=cross_section,
+        blockage_ratio=blockage_ratio,
     )

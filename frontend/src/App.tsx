@@ -36,6 +36,8 @@ import {
 
 const fmt = (n: number | undefined, digits = 2) =>
   n === undefined ? "—" : n.toFixed(digits);
+const share = (part: number, total: number) =>
+  total ? `${((100 * part) / total).toFixed(0)}%` : "—";
 const active = (r: Run) => ["running", "queued"].includes(r.status);
 
 export default function App() {
@@ -490,6 +492,24 @@ export default function App() {
                   Keep the same reference area when comparing designs. Drag is
                   along the car's length.
                 </p>
+                {project.geometry?.frontal_area_estimate ? (
+                  <p className="micro">
+                    Estimated frontal area ≈{" "}
+                    {fmt(project.geometry.frontal_area_estimate)} m² (upper
+                    bound, ignores overlap between parts).{" "}
+                    <button
+                      className="text-button"
+                      onClick={() =>
+                        update(
+                          "reference_area",
+                          project.geometry!.frontal_area_estimate,
+                        )
+                      }
+                    >
+                      Use estimate
+                    </button>
+                  </p>
+                ) : null}
                 <label className="check-row">
                   <input
                     type="checkbox"
@@ -922,6 +942,49 @@ export default function App() {
                           label={`${field} · calculated result`}
                         />
                       </div>
+                      {current.result.breakdown && (
+                        <>
+                          <h3 className="section-title">
+                            Where the drag comes from
+                            {!current.result.breakdown.consistent &&
+                              " · unreconciled, see warnings"}
+                          </h3>
+                          <div className="metric-grid">
+                            <Metric
+                              title="Body drag"
+                              value={fmt(current.result.breakdown.body.drag)}
+                              unit="N"
+                              detail={`${share(current.result.breakdown.body.drag, current.result.drag)} of total · Cd ${fmt(current.result.breakdown.body.cd, 4)}`}
+                            />
+                            {current.result.breakdown.wheels && (
+                              <Metric
+                                title="Wheels drag"
+                                value={fmt(
+                                  current.result.breakdown.wheels.drag,
+                                )}
+                                unit="N"
+                                detail={`${share(current.result.breakdown.wheels.drag, current.result.drag)} of total · Cd ${fmt(current.result.breakdown.wheels.cd, 4)}`}
+                              />
+                            )}
+                            <Metric
+                              title="Pressure drag"
+                              value={fmt(
+                                current.result.breakdown.pressure_drag,
+                              )}
+                              unit="N"
+                              detail={`${share(current.result.breakdown.pressure_drag, current.result.drag)} of total drag`}
+                            />
+                            <Metric
+                              title="Viscous drag"
+                              value={fmt(
+                                current.result.breakdown.viscous_drag,
+                              )}
+                              unit="N"
+                              detail={`${share(current.result.breakdown.viscous_drag, current.result.drag)} of total drag`}
+                            />
+                          </div>
+                        </>
+                      )}
                       <div className="result-foot">
                         Flow lines show average flow, not time-resolved
                         turbulence. Wall speed is zero on stationary body
@@ -934,6 +997,15 @@ export default function App() {
                             <Check size={14} /> Mesh passed geometric checks ·{" "}
                             {current.result.cells.toLocaleString()} cells
                           </p>
+                          {current.result.blockage_ratio != null && (
+                            <p>
+                              Tunnel blockage{" "}
+                              {(
+                                current.result.blockage_ratio * 100
+                              ).toFixed(1)}
+                              % of cross-section
+                            </p>
+                          )}
                           <p>
                             {current.result.force_settled ? (
                               <Check size={14} />
@@ -1072,8 +1144,14 @@ export default function App() {
                                     downforce: "Downforce · N",
                                     cd: "Drag coefficient",
                                     cl: "Lift coefficient",
+                                    body_drag: "Body drag · N",
+                                    body_downforce: "Body downforce · N",
+                                    wheels_drag: "Wheels drag · N",
+                                    wheels_downforce: "Wheels downforce · N",
+                                    pressure_drag: "Pressure drag · N",
+                                    viscous_drag: "Viscous drag · N",
                                   } as Record<string, string>
-                                )[key]
+                                )[key] || key
                               }
                             </td>
                             <td>{fmt(c.baseline, key.length === 2 ? 4 : 2)}</td>
