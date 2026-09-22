@@ -2,7 +2,9 @@
 
 A local virtual wind tunnel for importing car geometry, running OpenFOAM, and comparing designs. The browser displays calculated fields and forces. It never fills in missing results with generated pictures or synthetic numbers.
 
-![Model review interface](docs/interface.png)
+![Easy CFD comparing MX-5 NC pressure fields and aerodynamic forces](docs/presentation.png)
+
+MX-5 NC model by [Nieve5677](https://sketchfab.com/iori308408), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); [source and geometry modifications](docs/mx5-nc.md).
 
 ## Install and start
 
