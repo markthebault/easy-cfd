@@ -39,6 +39,10 @@ const fmt = (n: number | undefined, digits = 2) =>
 const share = (part: number, total: number) =>
   total ? `${((100 * part) / total).toFixed(0)}%` : "—";
 const active = (r: Run) => ["running", "queued"].includes(r.status);
+const megabytes = (bytes: number) =>
+  bytes >= 1024 ** 3
+    ? `${(bytes / 1024 ** 3).toFixed(1)} GB`
+    : `${Math.round(bytes / 1024 ** 2)} MB`;
 
 export default function App() {
   const [projects, setProjects] = useState<Project[]>([]),
@@ -65,6 +69,10 @@ export default function App() {
     [variant, setVariant] = useState(""),
     [comparison, setComparison] = useState<Comparison | null>(null),
     [highlight, setHighlight] = useState("");
+  const [history, setHistory] = useState<{
+    run: string;
+    points: { iteration: number; cd: number }[];
+  } | null>(null);
   const [estimate, setEstimate] = useState<{
     previous_seconds: number | null;
     message: string;
@@ -191,6 +199,20 @@ export default function App() {
     runs.find((r) => r.id === selected) ||
     runs.find((r) => r.project_id === project?.id);
   const completed = runs.filter((r) => r.status === "completed");
+  // The polled run list omits force history; load it once per completed run shown.
+  useEffect(() => {
+    if (current?.status !== "completed" || history?.run === current.id) return;
+    let disposed = false;
+    api<Run>(`/runs/${current.id}`)
+      .then((r) => {
+        if (!disposed)
+          setHistory({ run: r.id, points: r.result?.history ?? [] });
+      })
+      .catch(() => {});
+    return () => {
+      disposed = true;
+    };
+  }, [current?.id, current?.status]);
   const a = runs.find((r) => r.id === baseline),
     b = runs.find((r) => r.id === variant);
   const dirty = JSON.stringify(settings) !== JSON.stringify(project?.settings);
@@ -846,6 +868,9 @@ export default function App() {
                       >
                         <Download size={14} />
                         Export run
+                        {current.disk_bytes != null && (
+                          <small>{megabytes(current.disk_bytes)}</small>
+                        )}
                       </a>
                     )}
                   </>
@@ -1056,7 +1081,11 @@ export default function App() {
                         </div>
                         <div>
                           <h3>Force history</h3>
-                          <History history={current.result.history} />
+                          {history?.run === current.id ? (
+                            <History history={history.points} />
+                          ) : (
+                            <p className="micro">Loading force history…</p>
+                          )}
                           <p className="micro">
                             Drag coefficient over solver iterations. Values are
                             averaged over the last 50 iterations, or all

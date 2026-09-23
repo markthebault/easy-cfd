@@ -66,7 +66,8 @@ export type Result = {
   breakdown?: Breakdown;
   blockage_ratio?: number;
   ranges: Record<string, number[]>;
-  history: { iteration: number; cd: number; cl: number }[];
+  // Omitted from the polled run list; fetch the single run for it.
+  history?: { iteration: number; cd: number; cl: number }[];
   timings: Record<string, number>;
   y_plus: { patch: string; minimum: number; maximum: number; mean: number }[];
   refinement?: { delta_cd: number; delta_cl: number; both_settled: boolean };
@@ -83,11 +84,13 @@ export type Run = {
   iteration: number;
   result?: Result;
   error?: string;
+  disk_bytes?: number;
 };
 export type Health = {
   ready: boolean;
   message: string;
   memory_gb?: number;
+  cpus?: number;
   architecture?: string;
   presets: Record<string, { memory_gb: number; iterations: number }>;
 };

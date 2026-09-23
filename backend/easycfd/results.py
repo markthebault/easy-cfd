@@ -151,6 +151,29 @@ def role_forces(case, settings, freestream):
     return groups
 
 
+def flow_window(low, high):
+    """Streamline seed rake and slice extents, proportional to car length.
+
+    The margins were tuned on the 4.2 m sample car and scale with length, so a
+    small model is not seeded or sliced metres away from its surface.
+    """
+    length = high[0] - low[0]
+    scale = length / 4.2
+    return dict(
+        seed_x=low[0] - 0.5 * length,
+        seed_y=(low[1] - 0.5 * scale, high[1] + 0.5 * scale),
+        seed_z=(0.08 * scale, high[2] + 0.5 * scale),
+        slice_bounds=[
+            low[0] - length,
+            high[0] + 2 * length,
+            low[1] - 0.5 * scale,
+            high[1] + 0.5 * scale,
+            0.02 * scale,
+            high[2] + 0.7 * scale,
+        ],
+    )
+
+
 def process(case, output, run, metadata):
     output.mkdir(exist_ok=True)
     reader = vtk.vtkOpenFOAMReader()
@@ -191,10 +214,11 @@ def process(case, output, run, metadata):
             ranges[name] = [min(r[0] for r in valid), max(r[1] for r in valid)]
     low, high = run["geometry"]["bounds"]
     length = high[0] - low[0]
+    window = flow_window(low, high)
     points = vtk.vtkPoints()
-    for y in np.linspace(low[1] - 0.5, high[1] + 0.5, 13):
-        for z in np.linspace(0.08, high[2] + 0.5, 8):
-            points.InsertNextPoint(low[0] - 0.5 * length, y, z)
+    for y in np.linspace(*window["seed_y"], 13):
+        for z in np.linspace(*window["seed_z"], 8):
+            points.InsertNextPoint(window["seed_x"], y, z)
     seeds = vtk.vtkPolyData()
     seeds.SetPoints(points)
     tracer = vtk.vtkStreamTracer()
@@ -294,14 +318,7 @@ def process(case, output, run, metadata):
         cells=volume.GetNumberOfCells(),
         warnings=warnings,
         y_plus=yplus[-len(run["geometry"]["parts"]) :],
-        slice_bounds=[
-            low[0] - length,
-            high[0] + 2 * length,
-            low[1] - 0.5,
-            high[1] + 0.5,
-            0.02,
-            high[2] + 0.7,
-        ],
+        slice_bounds=window["slice_bounds"],
     )
 
 

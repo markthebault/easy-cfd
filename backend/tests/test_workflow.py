@@ -2,6 +2,7 @@
 
 import io
 import re
+import zipfile
 import numpy as np
 import pytest
 import trimesh
@@ -434,3 +435,105 @@ def test_explicit_tailnet_origin(client, monkeypatch):
     assert client.get("/api/projects", headers=headers).status_code == 200
     assert client.get("/api/projects", headers={**headers, "origin": "https://other.ts.net"}).status_code == 403
     assert client.get("/api/projects", headers={**headers, "host": "other.ts.net"}).status_code == 403
+
+
+def test_flow_window_scales_with_car_length():
+    full = results.flow_window([-2.1, -1.17, 0.01], [2.1, 1.17, 1.32])
+    # Unchanged for the 4.2 m sample the margins were tuned on.
+    assert full["seed_y"] == pytest.approx((-1.67, 1.67))
+    assert full["seed_z"] == pytest.approx((0.08, 1.82))
+    assert full["slice_bounds"] == pytest.approx([-6.3, 10.5, -1.67, 1.67, 0.02, 2.02])
+    small = results.flow_window([-0.21, -0.117, 0.001], [0.21, 0.117, 0.132])
+    assert small["slice_bounds"] == pytest.approx([x / 10 for x in full["slice_bounds"]])
+    assert small["seed_z"] == pytest.approx(tuple(x / 10 for x in full["seed_z"]))
+
+
+def test_solver_ranks_and_cpu_limit_fit_the_runtime(client, monkeypatch):
+    p = project(client)
+    client.put(
+        f"/api/projects/{p['id']}/settings",
+        json={**p["settings"], "geometry_confirmed": True, "quality": "fast"},
+    )
+    monkeypatch.setattr(runner, "health", lambda: dict(ready=True, memory_gb=8, cpus=2))
+    r = client.post(f"/api/projects/{p['id']}/runs").json()
+    # Docker rejects --cpus above the runtime's count; four ranks share two CPUs.
+    assert (r["processes"], r["cpus"]) == (4, 2)
+    monkeypatch.setattr(runner, "health", lambda: dict(ready=True, memory_gb=8, cpus=12))
+    r = client.post(f"/api/projects/{p['id']}/runs").json()
+    assert (r["processes"], r["cpus"]) == (4, 4)
+    monkeypatch.setenv("EASYCFD_PROCESSES", "8")
+    r = client.post(f"/api/projects/{p['id']}/runs").json()
+    assert (r["processes"], r["cpus"]) == (8, 8)
+    monkeypatch.setenv("EASYCFD_PROCESSES", "1")
+    assert runner.processes() == 2
+    g = storage.ROOT / "g"
+    g.mkdir()
+    foam.generate(storage.ROOT / "case", g, geometry.sample(g), Settings(quality="fast"), processes=8)
+    assert "numberOfSubdomains 8;" in (storage.ROOT / "case/system/decomposeParDict").read_text()
+
+
+def test_solve_passes_ranks_and_removes_processor_copies(client, monkeypatch):
+    p = project(client)
+    client.put(
+        f"/api/projects/{p['id']}/settings",
+        json={**p["settings"], "geometry_confirmed": True, "quality": "fast"},
+    )
+    monkeypatch.setattr(runner, "health", lambda: dict(ready=True, memory_gb=8, cpus=6))
+    monkeypatch.setenv("EASYCFD_PROCESSES", "6")
+    run = client.post(f"/api/projects/{p['id']}/runs").json()
+    calls = []
+
+    def stage(key, case, command, stage_name, memory, cpus=4):
+        calls.append((command, cpus))
+        if command[0] == "snappyHexMesh":
+            (case / "constant/polyMesh").mkdir(parents=True)
+            (case / "constant/polyMesh/boundary").write_text(
+                " ".join(f"{part['id']} {{ nFaces 50; }}" for part in run["geometry"]["parts"])
+            )
+            (case / "log.snappyHexMesh").write_text("Finished meshing")
+        if command[0] == "checkMesh":
+            (case / "log.checkMesh").write_text("cells: 1000\nMesh OK.")
+        if command[0] == "decomposePar":
+            for i in range(6):
+                (case / f"processor{i}/100").mkdir(parents=True)
+                (case / f"processor{i}/100/U").write_text("per-rank field")
+        return 1.0
+
+    monkeypatch.setattr(runner, "stage", stage)
+    def process(case, output, run, meta):
+        output.mkdir()
+        return dict(warnings=[])
+
+    monkeypatch.setattr(results, "process", process)
+    runner.solve(run["id"], "fast")
+    solver = next(command for command, _ in calls if command[0] == "mpirun")
+    assert solver[solver.index("-np") + 1] == "6"
+    assert {cpus for _, cpus in calls} == {6}
+    assert not list((storage.directory("runs", run["id"]) / "case-fast").glob("processor*"))
+
+
+def test_run_list_omits_history_and_export_leaves_no_archive(client):
+    key = storage.identifier()
+    root = storage.directory("runs", key)
+    (root / "case-fast/processor0").mkdir(parents=True)
+    (root / "case-fast/processor0/U").write_text("duplicate")
+    (root / "case-fast/log.simpleFoam").write_text("log")
+    storage.save(
+        "runs",
+        dict(
+            id=key,
+            created=storage.now(),
+            status="completed",
+            result=dict(cd=0.3, history=[dict(iteration=1, cd=0.3, cl=0)]),
+        ),
+    )
+    listed = next(r for r in client.get("/api/runs").json() if r["id"] == key)
+    assert "history" not in listed["result"] and listed["result"]["cd"] == 0.3
+    assert client.get(f"/api/runs/{key}").json()["result"]["history"]
+    response = client.get(f"/api/runs/{key}/export")
+    assert response.status_code == 200
+    names = zipfile.ZipFile(io.BytesIO(response.content)).namelist()
+    assert "case-fast/log.simpleFoam" in names
+    assert not any("processor" in name for name in names)
+    assert not (root / "run.zip").exists()
+    assert not list(storage.ROOT.glob("export-*.zip"))

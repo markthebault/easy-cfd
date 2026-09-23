@@ -7,12 +7,12 @@ This document separates software functionality, numerical behavior, and physical
 - Apple M1, 16 GB host memory, macOS ARM64.
 - Existing ARM64 Linux Docker-compatible runtime, about 7.7 GB VM memory.
 - Pinned OpenCFD OpenFOAM 2412 multi-architecture manifest.
-- Four MPI processes for the flow solution; independent meshing and reconstruction stages.
+- Four MPI processes for the flow solution by default (`EASYCFD_PROCESSES`); independent meshing and reconstruction stages.
 - Local React/VTK.js UI served by FastAPI at `127.0.0.1:8000`.
 
 ## Automated checks
 
-`uv run pytest -q`: **25 passed**. Checks cover STEP embedded units, STL units/orientation/clearance, open surfaces, model confirmation, immutable geometry/settings snapshots, duplication, invalid imports, pressure conversion, drag/downforce signs, coefficient normalization, force stability, cancellation, stage failures, runtime memory budgets, comparison mismatches, near-zero percentages, reference-case Reynolds scaling, inconclusive refinement results, frontal-area estimates, per-role force objects in the solver dictionaries, tunnel blockage ratios, pressure/viscous breakdown parsing with format and non-finite rejection, and breakdown-aware comparison.
+`uv run pytest -q`: **29 passed**. Checks cover STEP embedded units, STL units/orientation/clearance, open surfaces, model confirmation, immutable geometry/settings snapshots, duplication, invalid imports, pressure conversion, drag/downforce signs, coefficient normalization, force stability, cancellation, stage failures, runtime memory budgets, comparison mismatches, near-zero percentages, reference-case Reynolds scaling, inconclusive refinement results, frontal-area estimates, per-role force objects in the solver dictionaries, tunnel blockage ratios, pressure/viscous breakdown parsing with format and non-finite rejection, breakdown-aware comparison, length-proportional streamline seeds and slice extents, MPI process count and Docker CPU limits, removal of per-process case copies, a run list without force history, and exports that leave no archive behind.
 
 `npm --prefix frontend run build` runs TypeScript checks and produces the browser application.
 
@@ -54,6 +54,17 @@ Chromium submitted both runs, waited for real OpenFOAM results, opened compariso
 Both runs met the force-stability and residual targets. Fast has no prism layers, so these are demonstration results with unresolved near-wall accuracy. Negative downforce means upward lift; the sample wing reduced that lift in this calculation while increasing drag. It does not establish that a real racing component is effective. Thin-part refinement accounts for the wing case's larger mesh.
 
 The interface shows historical times only after runs of matching geometry and preset exist.
+
+## Solver process count
+
+Measured on the verified environment (8 CPUs reported by the container runtime) with the pinned image, repeating only `simpleFoam` on unchanged meshes:
+
+| Mesh | 4 processes | 6 processes | 8 processes |
+|---|---:|---:|---:|
+| Fast sample, 41,417 cells, 300 iterations | 16.0–16.7 s | — | 23.9–24.7 s |
+| Medium sample, 193,849 cells, first 200 iterations | 45.6 s | 55.0 s | 61.7 s |
+
+Four processes stayed the default. The M1's four efficiency cores slow the synchronised parallel solve. Changing from four to eight processes changed the Fast sample Cd by less than 0.0001.
 
 ## Published computational reference comparison
 
