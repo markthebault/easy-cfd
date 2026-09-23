@@ -1330,6 +1330,9 @@ summary {
 .guide-steps p { margin: 10px 0; font-size: 14px; }
 .blender-guide code, .blender-guide kbd { font-size: 12px; background: #eef4f4; padding: 2px 4px; border-radius: 3px; overflow-wrap: anywhere; }
 .guide-caution { background: #faf5e9; border-left: 3px solid #b98e36; padding: 10px 14px; }
+.guide-figure { margin: 18px 0; }
+.guide-figure img { display: block; width: 100%; height: auto; border: 1px solid #d4e0e2; border-radius: 8px; }
+.guide-figure figcaption { margin-top: 6px; color: #526d77; font-size: 12px; }
 .guide-table-wrap { overflow-x: auto; }
 .blender-guide table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .blender-guide th, .blender-guide td { padding: 8px 10px; border-bottom: 1px solid #e2eaec; text-align: left; }
