@@ -1696,6 +1696,21 @@ footer a {
   border-left: 3px solid var(--warn-border);
   padding: 10px 14px;
 }
+.guide-figure {
+  margin: 18px 0;
+}
+.guide-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.guide-figure figcaption {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
 .guide-table-wrap {
   overflow-x: auto;
 }

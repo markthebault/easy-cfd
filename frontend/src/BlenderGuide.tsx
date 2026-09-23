@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
+import z4OpenWing from "./assets/z4-open-wing.png";
+import z4FastResult from "./assets/z4-fast-result.png";
 
 const manual = "https://docs.blender.org/manual/en/5.2/";
 export default function BlenderGuide({ close }: { close: () => void }) {
@@ -90,9 +92,15 @@ export default function BlenderGuide({ close }: { close: () => void }) {
           <p>
             Each exported part must enclose a volume. A thin wing needs
             thickness and closed edges. For an initial test, use closed tire
-            envelopes with covered wheel faces. Avoid intersecting parts and
-            wheel-to-body contact. Joining objects alone does not weld them or
-            make a solid.
+            envelopes with covered wheel faces. Avoid unintended intersections,
+            tiny near-contact gaps, and wheel-to-body contact. Joining objects
+            alone does not weld them or make a solid.
+          </p>
+          <p>
+            Keep the space beneath a raised rear wing open. Make its supports
+            slim, closed parts, then inspect the side and rear views after any
+            remesh. A fill operation can turn that airflow gap into a solid
+            wall even when the wing still looks right from above.
           </p>
           <p className="guide-caution">
             <strong>Smooth shading does not repair geometry.</strong> Coarse
@@ -169,7 +177,9 @@ export default function BlenderGuide({ close }: { close: () => void }) {
             <strong>Nose points toward: −Y</strong>, and{" "}
             <strong>Up direction: +Z</strong>. Start with a{" "}
             <strong>0.01 m</strong> lowest-point gap above the road; review the
-            resulting ride height. Do not export a road plane.
+            resulting ride height. The Z4 example below used 0.025 m after
+            checking its Fast mesh. Keep the clearance plausible for your car.
+            Do not export a road plane.
           </p>
           <p>
             Check dimensions and rotate the model. Set each tire's role to{" "}
@@ -178,12 +188,40 @@ export default function BlenderGuide({ close }: { close: () => void }) {
             the checklist only after checking size, orientation, wheel roles,
             and clearance.
           </p>
+          <figure className="guide-figure">
+            <img
+              src={z4OpenWing}
+              width="1410"
+              height="964"
+              loading="lazy"
+              alt="Easy CFD geometry preview of a Z4 with four separate tires and a visible open gap beneath the rear wing"
+            />
+            <figcaption>
+              Check the wing gap in the preview and assign each separate tire
+              the Wheel role before running.
+            </figcaption>
+          </figure>
           <p>
             Run <strong>Fast</strong> to check the setup, then{" "}
             <strong>Medium</strong> for a better mesh. Review mesh, convergence,
             and near-wall warnings before comparing forces. A successful export
             does not establish aerodynamic accuracy.
           </p>
+          <figure className="guide-figure">
+            <img
+              src={z4FastResult}
+              width="1410"
+              height="964"
+              loading="lazy"
+              alt="Completed Z4 Fast simulation showing pressure on the body, drag and downforce results, and an open rear wing"
+            />
+            <figcaption>
+              This 12-part Z4 Fast run passed mesh checks and reached the
+              residual target. Its forces are exploratory; inspect the
+              near-wall warning and refine the mesh before using them for a
+              design decision.
+            </figcaption>
+          </figure>
         </li>
       </ol>
       <details className="guide-troubleshooting">
@@ -205,6 +243,17 @@ export default function BlenderGuide({ close }: { close: () => void }) {
           <li>
             <strong>Wheels in the wrong place:</strong> preserve shared assembly
             coordinates and import all files at once.
+          </li>
+          <li>
+            <strong>Wing gap filled in:</strong> inspect the exported body from
+            the side. Remove the unwanted filler surface and keep the wing and
+            its supports as closed parts.
+          </li>
+          <li>
+            <strong>Fast mesh quality failure:</strong> read{" "}
+            <code>log.checkMesh</code>, inspect the reported geometry, and
+            correct narrow gaps or rough surfaces. Recheck wheel clearance and
+            road height, then rerun the same setup.
           </li>
         </ul>
         <p>
