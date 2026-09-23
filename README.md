@@ -43,6 +43,8 @@ Linux uses the same scripts with Docker Engine. Windows support means running th
 
 The included car and removable wing are original, simplified demonstration geometry. They are not a production car, optimized aerofoil, or experimental benchmark. Wheels are separate cylinders with simplified road clearance and no spokes or contact deformation.
 
+Simulation results show **Downforce** or **Lift** in kilograms of equivalent weight at the saved run speed. The value is the magnitude of the calculated vertical force in newtons divided by 9.80665. Downforce pushes the car onto the road; lift unloads it. The card also shows the force in newtons. Existing saved runs support this display without rerunning. Set road speed between 5 and 300 km/h before running to calculate the load at that speed; changing setup does not change a saved result. These loads retain the run's mesh and convergence limitations.
+
 ## Importing geometry
 
 For Blender models, open **Blender export guide** in the page header or import dialog. The six-step guide covers scale, separate wheels, closed surfaces, mesh checks, STL export settings, and import. It was checked against the Blender 5.2.2 LTS manual on 22 September 2026.

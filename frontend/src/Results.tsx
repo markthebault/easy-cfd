@@ -9,6 +9,7 @@ import {
   Terminal,
 } from "lucide-react";
 import Viewer from "./Viewer";
+import VerticalLoad from "./VerticalLoad";
 import type { PlaneSettings } from "./planeFlow";
 import {
   active,
@@ -169,17 +170,15 @@ export function ResultsView({
         )}
         {result && (
           <div className="metric-grid compact">
+            <VerticalLoad
+              downforce={result.downforce}
+              speed={current.settings.speed_kmh}
+            />
             <Metric
               title="Drag"
               value={fmt(result.drag)}
               unit="N"
               detail="Resistance along the car"
-            />
-            <Metric
-              title="Downforce"
-              value={fmt(result.downforce)}
-              unit="N"
-              detail="Positive means downward"
             />
             <Metric
               title="Drag coefficient"

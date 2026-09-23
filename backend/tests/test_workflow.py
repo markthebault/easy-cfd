@@ -58,6 +58,13 @@ def test_bad_axes_and_nonfinite_values_are_rejected():
         Settings(speed_kmh=float("nan"))
 
 
+def test_high_speed_settings():
+    assert Settings(speed_kmh=270).speed_kmh == 270
+    assert Settings(speed_kmh=300).speed_kmh == 300
+    with pytest.raises(ValueError):
+        Settings(speed_kmh=301)
+
+
 def test_open_surface_is_retained_for_review_but_blocked(tmp_path):
     mesh = trimesh.creation.box()
     mesh.update_faces(np.arange(len(mesh.faces) - 1))
