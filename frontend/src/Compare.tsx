@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { ArrowRight, GitCompareArrows, Layers } from "lucide-react";
 import Viewer from "./Viewer";
+import type { PlaneSettings } from "./planeFlow";
 import { fmt, parts, Warnings } from "./ui";
 import type { Comparison, Run } from "./types";
 
@@ -38,6 +39,7 @@ export function CompareView({
   axis,
   position,
   theme,
+  plane,
 }: {
   completed: Run[];
   baseline: string;
@@ -51,6 +53,7 @@ export function CompareView({
   axis: string;
   position: number;
   theme: string;
+  plane: PlaneSettings;
 }) {
   const a = completed.find((r) => r.id === baseline),
     b = completed.find((r) => r.id === variant);
@@ -148,6 +151,7 @@ export function CompareView({
                     position={position}
                     range={comparison.ranges[field]}
                     theme={theme}
+                    flow={plane}
                     sync="comparison"
                     label={i ? "Variant" : "Baseline"}
                   />

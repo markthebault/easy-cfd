@@ -12,7 +12,7 @@ from fastapi import BackgroundTasks, FastAPI, File, Form, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ValidationError
-from . import geometry, runner, storage, results
+from . import geometry, plane, runner, storage, results
 from .models import ImportOptions, NewProject, Settings, PRESETS
 
 
@@ -409,6 +409,28 @@ def slice_asset(key: str, axis: Literal["x", "y", "z"] = "y", position: int = 50
             storage.directory("runs", key) / "results", axis, position, run["result"]["slice_bounds"]
         )
     return FileResponse(path)
+
+
+@app.get("/api/runs/{key}/plane")
+def plane_asset(key: str, axis: Literal["x", "y", "z"] = "y", position: int = 50):
+    """Velocity and scalar fields resampled on a regular grid for the animated plane view."""
+    if not 0 <= position <= 100:
+        raise ValueError("Plane position must be between 0 and 100.")
+    run = storage.get("runs", key)
+    if run["status"] != "completed":
+        raise ValueError("Results are not available yet.")
+    with storage.LOCK:
+        path = plane.plane_field(
+            storage.directory("runs", key) / "results",
+            axis,
+            position,
+            run["result"]["slice_bounds"],
+            run["settings"]["speed_kmh"] / 3.6,
+        )
+    # Stored gzipped; the browser decompresses it transparently.
+    return FileResponse(
+        path, media_type="application/octet-stream", headers={"Content-Encoding": "gzip"}
+    )
 
 
 @app.get("/api/runs/{key}/logs")

@@ -9,6 +9,18 @@ const selectedRun = (page: Page) =>
   page.locator(".run-item.selected").getAttribute("data-run");
 const openSection = (page: Page, name: RegExp) =>
   page.getByRole("button", { name }).click();
+// The animated plane sits in the 3D scene, like the slice: its note shows,
+// nothing fails to load, and its tracers move between frames.
+async function expectAnimatedPlane(page: Page, count: number) {
+  const hints = page.getByText(/Tracers follow the average in-plane velocity/);
+  await expect(hints).toHaveCount(count);
+  await expect(page.getByText("Loading geometry…")).toHaveCount(0);
+  await expect(page.locator(".viewport-message.error")).toHaveCount(0);
+  const canvas = page.locator('[data-testid="vtk-viewer"] canvas').first();
+  const before = await canvas.screenshot();
+  await page.waitForTimeout(500);
+  expect(before.equals(await canvas.screenshot())).toBe(false);
+}
 
 test("sample, geometry view, saved conditions, and duplicate", async ({
   page,
@@ -68,6 +80,10 @@ test("real results, slices and flow lines render without browser errors", async 
   await expect(page.getByText("Loading geometry…")).toHaveCount(0);
   await expect(page.locator(".viewport-message.error")).toHaveCount(0);
   await page.screenshot({ path: "../docs/results.png", fullPage: true });
+  await page.getByLabel("View", { exact: true }).selectOption("plane");
+  await expectAnimatedPlane(page, 1);
+  await page.getByLabel("Plane", { exact: true }).selectOption("x");
+  await expectAnimatedPlane(page, 1);
   await page.getByLabel("View", { exact: true }).selectOption("streamlines");
   await expect(page.getByText("Loading geometry…")).toHaveCount(0);
   await expect(page.locator(".viewport-message.error")).toHaveCount(0);
@@ -167,6 +183,9 @@ test("run two actual simulations from the UI, compare, reopen, and cancel", asyn
     ),
   ).toBe(false);
   await page.screenshot({ path: "../docs/comparison.png", fullPage: true });
+  await page.getByLabel("View", { exact: true }).selectOption("plane");
+  await expectAnimatedPlane(page, 2);
+  await page.getByLabel("View", { exact: true }).selectOption("surface");
   await page.reload();
   await page.getByRole("button", { name: "Simulation results" }).click();
   await openRun(page, variant!);

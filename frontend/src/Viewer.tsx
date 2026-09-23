@@ -8,7 +8,16 @@ import vtkColorTransferFunction from "@kitware/vtk.js/Rendering/Core/ColorTransf
 import vtkPlaneSource from "@kitware/vtk.js/Filters/Sources/PlaneSource";
 import vtkAnnotatedCubeActor from "@kitware/vtk.js/Rendering/Core/AnnotatedCubeActor";
 import vtkOrientationMarkerWidget from "@kitware/vtk.js/Interaction/Widgets/OrientationMarkerWidget";
+import vtkTexture from "@kitware/vtk.js/Rendering/Core/Texture";
 import type { Geometry } from "./types";
+import {
+  flowSeconds,
+  load,
+  NOTE,
+  paint,
+  Tracers,
+  type PlaneSettings,
+} from "./planeFlow";
 import { Maximize2, Move3D } from "lucide-react";
 
 type CameraState = {
@@ -64,6 +73,8 @@ type Props = {
   label?: string;
   highlight?: string;
   theme?: string;
+  // Animation settings for the "plane" mode.
+  flow?: PlaneSettings;
 };
 export default function Viewer({
   geometry,
@@ -78,7 +89,11 @@ export default function Viewer({
   label,
   highlight,
   theme = "light",
+  flow,
 }: Props) {
+  const flowSettings = useRef(flow);
+  flowSettings.current = flow;
+  const cut = mode === "slice" || mode === "plane";
   const colors = theme === "dark" ? PALETTE.dark : PALETTE.light;
   const container = useRef<HTMLDivElement>(null);
   const context = useRef<ReturnType<
@@ -100,6 +115,9 @@ export default function Viewer({
     camera.setParallelProjection(false);
     ctx.getRenderer().resetCameraClippingRange();
     ctx.getRenderWindow().render();
+    // A scene still loading would otherwise restore the camera saved before
+    // this choice; without one it resets as well.
+    cameraState.current = null;
   };
   const look = (name: keyof typeof VIEWS) => {
     const ctx = context.current;
@@ -119,6 +137,15 @@ export default function Viewer({
     // Fit the model and the road under it, not the whole ground grid.
     ctx.getRenderer().resetCamera([lo[0], hi[0], lo[1], hi[1], 0, hi[2]]);
     ctx.getRenderWindow().render();
+    // Kept as the saved camera, so a scene still loading keeps this view.
+    cameraState.current = {
+      position: [...camera.getPosition()],
+      focalPoint: [...camera.getFocalPoint()],
+      viewUp: [...camera.getViewUp()],
+      parallel: true,
+      scale: camera.getParallelScale(),
+      size: size(geometry),
+    };
   };
   useEffect(() => {
     if (!container.current) return;
@@ -222,6 +249,92 @@ export default function Viewer({
       } else mapper.setScalarVisibility(false);
       renderer.addActor(actor);
     };
+    // The animated plane: the resampled field and moving tracers drawn into a
+    // canvas that textures a quad at the plane's position in the scene, like
+    // the slice. Points without fluid data (the car) stay transparent.
+    let stopAnimation = () => {};
+    const animate = (data: Awaited<ReturnType<typeof load>>) => {
+      const h = data.header;
+      const at = (a: number, b: number) => {
+        const p: [number, number, number] = [0, 0, 0];
+        p["xyz".indexOf(h.axis)] = h.position;
+        p["XYZ".indexOf(h.horizontal)] = a;
+        p["XYZ".indexOf(h.vertical)] = b;
+        return p;
+      };
+      const quad = vtkPlaneSource.newInstance();
+      quad.setOrigin(...at(h.left, h.bottom));
+      quad.setPoint1(...at(h.right, h.bottom));
+      quad.setPoint2(...at(h.left, h.top));
+      const quadMapper = vtkMapper.newInstance();
+      quadMapper.setInputConnection(quad.getOutputPort());
+      const quadActor = vtkActor.newInstance();
+      quadActor.setMapper(quadMapper);
+      quadActor.setForceTranslucent(true);
+      const look = quadActor.getProperty();
+      look.setAmbient(1);
+      look.setDiffuse(0);
+      look.setSpecular(0);
+      // About 2.5 texture pixels per grid point keeps tracers sharp.
+      const scale = Math.min(4, 1600 / Math.max(h.nx, h.ny));
+      const surface = document.createElement("canvas"),
+        trails = document.createElement("canvas");
+      surface.width = trails.width = Math.round(h.nx * scale);
+      surface.height = trails.height = Math.round(h.ny * scale);
+      const own = h.fields.find((f) => f.name === field);
+      const [low, high] = range ?? (own ? [own.min, own.max] : [0, 1]);
+      const tile = paint(data, data.fields[field], low, high);
+      const texture = vtkTexture.newInstance() as ReturnType<
+        typeof vtkTexture.newInstance
+      > & { delete: () => void; modified: () => void };
+      texture.setInterpolate(true);
+      texture.setCanvas(surface);
+      quadActor.addTexture(texture);
+      owned.push(quad, quadMapper, quadActor, texture);
+      renderer.addActor(quadActor);
+      const draw = surface.getContext("2d")!,
+        pen = trails.getContext("2d")!;
+      pen.lineCap = "round";
+      pen.lineWidth = 1.6;
+      pen.strokeStyle = "rgba(255,255,255,0.9)";
+      const W = surface.width,
+        H = surface.height;
+      const tracers = new Tracers(data, flowSettings.current?.tracers ?? 3500);
+      const compose = () => {
+        draw.clearRect(0, 0, W, H);
+        draw.imageSmoothingEnabled = true;
+        draw.drawImage(tile, 0, 0, W, H);
+        draw.drawImage(trails, 0, 0);
+        texture.modified();
+        ctx.getRenderWindow().render();
+      };
+      compose();
+      let last = performance.now(),
+        frame = 0;
+      const tick = (now: number) => {
+        frame = requestAnimationFrame(tick);
+        const elapsed = Math.min(now - last, 50);
+        last = now;
+        const settings = flowSettings.current;
+        if (!settings?.playing) return;
+        pen.globalCompositeOperation = "destination-out";
+        pen.fillStyle = "rgba(0,0,0,0.07)";
+        pen.fillRect(0, 0, W, H);
+        pen.globalCompositeOperation = "source-over";
+        pen.beginPath();
+        tracers.step(
+          flowSeconds(h.width, h, settings, elapsed),
+          (a, b, c, d) => {
+            pen.moveTo((a / (h.nx - 1)) * W, H - (b / (h.ny - 1)) * H);
+            pen.lineTo((c / (h.nx - 1)) * W, H - (d / (h.ny - 1)) * H);
+          },
+        );
+        pen.stroke();
+        compose();
+      };
+      frame = requestAnimationFrame(tick);
+      return () => cancelAnimationFrame(frame);
+    };
     const render = async () => {
       const tasks: Promise<void>[] = [];
       if (resultBase && mode === "surface")
@@ -243,7 +356,7 @@ export default function Viewer({
                 ? part.id === highlight
                   ? 0.45
                   : 0.12
-                : resultBase && mode === "slice"
+                : resultBase && cut
                   ? 0.4
                   : 1,
             ),
@@ -258,6 +371,14 @@ export default function Viewer({
             `${resultBase}/slice?axis=${axis}&position=${position}`,
             colors.slice,
             true,
+          ),
+        );
+      if (resultBase && mode === "plane")
+        tasks.push(
+          load(`${resultBase}/plane?axis=${axis}&position=${position}`).then(
+            (data) => {
+              if (!abort.signal.aborted) stopAnimation = animate(data);
+            },
           ),
         );
       const plane = vtkPlaneSource.newInstance();
@@ -314,6 +435,7 @@ export default function Viewer({
     });
     return () => {
       abort.abort();
+      stopAnimation();
       if (cameraReady.current)
         cameraState.current = {
           position: [...camera.getPosition()],
@@ -338,6 +460,7 @@ export default function Viewer({
     range?.[1],
     highlight,
     theme,
+    flow?.tracers,
   ]);
   useEffect(() => {
     const ctx = context.current;
@@ -401,9 +524,13 @@ export default function Viewer({
           <Maximize2 size={14} /> 3D
         </button>
       </div>
-      <div className="viewport-hint">
-        <Move3D size={14} /> Drag to rotate · Scroll to zoom · Shift + drag to
-        pan
+      <div
+        className={`viewport-hint ${resultBase && mode === "plane" ? "plane-note" : ""}`}
+      >
+        <Move3D size={14} />{" "}
+        {resultBase && mode === "plane"
+          ? NOTE
+          : "Drag to rotate · Scroll to zoom · Shift + drag to pan"}
       </div>
       <div className="flow-direction">
         AIRFLOW <span>→</span> +X <small>Up +Z</small>

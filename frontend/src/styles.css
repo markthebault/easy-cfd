@@ -1475,8 +1475,16 @@ main {
   gap: 1px;
   background: var(--border);
 }
-.compare-viewers .viewport-hint {
+/* Navigation hints are dropped in paired views; caveats are not. */
+.compare-viewers .viewport-hint:not(.plane-note) {
   display: none;
+}
+.viewport-hint.plane-note {
+  max-width: calc(100% - 230px);
+}
+/* The caveat can wrap to two lines; keep the axis label clear of it. */
+.viewer:has(.plane-note) .flow-direction {
+  bottom: 50px;
 }
 .comparison-table {
   background: var(--surface);

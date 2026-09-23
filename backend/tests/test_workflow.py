@@ -717,3 +717,104 @@ def test_compare_names_components_switched_off_inside_one_file(client):
     assert diff(partial, none)["only_baseline"] == [added[0]["name"]]
     labels = [storage.get("runs", r)["configuration"]["added"] for r in (full, partial, none)]
     assert labels == [["aero.stl"], [added[0]["name"]], []]
+
+
+def synthetic_volume(folder):
+    """Known flow U = (10 + x, 2y, z) around a hole where a car would be; synthetic test data."""
+    image = vtk.vtkImageData()
+    image.SetDimensions(41, 31, 21)
+    image.SetOrigin(-2, -1.5, 0)
+    image.SetSpacing(0.2, 0.1, 0.1)
+    count = image.GetNumberOfPoints()
+    xyz = np.array([image.GetPoint(i) for i in range(count)])
+    velocity = np.stack([10 + xyz[:, 0], 2 * xyz[:, 1], xyz[:, 2]], axis=1)
+    for name, values in [
+        ("U", velocity),
+        ("Speed", np.linalg.norm(velocity, axis=1)),
+        ("Pressure", -xyz[:, 0] * 10),
+        ("Turbulence", np.full(count, 0.5)),
+    ]:
+        array = numpy_to_vtk(values, deep=True)
+        array.SetName(name)
+        image.GetPointData().AddArray(array)
+    centers = vtk.vtkCellCenters()
+    centers.SetInputData(image)
+    centers.Update()
+    middle = vtk_to_numpy(centers.GetOutput().GetPoints().GetData())
+    keep = vtk.vtkIdList()
+    for i, (x, y, z) in enumerate(middle):
+        if not (-1 < x < 1 and -0.5 < y < 0.5 and z < 1):
+            keep.InsertNextId(i)
+    extract = vtk.vtkExtractCells()
+    extract.SetInputData(image)
+    extract.SetCellList(keep)
+    extract.Update()
+    folder.mkdir(parents=True, exist_ok=True)
+    writer = vtk.vtkXMLUnstructuredGridWriter()
+    writer.SetFileName(str(folder / "volume.vtu"))
+    writer.SetInputData(extract.GetOutput())
+    writer.Write()
+    return [-2, 6, -1.5, 1.5, 0, 2]
+
+
+def test_plane_grid_orients_components_and_masks_the_car(tmp_path):
+    from easycfd import plane
+
+    bounds = synthetic_volume(tmp_path)
+    header, fields = plane.read(plane.plane_field(tmp_path, "z", 25, bounds, 27.8))
+    assert (header["horizontal"], header["vertical"], header["position"]) == ("X", "Y", pytest.approx(0.5))
+    nx, ny = header["nx"], header["ny"]
+    assert nx == 640 and abs(ny - 640 * 3 / 8) <= 1
+
+    def at(x, y, h):
+        i = round((x - h["left"]) / (h["right"] - h["left"]) * (h["nx"] - 1))
+        j = round((y - h["bottom"]) / (h["top"] - h["bottom"]) * (h["ny"] - 1))
+        return j, i
+
+    j, i = at(4, 1, header)
+    assert fields["valid"][j, i]
+    assert fields["u"][j, i] == pytest.approx(14, abs=0.05)
+    assert fields["v"][j, i] == pytest.approx(2, abs=0.05)
+    assert fields["Pressure"][j, i] == pytest.approx(-40, abs=0.1)
+    # Inside the car: no fluid cells, so masked rather than interpolated.
+    assert not fields["valid"][at(0, 0, header)]
+    assert 0.8 < header["valid_fraction"] < 1
+
+    # Cross-sections look downstream from the nose: +Y is on the left, so the
+    # rightward component is -Uy.
+    header, fields = plane.read(plane.plane_field(tmp_path, "x", 75, bounds, 27.8))
+    assert (header["horizontal"], header["left"], header["right"]) == ("Y", 1.5, -1.5)
+    j, i = at(1.2, 1.5, header)
+    assert fields["u"][j, i] == pytest.approx(-2.4, abs=0.05)
+    assert fields["v"][j, i] == pytest.approx(1.5, abs=0.05)
+    # Side plane: right is +X, up is +Z.
+    header, fields = plane.read(plane.plane_field(tmp_path, "y", 50, bounds, 27.8))
+    j, i = at(5, 1.5, header)
+    assert (header["horizontal"], header["vertical"]) == ("X", "Z")
+    assert fields["u"][j, i] == pytest.approx(15, abs=0.05)
+    assert fields["v"][j, i] == pytest.approx(1.5, abs=0.05)
+
+
+def test_plane_endpoint_serves_gzip_and_validates(client):
+    key = storage.identifier()
+    bounds = synthetic_volume(storage.directory("runs", key) / "results")
+    storage.save(
+        "runs",
+        dict(id=key, created=storage.now(), status="completed", settings=Settings().model_dump(),
+             result=dict(slice_bounds=bounds)),
+    )
+    r = client.get(f"/api/runs/{key}/plane?axis=z&position=25")
+    assert r.status_code == 200
+    assert r.headers["content-encoding"] == "gzip"
+    assert r.content[:4] == b"ECFP"  # the test client decompresses like a browser
+    assert client.get(f"/api/runs/{key}/plane?axis=z&position=101").status_code == 400
+    assert client.get(f"/api/runs/{key}/plane?axis=w").status_code == 422
+
+
+def test_plane_masks_extrapolated_probe_values():
+    from easycfd import plane
+
+    velocity = np.array([[3.0, 4.0, 0.0], [30.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
+    # |U| = 5 within the speed; 30 above the interpolated speed of 12; negative speed.
+    speed = np.array([5.2, 12.0, -1.0])
+    assert plane.interpolated(velocity, speed).tolist() == [True, False, False]
