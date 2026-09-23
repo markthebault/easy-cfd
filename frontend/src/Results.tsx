@@ -9,6 +9,7 @@ import {
   Terminal,
 } from "lucide-react";
 import Viewer from "./Viewer";
+import type { PlaneSettings } from "./planeFlow";
 import {
   active,
   fmt,
@@ -109,6 +110,7 @@ export function ResultsView({
   axis,
   position,
   theme,
+  plane,
   onBack,
 }: {
   current?: Run;
@@ -120,6 +122,7 @@ export function ResultsView({
   axis: string;
   position: number;
   theme: string;
+  plane: PlaneSettings;
   onBack: () => void;
 }) {
   if (!current)
@@ -204,6 +207,7 @@ export function ResultsView({
             position={position}
             range={result?.ranges[field]}
             theme={theme}
+            flow={plane}
             label={
               result
                 ? `${field} · calculated result`

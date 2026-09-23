@@ -16,6 +16,8 @@ import {
   Monitor,
   BookOpen,
   RefreshCw,
+  Pause,
+  Play,
 } from "lucide-react";
 import Viewer from "./Viewer";
 import BlenderGuide from "./BlenderGuide";
@@ -28,6 +30,7 @@ import {
   RunBar,
 } from "./Setup";
 import { ResultsView, RunActions, RunList } from "./Results";
+import type { PlaneSettings } from "./planeFlow";
 import { CompareView } from "./Compare";
 import { active, remember, remembered, Section } from "./ui";
 import {
@@ -90,7 +93,13 @@ export default function App() {
     [designsOpen, setDesignsOpen] = useState(
       () => remembered<string>("easycfd-designs", "closed") === "open",
     ),
-    [runScope, setRunScope] = useState<"design" | "all">("design");
+    [runScope, setRunScope] = useState<"design" | "all">("design"),
+    // Animated plane view; starts paused for people who ask for less motion.
+    [plane, setPlane] = useState<PlaneSettings>(() => ({
+      playing: !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches,
+      speed: 1,
+      tracers: 3500,
+    }));
   const resolved = theme === "system" ? (systemDark ? "dark" : "light") : theme;
   useEffect(() => {
     const media = window.matchMedia?.("(prefers-color-scheme: dark)");
@@ -312,9 +321,10 @@ export default function App() {
           <option value="surface">Surface</option>
           <option value="streamlines">Flow lines</option>
           <option value="slice">Slice plane</option>
+          <option value="plane">Animated plane</option>
         </select>
       </label>
-      {mode === "slice" && (
+      {(mode === "slice" || mode === "plane") && (
         <>
           <label>
             Plane
@@ -338,6 +348,43 @@ export default function App() {
               value={sliceDraft}
               onChange={(e) => setSliceDraft(+e.target.value)}
             />
+          </label>
+        </>
+      )}
+      {mode === "plane" && (
+        <>
+          <button
+            className="secondary small"
+            onClick={() => setPlane({ ...plane, playing: !plane.playing })}
+          >
+            {plane.playing ? <Pause size={13} /> : <Play size={13} />}
+            {plane.playing ? "Pause" : "Play"}
+          </button>
+          <label className="slider-label">
+            Motion {plane.speed}×
+            <input
+              aria-label="Animation speed"
+              type="range"
+              min="0.25"
+              max="4"
+              step="0.25"
+              value={plane.speed}
+              onChange={(e) => setPlane({ ...plane, speed: +e.target.value })}
+            />
+          </label>
+          <label>
+            Tracers
+            <select
+              aria-label="Tracers"
+              value={plane.tracers}
+              onChange={(e) => setPlane({ ...plane, tracers: +e.target.value })}
+            >
+              {[1500, 3500, 6000, 9000].map((n) => (
+                <option key={n} value={n}>
+                  {n.toLocaleString()}
+                </option>
+              ))}
+            </select>
           </label>
         </>
       )}
@@ -724,6 +771,7 @@ export default function App() {
           )}
           {tab === "results" && (
             <ResultsView
+              plane={plane}
               current={current}
               history={history}
               historyFailed={historyFailed}
@@ -738,6 +786,7 @@ export default function App() {
           )}
           {tab === "compare" && (
             <CompareView
+              plane={plane}
               completed={completed}
               baseline={baseline}
               variant={variant}
