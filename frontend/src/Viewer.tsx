@@ -6,8 +6,27 @@ import vtkMapper from "@kitware/vtk.js/Rendering/Core/Mapper";
 import vtkXMLPolyDataReader from "@kitware/vtk.js/IO/XML/XMLPolyDataReader";
 import vtkColorTransferFunction from "@kitware/vtk.js/Rendering/Core/ColorTransferFunction";
 import vtkPlaneSource from "@kitware/vtk.js/Filters/Sources/PlaneSource";
+import vtkAnnotatedCubeActor from "@kitware/vtk.js/Rendering/Core/AnnotatedCubeActor";
+import vtkOrientationMarkerWidget from "@kitware/vtk.js/Interaction/Widgets/OrientationMarkerWidget";
 import type { Geometry } from "./types";
 import { Maximize2, Move3D } from "lucide-react";
+
+type CameraState = {
+  position: number[];
+  focalPoint: number[];
+  viewUp: number[];
+  parallel: boolean;
+  scale: number;
+  size: number;
+};
+const size = (g: Geometry) => Math.max(...g.dimensions);
+// Orthographic views looking along a world axis, with +X (airflow) to the right
+// where the axis allows it: direction of view and camera up.
+const VIEWS = {
+  Front: { direction: [1, 0, 0], up: [0, 0, 1] },
+  Side: { direction: [0, 1, 0], up: [0, 0, 1] },
+  Top: { direction: [0, 0, -1], up: [0, 1, 0] },
+} as const;
 
 type Props = {
   geometry: Geometry | null;
@@ -40,11 +59,7 @@ export default function Viewer({
     typeof vtkGenericRenderWindow.newInstance
   > | null>(null);
   const cameraReady = useRef(false);
-  const cameraState = useRef<{
-    position: number[];
-    focalPoint: number[];
-    viewUp: number[];
-  } | null>(null);
+  const cameraState = useRef<CameraState | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const reset = () => {
@@ -56,7 +71,27 @@ export default function Viewer({
     camera.setPosition(-l * 0.9, -l * 1.3, l * 0.8);
     camera.setFocalPoint((lo[0] + hi[0]) / 2, 0, (lo[2] + hi[2]) / 2);
     camera.setViewUp(0, 0, 1);
+    camera.setParallelProjection(false);
     ctx.getRenderer().resetCameraClippingRange();
+    ctx.getRenderWindow().render();
+  };
+  const look = (name: keyof typeof VIEWS) => {
+    const ctx = context.current;
+    if (!ctx || !geometry) return;
+    const { direction, up } = VIEWS[name];
+    const [lo, hi] = geometry.bounds;
+    const center = [0, 1, 2].map((i) => (lo[i] + hi[i]) / 2);
+    const camera = ctx.getRenderer().getActiveCamera();
+    camera.setParallelProjection(true);
+    camera.setFocalPoint(center[0], center[1], center[2]);
+    camera.setPosition(
+      center[0] - direction[0],
+      center[1] - direction[1],
+      center[2] - direction[2],
+    );
+    camera.setViewUp(up[0], up[1], up[2]);
+    // Fit the model and the road under it, not the whole ground grid.
+    ctx.getRenderer().resetCamera([lo[0], hi[0], lo[1], hi[1], 0, hi[2]]);
     ctx.getRenderWindow().render();
   };
   useEffect(() => {
@@ -67,10 +102,42 @@ export default function Viewer({
     ctx.setContainer(container.current);
     ctx.resize();
     context.current = ctx;
+    const cube = vtkAnnotatedCubeActor.newInstance();
+    cube.setDefaultStyle({
+      fontStyle: "bold",
+      fontFamily: "Arial",
+      fontColor: "#2d4650",
+      faceColor: "#f4f7f7",
+      edgeThickness: 0.06,
+      edgeColor: "#9fb0b5",
+      resolution: 200,
+      // Six-letter words must fit a face; the default scale is sized for "X".
+      fontSizeScale: (res: number) => res / 3.6,
+    });
+    // Nose toward −X and +Z up, so the car's right side faces +Y.
+    cube.setXMinusFaceProperty({ text: "FRONT", faceColor: "#d9efe9" });
+    cube.setXPlusFaceProperty({ text: "REAR" });
+    cube.setYPlusFaceProperty({ text: "RIGHT" });
+    cube.setYMinusFaceProperty({ text: "LEFT" });
+    cube.setZPlusFaceProperty({ text: "TOP" });
+    cube.setZMinusFaceProperty({ text: "BOTTOM" });
+    const marker = vtkOrientationMarkerWidget.newInstance({
+      actor: cube,
+      interactor: ctx.getInteractor(),
+    });
+    marker.setParentRenderer(ctx.getRenderer());
+    marker.setViewportCorner(vtkOrientationMarkerWidget.Corners.TOP_RIGHT);
+    marker.setViewportSize(0.14);
+    marker.setMinPixelSize(64);
+    marker.setMaxPixelSize(92);
+    marker.setEnabled(true);
     const observer = new ResizeObserver(() => ctx.resize());
     observer.observe(container.current);
     return () => {
       observer.disconnect();
+      marker.setEnabled(false);
+      marker.delete();
+      cube.delete();
       ctx.delete();
       context.current = null;
     };
@@ -139,13 +206,21 @@ export default function Viewer({
           tasks.push(
             add(
               `${geometryBase}/${part.id}.vtp`,
-              part.id === highlight || part.issues.length
+              part.id === highlight ||
+                (part.issues.length && part.enabled !== false)
                 ? [0.92, 0.32, 0.12]
                 : part.role === "wheel"
                   ? [0.15, 0.19, 0.23]
                   : [0.64, 0.71, 0.74],
               false,
-              resultBase && mode === "slice" ? 0.4 : 1,
+              // Switched-off parts stay faintly visible so their position is clear.
+              part.enabled === false
+                ? part.id === highlight
+                  ? 0.45
+                  : 0.12
+                : resultBase && mode === "slice"
+                  ? 0.4
+                  : 1,
             ),
           );
       if (resultBase && mode === "streamlines")
@@ -181,7 +256,12 @@ export default function Viewer({
       renderer.addActor(actor);
       await Promise.all(tasks);
       if (abort.signal.aborted) return;
-      if (cameraState.current) {
+      // Keep the view across part toggles, but not across a units change that
+      // would leave the model far outside it.
+      const ratio = cameraState.current
+        ? size(geometry) / cameraState.current.size
+        : 0;
+      if (cameraState.current && ratio > 0.5 && ratio < 2) {
         camera.setPosition(
           ...(cameraState.current.position as [number, number, number]),
         );
@@ -191,6 +271,8 @@ export default function Viewer({
         camera.setViewUp(
           ...(cameraState.current.viewUp as [number, number, number]),
         );
+        camera.setParallelProjection(cameraState.current.parallel);
+        camera.setParallelScale(cameraState.current.scale);
         renderer.resetCameraClippingRange();
         ctx.getRenderWindow().render();
       } else reset();
@@ -209,6 +291,9 @@ export default function Viewer({
         position: [...camera.getPosition()],
         focalPoint: [...camera.getFocalPoint()],
         viewUp: [...camera.getViewUp()],
+        parallel: camera.getParallelProjection(),
+        scale: camera.getParallelScale(),
+        size: size(geometry),
       };
       renderer.removeAllViewProps();
       owned.forEach((o) => o.delete());
@@ -240,6 +325,8 @@ export default function Viewer({
               position: camera.getPosition(),
               focal: camera.getFocalPoint(),
               up: camera.getViewUp(),
+              parallel: camera.getParallelProjection(),
+              scale: camera.getParallelScale(),
             },
           }),
         );
@@ -251,6 +338,8 @@ export default function Viewer({
       camera.setPosition(...(d.position as [number, number, number]));
       camera.setFocalPoint(...(d.focal as [number, number, number]));
       camera.setViewUp(...(d.up as [number, number, number]));
+      camera.setParallelProjection(d.parallel);
+      camera.setParallelScale(d.scale);
       ctx.getRenderer().resetCameraClippingRange();
       ctx.getRenderWindow().render();
       applying = false;
@@ -268,9 +357,21 @@ export default function Viewer({
         <span className="dot" />
         {label || "Geometry preview"}
       </div>
-      <button className="view-reset" title="Reset camera" onClick={reset}>
-        <Maximize2 size={16} />
-      </button>
+      <div className="view-buttons" role="group" aria-label="Camera view">
+        {(Object.keys(VIEWS) as (keyof typeof VIEWS)[]).map((name) => (
+          <button
+            key={name}
+            title={`${name} view, without perspective`}
+            onClick={() => look(name)}
+            disabled={!geometry}
+          >
+            {name}
+          </button>
+        ))}
+        <button title="Reset camera" onClick={reset} disabled={!geometry}>
+          <Maximize2 size={14} /> 3D
+        </button>
+      </div>
       <div className="viewport-hint">
         <Move3D size={14} /> Drag to rotate · Scroll to zoom · Shift + drag to
         pan

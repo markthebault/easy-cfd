@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import Viewer from "./Viewer";
 import BlenderGuide from "./BlenderGuide";
+import { OrientationTools, PartList } from "./GeometryTools";
 import {
   api,
   json,
@@ -31,7 +32,7 @@ import {
   type Health,
   type Settings,
   type Comparison,
-  type Part,
+  type ImportOptions,
 } from "./types";
 
 const fmt = (n: number | undefined, digits = 2) =>
@@ -39,6 +40,14 @@ const fmt = (n: number | undefined, digits = 2) =>
 const share = (part: number, total: number) =>
   total ? `${((100 * part) / total).toFixed(0)}%` : "—";
 const active = (r: Run) => ["running", "queued"].includes(r.status);
+// Optional parts differ between runs of one design, so labels name them.
+const parts = (r: Run) =>
+  [
+    ...(r.configuration?.added ?? []).map((n) => ` + ${n}`),
+    r.configuration?.excluded.length
+      ? ` − ${r.configuration.excluded.length} part${r.configuration.excluded.length > 1 ? "s" : ""}`
+      : "",
+  ].join("");
 const megabytes = (bytes: number) =>
   bytes >= 1024 ** 3
     ? `${(bytes / 1024 ** 3).toFixed(1)} GB`
@@ -63,7 +72,7 @@ export default function App() {
     [designName, setDesignName] = useState("");
   const [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
-    [importing, setImporting] = useState(false),
+    [importing, setImporting] = useState<"" | "replace" | "add">(""),
     [logs, setLogs] = useState<Record<string, string> | null>(null);
   const [baseline, setBaseline] = useState(""),
     [variant, setVariant] = useState(""),
@@ -188,6 +197,20 @@ export default function App() {
     pick(p);
     await refresh();
   };
+  // Geometry edits save pending settings first, as other project changes do.
+  const edit = (change: () => Promise<Project>) =>
+    action(async () => {
+      await save();
+      pick(await change());
+      await refresh();
+    });
+  const reorient = (options: ImportOptions) =>
+    edit(() =>
+      api<Project>(
+        `/projects/${project!.id}/import-options`,
+        json("PUT", options),
+      ),
+    );
   const start = () =>
     action(async () => {
       await save();
@@ -400,7 +423,7 @@ export default function App() {
                     onClick={() =>
                       action(async () => {
                         await save();
-                        setImporting(true);
+                        setImporting("replace");
                       })
                     }
                   >
@@ -419,31 +442,48 @@ export default function App() {
                         </span>
                       ))}
                     </div>
-                    <div className="part-list">
-                      {project.geometry.parts.map((part) => (
-                        <PartRow
-                          key={
-                            project.id + project.geometry?.fingerprint + part.id
-                          }
-                          part={part}
-                          highlighted={highlight === part.id}
-                          onHighlight={() =>
-                            setHighlight(highlight === part.id ? "" : part.id)
-                          }
-                          onChange={(role, radius) =>
-                            action(async () => {
-                              await save();
-                              const p = await api<Project>(
-                                `/projects/${project.id}/parts/${part.id}`,
-                                json("PUT", { role, radius }),
-                              );
-                              pick(p);
-                              await refresh();
-                            })
-                          }
-                        />
-                      ))}
-                    </div>
+                    <OrientationTools
+                      key={project.id}
+                      geometry={project.geometry}
+                      apply={reorient}
+                    />
+                    <PartList
+                      geometry={project.geometry}
+                      highlight={highlight}
+                      onHighlight={setHighlight}
+                      onRole={(part, role, radius) =>
+                        edit(() =>
+                          api<Project>(
+                            `/projects/${project.id}/parts/${part.id}`,
+                            json("PUT", { role, radius }),
+                          ),
+                        )
+                      }
+                      onEnabled={(part_ids, enabled) =>
+                        edit(() =>
+                          api<Project>(
+                            `/projects/${project.id}/parts-enabled`,
+                            json("PUT", { part_ids, enabled }),
+                          ),
+                        )
+                      }
+                      onRemove={(file) => {
+                        const name = project.geometry?.sources?.find(
+                          (s) => s.file === file,
+                        )?.name;
+                        if (
+                          window.confirm(
+                            `Remove ${name} from this design? Saved runs are not affected.`,
+                          )
+                        )
+                          edit(() =>
+                            api<Project>(
+                              `/projects/${project.id}/sources/${encodeURIComponent(file)}`,
+                              json("DELETE"),
+                            ),
+                          );
+                      }}
+                    />
                     {project.geometry.errors.map((e, i) => (
                       <p className="validation-error" key={i}>
                         {e}
@@ -468,12 +508,25 @@ export default function App() {
                   onClick={() =>
                     action(async () => {
                       await save();
-                      setImporting(true);
+                      setImporting("replace");
                     })
                   }
                 >
                   <Upload size={13} /> Import STEP / STL
                 </button>
+                {project.geometry?.import_options && (
+                  <button
+                    className="text-button"
+                    onClick={() =>
+                      action(async () => {
+                        await save();
+                        setImporting("add");
+                      })
+                    }
+                  >
+                    <Plus size={13} /> Add parts · wing, splitter…
+                  </button>
+                )}
               </section>
               <section className="setup-section">
                 <h3>
@@ -853,7 +906,8 @@ export default function App() {
                     </option>
                     {runs.map((r) => (
                       <option value={r.id} key={r.id}>
-                        {r.name} · {r.settings.quality} · {r.status} ·{" "}
+                        {r.name}
+                        {parts(r)} · {r.settings.quality} · {r.status} ·{" "}
                         {new Date(r.created).toLocaleTimeString()}
                       </option>
                     ))}
@@ -1144,7 +1198,8 @@ export default function App() {
                     <option value="">Choose completed run</option>
                     {completed.map((r) => (
                       <option key={r.id} value={r.id}>
-                        {r.name} · {r.settings.quality} · {r.id.slice(0, 6)}
+                        {r.name}
+                        {parts(r)} · {r.settings.quality} · {r.id.slice(0, 6)}
                       </option>
                     ))}
                   </select>
@@ -1162,7 +1217,9 @@ export default function App() {
                       .filter((r) => r.id !== baseline)
                       .map((r) => (
                         <option key={r.id} value={r.id}>
-                          {r.name} · {r.settings.quality} · {r.id.slice(0, 6)}
+                          {r.name}
+                          {parts(r)} · {r.settings.quality} ·{" "}
+                          {r.id.slice(0, 6)}
                         </option>
                       ))}
                   </select>
@@ -1171,6 +1228,27 @@ export default function App() {
               {comparison && a && b ? (
                 <>
                   <Warnings items={comparison.warnings} />
+                  {comparison.parts && (
+                    <div className="parts-diff">
+                      <Layers size={14} />
+                      {comparison.parts.same ? (
+                        <span>Same simulated geometry in both runs.</span>
+                      ) : !comparison.parts.only_baseline.length &&
+                        !comparison.parts.only_variant.length ? (
+                        <span>
+                          Same parts, different geometry: shape, position, or
+                          orientation changed.
+                        </span>
+                      ) : (
+                        <span>
+                          {comparison.parts.only_variant.length > 0 &&
+                            `Variant adds ${comparison.parts.only_variant.join(", ")}. `}
+                          {comparison.parts.only_baseline.length > 0 &&
+                            `Variant drops ${comparison.parts.only_baseline.join(", ")}.`}
+                        </span>
+                      )}
+                    </div>
+                  )}
                   <div className="comparison-table">
                     <table>
                       <thead>
@@ -1320,12 +1398,13 @@ export default function App() {
       {importing && project && (
         <ImportModal
           project={project}
+          mode={importing}
           openGuide={() => setGuideOpen(true)}
-          close={() => setImporting(false)}
+          close={() => setImporting("")}
           onImported={async (p) => {
             pick(p);
             await refresh();
-            setImporting(false);
+            setImporting("");
             setTab("setup");
           }}
         />
@@ -1422,62 +1501,15 @@ function History({
     </svg>
   );
 }
-function PartRow({
-  part,
-  highlighted,
-  onHighlight,
-  onChange,
-}: {
-  part: Part;
-  highlighted: boolean;
-  onHighlight: () => void;
-  onChange: (role: string, radius: number) => void;
-}) {
-  const [radius, setRadius] = useState(
-    part.wheel?.radius ||
-      Math.max(0.01, (part.bounds[1][2] - part.bounds[0][2]) / 2),
-  );
-  return (
-    <div className={`part-row ${highlighted ? "highlighted" : ""}`}>
-      <button title="Highlight part" onClick={onHighlight}>
-        {part.issues.length ? <AlertTriangle size={12} /> : <Box size={12} />}
-        <span>{part.name}</span>
-      </button>
-      <select
-        aria-label={`${part.name} role`}
-        value={part.role}
-        onChange={(e) => onChange(e.target.value, radius)}
-      >
-        <option value="body">Body</option>
-        <option value="wheel">Wheel</option>
-      </select>
-      {part.role === "wheel" && (
-        <label className="wheel-radius">
-          Radius · m
-          <input
-            aria-label={`${part.name} radius`}
-            type="number"
-            min=".01"
-            max="2"
-            step=".01"
-            value={radius}
-            onChange={(e) => setRadius(+e.target.value)}
-            onBlur={() => {
-              if (radius !== part.wheel?.radius) onChange("wheel", radius);
-            }}
-          />
-        </label>
-      )}
-    </div>
-  );
-}
 function ImportModal({
   openGuide,
   project,
+  mode,
   close,
   onImported,
 }: {
   project: Project;
+  mode: "replace" | "add";
   close: () => void;
   openGuide: () => void;
   onImported: (p: Project) => Promise<void>;
@@ -1489,18 +1521,21 @@ function ImportModal({
     [clearance, setClearance] = useState(0.01),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
+  const adding = mode === "add",
+    frame = project.geometry?.import_options;
   const submit = async () => {
     setBusy(true);
     setError("");
     try {
       const body = new FormData();
       files.forEach((f) => body.append("files", f));
-      body.append("options", JSON.stringify({ units, forward, up, clearance }));
+      if (!adding)
+        body.append("options", JSON.stringify({ units, forward, up, clearance }));
       await onImported(
-        await api<Project>(`/projects/${project.id}/import`, {
-          method: "POST",
-          body,
-        }),
+        await api<Project>(
+          `/projects/${project.id}/${adding ? "parts" : "import"}`,
+          { method: "POST", body },
+        ),
       );
     } catch (e) {
       setError((e as Error).message);
@@ -1512,15 +1547,26 @@ function ImportModal({
     <div className="modal-backdrop">
       <div className="modal">
         <div className="modal-heading">
-          <h2>Import your design</h2>
+          <h2>{adding ? "Add parts" : "Import your design"}</h2>
           <button onClick={close} disabled={busy}>
             <X size={20} />
           </button>
         </div>
-        <p>
-          Import the complete exterior assembly. This replaces the current
-          model; saved runs keep their original geometry.
-        </p>
+        {adding ? (
+          <p>
+            Add optional parts such as a rear wing or splitter. Export them
+            from the same scene as the car, without moving the car. They use
+            the car&apos;s units and axes
+            {frame && ` (${frame.units}, nose ${frame.forward}, up ${frame.up})`}{" "}
+            and are placed exactly where they were exported. Switch each one on
+            or off before a run.
+          </p>
+        ) : (
+          <p>
+            Import the complete exterior assembly. This replaces the current
+            model; saved runs keep their original geometry.
+          </p>
+        )}
         <button className="text-button" type="button" onClick={openGuide}>Preparing a model in Blender? Read the export guide</button>
         <label className="file-drop">
           <Upload size={27} />
@@ -1539,6 +1585,8 @@ function ImportModal({
             {f.name} · {(f.size / 1024 / 1024).toFixed(1)} MB
           </p>
         ))}
+        {!adding && (
+          <>
         <div className="input-pair">
           <label className="input-label">
             STL units
@@ -1587,6 +1635,8 @@ function ImportModal({
           Wheel centers initially use each part's bounding-box center; export
           separate wheels with transverse axes.
         </p>
+          </>
+        )}
         {error && (
           <div className="alert error" role="alert">
             {error}
@@ -1597,7 +1647,11 @@ function ImportModal({
           disabled={busy || !files.length || forward[1] === up[1]}
           onClick={submit}
         >
-          {busy ? "Checking geometry…" : "Import & check model"}
+          {busy
+            ? "Checking geometry…"
+            : adding
+              ? "Add & check parts"
+              : "Import & check model"}
         </button>
       </div>
     </div>

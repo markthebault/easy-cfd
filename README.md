@@ -37,7 +37,7 @@ Linux uses the same scripts with Docker Engine. Windows support means running th
 2. Rotate it and check its dimensions. The nose points toward −X, incoming air travels toward +X, and +Z is up.
 3. Confirm the geometry checklist. Set road speed and reference area.
 4. Select **Fast** and run. Inspect pressure, flow lines, and velocity slices.
-5. Duplicate the design, then add the rear wing or import your own complete modified assembly.
+5. Duplicate the design, then add the rear wing or import your own complete modified assembly. For your own model, **Add parts** loads optional pieces such as wings or splitters into the same design; switch them on or off before each run.
 6. Keep the driving conditions and reference area the same. Run the variant and choose both completed runs in **Compare designs**.
 7. Use **Medium**, then **Precise**, before drawing conclusions about forces. Review the mesh, force history, residuals, near-wall resolution, and changes between mesh levels.
 
@@ -51,6 +51,10 @@ For Blender models, open **Blender export guide** in the page header or import d
 - **STL:** Select export units explicitly. STL does not reliably encode units.
 - Import all assembly files together so their relative positions are preserved. Imports replace the current project geometry, while previous run snapshots remain intact.
 - Choose the original forward and up axes. The app centers the assembly horizontally and places its lowest point at the requested distance above the road.
+- Original files are kept with the design. After import, **Turn 90°**, **Nose ↔ tail**, **Pitch 90°**, **Flip**, STL units, and road clearance rebuild the model from them without uploading again. Hints suggest a fix when the bounding box looks wrong, for example a car wider than it is long or a length that fits another unit. They are suggestions from the bounding box only and are applied only when you choose them.
+- **Add parts** imports optional parts exported from the same scene as the car, without moving the car. They use the car's units and axes, and keep their exported position: they are not re-centered or placed on the road. A part that reaches within 5 mm of the road blocks the run.
+- Each file and part can be switched off. Switched-off parts stay in the design, appear faint in the preview, and are left out of the simulation, dimensions, frontal-area estimate, and geometry checks. Each run keeps only the parts it simulated. Run labels and **Compare designs** name the parts that differ.
+- **Front**, **Side**, and **Top** show orthographic views for checking orientation. The labelled cube shows the car's front, rear, left, and right.
 - Identify wheels as separate parts. The initial wheel center comes from that part's bounding box; set its radius in the part list. The wheel axis is transverse to the car, so arbitrary steered or cambered wheels are outside this version's model.
 - Export a closed exterior, without cabin furniture, engine internals, or unnecessary fasteners. Fix open edges and incorrect normals in CAD/Blender. Automatic checks do not prove the absence of intersecting surfaces.
 - Current import limits are 20 files, 100 MB combined, 100 connected parts, and 1.5 million surface triangles. Supported model lengths are 0.1–15 m.

@@ -277,6 +277,8 @@ test("changing a part while geometry loads preserves the initial camera", async 
   const canvas = page.locator('[data-testid="vtk-viewer"] canvas');
   const initial = await canvas.screenshot();
   await page.getByTitle("Reset camera", { exact: true }).click();
+  // The view buttons overlay the canvas; clear their hover state.
+  await page.mouse.move(0, 0);
   expect(initial.equals(await canvas.screenshot())).toBe(true);
 });
 
@@ -341,4 +343,51 @@ test("Blender guide fits a phone viewport and traps keyboard focus", async ({
   });
   await page.keyboard.press("Escape");
   await expect(guide).toHaveCount(0);
+});
+
+test("re-orient an import, add a part, and switch it off", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTitle("New sample project").click();
+  await page.getByRole("button", { name: "Import STEP / STL" }).click();
+  await page
+    .getByLabel("Geometry files")
+    .setInputFiles("tests/fixtures/box.stl");
+  await page.getByRole("button", { name: "Import & check model" }).click();
+  await expect(page.locator(".dimensions")).toContainText("4.00");
+
+  // Rebuilt from the stored original: length and width swap, and a hint appears.
+  await page.getByRole("button", { name: "Turn 90°" }).click();
+  await expect(page.locator(".dimensions span").first()).toContainText("2.00");
+  await expect(page.locator(".geometry-hint")).toContainText(
+    "wider than it is long",
+  );
+  await page
+    .locator(".geometry-hint")
+    .getByRole("button", { name: "Turn 90°" })
+    .click();
+  await expect(page.locator(".dimensions span").first()).toContainText("4.00");
+  await expect(page.locator(".geometry-hint")).toHaveCount(0);
+
+  await page.getByRole("button", { name: /Add parts/ }).click();
+  await page
+    .getByLabel("Geometry files")
+    .setInputFiles("tests/fixtures/wing.stl");
+  await page.getByRole("button", { name: "Add & check parts" }).click();
+  await expect(page.locator(".part-group")).toHaveCount(2);
+  await expect(page.locator(".part-group").nth(1)).toContainText("Added");
+  // Placed where it was exported, above the roof, not dropped onto the road.
+  const height = page.locator(".dimensions span").nth(2);
+  await expect(height).toContainText("1.3");
+
+  // Switched off: out of the simulated assembly and its dimensions.
+  // Controlled by the saved project, so the box changes once the server replies.
+  await page.getByLabel("wing.stl enabled").click();
+  await expect(page.getByLabel("wing.stl enabled")).not.toBeChecked();
+  await expect(height).toContainText("1.00");
+  await expect(page.getByLabel("I checked size")).not.toBeChecked();
+
+  for (const view of ["Front", "Side", "Top"])
+    await page.getByRole("button", { name: view, exact: true }).click();
+  await page.getByTitle("Reset camera").click();
+  await expect(page.locator(".viewport-message.error")).toHaveCount(0);
 });

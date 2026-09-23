@@ -319,6 +319,108 @@ input[type="range"] {
   background: #f6f8f8;
   border: none;
 }
+.part-row.disabled > button {
+  color: #a3b0b5;
+  text-decoration: line-through;
+}
+.part-group {
+  border-bottom: 1px solid #e6ebec;
+  padding-bottom: 3px;
+  margin-bottom: 3px;
+}
+.part-group-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 2px 3px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #415961;
+}
+.part-group-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.part-tag {
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #7f9197;
+  background: #f1f4f4;
+  border-radius: 3px;
+  padding: 2px 5px;
+}
+.icon-button.small {
+  padding: 3px;
+  color: #8b9aa0;
+}
+.icon-button.small:hover {
+  background: #f1f4f4;
+  color: #b3471f;
+}
+.geometry-hint {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 10px;
+  line-height: 1.5;
+  color: #7a4d12;
+  background: #fff6e6;
+  border: 1px solid #f3dfb8;
+  border-radius: 5px;
+  padding: 7px 8px;
+  margin: 0 0 8px;
+}
+.geometry-hint > svg {
+  flex: none;
+  margin-top: 2px;
+}
+.geometry-hint > span {
+  flex: 1;
+  min-width: 160px;
+}
+.geometry-hint .text-button {
+  padding: 0;
+  font-weight: 600;
+}
+.orientation-tools {
+  margin: 4px 0 8px;
+}
+.orientation-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.orientation-buttons button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 10px;
+  color: #415961;
+  background: #f6f8f8;
+  border: 1px solid #e2e8e8;
+  border-radius: 4px;
+  padding: 6px 4px;
+}
+.orientation-buttons button:hover:not(:disabled) {
+  background: #eef3f2;
+  border-color: #c9d6d3;
+}
+.parts-diff {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #415961;
+  margin: 0 0 12px;
+}
 .wheel-radius {
   display: flex;
   justify-content: flex-end;
@@ -628,14 +730,28 @@ h1 {
   border-radius: 4px;
   pointer-events: none;
 }
-.view-reset {
+.view-buttons {
   position: absolute;
   top: 18px;
-  right: 20px;
+  /* Leaves room for the orientation cube in the top-right corner. */
+  right: 108px;
+  display: flex;
+  gap: 2px;
   background: #ffffffad;
   border-radius: 4px;
-  padding: 7px;
+  padding: 2px;
+}
+.view-buttons button {
   display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: #415961;
+  padding: 5px 8px;
+  border-radius: 3px;
+}
+.view-buttons button:hover:not(:disabled) {
+  background: #ffffff;
 }
 .viewport-hint {
   position: absolute;

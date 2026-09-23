@@ -1,6 +1,7 @@
 """Behavioral checks for geometry, force units, immutable runs, and failure handling."""
 
 import io
+import json
 import re
 import zipfile
 import numpy as np
@@ -572,3 +573,103 @@ def test_run_list_omits_history_and_export_leaves_no_archive(client):
     assert "case-medium/processor0/900/U" in names
     assert not (root / "run.zip").exists()
     assert not list(storage.ROOT.glob("export-*.zip"))
+
+
+def stl(mesh):
+    out = io.BytesIO()
+    mesh.export(out, file_type="stl")
+    out.seek(0)
+    return out
+
+
+def imported_car(client):
+    """Synthetic box car in millimetres, Y forward, with one wheel as a separate file."""
+    p = project(client)
+    body = trimesh.creation.box(extents=[1800, 4000, 1200])
+    body.apply_translation([0, 0, 900])
+    wheel = trimesh.creation.cylinder(radius=300, height=200, sections=24)
+    wheel.apply_transform(trimesh.transformations.rotation_matrix(np.pi / 2, [0, 1, 0]))
+    wheel.apply_translation([1100, -1300, 300])
+    options = dict(units="mm", forward="-Y", up="+Z", clearance=0.02)
+    r = client.post(
+        f"/api/projects/{p['id']}/import",
+        files=[("files", ("body.stl", stl(body))), ("files", ("wheel.stl", stl(wheel)))],
+        data={"options": json.dumps(options)},
+    )
+    assert r.status_code == 200, r.text
+    return r.json()
+
+
+def test_added_parts_keep_car_position_and_toggle_out_of_runs(client):
+    p = imported_car(client)
+    before = p["geometry"]
+    assert [s["base"] for s in before["sources"]] == [True, True]
+    # A wing exported in the same scene: above the body's rear, in the same units.
+    wing = trimesh.creation.box(extents=[1600, 300, 50])
+    wing.apply_translation([0, 1800, 1700])
+    r = client.post(f"/api/projects/{p['id']}/parts", files=[("files", ("wing v2.stl", stl(wing)))])
+    assert r.status_code == 201, r.text
+    after = r.json()["geometry"]
+    wing_part = after["parts"][-1]
+    assert after["sources"][-1] == dict(file="2-wing v2.stl", name="wing v2.stl", base=False)
+    assert np.array(after["parts"][0]["bounds"]) == pytest.approx(np.array(before["parts"][0]["bounds"]))
+    # Not re-centered: 1.8 m behind the body centre (+X is rearward), 0.175 m above its roof.
+    assert wing_part["bounds"][0][0] == pytest.approx(1.65)
+    assert wing_part["bounds"][1][2] == pytest.approx(0.02 + 1.725)
+    assert after["fingerprint"] != before["fingerprint"]
+    assert not (storage.directory("projects", p["id"]) / p["geometry_dir"]).exists()
+
+    r = client.put(f"/api/projects/{p['id']}/parts-enabled", json=dict(part_ids=[wing_part["id"]], enabled=False))
+    off = r.json()
+    assert off["geometry"]["fingerprint"] == before["fingerprint"]
+    assert off["geometry"]["frontal_area_estimate"] == pytest.approx(before["frontal_area_estimate"])
+    assert not off["settings"]["geometry_confirmed"]
+    client.put(f"/api/projects/{p['id']}/settings", json={**off["settings"], "geometry_confirmed": True})
+    run = client.post(f"/api/projects/{p['id']}/runs").json()
+    assert [part["id"] for part in run["geometry"]["parts"]] == ["part0", "part1"]
+
+    client.put(f"/api/projects/{p['id']}/parts-enabled", json=dict(part_ids=[wing_part["id"]], enabled=True))
+    project_ = client.get(f"/api/projects/{p['id']}").json()
+    client.put(f"/api/projects/{p['id']}/settings", json={**project_["settings"], "geometry_confirmed": True})
+    with_wing = client.post(f"/api/projects/{p['id']}/runs").json()
+    assert with_wing["configuration"] == dict(added=["wing v2.stl"], excluded=[])
+    for r in (run, with_wing):
+        record = storage.get("runs", r["id"])
+        record.update(status="completed", result=dict(drag=1, downforce=0, cd=0.1, cl=0, force_settled=True,
+                      residual_converged=True, ranges={f: [0, 1] for f in ["Pressure", "Speed", "Turbulence"]}))
+        storage.save("runs", record)
+    parts = client.get(f"/api/compare?baseline={run['id']}&variant={with_wing['id']}").json()["parts"]
+    assert parts == dict(same=False, only_baseline=[], only_variant=["wing v2.stl"])
+
+
+def test_reorient_rebuilds_from_originals_and_keeps_roles(client):
+    p = imported_car(client)
+    wheel = p["geometry"]["parts"][1]
+    client.put(f"/api/projects/{p['id']}/parts/{wheel['id']}", json=dict(role="wheel", radius=0.3))
+    options = p["geometry"]["import_options"]
+    turned = client.put(f"/api/projects/{p['id']}/import-options", json={**options, "forward": "+X"}).json()
+    # The wheel sticks out 0.3 m sideways; forward +X only swaps longitudinal and transverse.
+    assert turned["geometry"]["dimensions"] == pytest.approx([2.1, 4.0, 1.5])
+    assert turned["geometry"]["parts"][1]["wheel"]["radius"] == pytest.approx(0.3)
+    assert not turned["settings"]["geometry_confirmed"]
+    # Centimetres instead of millimetres: 10x larger, wheel radius scales with the part.
+    scaled = client.put(f"/api/projects/{p['id']}/import-options", json={**options, "units": "cm"}).json()
+    assert scaled["geometry"]["parts"][1]["wheel"]["radius"] == pytest.approx(3.0)
+    assert any("Unexpected model size" in e for e in scaled["geometry"]["errors"])
+
+
+def test_added_part_below_road_blocks_and_base_files_cannot_be_removed(client):
+    p = imported_car(client)
+    splitter = trimesh.creation.box(extents=[1600, 200, 20])
+    splitter.apply_translation([0, -2100, -30])
+    data = client.post(f"/api/projects/{p['id']}/parts", files=[("files", ("splitter.stl", stl(splitter)))]).json()
+    assert any("above the road" in e for e in data["geometry"]["errors"])
+    part = data["geometry"]["parts"][-1]["id"]
+    off = client.put(f"/api/projects/{p['id']}/parts-enabled", json=dict(part_ids=[part], enabled=False)).json()
+    assert not off["geometry"]["errors"]
+    base = data["geometry"]["sources"][0]["file"]
+    assert client.delete(f"/api/projects/{p['id']}/sources/{base}").status_code == 400
+    removed = client.delete(f"/api/projects/{p['id']}/sources/{data['geometry']['sources'][-1]['file']}").json()
+    assert len(removed["geometry"]["parts"]) == 2
+    sample = project(client)
+    assert client.post(f"/api/projects/{sample['id']}/parts", files=[("files", ("x.stl", stl(splitter)))]).status_code == 400
