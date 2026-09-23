@@ -611,7 +611,7 @@ def test_added_parts_keep_car_position_and_toggle_out_of_runs(client):
     assert r.status_code == 201, r.text
     after = r.json()["geometry"]
     wing_part = after["parts"][-1]
-    assert after["sources"][-1] == dict(file="2-wing v2.stl", name="wing v2.stl", base=False)
+    assert after["sources"][-1] == dict(file="2-wing v2.stl", name="wing v2.stl", base=False, components=1)
     assert np.array(after["parts"][0]["bounds"]) == pytest.approx(np.array(before["parts"][0]["bounds"]))
     # Not re-centered: 1.8 m behind the body centre (+X is rearward), 0.175 m above its roof.
     assert wing_part["bounds"][0][0] == pytest.approx(1.65)
@@ -673,3 +673,47 @@ def test_added_part_below_road_blocks_and_base_files_cannot_be_removed(client):
     assert len(removed["geometry"]["parts"]) == 2
     sample = project(client)
     assert client.post(f"/api/projects/{sample['id']}/parts", files=[("files", ("x.stl", stl(splitter)))]).status_code == 400
+
+
+def completed(client, project_id):
+    """Queue a run of the project as saved, then mark it completed with placeholder forces."""
+    current = client.get(f"/api/projects/{project_id}").json()
+    client.put(f"/api/projects/{project_id}/settings", json={**current["settings"], "geometry_confirmed": True})
+    run = client.post(f"/api/projects/{project_id}/runs").json()
+    record = storage.get("runs", run["id"])
+    ranges = {f: [0, 1] for f in ["Pressure", "Speed", "Turbulence"]}
+    record.update(
+        status="completed",
+        result=dict(drag=1, downforce=0, cd=0.1, cl=0, force_settled=True, residual_converged=True, ranges=ranges),
+    )
+    storage.save("runs", record)
+    return run["id"]
+
+
+def test_compare_names_components_switched_off_inside_one_file(client):
+    p = imported_car(client)
+    # One STL with two disconnected pieces: a wing and a separate gurney strip.
+    wing = trimesh.creation.box(extents=[1600, 300, 50])
+    wing.apply_translation([0, 1800, 1700])
+    strip = trimesh.creation.box(extents=[1600, 20, 20])
+    strip.apply_translation([0, 2000, 1800])
+    both = trimesh.util.concatenate([wing, strip])
+    data = client.post(f"/api/projects/{p['id']}/parts", files=[("files", ("aero.stl", stl(both)))]).json()
+    assert data["geometry"]["sources"][-1]["components"] == 2
+    added = [part for part in data["geometry"]["parts"] if part["source"] == 2]
+    full = completed(client, p["id"])
+    client.put(f"/api/projects/{p['id']}/parts-enabled", json=dict(part_ids=[added[1]["id"]], enabled=False))
+    partial = completed(client, p["id"])
+    client.put(f"/api/projects/{p['id']}/parts-enabled", json=dict(part_ids=[added[0]["id"]], enabled=False))
+    none = completed(client, p["id"])
+
+    def diff(a, b):
+        return client.get(f"/api/compare?baseline={a}&variant={b}").json()["parts"]
+
+    # One component off inside a multipart file is named, not hidden behind the file name.
+    assert diff(full, partial) == dict(same=False, only_baseline=[added[1]["name"]], only_variant=[])
+    # A whole file off is named once.
+    assert diff(none, full) == dict(same=False, only_baseline=[], only_variant=["aero.stl"])
+    assert diff(partial, none)["only_baseline"] == [added[0]["name"]]
+    labels = [storage.get("runs", r)["configuration"]["added"] for r in (full, partial, none)]
+    assert labels == [["aero.stl"], [added[0]["name"]], []]

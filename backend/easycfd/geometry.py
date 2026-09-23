@@ -285,7 +285,15 @@ def configuration(geometry):
         return "source" not in part or sources[part["source"]]["base"]
 
     on = [p for p in parts if p.get("enabled", True)]
+    added = []
+    for i, source in enumerate(sources):
+        chosen = [p for p in on if p.get("source") == i]
+        if source["base"] or not chosen:
+            continue
+        # A file with only some components switched on is described by those components.
+        whole = len(chosen) == sum(p.get("source") == i for p in parts)
+        added.extend([source["name"]] if whole else [p["name"] for p in chosen])
     return dict(
-        added=sorted({sources[p["source"]]["name"] for p in on if not base(p)}),
+        added=sorted(added),
         excluded=sorted(p["name"] for p in parts if p not in on and base(p)),
     )

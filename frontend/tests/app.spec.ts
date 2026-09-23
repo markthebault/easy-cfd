@@ -391,3 +391,26 @@ test("re-orient an import, add a part, and switch it off", async ({ page }) => {
   await page.getByTitle("Reset camera").click();
   await expect(page.locator(".viewport-message.error")).toHaveCount(0);
 });
+
+test("wheel radius follows the selected design", async ({ page }) => {
+  await page.goto("/");
+  // Two samples share identical geometry, so only the design tells their rows apart.
+  await page.getByTitle("New sample project").click();
+  await expect(page.locator(".project-item.selected")).toHaveCount(1);
+  const first = await page.locator(".project-item").count();
+  await page.getByTitle("New sample project").click();
+  await expect(page.locator(".project-item")).toHaveCount(first + 1);
+  const radius = page.getByLabel("Front left wheel radius");
+  await expect(radius).toHaveValue("0.32");
+  await radius.fill("0.48");
+  const saved = page.waitForResponse(
+    (r) => r.request().method() === "PUT" && /\/parts\/part\d+$/.test(r.url()),
+  );
+  await radius.blur();
+  await saved;
+  // Newest first: the edited design, then the untouched one.
+  await page.locator(".project-item").nth(1).click();
+  await expect(radius).toHaveValue("0.32");
+  await page.locator(".project-item").first().click();
+  await expect(radius).toHaveValue("0.48");
+});

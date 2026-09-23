@@ -448,6 +448,7 @@ export default function App() {
                       apply={reorient}
                     />
                     <PartList
+                      design={project.id}
                       geometry={project.geometry}
                       highlight={highlight}
                       onHighlight={setHighlight}

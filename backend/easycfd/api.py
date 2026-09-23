@@ -224,6 +224,8 @@ def rebuild(key, current, options, keep=(), uploads=(), base=True, carry=True):
             base=[s["base"] for s in sources],
             previous=previous,
         )
+        for i, source in enumerate(sources):
+            source["components"] = sum(part["source"] == i for part in data["parts"])
         data.update(sources=sources, import_options=options.model_dump())
         project = storage.update(
             "projects",
@@ -449,11 +451,34 @@ def export(key: str, cleanup: BackgroundTasks):
     return FileResponse(target, filename=f"easycfd-{key[:8]}.zip")
 
 
-def labels(run):
-    """Names of simulated parts, by source file where known, so a split file counts once."""
+def components(run):
+    """Simulated parts keyed by (source file, component), with display names and file totals."""
     data = run["geometry"]
     sources = data.get("sources") or []
-    return [sources[p["source"]]["name"] if "source" in p else p["name"] for p in data["parts"]]
+    names, totals = {}, {}
+    for part in data["parts"]:
+        if "source" in part:
+            source = sources[part["source"]]
+            names[(source["file"], part["component"])] = part["name"]
+            totals[source["file"]] = (source["name"], source.get("components"))
+        else:
+            # Sample and older geometry: the part name is the identity.
+            names[(part["name"], None)] = part["name"]
+    return names, totals
+
+
+def part_changes(a, b):
+    """Parts simulated only in a, compared per component; a file is named once when all of it differs."""
+    names, totals = components(a)
+    other, other_totals = components(b)
+    totals = {**other_totals, **totals}
+    missing = [key for key in names if key not in other]
+    out = []
+    for file in sorted({key[0] for key in missing}):
+        keys = [key for key in missing if key[0] == file]
+        name, count = totals.get(file, (None, None))
+        out.extend([name] if count == len(keys) else sorted(names[key] for key in keys))
+    return out
 
 
 @app.get("/api/compare")
@@ -505,8 +530,8 @@ def compare(baseline: str, variant: str):
     if a.get("geometry") and b.get("geometry"):
         parts = dict(
             same=a["geometry"]["fingerprint"] == b["geometry"]["fingerprint"],
-            only_baseline=sorted(set(labels(a)) - set(labels(b))),
-            only_variant=sorted(set(labels(b)) - set(labels(a))),
+            only_baseline=part_changes(a, b),
+            only_variant=part_changes(b, a),
         )
     warnings = []
     if mismatch:

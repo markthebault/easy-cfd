@@ -132,6 +132,7 @@ export function OrientationTools({
 }
 
 export function PartList({
+  design,
   geometry,
   highlight,
   onHighlight,
@@ -139,6 +140,8 @@ export function PartList({
   onEnabled,
   onRemove,
 }: {
+  // Designs can share identical geometry, so row state is keyed by design too.
+  design: string;
   geometry: Geometry;
   highlight: string;
   onHighlight: (id: string) => void;
@@ -148,7 +151,7 @@ export function PartList({
 }) {
   const row = (part: Part, toggle: boolean) => (
     <PartRow
-      key={geometry.fingerprint + part.id}
+      key={design + geometry.fingerprint + part.id}
       part={part}
       toggle={toggle}
       highlighted={highlight === part.id}
@@ -246,10 +249,12 @@ function PartRow({
   onChange: (role: string, radius: number) => void;
   onEnabled: (enabled: boolean) => void;
 }) {
-  const [radius, setRadius] = useState(
+  const saved =
     part.wheel?.radius ||
-      Math.max(0.01, (part.bounds[1][2] - part.bounds[0][2]) / 2),
-  );
+    Math.max(0.01, (part.bounds[1][2] - part.bounds[0][2]) / 2);
+  const [radius, setRadius] = useState(saved);
+  // Follow the saved value, so a blur never writes back a stale draft.
+  useEffect(() => setRadius(saved), [saved]);
   const enabled = part.enabled !== false;
   return (
     <div
