@@ -4,7 +4,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 class Settings(BaseModel):
     model_config = ConfigDict(allow_inf_nan=False, extra="forbid")
-    speed_kmh: float = Field(default=100, ge=5, le=250)
+    speed_kmh: float = Field(default=100, ge=5, le=300)
     yaw_deg: float = Field(default=0, ge=-20, le=20)
     quality: Literal["fast", "medium", "precise"] = "medium"
     reference_area: float = Field(default=2.2, gt=0.001, le=100)

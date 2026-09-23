@@ -166,7 +166,7 @@ export function ConditionsBody({
             aria-label="Road speed"
             type="number"
             min="5"
-            max="250"
+            max="300"
             value={settings.speed_kmh}
             onChange={(e) => update("speed_kmh", +e.target.value)}
           />

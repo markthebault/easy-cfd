@@ -1299,6 +1299,24 @@ main {
 .metric-grid.compact .metric strong {
   font-size: 21px;
 }
+.vertical-load.downforce {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.vertical-load.lift {
+  border-color: var(--warn-border);
+  background: var(--warn-bg);
+}
+.vertical-load > span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text);
+  font-weight: 650;
+}
+.vertical-load.lift > span {
+  color: var(--warn-text);
+}
 .details {
   display: flex;
   flex-direction: column;
