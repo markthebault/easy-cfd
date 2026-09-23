@@ -349,6 +349,29 @@ def compare(baseline: str, variant: str):
             delta=new - old,
             percent=(new - old) / abs(old) * 100 if abs(old) > 0.01 else None,
         )
+    # Attribute the drag change to body/wheels and pressure/viscous when both
+    # runs recorded a reconciled breakdown.
+    breakdown_keys = [
+        (group, metric)
+        for group in ("body", "wheels")
+        for metric in ("drag", "downforce")
+    ] + [(None, metric) for metric in ("pressure_drag", "viscous_drag")]
+    for group, metric in breakdown_keys:
+        old = a["result"].get("breakdown", {})
+        new = b["result"].get("breakdown", {})
+        if group is not None:
+            old, new = old.get(group, {}).get(metric), new.get(group, {}).get(metric)
+        else:
+            old, new = old.get(metric), new.get(metric)
+        if old is None or new is None:
+            continue
+        key = f"{group}_{metric}" if group else metric
+        changes[key] = dict(
+            baseline=old,
+            variant=new,
+            delta=new - old,
+            percent=(new - old) / abs(old) * 100 if abs(old) > 0.01 else None,
+        )
     warnings = []
     if mismatch:
         warnings.append("Conditions differ: " + ", ".join(mismatch) + ". Rerun with matching settings.")

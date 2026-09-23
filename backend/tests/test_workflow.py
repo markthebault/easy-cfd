@@ -326,6 +326,107 @@ def test_path_escape_and_invalid_slice_are_rejected(client):
     assert client.get(f"/api/runs/{p['id']}/slice?axis=y&position=101").status_code == 400
 
 
+def test_frontal_area_estimate_is_sane_and_grows_with_wing(tmp_path):
+    base = geometry.sample(tmp_path / "base")
+    wing = geometry.sample(tmp_path / "wing", wing=True)
+    assert 1.0 < base["frontal_area_estimate"] < 4.0
+    assert wing["frontal_area_estimate"] > base["frontal_area_estimate"]
+
+
+def test_control_dict_has_per_role_force_objects(tmp_path):
+    g = tmp_path / "geometry"
+    g.mkdir()
+    data = geometry.sample(g)
+    foam.generate(tmp_path / "case", g, data, Settings(quality="fast"))
+    control = (tmp_path / "case/system/controlDict").read_text()
+    assert "forcesBody {type forces; libs (forces); patches (part0);" in control
+    assert "forcesWheels" in control and "part1 part2 part3 part4" in control
+    solo = tmp_path / "solo"
+    solo.mkdir()
+    box = trimesh.creation.box(extents=[4, 1.8, 1.2])
+    single = geometry.persist_parts(solo, [("Car", box, "body", None)])
+    foam.generate(tmp_path / "case2", solo, single, Settings(quality="fast"))
+    control = (tmp_path / "case2/system/controlDict").read_text()
+    assert "forcesBody" in control
+    assert "forcesWheels" not in control
+
+
+def test_blockage_ratio_uses_tunnel_cross_section(tmp_path):
+    g = tmp_path / "geometry"
+    g.mkdir()
+    data = geometry.sample(g)
+    meta = foam.generate(tmp_path / "case", g, data, Settings(quality="fast"))
+    assert meta["blockage_ratio"] == pytest.approx(2.2 / meta["tunnel_cross_section"])
+    assert 0 < meta["blockage_ratio"] < 0.05
+
+
+def test_role_force_breakdown_splits_pressure_viscous_and_body(tmp_path):
+    folder = tmp_path / "postProcessing/coefficients/0"
+    folder.mkdir(parents=True)
+    (folder / "coefficient.dat").write_text("# Time Cd Cl\n" + "\n".join(f"{i} 0.3 -0.2" for i in range(100)))
+    body = tmp_path / "postProcessing/forcesBody/0"
+    body.mkdir(parents=True)
+    (body / "force.dat").write_text(
+        "# Force\n# Time total_x total_y total_z pressure_x pressure_y pressure_z viscous_x viscous_y viscous_z\n"
+        + "\n".join(f"{i} 36 0 -4 20 0 -3 16 0 -1" for i in range(100))
+    )
+    settings = {"density": 1.2, "reference_area": 2}
+    groups = results.role_forces(tmp_path, settings, 10)
+    assert set(groups) == {"body"}
+    assert groups["body"]["drag"] == pytest.approx(36)
+    assert groups["body"]["downforce"] == pytest.approx(4)
+    assert groups["body"]["pressure_drag"] == pytest.approx(20)
+    assert groups["body"]["viscous_drag"] == pytest.approx(16)
+    assert groups["body"]["cd"] == pytest.approx(0.3)
+    (body / "force.dat").write_text("# Time\n" + "\n".join("0 1 2 3 4 5 6 7 8 9" for _ in range(10)))
+    with pytest.raises(RuntimeError, match="Unrecognized"):
+        results.role_forces(tmp_path, settings, 10)
+    (body / "force.dat").write_text(
+        "# Time total_x total_y total_z pressure_x pressure_y pressure_z viscous_x viscous_y viscous_z\n"
+        + "\n".join("0 36 0 nan 20 0 -3 16 0 -1" for _ in range(10))
+    )
+    with pytest.raises(RuntimeError, match="non-finite"):
+        results.role_forces(tmp_path, settings, 10)
+
+
+def test_compare_attributes_drag_change_to_body_and_wheels(client):
+    ids = []
+    for extra in [0, 5]:
+        key = storage.identifier()
+        ids.append(key)
+        storage.save(
+            "runs",
+            dict(
+                id=key,
+                created=storage.now(),
+                status="completed",
+                image=foam.IMAGE,
+                settings=Settings().model_dump(),
+                result=dict(
+                    drag=100 + extra,
+                    downforce=0,
+                    cd=0.3,
+                    cl=0,
+                    force_settled=True,
+                    residual_converged=True,
+                    ranges={f: [0, 1] for f in ["Pressure", "Speed", "Turbulence"]},
+                    breakdown=dict(
+                        body=dict(drag=80 + extra, downforce=0),
+                        wheels=dict(drag=20, downforce=0),
+                        pressure_drag=70 + extra,
+                        viscous_drag=30,
+                        consistent=True,
+                    ),
+                ),
+            ),
+        )
+    result = client.get(f"/api/compare?baseline={ids[0]}&variant={ids[1]}").json()
+    assert result["changes"]["body_drag"]["delta"] == pytest.approx(5)
+    assert result["changes"]["wheels_drag"]["delta"] == pytest.approx(0)
+    assert result["changes"]["pressure_drag"]["delta"] == pytest.approx(5)
+    assert result["changes"]["viscous_drag"]["delta"] == pytest.approx(0)
+
+
 def test_explicit_tailnet_origin(client, monkeypatch):
     origin = "https://example.ts.net:8443"
     monkeypatch.setenv("EASYCFD_TAILNET_ORIGIN", origin)
