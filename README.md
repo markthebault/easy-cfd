@@ -33,7 +33,7 @@ Linux uses the same scripts with Docker Engine. Windows support means running th
 
 ## First comparison
 
-1. Click **+** beside Workspace to open the sample car.
+1. Click **+** beside Designs to open the sample car. The sidebar holds **01 Geometry**, **02 Driving conditions**, and a **03 Run** area that stays in view; the icon at the top right switches between system, light, and dark themes.
 2. Rotate it and check its dimensions. The nose points toward −X, incoming air travels toward +X, and +Z is up.
 3. Confirm the geometry checklist. Set road speed and reference area.
 4. Select **Fast** and run. Inspect pressure, flow lines, and velocity slices.

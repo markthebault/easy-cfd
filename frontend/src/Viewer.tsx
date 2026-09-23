@@ -20,6 +20,29 @@ type CameraState = {
   size: number;
 };
 const size = (g: Geometry) => Math.max(...g.dimensions);
+// Scene colours per theme; the page chrome uses CSS variables, but vtk.js needs RGB.
+const PALETTE = {
+  light: {
+    background: [0.91, 0.935, 0.94],
+    ground: [0.67, 0.72, 0.74],
+    groundOpacity: 0.35,
+    body: [0.64, 0.71, 0.74],
+    wheel: [0.15, 0.19, 0.23],
+    attention: [0.92, 0.32, 0.12],
+    slice: [0.5, 0.6, 0.7],
+    streamlines: [0.1, 0.6, 0.7],
+  },
+  dark: {
+    background: [0.07, 0.1, 0.12],
+    ground: [0.3, 0.37, 0.41],
+    groundOpacity: 0.45,
+    body: [0.6, 0.66, 0.7],
+    wheel: [0.25, 0.29, 0.33],
+    attention: [0.96, 0.45, 0.22],
+    slice: [0.5, 0.6, 0.7],
+    streamlines: [0.3, 0.75, 0.8],
+  },
+};
 // Orthographic views looking along a world axis, with +X (airflow) to the right
 // where the axis allows it: direction of view and camera up.
 const VIEWS = {
@@ -40,6 +63,7 @@ type Props = {
   sync?: string;
   label?: string;
   highlight?: string;
+  theme?: string;
 };
 export default function Viewer({
   geometry,
@@ -53,7 +77,9 @@ export default function Viewer({
   sync,
   label,
   highlight,
+  theme = "light",
 }: Props) {
+  const colors = theme === "dark" ? PALETTE.dark : PALETTE.light;
   const container = useRef<HTMLDivElement>(null);
   const context = useRef<ReturnType<
     typeof vtkGenericRenderWindow.newInstance
@@ -97,7 +123,7 @@ export default function Viewer({
   useEffect(() => {
     if (!container.current) return;
     const ctx = vtkGenericRenderWindow.newInstance({
-      background: [0.91, 0.935, 0.94],
+      background: colors.background as [number, number, number],
     });
     ctx.setContainer(container.current);
     ctx.resize();
@@ -149,6 +175,7 @@ export default function Viewer({
     const owned: { delete: () => void }[] = [];
     const renderer = ctx.getRenderer();
     renderer.removeAllViewProps();
+    renderer.setBackground(...(colors.background as [number, number, number]));
     setLoading(true);
     setError("");
     const camera = renderer.getActiveCamera();
@@ -198,9 +225,7 @@ export default function Viewer({
     const render = async () => {
       const tasks: Promise<void>[] = [];
       if (resultBase && mode === "surface")
-        tasks.push(
-          add(resultBase + "/assets/surface.vtp", [0.6, 0.65, 0.7], true),
-        );
+        tasks.push(add(resultBase + "/assets/surface.vtp", colors.body, true));
       else
         for (const part of geometry.parts)
           tasks.push(
@@ -208,10 +233,10 @@ export default function Viewer({
               `${geometryBase}/${part.id}.vtp`,
               part.id === highlight ||
                 (part.issues.length && part.enabled !== false)
-                ? [0.92, 0.32, 0.12]
+                ? colors.attention
                 : part.role === "wheel"
-                  ? [0.15, 0.19, 0.23]
-                  : [0.64, 0.71, 0.74],
+                  ? colors.wheel
+                  : colors.body,
               false,
               // Switched-off parts stay faintly visible so their position is clear.
               part.enabled === false
@@ -225,13 +250,13 @@ export default function Viewer({
           );
       if (resultBase && mode === "streamlines")
         tasks.push(
-          add(resultBase + "/assets/streamlines.vtp", [0.1, 0.6, 0.7], true),
+          add(resultBase + "/assets/streamlines.vtp", colors.streamlines, true),
         );
       if (resultBase && mode === "slice")
         tasks.push(
           add(
             `${resultBase}/slice?axis=${axis}&position=${position}`,
-            [0.5, 0.6, 0.7],
+            colors.slice,
             true,
           ),
         );
@@ -251,8 +276,10 @@ export default function Viewer({
       owned.push(actor);
       actor.setMapper(mapper);
       actor.getProperty().setRepresentationToWireframe();
-      actor.getProperty().setColor(0.67, 0.72, 0.74);
-      actor.getProperty().setOpacity(0.35);
+      actor
+        .getProperty()
+        .setColor(...(colors.ground as [number, number, number]));
+      actor.getProperty().setOpacity(colors.groundOpacity);
       renderer.addActor(actor);
       await Promise.all(tasks);
       if (abort.signal.aborted) return;
@@ -287,14 +314,15 @@ export default function Viewer({
     });
     return () => {
       abort.abort();
-      if (cameraReady.current) cameraState.current = {
-        position: [...camera.getPosition()],
-        focalPoint: [...camera.getFocalPoint()],
-        viewUp: [...camera.getViewUp()],
-        parallel: camera.getParallelProjection(),
-        scale: camera.getParallelScale(),
-        size: size(geometry),
-      };
+      if (cameraReady.current)
+        cameraState.current = {
+          position: [...camera.getPosition()],
+          focalPoint: [...camera.getFocalPoint()],
+          viewUp: [...camera.getViewUp()],
+          parallel: camera.getParallelProjection(),
+          scale: camera.getParallelScale(),
+          size: size(geometry),
+        };
       renderer.removeAllViewProps();
       owned.forEach((o) => o.delete());
     };
@@ -309,6 +337,7 @@ export default function Viewer({
     range?.[0],
     range?.[1],
     highlight,
+    theme,
   ]);
   useEffect(() => {
     const ctx = context.current;

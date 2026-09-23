@@ -1,4 +1,14 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
+
+// Runs are picked from the sidebar list; "All" includes other designs' runs.
+async function openRun(page: Page, id: string) {
+  await page.getByRole("button", { name: "All", exact: true }).click();
+  await page.locator(`[data-run="${id}"]`).click();
+}
+const selectedRun = (page: Page) =>
+  page.locator(".run-item.selected").getAttribute("data-run");
+const openSection = (page: Page, name: RegExp) =>
+  page.getByRole("button", { name }).click();
 
 test("sample, geometry view, saved conditions, and duplicate", async ({
   page,
@@ -16,6 +26,7 @@ test("sample, geometry view, saved conditions, and duplicate", async ({
   await expect(
     page.getByRole("button", { name: /^(Run|Queue) simulation$/ }),
   ).toBeDisabled();
+  await openSection(page, /Driving conditions/);
   await page.getByLabel("Road speed", { exact: true }).fill("120");
   await page.getByLabel("I checked size").check();
   await page.getByRole("button", { name: "Save setup", exact: true }).click();
@@ -45,7 +56,7 @@ test("real results, slices and flow lines render without browser errors", async 
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
   await page.getByRole("button", { name: "Simulation results" }).click();
-  await page.getByLabel("Saved run").selectOption(run.id);
+  await openRun(page, run.id);
   await expect(page.getByText("Pressure · calculated result")).toBeVisible();
   await expect(page.getByText("Loading geometry…")).toHaveCount(0);
   await expect(page.locator(".viewport-message.error")).toHaveCount(0);
@@ -79,7 +90,7 @@ test("force history recovers after a failed request", async ({
   );
   await page.goto("/");
   await page.getByRole("button", { name: "Simulation results" }).click();
-  await page.getByLabel("Saved run").selectOption(run.id);
+  await openRun(page, run.id);
   await expect(
     page.getByText("Could not load force history. Retrying…"),
   ).toBeVisible();
@@ -107,7 +118,7 @@ test("run two actual simulations from the UI, compare, reopen, and cancel", asyn
     { timeout: 900000 },
   );
   await expect(page.locator(".run-status.completed")).toBeVisible();
-  const baseline = await page.getByLabel("Saved run").inputValue();
+  const baseline = await selectedRun(page);
   await page.getByRole("button", { name: "Duplicate design" }).click();
   await page.getByRole("button", { name: "Add rear wing" }).click();
   await expect(page.getByRole("button", { name: "Remove wing" })).toBeVisible();
@@ -119,12 +130,12 @@ test("run two actual simulations from the UI, compare, reopen, and cancel", asyn
     { timeout: 900000 },
   );
   await expect(page.locator(".run-status.completed")).toBeVisible();
-  const variant = await page.getByLabel("Saved run").inputValue();
+  const variant = await selectedRun(page);
   await page
     .getByRole("button", { name: "Compare designs", exact: true })
     .click();
-  await page.getByLabel("Baseline run").selectOption(baseline);
-  await page.getByLabel("Variant run").selectOption(variant);
+  await page.getByLabel("Baseline run").selectOption(baseline!);
+  await page.getByLabel("Variant run").selectOption(variant!);
   await expect(page.locator(".compare-viewers canvas")).toHaveCount(2);
   await expect(page.getByText("Loading geometry…")).toHaveCount(0);
   await expect(page.locator(".viewport-message.error")).toHaveCount(0);
@@ -158,7 +169,7 @@ test("run two actual simulations from the UI, compare, reopen, and cancel", asyn
   await page.screenshot({ path: "../docs/comparison.png", fullPage: true });
   await page.reload();
   await page.getByRole("button", { name: "Simulation results" }).click();
-  await page.getByLabel("Saved run").selectOption(variant);
+  await openRun(page, variant!);
   await expect(page.locator(".run-status.completed")).toBeVisible();
   await expect(page.getByText("Loading geometry…")).toHaveCount(0);
   await page.getByRole("button", { name: "Model & setup" }).click();
@@ -220,7 +231,7 @@ test("rename persists and completed results export from the UI", async ({
   const run = runs.find((r: { status: string }) => r.status === "completed");
   expect(run).toBeTruthy();
   await page.getByRole("button", { name: "Simulation results" }).click();
-  await page.getByLabel("Saved run").selectOption(run.id);
+  await openRun(page, run.id);
   const downloadEvent = page.waitForEvent("download");
   await page.getByRole("link", { name: "Export run" }).click();
   const download = await downloadEvent;
@@ -254,7 +265,7 @@ test("Precise result displays its two-mesh sensitivity", async ({
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
   await page.getByRole("button", { name: "Simulation results" }).click();
-  await page.getByLabel("Saved run").selectOption(run.id);
+  await openRun(page, run.id);
   await expect(page.getByText(/Mesh sensitivity: ΔCd/)).toBeVisible();
   await expect(page.getByText("Loading geometry…")).toHaveCount(0);
   await expect(page.locator(".viewport-message.error")).toHaveCount(0);
@@ -286,6 +297,7 @@ test("Blender guide opens from header and import, closes without losing setup", 
   page,
 }) => {
   await page.goto("/");
+  await openSection(page, /Driving conditions/);
   const speed = await page
     .getByLabel("Road speed", { exact: true })
     .inputValue();
@@ -307,6 +319,7 @@ test("Blender guide opens from header and import, closes without losing setup", 
   await expect(page.getByLabel("Road speed", { exact: true })).toHaveValue(
     speed,
   );
+  await openSection(page, /^01 Geometry/);
   await page
     .getByRole("button", { name: "Import STEP / STL", exact: true })
     .click();
@@ -396,6 +409,7 @@ test("wheel radius follows the selected design", async ({ page }) => {
   await page.goto("/");
   // Two samples share identical geometry, so only the design tells their rows apart.
   await page.getByTitle("New sample project").click();
+  await openSection(page, /^Designs/);
   await expect(page.locator(".project-item.selected")).toHaveCount(1);
   const first = await page.locator(".project-item").count();
   await page.getByTitle("New sample project").click();
