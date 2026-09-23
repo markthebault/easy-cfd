@@ -494,9 +494,15 @@ def test_solve_passes_ranks_and_removes_processor_copies(client, monkeypatch):
         if command[0] == "checkMesh":
             (case / "log.checkMesh").write_text("cells: 1000\nMesh OK.")
         if command[0] == "decomposePar":
+            # purgeWrite keeps two times; both exist only per rank until reconstructed.
             for i in range(6):
-                (case / f"processor{i}/100").mkdir(parents=True)
-                (case / f"processor{i}/100/U").write_text("per-rank field")
+                for t in ("200", "300"):
+                    (case / f"processor{i}/{t}").mkdir(parents=True)
+                    (case / f"processor{i}/{t}/U").write_text("per-rank field")
+        if command[0] == "reconstructPar":
+            for t in ("200", "300"):
+                (case / t).mkdir()
+                (case / f"{t}/U").write_text("reconstructed field")
         return 1.0
 
     monkeypatch.setattr(runner, "stage", stage)
@@ -509,15 +515,43 @@ def test_solve_passes_ranks_and_removes_processor_copies(client, monkeypatch):
     solver = next(command for command, _ in calls if command[0] == "mpirun")
     assert solver[solver.index("-np") + 1] == "6"
     assert {cpus for _, cpus in calls} == {6}
-    assert not list((storage.directory("runs", run["id"]) / "case-fast").glob("processor*"))
+    assert ["reconstructPar", "-newTimes"] in [command for command, _ in calls]
+    case = storage.directory("runs", run["id"]) / "case-fast"
+    assert not list(case.glob("processor*"))
+    assert (case / "200/U").exists() and (case / "300/U").exists()
+
+
+def test_processor_copies_are_removable_only_when_every_time_was_reconstructed(tmp_path):
+    for i in range(2):
+        (tmp_path / f"processor{i}/constant/polyMesh").mkdir(parents=True)
+        for t in ("0", "200", "300"):
+            (tmp_path / f"processor{i}/{t}").mkdir()
+            for field in ("U", "p"):
+                (tmp_path / f"processor{i}/{t}/{field}").write_text("rank")
+    for t in ("0", "300"):
+        (tmp_path / t).mkdir()
+        for field in ("U", "p"):
+            (tmp_path / f"{t}/{field}").write_text("reconstructed")
+    # Only the latest time was reconstructed, as by -latestTime: 200 is unique per rank.
+    assert runner.redundant_processor_copies(tmp_path) == []
+    (tmp_path / "200").mkdir()
+    (tmp_path / "200/U").write_text("reconstructed")
+    assert runner.redundant_processor_copies(tmp_path) == []
+    (tmp_path / "200/p").write_text("reconstructed")
+    assert runner.redundant_processor_copies(tmp_path) == [tmp_path / "processor0", tmp_path / "processor1"]
 
 
 def test_run_list_omits_history_and_export_leaves_no_archive(client):
     key = storage.identifier()
     root = storage.directory("runs", key)
-    (root / "case-fast/processor0").mkdir(parents=True)
-    (root / "case-fast/processor0/U").write_text("duplicate")
+    (root / "case-fast/processor0/300").mkdir(parents=True)
+    (root / "case-fast/processor0/300/U").write_text("duplicate")
+    (root / "case-fast/300").mkdir()
+    (root / "case-fast/300/U").write_text("reconstructed")
     (root / "case-fast/log.simpleFoam").write_text("log")
+    # A time held only per rank must reach the export.
+    (root / "case-medium/processor0/900").mkdir(parents=True)
+    (root / "case-medium/processor0/900/U").write_text("unique")
     storage.save(
         "runs",
         dict(
@@ -534,6 +568,7 @@ def test_run_list_omits_history_and_export_leaves_no_archive(client):
     assert response.status_code == 200
     names = zipfile.ZipFile(io.BytesIO(response.content)).namelist()
     assert "case-fast/log.simpleFoam" in names
-    assert not any("processor" in name for name in names)
+    assert not any(name.startswith("case-fast/processor") for name in names)
+    assert "case-medium/processor0/900/U" in names
     assert not (root / "run.zip").exists()
     assert not list(storage.ROOT.glob("export-*.zip"))

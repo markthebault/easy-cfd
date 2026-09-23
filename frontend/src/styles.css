@@ -965,6 +965,9 @@ footer a {
 .warnings svg {
   margin-top: 2px;
 }
+.warning-text {
+  color: #998353;
+}
 .empty-state {
   min-height: 420px;
   border: 1px dashed #d0dedb;

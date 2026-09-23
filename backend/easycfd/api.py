@@ -326,14 +326,14 @@ def export(key: str, cleanup: BackgroundTasks):
     if run["status"] in ("queued", "running"):
         raise ValueError("Wait for the run to finish or cancel it before exporting.")
 
+    # Per-rank folders are left out only where they duplicate the reconstructed
+    # case; otherwise, as in failed runs, they may hold the only solver output.
+    duplicates = {folder for case in root.glob("case-*") for folder in runner.redundant_processor_copies(case)}
+
     def included(path):
         if path.name in ("run.zip", "record.tmp"):
             return False
-        # Completed runs were reconstructed, so per-rank folders only duplicate data.
-        # A failed run may hold its only solver output there, so it keeps them.
-        parts = path.relative_to(root).parts
-        per_rank = len(parts) > 2 and parts[1].startswith("processor")
-        return not (run["status"] == "completed" and per_rank)
+        return not any(folder in path.parents for folder in duplicates)
 
     handle, name = tempfile.mkstemp(prefix="export-", suffix=".zip", dir=storage.ROOT)
     os.close(handle)

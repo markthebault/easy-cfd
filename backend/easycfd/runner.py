@@ -58,10 +58,11 @@ def health():
 def processes():
     """MPI ranks for the solver. Four unless EASYCFD_PROCESSES says otherwise.
 
-    More ranks were slower on the tested Apple M1 (4 performance + 4 efficiency
-    cores): the 194k-cell Medium sample took 45.6 s for 200 iterations on 4
-    ranks, 55.0 s on 6 and 61.7 s on 8. Two is the floor because the case is
-    always decomposed and run with -parallel.
+    More ranks were slower on the tested Apple M1: the 194k-cell Medium sample
+    took 45.6 s for 200 iterations on 4 ranks, 55.0 s on 6 and 61.7 s on 8. The
+    cause was not isolated (efficiency cores, MPI communication and memory
+    bandwidth are all candidates). Two is the floor because the case is always
+    decomposed and run with -parallel.
     """
     return min(max(int(os.environ.get("EASYCFD_PROCESSES", 4)), 2), 16)
 
@@ -75,14 +76,9 @@ def check_cancelled(key):
         raise InterruptedError("Run cancelled")
 
 
-def stage(key, case, command, stage_name, memory, cpus=4):
-    global ACTIVE
-    check_cancelled(key)
-    name = f"easycfd-{key}"
-    patch(key, stage=stage_name)
-    tool = "simpleFoam" if "simpleFoam" in command else command[0]
-    log_path = case / f"log.{tool}"
-    args = [
+def container(name, case, command, memory, cpus):
+    """Arguments for one isolated, network-less solver container on a case folder."""
+    return [
         "docker",
         "run",
         "--rm",
@@ -114,6 +110,37 @@ def stage(key, case, command, stage_name, memory, cpus=4):
         "easycfd",
         *command,
     ]
+
+
+def redundant_processor_copies(case):
+    """The case's processor* folders, if every time they hold was reconstructed.
+
+    purgeWrite keeps more than one time, so a processor folder can hold the only
+    copy of an earlier time. Its folders are returned only when each processor
+    time directory also exists in the case root with every field it contains;
+    otherwise nothing is returned and the copies must be kept.
+    """
+    folders = sorted(path for path in case.glob("processor*") if path.is_dir())
+    for folder in folders:
+        for time_dir in folder.iterdir():
+            if time_dir.name == "constant" or not time_dir.is_dir():
+                continue
+            reconstructed = case / time_dir.name
+            if not reconstructed.is_dir():
+                return []
+            if {f.name for f in time_dir.iterdir()} - {f.name for f in reconstructed.iterdir()}:
+                return []
+    return folders
+
+
+def stage(key, case, command, stage_name, memory, cpus=4):
+    global ACTIVE
+    check_cancelled(key)
+    name = f"easycfd-{key}"
+    patch(key, stage=stage_name)
+    tool = "simpleFoam" if "simpleFoam" in command else command[0]
+    log_path = case / f"log.{tool}"
+    args = container(name, case, command, memory, cpus)
     start = time.monotonic()
     with log_path.open("w") as log:
         process = subprocess.Popen(args, stdout=log, stderr=subprocess.STDOUT)
@@ -212,17 +239,18 @@ def solve(key, tier):
         PRESETS[tier]["memory_gb"],
         cpus,
     )
+    # Reconstruct every time purgeWrite retained, not only the latest, so the
+    # processor copies below hold nothing unique.
     timings["reconstructPar"] = stage(
         key,
         case,
-        ["reconstructPar", "-latestTime"],
+        ["reconstructPar", "-newTimes"],
         f"{tier}: Reassembling results",
         PRESETS[tier]["memory_gb"],
         cpus,
     )
-    # The reconstructed case holds everything the results need; the per-rank
-    # copies roughly double the case size on disk.
-    for folder in case.glob("processor*"):
+    # Per-rank copies duplicate the reconstructed case and roughly double its size.
+    for folder in redundant_processor_copies(case):
         shutil.rmtree(folder)
     check_cancelled(key)
     patch(key, stage=f"{tier}: Preparing visualization")

@@ -12,7 +12,7 @@ This document separates software functionality, numerical behavior, and physical
 
 ## Automated checks
 
-`uv run pytest -q`: **29 passed**. Checks cover STEP embedded units, STL units/orientation/clearance, open surfaces, model confirmation, immutable geometry/settings snapshots, duplication, invalid imports, pressure conversion, drag/downforce signs, coefficient normalization, force stability, cancellation, stage failures, runtime memory budgets, comparison mismatches, near-zero percentages, reference-case Reynolds scaling, inconclusive refinement results, frontal-area estimates, per-role force objects in the solver dictionaries, tunnel blockage ratios, pressure/viscous breakdown parsing with format and non-finite rejection, breakdown-aware comparison, length-proportional streamline seeds and slice extents, MPI process count and Docker CPU limits, removal of per-process case copies, a run list without force history, and exports that leave no archive behind.
+`uv run pytest -q`: **30 passed**. Checks cover STEP embedded units, STL units/orientation/clearance, open surfaces, model confirmation, immutable geometry/settings snapshots, duplication, invalid imports, pressure conversion, drag/downforce signs, coefficient normalization, force stability, cancellation, stage failures, runtime memory budgets, comparison mismatches, near-zero percentages, reference-case Reynolds scaling, inconclusive refinement results, frontal-area estimates, per-role force objects in the solver dictionaries, tunnel blockage ratios, pressure/viscous breakdown parsing with format and non-finite rejection, breakdown-aware comparison, length-proportional streamline seeds and slice extents, MPI process count and Docker CPU limits, removal of per-process case copies only when every timestep they hold was reassembled, a run list without force history, and exports that leave no archive behind.
 
 `npm --prefix frontend run build` runs TypeScript checks and produces the browser application.
 
@@ -64,7 +64,7 @@ Measured on the verified environment (8 CPUs reported by the container runtime) 
 | Fast sample, 41,417 cells, 300 iterations | 16.0–16.7 s | — | 23.9–24.7 s |
 | Medium sample, 193,849 cells, first 200 iterations | 45.6 s | 55.0 s | 61.7 s |
 
-Four processes stayed the default. The M1's four efficiency cores slow the synchronised parallel solve. Changing from four to eight processes changed the Fast sample Cd by less than 0.0001.
+Four processes stayed the default. The cause of the slowdown was not isolated. The M1's four efficiency cores, MPI communication on small per-process meshes, and memory bandwidth are all plausible contributors. Changing from four to eight processes changed the Fast sample Cd by less than 0.0001.
 
 ## Published computational reference comparison
 
