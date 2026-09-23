@@ -1,4 +1,26 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
+
+// Runs are picked from the sidebar list; "All" includes other designs' runs.
+async function openRun(page: Page, id: string) {
+  await page.getByRole("button", { name: "All", exact: true }).click();
+  await page.locator(`[data-run="${id}"]`).click();
+}
+const selectedRun = (page: Page) =>
+  page.locator(".run-item.selected").getAttribute("data-run");
+const openSection = (page: Page, name: RegExp) =>
+  page.getByRole("button", { name }).click();
+// The animated plane sits in the 3D scene, like the slice: its note shows,
+// nothing fails to load, and its tracers move between frames.
+async function expectAnimatedPlane(page: Page, count: number) {
+  const hints = page.getByText(/Tracers follow the average in-plane velocity/);
+  await expect(hints).toHaveCount(count);
+  await expect(page.getByText("Loading geometry…")).toHaveCount(0);
+  await expect(page.locator(".viewport-message.error")).toHaveCount(0);
+  const canvas = page.locator('[data-testid="vtk-viewer"] canvas').first();
+  const before = await canvas.screenshot();
+  await page.waitForTimeout(500);
+  expect(before.equals(await canvas.screenshot())).toBe(false);
+}
 
 test("sample, geometry view, saved conditions, and duplicate", async ({
   page,
@@ -16,6 +38,7 @@ test("sample, geometry view, saved conditions, and duplicate", async ({
   await expect(
     page.getByRole("button", { name: /^(Run|Queue) simulation$/ }),
   ).toBeDisabled();
+  await openSection(page, /Driving conditions/);
   await page.getByLabel("Road speed", { exact: true }).fill("120");
   await page.getByLabel("I checked size").check();
   await page.getByRole("button", { name: "Save setup", exact: true }).click();
@@ -45,7 +68,7 @@ test("real results, slices and flow lines render without browser errors", async 
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
   await page.getByRole("button", { name: "Simulation results" }).click();
-  await page.getByLabel("Saved run").selectOption(run.id);
+  await openRun(page, run.id);
   await expect(page.getByText("Pressure · calculated result")).toBeVisible();
   await expect(page.getByText("Loading geometry…")).toHaveCount(0);
   await expect(page.locator(".viewport-message.error")).toHaveCount(0);
@@ -57,6 +80,10 @@ test("real results, slices and flow lines render without browser errors", async 
   await expect(page.getByText("Loading geometry…")).toHaveCount(0);
   await expect(page.locator(".viewport-message.error")).toHaveCount(0);
   await page.screenshot({ path: "../docs/results.png", fullPage: true });
+  await page.getByLabel("View", { exact: true }).selectOption("plane");
+  await expectAnimatedPlane(page, 1);
+  await page.getByLabel("Plane", { exact: true }).selectOption("x");
+  await expectAnimatedPlane(page, 1);
   await page.getByLabel("View", { exact: true }).selectOption("streamlines");
   await expect(page.getByText("Loading geometry…")).toHaveCount(0);
   await expect(page.locator(".viewport-message.error")).toHaveCount(0);
@@ -79,7 +106,7 @@ test("force history recovers after a failed request", async ({
   );
   await page.goto("/");
   await page.getByRole("button", { name: "Simulation results" }).click();
-  await page.getByLabel("Saved run").selectOption(run.id);
+  await openRun(page, run.id);
   await expect(
     page.getByText("Could not load force history. Retrying…"),
   ).toBeVisible();
@@ -107,7 +134,7 @@ test("run two actual simulations from the UI, compare, reopen, and cancel", asyn
     { timeout: 900000 },
   );
   await expect(page.locator(".run-status.completed")).toBeVisible();
-  const baseline = await page.getByLabel("Saved run").inputValue();
+  const baseline = await selectedRun(page);
   await page.getByRole("button", { name: "Duplicate design" }).click();
   await page.getByRole("button", { name: "Add rear wing" }).click();
   await expect(page.getByRole("button", { name: "Remove wing" })).toBeVisible();
@@ -119,12 +146,12 @@ test("run two actual simulations from the UI, compare, reopen, and cancel", asyn
     { timeout: 900000 },
   );
   await expect(page.locator(".run-status.completed")).toBeVisible();
-  const variant = await page.getByLabel("Saved run").inputValue();
+  const variant = await selectedRun(page);
   await page
     .getByRole("button", { name: "Compare designs", exact: true })
     .click();
-  await page.getByLabel("Baseline run").selectOption(baseline);
-  await page.getByLabel("Variant run").selectOption(variant);
+  await page.getByLabel("Baseline run").selectOption(baseline!);
+  await page.getByLabel("Variant run").selectOption(variant!);
   await expect(page.locator(".compare-viewers canvas")).toHaveCount(2);
   await expect(page.getByText("Loading geometry…")).toHaveCount(0);
   await expect(page.locator(".viewport-message.error")).toHaveCount(0);
@@ -156,9 +183,12 @@ test("run two actual simulations from the UI, compare, reopen, and cancel", asyn
     ),
   ).toBe(false);
   await page.screenshot({ path: "../docs/comparison.png", fullPage: true });
+  await page.getByLabel("View", { exact: true }).selectOption("plane");
+  await expectAnimatedPlane(page, 2);
+  await page.getByLabel("View", { exact: true }).selectOption("surface");
   await page.reload();
   await page.getByRole("button", { name: "Simulation results" }).click();
-  await page.getByLabel("Saved run").selectOption(variant);
+  await openRun(page, variant!);
   await expect(page.locator(".run-status.completed")).toBeVisible();
   await expect(page.getByText("Loading geometry…")).toHaveCount(0);
   await page.getByRole("button", { name: "Model & setup" }).click();
@@ -220,7 +250,7 @@ test("rename persists and completed results export from the UI", async ({
   const run = runs.find((r: { status: string }) => r.status === "completed");
   expect(run).toBeTruthy();
   await page.getByRole("button", { name: "Simulation results" }).click();
-  await page.getByLabel("Saved run").selectOption(run.id);
+  await openRun(page, run.id);
   const downloadEvent = page.waitForEvent("download");
   await page.getByRole("link", { name: "Export run" }).click();
   const download = await downloadEvent;
@@ -254,7 +284,7 @@ test("Precise result displays its two-mesh sensitivity", async ({
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
   await page.getByRole("button", { name: "Simulation results" }).click();
-  await page.getByLabel("Saved run").selectOption(run.id);
+  await openRun(page, run.id);
   await expect(page.getByText(/Mesh sensitivity: ΔCd/)).toBeVisible();
   await expect(page.getByText("Loading geometry…")).toHaveCount(0);
   await expect(page.locator(".viewport-message.error")).toHaveCount(0);
@@ -277,6 +307,8 @@ test("changing a part while geometry loads preserves the initial camera", async 
   const canvas = page.locator('[data-testid="vtk-viewer"] canvas');
   const initial = await canvas.screenshot();
   await page.getByTitle("Reset camera", { exact: true }).click();
+  // The view buttons overlay the canvas; clear their hover state.
+  await page.mouse.move(0, 0);
   expect(initial.equals(await canvas.screenshot())).toBe(true);
 });
 
@@ -284,6 +316,7 @@ test("Blender guide opens from header and import, closes without losing setup", 
   page,
 }) => {
   await page.goto("/");
+  await openSection(page, /Driving conditions/);
   const speed = await page
     .getByLabel("Road speed", { exact: true })
     .inputValue();
@@ -305,6 +338,7 @@ test("Blender guide opens from header and import, closes without losing setup", 
   await expect(page.getByLabel("Road speed", { exact: true })).toHaveValue(
     speed,
   );
+  await openSection(page, /^01 Geometry/);
   await page
     .getByRole("button", { name: "Import STEP / STL", exact: true })
     .click();
@@ -341,4 +375,75 @@ test("Blender guide fits a phone viewport and traps keyboard focus", async ({
   });
   await page.keyboard.press("Escape");
   await expect(guide).toHaveCount(0);
+});
+
+test("re-orient an import, add a part, and switch it off", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTitle("New sample project").click();
+  await page.getByRole("button", { name: "Import STEP / STL" }).click();
+  await page
+    .getByLabel("Geometry files")
+    .setInputFiles("tests/fixtures/box.stl");
+  await page.getByRole("button", { name: "Import & check model" }).click();
+  await expect(page.locator(".dimensions")).toContainText("4.00");
+
+  // Rebuilt from the stored original: length and width swap, and a hint appears.
+  await page.getByRole("button", { name: "Turn 90°" }).click();
+  await expect(page.locator(".dimensions span").first()).toContainText("2.00");
+  await expect(page.locator(".geometry-hint")).toContainText(
+    "wider than it is long",
+  );
+  await page
+    .locator(".geometry-hint")
+    .getByRole("button", { name: "Turn 90°" })
+    .click();
+  await expect(page.locator(".dimensions span").first()).toContainText("4.00");
+  await expect(page.locator(".geometry-hint")).toHaveCount(0);
+
+  await page.getByRole("button", { name: /Add parts/ }).click();
+  await page
+    .getByLabel("Geometry files")
+    .setInputFiles("tests/fixtures/wing.stl");
+  await page.getByRole("button", { name: "Add & check parts" }).click();
+  await expect(page.locator(".part-group")).toHaveCount(2);
+  await expect(page.locator(".part-group").nth(1)).toContainText("Added");
+  // Placed where it was exported, above the roof, not dropped onto the road.
+  const height = page.locator(".dimensions span").nth(2);
+  await expect(height).toContainText("1.3");
+
+  // Switched off: out of the simulated assembly and its dimensions.
+  // Controlled by the saved project, so the box changes once the server replies.
+  await page.getByLabel("wing.stl enabled").click();
+  await expect(page.getByLabel("wing.stl enabled")).not.toBeChecked();
+  await expect(height).toContainText("1.00");
+  await expect(page.getByLabel("I checked size")).not.toBeChecked();
+
+  for (const view of ["Front", "Side", "Top"])
+    await page.getByRole("button", { name: view, exact: true }).click();
+  await page.getByTitle("Reset camera").click();
+  await expect(page.locator(".viewport-message.error")).toHaveCount(0);
+});
+
+test("wheel radius follows the selected design", async ({ page }) => {
+  await page.goto("/");
+  // Two samples share identical geometry, so only the design tells their rows apart.
+  await page.getByTitle("New sample project").click();
+  await openSection(page, /^Designs/);
+  await expect(page.locator(".project-item.selected")).toHaveCount(1);
+  const first = await page.locator(".project-item").count();
+  await page.getByTitle("New sample project").click();
+  await expect(page.locator(".project-item")).toHaveCount(first + 1);
+  const radius = page.getByLabel("Front left wheel radius");
+  await expect(radius).toHaveValue("0.32");
+  await radius.fill("0.48");
+  const saved = page.waitForResponse(
+    (r) => r.request().method() === "PUT" && /\/parts\/part\d+$/.test(r.url()),
+  );
+  await radius.blur();
+  await saved;
+  // Newest first: the edited design, then the untouched one.
+  await page.locator(".project-item").nth(1).click();
+  await expect(radius).toHaveValue("0.32");
+  await page.locator(".project-item").first().click();
+  await expect(radius).toHaveValue("0.48");
 });

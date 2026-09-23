@@ -12,7 +12,7 @@ from fastapi import BackgroundTasks, FastAPI, File, Form, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ValidationError
-from . import geometry, runner, storage, results
+from . import geometry, plane, runner, storage, results
 from .models import ImportOptions, NewProject, Settings, PRESETS
 
 
@@ -175,36 +175,59 @@ def replace_sample(key: str, wing: bool = False):
     )
 
 
-@app.post("/api/projects/{key}/import")
-def import_geometry(key: str, files: list[UploadFile] = File(...), options: str = Form("{}")):
-    current = storage.get("projects", key)
-    try:
-        parsed = ImportOptions.model_validate_json(options)
-    except ValidationError as exc:
-        raise ValueError(str(exc)) from exc
+def save_uploads(files, originals, first):
     if not files or len(files) > 20:
         raise ValueError("Import between 1 and 20 files at once.")
+    sources, total = [], 0
+    for i, upload in enumerate(files):
+        name = Path(upload.filename or "model").name
+        if Path(name).suffix.lower() not in (".stl", ".step", ".stp"):
+            raise ValueError("Supported formats: STEP, STP, and STL.")
+        file = f"{first + i}-{name}"
+        with (originals / file).open("wb") as destination:
+            while chunk := upload.file.read(1024 * 1024):
+                total += len(chunk)
+                if total > 100 * 1024 * 1024:
+                    raise ValueError("Upload limit is 100 MB per import.")
+                destination.write(chunk)
+        sources.append(dict(file=file, name=name))
+    return sources
+
+
+def rebuild(key, current, options, keep=(), uploads=(), base=True, carry=True):
+    """Rebuild project geometry from kept originals plus uploads in a fresh folder.
+
+    The previous folder is removed only after the record points at the new one;
+    runs hold their own copies, so nothing else refers to it.
+    """
+    root = storage.directory("projects", key)
+    old = current.get("geometry") or {}
     folder_name = "geometry-" + storage.identifier()
-    folder = storage.directory("projects", key) / folder_name
-    folder.mkdir(parents=True)
+    folder = root / folder_name
+    originals = folder / "originals"
+    originals.mkdir(parents=True)
     try:
-        paths, total = [], 0
-        originals = folder / "originals"
-        originals.mkdir()
-        for i, upload in enumerate(files):
-            name = Path(upload.filename or "model").name
-            if Path(name).suffix.lower() not in (".stl", ".step", ".stp"):
-                raise ValueError("Supported formats: STEP, STP, and STL.")
-            path = originals / f"{i}-{name}"
-            with path.open("wb") as destination:
-                while chunk := upload.file.read(1024 * 1024):
-                    total += len(chunk)
-                    if total > 100 * 1024 * 1024:
-                        raise ValueError("Upload limit is 100 MB per import.")
-                    destination.write(chunk)
-            paths.append(path)
-        data = geometry.import_files(paths, folder, parsed)
-        return storage.update(
+        for source in keep:
+            shutil.copy2(root / current["geometry_dir"] / "originals" / source["file"], originals)
+        first = 1 + max([int(s["file"].split("-", 1)[0]) for s in keep], default=-1)
+        added = save_uploads(uploads, originals, first) if uploads else []
+        sources = list(keep) + [dict(s, base=base) for s in added]
+        previous = {}
+        if carry:
+            for part in old.get("parts", []):
+                if "source" in part:
+                    previous[(old["sources"][part["source"]]["file"], part["component"])] = part
+        data = geometry.import_files(
+            [originals / s["file"] for s in sources],
+            folder,
+            options,
+            base=[s["base"] for s in sources],
+            previous=previous,
+        )
+        for i, source in enumerate(sources):
+            source["components"] = sum(part["source"] == i for part in data["parts"])
+        data.update(sources=sources, import_options=options.model_dump())
+        project = storage.update(
             "projects",
             key,
             geometry=data,
@@ -216,6 +239,75 @@ def import_geometry(key: str, files: list[UploadFile] = File(...), options: str 
     except Exception:
         shutil.rmtree(folder)
         raise
+    if current.get("geometry_dir") and current["geometry_dir"] != folder_name:
+        shutil.rmtree(root / current["geometry_dir"], ignore_errors=True)
+    return project
+
+
+def imported(project):
+    data = project.get("geometry") or {}
+    if not data.get("import_options"):
+        raise ValueError("Import the model again to adjust its orientation or add parts to it.")
+    return data, ImportOptions(**data["import_options"])
+
+
+@app.post("/api/projects/{key}/import")
+def import_geometry(key: str, files: list[UploadFile] = File(...), options: str = Form("{}")):
+    current = storage.get("projects", key)
+    try:
+        parsed = ImportOptions.model_validate_json(options)
+    except ValidationError as exc:
+        raise ValueError(str(exc)) from exc
+    return rebuild(key, current, parsed, uploads=files, carry=False)
+
+
+@app.put("/api/projects/{key}/import-options")
+def reorient(key: str, body: ImportOptions):
+    current = storage.get("projects", key)
+    data, _ = imported(current)
+    return rebuild(key, current, body, keep=data["sources"])
+
+
+@app.post("/api/projects/{key}/parts", status_code=201)
+def add_parts(key: str, files: list[UploadFile] = File(...)):
+    """Add optional parts exported in the same frame and units as the base model."""
+    current = storage.get("projects", key)
+    data, options = imported(current)
+    return rebuild(key, current, options, keep=data["sources"], uploads=files, base=False)
+
+
+@app.delete("/api/projects/{key}/sources/{file}")
+def remove_source(key: str, file: str):
+    current = storage.get("projects", key)
+    data, options = imported(current)
+    source = next((s for s in data["sources"] if s["file"] == file), None)
+    if not source:
+        raise FileNotFoundError()
+    if source["base"]:
+        raise ValueError("Base model files define the car's position. Import a new model to replace them.")
+    return rebuild(key, current, options, keep=[s for s in data["sources"] if s is not source])
+
+
+class PartsEnabled(BaseModel):
+    part_ids: list[str] = Field(min_length=1, max_length=100)
+    enabled: bool
+
+
+@app.put("/api/projects/{key}/parts-enabled")
+def enable_parts(key: str, body: PartsEnabled):
+    with storage.LOCK:
+        project = storage.get("projects", key)
+        data = project.get("geometry")
+        if not data or not set(body.part_ids) <= {p["id"] for p in data["parts"]}:
+            raise FileNotFoundError()
+        for part in data["parts"]:
+            if part["id"] in body.part_ids:
+                part["enabled"] = body.enabled
+        folder = storage.directory("projects", key) / project["geometry_dir"]
+        data.update(geometry.summarize(folder, data["parts"]))
+        project["settings"]["geometry_confirmed"] = False
+        storage.save("projects", project)
+        return project
 
 
 class WheelRole(BaseModel):
@@ -263,7 +355,15 @@ def runs():
 
 @app.post("/api/projects/{key}/runs", status_code=202)
 def start_run(key: str):
-    return runner.enqueue(storage.get("projects", key))
+    project = storage.get("projects", key)
+    data = project.get("geometry")
+    if not data:
+        return runner.enqueue(project)
+    # A run simulates only the parts enabled when it was queued. Filtering here
+    # rather than in the runner keeps the pipeline hash, so earlier runs stay comparable.
+    enabled = [p for p in data["parts"] if p.get("enabled", True)]
+    run = runner.enqueue({**project, "geometry": {**data, "parts": enabled}})
+    return storage.update("runs", run["id"], configuration=geometry.configuration(data))
 
 
 @app.get("/api/runs/{key}")
@@ -311,6 +411,28 @@ def slice_asset(key: str, axis: Literal["x", "y", "z"] = "y", position: int = 50
     return FileResponse(path)
 
 
+@app.get("/api/runs/{key}/plane")
+def plane_asset(key: str, axis: Literal["x", "y", "z"] = "y", position: int = 50):
+    """Velocity and scalar fields resampled on a regular grid for the animated plane view."""
+    if not 0 <= position <= 100:
+        raise ValueError("Plane position must be between 0 and 100.")
+    run = storage.get("runs", key)
+    if run["status"] != "completed":
+        raise ValueError("Results are not available yet.")
+    with storage.LOCK:
+        path = plane.plane_field(
+            storage.directory("runs", key) / "results",
+            axis,
+            position,
+            run["result"]["slice_bounds"],
+            run["settings"]["speed_kmh"] / 3.6,
+        )
+    # Stored gzipped; the browser decompresses it transparently.
+    return FileResponse(
+        path, media_type="application/octet-stream", headers={"Content-Encoding": "gzip"}
+    )
+
+
 @app.get("/api/runs/{key}/logs")
 def logs(key: str):
     root = storage.directory("runs", key)
@@ -349,6 +471,36 @@ def export(key: str, cleanup: BackgroundTasks):
         raise
     cleanup.add_task(target.unlink, missing_ok=True)
     return FileResponse(target, filename=f"easycfd-{key[:8]}.zip")
+
+
+def components(run):
+    """Simulated parts keyed by (source file, component), with display names and file totals."""
+    data = run["geometry"]
+    sources = data.get("sources") or []
+    names, totals = {}, {}
+    for part in data["parts"]:
+        if "source" in part:
+            source = sources[part["source"]]
+            names[(source["file"], part["component"])] = part["name"]
+            totals[source["file"]] = (source["name"], source.get("components"))
+        else:
+            # Sample and older geometry: the part name is the identity.
+            names[(part["name"], None)] = part["name"]
+    return names, totals
+
+
+def part_changes(a, b):
+    """Parts simulated only in a, compared per component; a file is named once when all of it differs."""
+    names, totals = components(a)
+    other, other_totals = components(b)
+    totals = {**other_totals, **totals}
+    missing = [key for key in names if key not in other]
+    out = []
+    for file in sorted({key[0] for key in missing}):
+        keys = [key for key in missing if key[0] == file]
+        name, count = totals.get(file, (None, None))
+        out.extend([name] if count == len(keys) else sorted(names[key] for key in keys))
+    return out
 
 
 @app.get("/api/compare")
@@ -396,6 +548,13 @@ def compare(baseline: str, variant: str):
             delta=new - old,
             percent=(new - old) / abs(old) * 100 if abs(old) > 0.01 else None,
         )
+    parts = None
+    if a.get("geometry") and b.get("geometry"):
+        parts = dict(
+            same=a["geometry"]["fingerprint"] == b["geometry"]["fingerprint"],
+            only_baseline=part_changes(a, b),
+            only_variant=part_changes(b, a),
+        )
     warnings = []
     if mismatch:
         warnings.append("Conditions differ: " + ", ".join(mismatch) + ". Rerun with matching settings.")
@@ -427,6 +586,7 @@ def compare(baseline: str, variant: str):
         changes=changes,
         warnings=warnings,
         comparable=not mismatch,
+        parts=parts,
         ranges={
             field: [
                 min(a["result"]["ranges"][field][0], b["result"]["ranges"][field][0]),

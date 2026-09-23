@@ -16,7 +16,17 @@ export type Part = {
   triangles: number;
   bounds: number[][];
   issues: string[];
+  // Absent on geometry saved before parts could be switched off: treat as enabled.
+  enabled?: boolean;
+  source?: number;
 };
+export type ImportOptions = {
+  units: "m" | "mm" | "cm" | "in";
+  forward: string;
+  up: string;
+  clearance: number;
+};
+export type Source = { file: string; name: string; base: boolean };
 export type Geometry = {
   parts: Part[];
   bounds: number[][];
@@ -26,6 +36,9 @@ export type Geometry = {
   triangles: number;
   fingerprint: string;
   frontal_area_estimate: number;
+  // Only imported models keep originals, so only they can be re-oriented or extended.
+  sources?: Source[];
+  import_options?: ImportOptions;
 };
 export type Project = {
   id: string;
@@ -81,6 +94,7 @@ export type Run = {
   stage: string;
   settings: Settings;
   geometry: Geometry;
+  configuration?: { added: string[]; excluded: string[] };
   iteration: number;
   result?: Result;
   error?: string;
@@ -101,6 +115,11 @@ export type Comparison = {
   >;
   warnings: string[];
   comparable: boolean;
+  parts?: {
+    same: boolean;
+    only_baseline: string[];
+    only_variant: string[];
+  } | null;
   ranges: Record<string, number[]>;
 };
 export async function api<T>(url: string, options?: RequestInit): Promise<T> {
