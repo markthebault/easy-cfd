@@ -5,25 +5,31 @@ import {
   Upload,
   Copy,
   Pencil,
-  Play,
-  Check,
-  ChevronRight,
-  ArrowDown,
-  ArrowRight,
   Activity,
-  Layers,
   Box,
   GitCompareArrows,
-  Download,
-  Square,
   AlertTriangle,
-  Terminal,
   ExternalLink,
   X,
+  Sun,
+  Moon,
+  Monitor,
+  BookOpen,
+  RefreshCw,
 } from "lucide-react";
 import Viewer from "./Viewer";
 import BlenderGuide from "./BlenderGuide";
-import { OrientationTools, PartList } from "./GeometryTools";
+import {
+  ConditionsBody,
+  conditionsSummary,
+  DesignList,
+  GeometryBody,
+  geometrySummary,
+  RunBar,
+} from "./Setup";
+import { ResultsView, RunActions, RunList } from "./Results";
+import { CompareView } from "./Compare";
+import { active, remember, remembered, Section } from "./ui";
 import {
   api,
   json,
@@ -35,23 +41,9 @@ import {
   type ImportOptions,
 } from "./types";
 
-const fmt = (n: number | undefined, digits = 2) =>
-  n === undefined ? "—" : n.toFixed(digits);
-const share = (part: number, total: number) =>
-  total ? `${((100 * part) / total).toFixed(0)}%` : "—";
-const active = (r: Run) => ["running", "queued"].includes(r.status);
-// Optional parts differ between runs of one design, so labels name them.
-const parts = (r: Run) =>
-  [
-    ...(r.configuration?.added ?? []).map((n) => ` + ${n}`),
-    r.configuration?.excluded.length
-      ? ` − ${r.configuration.excluded.length} part${r.configuration.excluded.length > 1 ? "s" : ""}`
-      : "",
-  ].join("");
-const megabytes = (bytes: number) =>
-  bytes >= 1024 ** 3
-    ? `${(bytes / 1024 ** 3).toFixed(1)} GB`
-    : `${Math.round(bytes / 1024 ** 2)} MB`;
+type Theme = "system" | "light" | "dark";
+const THEMES: Theme[] = ["system", "light", "dark"];
+const dark = () => window.matchMedia?.("(prefers-color-scheme: dark)").matches;
 
 export default function App() {
   const [projects, setProjects] = useState<Project[]>([]),
@@ -87,6 +79,40 @@ export default function App() {
     previous_seconds: number | null;
     message: string;
   } | null>(null);
+  // Layout preferences, remembered per browser.
+  const [theme, setTheme] = useState<Theme>(() =>
+      remembered<Theme>("easycfd-theme", "system"),
+    ),
+    [systemDark, setSystemDark] = useState(dark),
+    [section, setSection] = useState(() =>
+      remembered<string>("easycfd-section", "geometry"),
+    ),
+    [designsOpen, setDesignsOpen] = useState(
+      () => remembered<string>("easycfd-designs", "closed") === "open",
+    ),
+    [runScope, setRunScope] = useState<"design" | "all">("design");
+  const resolved = theme === "system" ? (systemDark ? "dark" : "light") : theme;
+  useEffect(() => {
+    const media = window.matchMedia?.("(prefers-color-scheme: dark)");
+    const listener = () => setSystemDark(media.matches);
+    media?.addEventListener("change", listener);
+    return () => media?.removeEventListener("change", listener);
+  }, []);
+  useEffect(() => {
+    if (theme === "system") delete document.documentElement.dataset.theme;
+    else document.documentElement.dataset.theme = theme;
+    remember("easycfd-theme", theme);
+  }, [theme]);
+  // One setup section open at a time keeps the Run area in view.
+  const toggleSection = (id: string) => {
+    const next = section === id ? "" : id;
+    setSection(next);
+    remember("easycfd-section", next);
+  };
+  const toggleDesigns = () => {
+    setDesignsOpen(!designsOpen);
+    remember("easycfd-designs", designsOpen ? "closed" : "open");
+  };
   useEffect(() => {
     if (!project || !settings) return;
     let disposed = false;
@@ -219,6 +245,10 @@ export default function App() {
       await refresh();
       setTab("results");
     });
+  const scoped =
+    runScope === "all"
+      ? runs
+      : runs.filter((r) => r.project_id === project?.id);
   const current =
     runs.find((r) => r.id === selected) ||
     runs.find((r) => r.project_id === project?.id);
@@ -251,26 +281,13 @@ export default function App() {
       clearTimeout(timer);
     };
   }, [current?.id, current?.status]);
-  const a = runs.find((r) => r.id === baseline),
-    b = runs.find((r) => r.id === variant);
   const dirty = JSON.stringify(settings) !== JSON.stringify(project?.settings);
   const anyActive = runs.some(active);
-  const conditions = (
-    <div className="conditions">
-      <span>
-        {settings?.speed_kmh ?? 100}
-        <small>km/h</small>
-      </span>
-      <i />
-      <span>
-        {settings?.yaw_deg ?? 0}°<small>crosswind yaw</small>
-      </span>
-      <i />
-      <span>
-        Air<small>incompressible · steady</small>
-      </span>
-    </div>
-  );
+  const openImport = (mode: "replace" | "add") =>
+    action(async () => {
+      await save();
+      setImporting(mode);
+    });
   const controls = (
     <div className="result-controls">
       <label>
@@ -326,17 +343,52 @@ export default function App() {
       )}
     </div>
   );
+  const ThemeIcon = theme === "dark" ? Moon : theme === "light" ? Sun : Monitor;
+  const designs = (
+    <Section
+      title="Designs"
+      summary={
+        designsOpen
+          ? `${projects.length} on this computer`
+          : project?.name || `${projects.length} designs`
+      }
+      open={designsOpen}
+      onToggle={toggleDesigns}
+      action={
+        <button
+          className="icon-button"
+          title="New sample project"
+          onClick={() => create()}
+          disabled={busy || initializing}
+        >
+          <Plus size={16} />
+        </button>
+      }
+    >
+      <DesignList
+        projects={projects}
+        runs={runs}
+        current={project?.id}
+        onPick={(p) => {
+          pick(p);
+          setSelected("");
+        }}
+      />
+      {!projects.length && (
+        <p className="micro">Your projects stay on this computer.</p>
+      )}
+    </Section>
+  );
   return (
     <div className="app">
       <header className="topbar">
         <a className="brand" href="/">
           <span className="brand-mark">
-            <Wind size={23} />
+            <Wind size={20} />
           </span>
           easy<span>cfd</span>
-          <em>LOCAL WIND TUNNEL</em>
         </a>
-        <button className="guide-trigger" onClick={() => setGuideOpen(true)}>Blender export guide</button>
+        <em className="brand-tag">Local wind tunnel</em>
         <div className="runtime">
           <span className={`dot ${health?.ready ? "green" : "amber"}`} />
           {health?.ready
@@ -347,111 +399,72 @@ export default function App() {
               {health.architecture} · {health.memory_gb} GB
             </small>
           )}
+          <button
+            className="icon-button"
+            title="Refresh solver status"
+            onClick={() =>
+              action(async () => setHealth(await api<Health>("/health")))
+            }
+          >
+            <RefreshCw size={14} />
+          </button>
         </div>
+        <button className="guide-trigger" onClick={() => setGuideOpen(true)}>
+          <BookOpen size={14} /> Blender export guide
+        </button>
         <button
           className="icon-button"
-          title="Refresh solver status"
+          title={`Theme: ${theme}. Click to change.`}
+          aria-label={`Theme: ${theme}`}
           onClick={() =>
-            action(async () => setHealth(await api<Health>("/health")))
+            setTheme(THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length])
           }
         >
-          <Activity size={17} />
+          <ThemeIcon size={16} />
         </button>
       </header>
-      <div className="workspace">
-        <aside className="sidebar">
-          <div className="sidebar-title">
-            WORKSPACE{" "}
-            <button
-              title="New sample project"
-              onClick={() => create()}
-              disabled={busy || initializing}
-            >
-              <Plus size={17} />
-            </button>
-          </div>
-          <div className="project-list">
-            {projects.map((p) => (
-              <button
-                className={
-                  project?.id === p.id
-                    ? "project-item selected"
-                    : "project-item"
-                }
-                key={p.id}
-                onClick={() => {
-                  pick(p);
-                  setSelected("");
-                }}
-              >
-                <Box size={16} />
-                <span>{p.name}</span>
-                <ChevronRight size={13} />
-              </button>
-            ))}
-            {!projects.length && (
-              <p className="muted small">
-                Your projects stay on this computer.
-              </p>
-            )}
-          </div>
-          <div className="sidebar-divider" />
-          <div className="sidebar-title">
-            SIMULATION SETUP <span className="step-count">01 — 03</span>
-          </div>
-          {project && settings ? (
-            <fieldset className="setup-fields" disabled={busy || initializing}>
-              <section className="setup-section">
-                <h3>
-                  <span>01</span> Geometry
-                </h3>
-                <div className="model-info">
-                  <Box size={23} />
-                  <div>
-                    <strong>
-                      {project.geometry ? "Model loaded" : "No model yet"}
-                    </strong>
-                    <small>
-                      {project.geometry
-                        ? `${project.geometry.parts.length} parts · ${project.geometry.triangles.toLocaleString()} triangles`
-                        : "STEP / STL"}
-                    </small>
-                  </div>
+      <div className={`workspace ${tab === "compare" ? "wide" : ""}`}>
+        {tab !== "compare" && (
+          <aside className="sidebar">
+            <div className="sidebar-scroll">
+              {designs}
+              {!project || !settings ? (
+                <div className="sidebar-empty">
+                  <Wind size={32} />
+                  <p>Start with a sample car, then bring your own design.</p>
                   <button
-                    className="icon-button"
-                    title="Import geometry"
-                    onClick={() =>
-                      action(async () => {
-                        await save();
-                        setImporting("replace");
-                      })
-                    }
+                    className="primary"
+                    onClick={() => create()}
+                    disabled={busy || initializing}
                   >
-                    <Upload size={17} />
+                    Open sample car
                   </button>
                 </div>
-                {project.geometry && (
-                  <>
-                    <div className="dimensions">
-                      {project.geometry.dimensions.map((d, i) => (
-                        <span key={i}>
-                          {["Length", "Width", "Height"][i]}
-                          <b>
-                            {d.toFixed(2)} <small>m</small>
-                          </b>
-                        </span>
-                      ))}
-                    </div>
-                    <OrientationTools
-                      key={project.id}
-                      geometry={project.geometry}
-                      apply={reorient}
-                    />
-                    <PartList
-                      design={project.id}
-                      geometry={project.geometry}
+              ) : tab === "setup" ? (
+                <fieldset
+                  className="setup-fields"
+                  disabled={busy || initializing}
+                >
+                  <Section
+                    step="01"
+                    title="Geometry"
+                    summary={
+                      project.geometry?.errors.length
+                        ? `${project.geometry.errors.length} problem${project.geometry.errors.length > 1 ? "s" : ""} to fix`
+                        : geometrySummary(project)
+                    }
+                    tone={
+                      project.geometry?.errors.length ? "warning" : undefined
+                    }
+                    open={section === "geometry"}
+                    onToggle={() => toggleSection("geometry")}
+                  >
+                    <GeometryBody
+                      project={project}
                       highlight={highlight}
                       onHighlight={setHighlight}
+                      onImport={openImport}
+                      onReorient={reorient}
                       onRole={(part, role, radius) =>
                         edit(() =>
                           api<Project>(
@@ -485,356 +498,208 @@ export default function App() {
                           );
                       }}
                     />
-                    {project.geometry.errors.map((e, i) => (
-                      <p className="validation-error" key={i}>
-                        {e}
-                      </p>
-                    ))}
-                    <label className="check-row">
-                      <input
-                        type="checkbox"
-                        checked={settings.geometry_confirmed}
-                        onChange={(e) =>
-                          update("geometry_confirmed", e.target.checked)
-                        }
-                      />
-                      <span>
-                        I checked size, orientation, wheel roles, and clearance.
-                      </span>
-                    </label>
-                  </>
-                )}
-                <button
-                  className="text-button"
-                  onClick={() =>
-                    action(async () => {
-                      await save();
-                      setImporting("replace");
-                    })
-                  }
-                >
-                  <Upload size={13} /> Import STEP / STL
-                </button>
-                {project.geometry?.import_options && (
-                  <button
-                    className="text-button"
-                    onClick={() =>
-                      action(async () => {
-                        await save();
-                        setImporting("add");
-                      })
-                    }
+                  </Section>
+                  <Section
+                    step="02"
+                    title="Driving conditions"
+                    summary={conditionsSummary(settings)}
+                    open={section === "conditions"}
+                    onToggle={() => toggleSection("conditions")}
                   >
-                    <Plus size={13} /> Add parts · wing, splitter…
-                  </button>
-                )}
-              </section>
-              <section className="setup-section">
-                <h3>
-                  <span>02</span> Driving conditions
-                </h3>
-                <label className="input-label">
-                  Road speed
-                  <div className="unit-input">
-                    <input
-                      aria-label="Road speed"
-                      type="number"
-                      min="5"
-                      max="250"
-                      value={settings.speed_kmh}
-                      onChange={(e) => update("speed_kmh", +e.target.value)}
+                    <ConditionsBody
+                      settings={settings}
+                      project={project}
+                      update={update}
                     />
-                    <span>km/h</span>
+                  </Section>
+                </fieldset>
+              ) : (
+                <div className="run-section">
+                  <div className="sidebar-label">
+                    Runs
+                    <div
+                      className="segmented"
+                      role="group"
+                      aria-label="Runs shown"
+                    >
+                      {(["design", "all"] as const).map((s) => (
+                        <button
+                          key={s}
+                          aria-pressed={runScope === s}
+                          className={runScope === s ? "chosen" : ""}
+                          onClick={() => setRunScope(s)}
+                        >
+                          {s === "design" ? "This design" : "All"}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </label>
-                <div className="input-pair">
-                  <label className="input-label">
-                    Crosswind yaw
-                    <div className="unit-input">
-                      <input
-                        aria-label="Crosswind yaw"
-                        type="number"
-                        min="-20"
-                        max="20"
-                        value={settings.yaw_deg}
-                        onChange={(e) => update("yaw_deg", +e.target.value)}
-                      />
-                      <span>°</span>
-                    </div>
-                  </label>
-                  <label className="input-label">
-                    Reference area
-                    <div className="unit-input">
-                      <input
-                        aria-label="Reference area"
-                        type="number"
-                        step=".1"
-                        min=".01"
-                        value={settings.reference_area}
-                        onChange={(e) =>
-                          update("reference_area", +e.target.value)
-                        }
-                      />
-                      <span>m²</span>
-                    </div>
-                  </label>
+                  <RunList
+                    runs={scoped}
+                    selected={current?.id}
+                    onSelect={setSelected}
+                  />
                 </div>
-                <p className="micro">
-                  Keep the same reference area when comparing designs. Drag is
-                  along the car's length.
-                </p>
-                {project.geometry?.frontal_area_estimate ? (
-                  <p className="micro">
-                    Estimated frontal area ≈{" "}
-                    {fmt(project.geometry.frontal_area_estimate)} m² (upper
-                    bound, ignores overlap between parts).{" "}
-                    <button
-                      className="text-button"
-                      onClick={() =>
-                        update(
-                          "reference_area",
-                          project.geometry!.frontal_area_estimate,
-                        )
-                      }
-                    >
-                      Use estimate
-                    </button>
-                  </p>
-                ) : null}
-                <label className="check-row">
-                  <input
-                    type="checkbox"
-                    checked={settings.moving_ground}
-                    onChange={(e) => update("moving_ground", e.target.checked)}
-                  />{" "}
-                  Moving road
-                </label>
-                <label className="check-row">
-                  <input
-                    type="checkbox"
-                    checked={settings.wheels}
-                    onChange={(e) => update("wheels", e.target.checked)}
-                  />{" "}
-                  Rotate identified wheels
-                </label>
-                <details>
-                  <summary>Air properties</summary>
-                  <label className="input-label">
-                    Density · kg/m³
-                    <input
-                      type="number"
-                      step=".001"
-                      min=".8"
-                      max="1.5"
-                      value={settings.density}
-                      onChange={(e) => update("density", +e.target.value)}
-                    />
-                  </label>
-                  <p className="micro">
-                    Inlet turbulence: 1%. Kinematic viscosity: 1.5 × 10⁻⁵ m²/s.
-                    Wheel axes are transverse to the car.
-                  </p>
-                </details>
-              </section>
-              <section className="setup-section">
-                <h3>
-                  <span>03</span> Simulation quality
-                </h3>
-                <div className="quality-picker">
-                  {(["fast", "medium", "precise"] as const).map((q) => (
-                    <button
-                      key={q}
-                      className={settings.quality === q ? "chosen" : ""}
-                      onClick={() => update("quality", q)}
-                    >
-                      {q}
-                      <small>
-                        {q === "fast"
-                          ? "Explore"
-                          : q === "medium"
-                            ? "Compare"
-                            : "Refine"}
-                      </small>
-                    </button>
-                  ))}
-                </div>
-                <p className="micro quality-copy">
-                  {settings.quality === "fast"
-                    ? "Coarse mesh for a first look. Forces are provisional."
-                    : settings.quality === "medium"
-                      ? "Finer surface and wake resolution with boundary layers."
-                      : "Runs Medium and a finer mesh, then reports how the forces change."}
-                </p>
-                <div className="resource-budget">
-                  <Layers size={14} />
-                  {health?.presets[settings.quality]?.memory_gb ?? "—"} GB
-                  solver memory cap
-                </div>
-                <p className="micro">
-                  {estimate?.previous_seconds
-                    ? `Previous matching runs: about ${(estimate.previous_seconds / 60).toFixed(1)} min. Conditions can change runtime.`
-                    : "Runtime not yet measured for this model and preset."}{" "}
-                  Presets describe effort, not guaranteed accuracy.
-                </p>
-              </section>
-              <div className="run-actions">
-                <button
-                  className="primary"
-                  onClick={start}
-                  disabled={
-                    busy ||
-                    !health?.ready ||
-                    !settings.geometry_confirmed ||
-                    !!project.geometry?.errors.length ||
-                    !project.geometry
-                  }
-                >
-                  <Play size={16} />
-                  {busy
-                    ? "Working…"
-                    : anyActive
-                      ? "Queue simulation"
-                      : "Run simulation"}
-                </button>
-                <button
-                  className="text-button"
-                  onClick={() => action(save)}
-                  disabled={busy || !dirty}
-                >
-                  {dirty ? "Save setup" : "Setup saved"}{" "}
-                  {!dirty && <Check size={12} />}
-                </button>
-              </div>
-            </fieldset>
-          ) : (
-            <div className="sidebar-empty">
-              <Wind size={35} />
-              <p>Start with a sample car, then bring your own design.</p>
-              <button
-                className="primary"
-                onClick={() => create()}
+              )}
+            </div>
+            {project && settings && tab === "setup" && (
+              <fieldset
+                className="run-bar-fields"
                 disabled={busy || initializing}
               >
-                Open sample car
-              </button>
-            </div>
-          )}
-          <div className="sidebar-foot">
-            Open-source tools. Local files.
-            <br />
-            No uploads to a cloud service.
-          </div>
-        </aside>
+                <RunBar
+                  project={project}
+                  settings={settings}
+                  update={update}
+                  health={health}
+                  estimate={estimate}
+                  busy={busy}
+                  anyActive={anyActive}
+                  dirty={dirty}
+                  onRun={start}
+                  onSave={() => action(save)}
+                />
+              </fieldset>
+            )}
+            {tab === "results" && current && (
+              <RunActions
+                run={current}
+                onLogs={() =>
+                  action(async () =>
+                    setLogs(
+                      await api<Record<string, string>>(
+                        `/runs/${current.id}/logs`,
+                      ),
+                    ),
+                  )
+                }
+                onCancel={() =>
+                  action(async () => {
+                    await api(`/runs/${current.id}/cancel`, json("POST"));
+                    await refresh();
+                  })
+                }
+              />
+            )}
+          </aside>
+        )}
         <main>
-          <div className="page-heading">
-            <div className="eyebrow">AERODYNAMICS / DESIGN STUDY</div>
-            <div className="heading-row">
-              <h1>
-                {tab === "results" && current
-                  ? current.name
-                  : project?.name || "Your first wind tunnel"}
+          <div className="design-bar">
+            <div className="design-title">
+              <h1 title={project?.name}>
+                {project?.name || "Your first wind tunnel"}
               </h1>
-              <div className="heading-actions">
-                <button
-                  className="secondary"
-                  title="Rename design"
-                  disabled={!project || busy}
-                  onClick={() => {
-                    setDesignName(project!.name);
-                    setRenaming(true);
-                  }}
-                >
-                  <Pencil size={14} />
-                  Rename
-                </button>
-                <button
-                  className="secondary"
-                  disabled={!project || busy}
-                  onClick={() =>
-                    action(async () => {
-                      await save();
-                      const p = await api<Project>(
-                        `/projects/${project!.id}/duplicate`,
-                        json("POST"),
-                      );
-                      await refresh();
-                      pick(p);
-                      setTab("setup");
-                    })
-                  }
-                >
-                  <Copy size={14} />
-                  Duplicate design
-                </button>
-                {project?.sample && (
-                  <button
-                    className="secondary"
-                    disabled={busy || initializing}
-                    onClick={() =>
-                      action(async () => {
-                        const p = await api<Project>(
-                          `/projects/${project.id}/sample?wing=${project.sample !== "wing"}`,
-                          json("POST"),
-                        );
-                        await refresh();
-                        pick(p);
-                      })
-                    }
-                  >
-                    {project.sample === "wing"
-                      ? "Remove wing"
-                      : "Add rear wing"}
-                  </button>
-                )}
-              </div>
-            </div>
-            <p className="subtitle">
-              Understand the airflow. Compare the change.
-            </p>
-          </div>
-          {error && (
-            <div className="alert error" role="alert">
-              <AlertTriangle size={18} />
-              <span>{error}</span>
-              <button onClick={() => setError("")}>
-                <X size={16} />
+              <button
+                className="icon-button"
+                title="Rename design"
+                disabled={!project || busy}
+                onClick={() => {
+                  setDesignName(project!.name);
+                  setRenaming(true);
+                }}
+              >
+                <Pencil size={14} />
               </button>
             </div>
-          )}
-          <div className="main-tabs">
-            <nav>
-              {[
-                ["setup", "Model & setup", Box],
-                ["results", "Simulation results", Activity],
-                ["compare", "Compare designs", GitCompareArrows],
-              ].map(([id, label, Icon]) => (
+            <nav className="tabs">
+              {(
+                [
+                  ["setup", "Model & setup", "Model", Box],
+                  ["results", "Simulation results", "Results", Activity],
+                  ["compare", "Compare designs", "Compare", GitCompareArrows],
+                ] as const
+              ).map(([id, full, short, Icon]) => (
                 <button
-                  key={String(id)}
+                  key={id}
                   className={tab === id ? "active" : ""}
-                  onClick={() => setTab(String(id))}
+                  aria-current={tab === id ? "page" : undefined}
+                  aria-label={full}
+                  onClick={() => setTab(id)}
                 >
-                  {typeof Icon !== "string" && <Icon size={16} />}{" "}
-                  {String(label)}
+                  <Icon size={15} />
+                  {/* Short labels on narrow windows; the accessible name stays whole. */}
+                  <span className="tab-long">{full}</span>
+                  <span className="tab-short">{short}</span>
                   {id === "results" && anyActive && (
                     <span className="live-dot" />
                   )}
                 </button>
               ))}
             </nav>
-            {tab === "setup" && (
-              <span className="subtle-tag">GEOMETRY PREVIEW</span>
-            )}
+            <div className="design-actions">
+              {project?.sample && (
+                <button
+                  className="secondary small"
+                  disabled={busy || initializing}
+                  onClick={() =>
+                    action(async () => {
+                      const p = await api<Project>(
+                        `/projects/${project.id}/sample?wing=${project.sample !== "wing"}`,
+                        json("POST"),
+                      );
+                      await refresh();
+                      pick(p);
+                    })
+                  }
+                >
+                  {project.sample === "wing" ? "Remove wing" : "Add rear wing"}
+                </button>
+              )}
+              <button
+                className="secondary small"
+                disabled={!project || busy}
+                onClick={() =>
+                  action(async () => {
+                    await save();
+                    const p = await api<Project>(
+                      `/projects/${project!.id}/duplicate`,
+                      json("POST"),
+                    );
+                    await refresh();
+                    pick(p);
+                    setTab("setup");
+                  })
+                }
+              >
+                <Copy size={13} />
+                Duplicate design
+              </button>
+            </div>
           </div>
+          {error && (
+            <div className="alert error" role="alert">
+              <AlertTriangle size={16} />
+              <span>{error}</span>
+              <button onClick={() => setError("")} aria-label="Dismiss">
+                <X size={15} />
+              </button>
+            </div>
+          )}
           {tab === "setup" && (
-            <>
-              <div className="canvas-panel">
+            <div className="fold">
+              <div className="canvas-panel fill">
                 <div className="panel-top">
-                  {conditions}
+                  <div className="conditions">
+                    <span>
+                      {settings?.speed_kmh ?? 100}
+                      <small>km/h</small>
+                    </span>
+                    <i />
+                    <span>
+                      {settings?.yaw_deg ?? 0}°<small>crosswind yaw</small>
+                    </span>
+                    <i />
+                    <span>
+                      Air<small>incompressible · steady</small>
+                    </span>
+                  </div>
                   <span className="muted small">
                     {project?.geometry?.errors.length
                       ? "Geometry needs attention"
                       : project?.geometry
-                        ? "Ready for review"
+                        ? project.sample
+                          ? "Simplified demonstration car, not a validated vehicle model"
+                          : "Ready for review"
                         : "Start with a sample"}
                   </span>
                 </div>
@@ -846,497 +711,52 @@ export default function App() {
                   axis={axis}
                   position={position}
                   highlight={highlight}
+                  theme={resolved}
                 />
               </div>
-              <div className="intro-cards">
-                <article>
-                  <span className="card-icon">
-                    <Wind size={20} />
-                  </span>
-                  <h3>See the flow</h3>
-                  <p>
-                    Explore pressure on the body, airflow paths, and slices
-                    through the wake after a run.
-                  </p>
-                </article>
-                <article>
-                  <span className="card-icon">
-                    <ArrowDown size={20} />
-                  </span>
-                  <h3>Measure the forces</h3>
-                  <p>
-                    Drag resists motion. Downforce pushes the car into the road.
-                    View both in newtons.
-                  </p>
-                </article>
-                <article>
-                  <span className="card-icon">
-                    <GitCompareArrows size={20} />
-                  </span>
-                  <h3>Test a design change</h3>
-                  <p>
-                    Duplicate this setup, change a part, and compare under the
-                    same conditions.
-                  </p>
-                </article>
-              </div>
-              <div className="note">
-                <AlertTriangle size={17} />
-                <p>
-                  {project?.sample
-                    ? "The sample is a simplified demonstration car, not a validated vehicle model. "
-                    : ""}
-                  Closed surfaces are required. Review gaps, intersections, and
-                  wheel clearance before running.
-                </p>
-              </div>
-            </>
+              <p className="micro fold-note">
+                <AlertTriangle size={12} /> Closed surfaces are required. Review
+                gaps, intersections, and wheel clearance before running.
+                Duplicate a design or switch optional parts, run, then compare
+                under the same conditions.
+              </p>
+            </div>
           )}
           {tab === "results" && (
-            <>
-              <div className="run-selector">
-                <label>
-                  Saved run
-                  <select
-                    aria-label="Saved run"
-                    value={current?.id || ""}
-                    onChange={(e) => setSelected(e.target.value)}
-                  >
-                    <option value="" disabled>
-                      Select a run
-                    </option>
-                    {runs.map((r) => (
-                      <option value={r.id} key={r.id}>
-                        {r.name}
-                        {parts(r)} · {r.settings.quality} · {r.status} ·{" "}
-                        {new Date(r.created).toLocaleTimeString()}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                {current && (
-                  <>
-                    <button
-                      className="secondary"
-                      onClick={() =>
-                        action(async () =>
-                          setLogs(
-                            await api<Record<string, string>>(
-                              `/runs/${current.id}/logs`,
-                            ),
-                          ),
-                        )
-                      }
-                    >
-                      <Terminal size={14} />
-                      Logs
-                    </button>
-                    {!active(current) && (
-                      <a
-                        className="secondary"
-                        href={`/api/runs/${current.id}/export`}
-                      >
-                        <Download size={14} />
-                        Export run
-                        {current.disk_bytes != null && (
-                          <small>{megabytes(current.disk_bytes)}</small>
-                        )}
-                      </a>
-                    )}
-                  </>
-                )}
-              </div>
-              {!current ? (
-                <div className="empty-state">
-                  <Activity size={38} />
-                  <h2>No simulations yet</h2>
-                  <p>
-                    Review the model and run a simulation. Only calculated
-                    results appear here.
-                  </p>
-                  <button className="secondary" onClick={() => setTab("setup")}>
-                    Back to setup <ArrowRight size={15} />
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <div className={`run-status ${current.status}`}>
-                    <span className="dot" />
-                    <strong>{current.stage}</strong>
-                    <span>
-                      {current.settings.speed_kmh} km/h ·{" "}
-                      {current.settings.quality} · iteration {current.iteration}
-                    </span>
-                    {active(current) && (
-                      <button
-                        className="secondary"
-                        onClick={() =>
-                          action(async () => {
-                            await api(
-                              `/runs/${current.id}/cancel`,
-                              json("POST"),
-                            );
-                            await refresh();
-                          })
-                        }
-                      >
-                        <Square size={12} />
-                        Cancel
-                      </button>
-                    )}
-                  </div>
-                  <p className="micro">
-                    Saved output uses the conditions shown above. Changes in the
-                    setup panel apply to the next run.
-                  </p>
-                  {current.error && (
-                    <div className="alert error">
-                      <AlertTriangle size={18} />
-                      <pre>{current.error}</pre>
-                    </div>
-                  )}
-                  {current.result ? (
-                    <>
-                      <div className="metric-grid">
-                        <Metric
-                          title="Drag"
-                          value={fmt(current.result.drag)}
-                          unit="N"
-                          detail="Resistance along the car"
-                        />
-                        <Metric
-                          title="Downforce"
-                          value={fmt(current.result.downforce)}
-                          unit="N"
-                          detail="Positive means downward"
-                        />
-                        <Metric
-                          title="Drag coefficient"
-                          value={fmt(current.result.cd, 4)}
-                          unit="Cd"
-                          detail={`Reference area ${current.settings.reference_area} m²`}
-                        />
-                        <Metric
-                          title="Lift coefficient"
-                          value={fmt(current.result.cl, 4)}
-                          unit="Cl"
-                          detail="Negative means downforce"
-                        />
-                      </div>
-                      <div className="canvas-panel">
-                        {controls}
-                        <Viewer
-                          geometry={current.geometry}
-                          geometryBase={`/api/runs/${current.id}/geometry`}
-                          resultBase={`/api/runs/${current.id}`}
-                          field={field}
-                          mode={mode}
-                          axis={axis}
-                          position={position}
-                          range={current.result.ranges[field]}
-                          label={`${field} · calculated result`}
-                        />
-                      </div>
-                      {current.result.breakdown && (
-                        <>
-                          <h3 className="section-title">
-                            Where the drag comes from
-                            {!current.result.breakdown.consistent &&
-                              " · unreconciled, see warnings"}
-                          </h3>
-                          <div className="metric-grid">
-                            <Metric
-                              title="Body drag"
-                              value={fmt(current.result.breakdown.body.drag)}
-                              unit="N"
-                              detail={`${share(current.result.breakdown.body.drag, current.result.drag)} of total · Cd ${fmt(current.result.breakdown.body.cd, 4)}`}
-                            />
-                            {current.result.breakdown.wheels && (
-                              <Metric
-                                title="Wheels drag"
-                                value={fmt(
-                                  current.result.breakdown.wheels.drag,
-                                )}
-                                unit="N"
-                                detail={`${share(current.result.breakdown.wheels.drag, current.result.drag)} of total · Cd ${fmt(current.result.breakdown.wheels.cd, 4)}`}
-                              />
-                            )}
-                            <Metric
-                              title="Pressure drag"
-                              value={fmt(
-                                current.result.breakdown.pressure_drag,
-                              )}
-                              unit="N"
-                              detail={`${share(current.result.breakdown.pressure_drag, current.result.drag)} of total drag`}
-                            />
-                            <Metric
-                              title="Viscous drag"
-                              value={fmt(
-                                current.result.breakdown.viscous_drag,
-                              )}
-                              unit="N"
-                              detail={`${share(current.result.breakdown.viscous_drag, current.result.drag)} of total drag`}
-                            />
-                          </div>
-                        </>
-                      )}
-                      <div className="result-foot">
-                        Flow lines show average flow, not time-resolved
-                        turbulence. Wall speed is zero on stationary body
-                        surfaces; use a slice to inspect surrounding air.
-                      </div>
-                      <div className="diagnostics">
-                        <div>
-                          <h3>Run checks</h3>
-                          <p>
-                            <Check size={14} /> Mesh passed geometric checks ·{" "}
-                            {current.result.cells.toLocaleString()} cells
-                          </p>
-                          {current.result.blockage_ratio != null && (
-                            <p>
-                              Tunnel blockage{" "}
-                              {(
-                                current.result.blockage_ratio * 100
-                              ).toFixed(1)}
-                              % of cross-section
-                            </p>
-                          )}
-                          <p>
-                            {current.result.force_settled ? (
-                              <Check size={14} />
-                            ) : (
-                              <AlertTriangle size={14} />
-                            )}{" "}
-                            Forces{" "}
-                            {current.result.force_settled
-                              ? "settled"
-                              : "still changing"}
-                          </p>
-                          <p>
-                            {current.result.residual_converged ? (
-                              <Check size={14} />
-                            ) : (
-                              <AlertTriangle size={14} />
-                            )}{" "}
-                            Residual target{" "}
-                            {current.result.residual_converged
-                              ? "reached"
-                              : "not reached"}
-                          </p>
-                          <p>
-                            Solver time:{" "}
-                            {fmt(current.result.timings.simpleFoam / 60, 1)} min
-                          </p>
-                          {current.result.refinement && (
-                            <p>
-                              Mesh sensitivity: ΔCd{" "}
-                              {fmt(current.result.refinement.delta_cd, 4)} · ΔCl{" "}
-                              {fmt(current.result.refinement.delta_cl, 4)}
-                            </p>
-                          )}
-                          <details>
-                            <summary>Near-wall resolution · y+</summary>
-                            {current.result.y_plus.map((v) => (
-                              <p key={v.patch}>
-                                {v.patch}: mean {fmt(v.mean, 1)}, range{" "}
-                                {fmt(v.minimum, 1)}–{fmt(v.maximum, 1)}
-                              </p>
-                            ))}
-                            <p className="micro">
-                              Wall functions require appropriate near-wall
-                              resolution. Inspect these values before trusting
-                              forces.
-                            </p>
-                          </details>
-                        </div>
-                        <div>
-                          <h3>Force history</h3>
-                          {history?.run === current.id ? (
-                            <History history={history.points} />
-                          ) : historyFailed === current.id ? (
-                            <p className="micro warning-text" role="status">
-                              Could not load force history. Retrying…
-                            </p>
-                          ) : (
-                            <p className="micro">Loading force history…</p>
-                          )}
-                          <p className="micro">
-                            Drag coefficient over solver iterations. Values are
-                            averaged over the last 50 iterations, or all
-                            available if fewer.
-                          </p>
-                        </div>
-                      </div>
-                      <Warnings items={current.result.warnings} />
-                    </>
-                  ) : (
-                    <div className="canvas-panel">
-                      <Viewer
-                        geometry={current.geometry}
-                        geometryBase={`/api/runs/${current.id}/geometry`}
-                        field={field}
-                        mode="geometry"
-                        axis={axis}
-                        position={position}
-                        label="Geometry · awaiting calculated results"
-                      />
-                    </div>
-                  )}
-                </>
-              )}
-            </>
+            <ResultsView
+              current={current}
+              history={history}
+              historyFailed={historyFailed}
+              controls={controls}
+              field={field}
+              mode={mode}
+              axis={axis}
+              position={position}
+              theme={resolved}
+              onBack={() => setTab("setup")}
+            />
           )}
           {tab === "compare" && (
-            <>
-              <div className="comparison-selectors">
-                <label>
-                  Baseline
-                  <select
-                    aria-label="Baseline run"
-                    value={baseline}
-                    onChange={(e) => setBaseline(e.target.value)}
-                  >
-                    <option value="">Choose completed run</option>
-                    {completed.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.name}
-                        {parts(r)} · {r.settings.quality} · {r.id.slice(0, 6)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <ArrowRight size={19} />
-                <label>
-                  Variant
-                  <select
-                    aria-label="Variant run"
-                    value={variant}
-                    onChange={(e) => setVariant(e.target.value)}
-                  >
-                    <option value="">Choose completed run</option>
-                    {completed
-                      .filter((r) => r.id !== baseline)
-                      .map((r) => (
-                        <option key={r.id} value={r.id}>
-                          {r.name}
-                          {parts(r)} · {r.settings.quality} ·{" "}
-                          {r.id.slice(0, 6)}
-                        </option>
-                      ))}
-                  </select>
-                </label>
-              </div>
-              {comparison && a && b ? (
-                <>
-                  <Warnings items={comparison.warnings} />
-                  {comparison.parts && (
-                    <div className="parts-diff">
-                      <Layers size={14} />
-                      {comparison.parts.same ? (
-                        <span>Same simulated geometry in both runs.</span>
-                      ) : !comparison.parts.only_baseline.length &&
-                        !comparison.parts.only_variant.length ? (
-                        <span>
-                          Same parts, different geometry: shape, position, or
-                          orientation changed.
-                        </span>
-                      ) : (
-                        <span>
-                          {comparison.parts.only_variant.length > 0 &&
-                            `Variant adds ${comparison.parts.only_variant.join(", ")}. `}
-                          {comparison.parts.only_baseline.length > 0 &&
-                            `Variant drops ${comparison.parts.only_baseline.join(", ")}.`}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                  <div className="comparison-table">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Metric</th>
-                          <th>Baseline</th>
-                          <th>Variant</th>
-                          <th>Change</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {Object.entries(comparison.changes).map(([key, c]) => (
-                          <tr key={key}>
-                            <td>
-                              {
-                                (
-                                  {
-                                    drag: "Drag · N",
-                                    downforce: "Downforce · N",
-                                    cd: "Drag coefficient",
-                                    cl: "Lift coefficient",
-                                    body_drag: "Body drag · N",
-                                    body_downforce: "Body downforce · N",
-                                    wheels_drag: "Wheels drag · N",
-                                    wheels_downforce: "Wheels downforce · N",
-                                    pressure_drag: "Pressure drag · N",
-                                    viscous_drag: "Viscous drag · N",
-                                  } as Record<string, string>
-                                )[key] || key
-                              }
-                            </td>
-                            <td>{fmt(c.baseline, key.length === 2 ? 4 : 2)}</td>
-                            <td>{fmt(c.variant, key.length === 2 ? 4 : 2)}</td>
-                            <td>
-                              {c.delta > 0 ? "+" : ""}
-                              {fmt(c.delta, key.length === 2 ? 4 : 2)}{" "}
-                              <small>
-                                {c.percent === null
-                                  ? "percentage unavailable"
-                                  : `(${c.percent > 0 ? "+" : ""}${fmt(c.percent, 1)}%)`}
-                              </small>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  {controls}
-                  <div className="compare-viewers">
-                    {[a, b].map((r, i) => (
-                      <Viewer
-                        key={r.id + i}
-                        geometry={r.geometry}
-                        geometryBase={`/api/runs/${r.id}/geometry`}
-                        resultBase={`/api/runs/${r.id}`}
-                        field={field}
-                        mode={mode}
-                        axis={axis}
-                        position={position}
-                        range={comparison.ranges[field]}
-                        sync="comparison"
-                        label={i ? "Variant" : "Baseline"}
-                      />
-                    ))}
-                  </div>
-                  <p className="result-foot">
-                    Cameras and color scales are synchronized. Differences are
-                    measurements from these simulations, not a validated
-                    performance claim.
-                  </p>
-                </>
-              ) : (
-                <div className="empty-state">
-                  <GitCompareArrows size={38} />
-                  <h2>One change. Same conditions.</h2>
-                  <p>
-                    Complete two runs, then compare their forces and airflow
-                    side by side.
-                  </p>
-                </div>
-              )}
-            </>
+            <CompareView
+              completed={completed}
+              baseline={baseline}
+              variant={variant}
+              setBaseline={setBaseline}
+              setVariant={setVariant}
+              comparison={comparison}
+              controls={controls}
+              field={field}
+              mode={mode}
+              axis={axis}
+              position={position}
+              theme={resolved}
+            />
           )}
           <footer>
             Easy CFD{" "}
             <span>
-              OpenFOAM 2412 · Steady RANS · Research and design exploration
+              OpenFOAM 2412 · Steady RANS · Research and design exploration ·
+              Open-source tools, local files, no cloud uploads
             </span>
             <a href="/docs" target="_blank" rel="noreferrer">
               Local API <ExternalLink size={11} />
@@ -1407,6 +827,7 @@ export default function App() {
             await refresh();
             setImporting("");
             setTab("setup");
+            setSection("geometry");
           }}
         />
       )}
@@ -1433,75 +854,6 @@ export default function App() {
   );
 }
 
-function Metric({
-  title,
-  value,
-  unit,
-  detail,
-}: {
-  title: string;
-  value: string;
-  unit: string;
-  detail: string;
-}) {
-  return (
-    <article className="metric">
-      <span>{title}</span>
-      <strong>
-        {value} <small>{unit}</small>
-      </strong>
-      <p>{detail}</p>
-    </article>
-  );
-}
-function Warnings({ items }: { items: string[] }) {
-  return (
-    <div className="warnings">
-      {items.map((w, i) => (
-        <p key={i}>
-          <AlertTriangle size={15} />
-          {w}
-        </p>
-      ))}
-    </div>
-  );
-}
-function History({
-  history,
-}: {
-  history: { iteration: number; cd: number }[];
-}) {
-  const data = history.slice(-300);
-  const values = data.map((p) => p.cd),
-    min = Math.min(...values),
-    max = Math.max(...values);
-  return (
-    <svg
-      viewBox="0 0 450 100"
-      role="img"
-      aria-label="Drag coefficient convergence history"
-    >
-      <line x1="0" y1="90" x2="450" y2="90" stroke="#dce3e3" />
-      <polyline
-        fill="none"
-        stroke="#168877"
-        strokeWidth="2"
-        points={data
-          .map(
-            (p, i) =>
-              `${(i / Math.max(1, data.length - 1)) * 450},${90 - ((p.cd - min) / (max - min || 1)) * 80}`,
-          )
-          .join(" ")}
-      />
-      <text x="3" y="12" fontSize="10" fill="#75838d">
-        {max.toFixed(4)}
-      </text>
-      <text x="3" y="99" fontSize="10" fill="#75838d">
-        {min.toFixed(4)}
-      </text>
-    </svg>
-  );
-}
 function ImportModal({
   openGuide,
   project,
@@ -1531,7 +883,10 @@ function ImportModal({
       const body = new FormData();
       files.forEach((f) => body.append("files", f));
       if (!adding)
-        body.append("options", JSON.stringify({ units, forward, up, clearance }));
+        body.append(
+          "options",
+          JSON.stringify({ units, forward, up, clearance }),
+        );
       await onImported(
         await api<Project>(
           `/projects/${project.id}/${adding ? "parts" : "import"}`,
@@ -1555,10 +910,11 @@ function ImportModal({
         </div>
         {adding ? (
           <p>
-            Add optional parts such as a rear wing or splitter. Export them
-            from the same scene as the car, without moving the car. They use
-            the car&apos;s units and axes
-            {frame && ` (${frame.units}, nose ${frame.forward}, up ${frame.up})`}{" "}
+            Add optional parts such as a rear wing or splitter. Export them from
+            the same scene as the car, without moving the car. They use the
+            car&apos;s units and axes
+            {frame &&
+              ` (${frame.units}, nose ${frame.forward}, up ${frame.up})`}{" "}
             and are placed exactly where they were exported. Switch each one on
             or off before a run.
           </p>
@@ -1568,7 +924,9 @@ function ImportModal({
             model; saved runs keep their original geometry.
           </p>
         )}
-        <button className="text-button" type="button" onClick={openGuide}>Preparing a model in Blender? Read the export guide</button>
+        <button className="text-button" type="button" onClick={openGuide}>
+          Preparing a model in Blender? Read the export guide
+        </button>
         <label className="file-drop">
           <Upload size={27} />
           <strong>Choose STEP or STL files</strong>
@@ -1588,54 +946,57 @@ function ImportModal({
         ))}
         {!adding && (
           <>
-        <div className="input-pair">
-          <label className="input-label">
-            STL units
-            <select value={units} onChange={(e) => setUnits(e.target.value)}>
-              <option value="m">Metres</option>
-              <option value="mm">Millimetres</option>
-              <option value="cm">Centimetres</option>
-              <option value="in">Inches</option>
-            </select>
-          </label>
-          <label className="input-label">
-            Lowest point above road · m
-            <input
-              type="number"
-              step=".005"
-              min=".005"
-              max="2"
-              value={clearance}
-              onChange={(e) => setClearance(+e.target.value)}
-            />
-          </label>
-        </div>
-        <div className="input-pair">
-          <label className="input-label">
-            Nose points toward
-            <select
-              value={forward}
-              onChange={(e) => setForward(e.target.value)}
-            >
-              {["-X", "+X", "-Y", "+Y", "-Z", "+Z"].map((v) => (
-                <option key={v}>{v}</option>
-              ))}
-            </select>
-          </label>
-          <label className="input-label">
-            Up direction
-            <select value={up} onChange={(e) => setUp(e.target.value)}>
-              {["+Z", "-Z", "+Y", "-Y", "+X", "-X"].map((v) => (
-                <option key={v}>{v}</option>
-              ))}
-            </select>
-          </label>
-        </div>
-        <p className="micro">
-          STEP uses its embedded units. Parts keep their relative positions.
-          Wheel centers initially use each part's bounding-box center; export
-          separate wheels with transverse axes.
-        </p>
+            <div className="input-pair">
+              <label className="input-label">
+                STL units
+                <select
+                  value={units}
+                  onChange={(e) => setUnits(e.target.value)}
+                >
+                  <option value="m">Metres</option>
+                  <option value="mm">Millimetres</option>
+                  <option value="cm">Centimetres</option>
+                  <option value="in">Inches</option>
+                </select>
+              </label>
+              <label className="input-label">
+                Lowest point above road · m
+                <input
+                  type="number"
+                  step=".005"
+                  min=".005"
+                  max="2"
+                  value={clearance}
+                  onChange={(e) => setClearance(+e.target.value)}
+                />
+              </label>
+            </div>
+            <div className="input-pair">
+              <label className="input-label">
+                Nose points toward
+                <select
+                  value={forward}
+                  onChange={(e) => setForward(e.target.value)}
+                >
+                  {["-X", "+X", "-Y", "+Y", "-Z", "+Z"].map((v) => (
+                    <option key={v}>{v}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="input-label">
+                Up direction
+                <select value={up} onChange={(e) => setUp(e.target.value)}>
+                  {["+Z", "-Z", "+Y", "-Y", "+X", "-X"].map((v) => (
+                    <option key={v}>{v}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <p className="micro">
+              STEP uses its embedded units. Parts keep their relative positions.
+              Wheel centers initially use each part's bounding-box center;
+              export separate wheels with transverse axes.
+            </p>
           </>
         )}
         {error && (
