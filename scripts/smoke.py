@@ -12,8 +12,9 @@ import httpx
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--quality", choices=["fast", "medium", "precise"], default="fast")
 parser.add_argument("--wing", action="store_true")
+parser.add_argument("--url", default="http://127.0.0.1:8000", help="running Easy CFD server")
 args = parser.parse_args()
-with httpx.Client(base_url="http://127.0.0.1:8000/api", timeout=60) as client:
+with httpx.Client(base_url=args.url.rstrip("/") + "/api", timeout=60) as client:
     response = client.post(
         "/projects",
         json={"name": f"Sample car · {args.quality} verification", "sample": True, "wing": args.wing},

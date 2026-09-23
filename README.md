@@ -18,7 +18,7 @@ For a fresh installation, install these prerequisites:
 
 - [uv](https://docs.astral.sh/uv/) for Python. The project uses Python 3.12.
 - Node.js 22 or later and npm.
-- A Docker-compatible container runtime. [Colima](https://github.com/abiosoft/colima) is an open-source option for macOS. Allocate about 8 GB to its Linux VM on a 16 GB Mac, leaving memory for macOS. An existing Docker runtime also works.
+- A Docker-compatible container runtime. [Colima](https://github.com/abiosoft/colima) is an open-source option for macOS. Allocate about 8 GB and at least 4 CPUs to its Linux VM on a 16 GB Mac, leaving memory for macOS (for example `colima start --cpu 4 --memory 8`). An existing Docker runtime also works.
 
 Then run:
 
@@ -85,7 +85,11 @@ The forces are averaged over the last 50 iterations. “Settled” means the fin
 
 ## Files, recovery, and development
 
-Local state is in `.easycfd/` beside this README. `EASYCFD_DATA` can choose another directory. Projects contain original imports and prepared surfaces. Each run contains an independent geometry snapshot, settings, OpenFOAM dictionaries, logs, solved fields, and visualization assets. **Export run** downloads a ZIP for inspection in other tools, including ParaView.
+Local state is in `.easycfd/` beside this README. `EASYCFD_DATA` can choose another directory. Projects contain original imports and prepared surfaces. Each run contains an independent geometry snapshot, settings, OpenFOAM dictionaries, logs, solved fields, and visualization assets. Every retained timestep is reassembled after a parallel solve. The per-process copies are then deleted, but only when they hold nothing the reassembled case lacks. The results page shows each completed run's size. **Export run** downloads a ZIP for inspection in other tools, including ParaView.
+
+Runs saved by earlier versions may still hold those per-process copies and old `run.zip` exports. `uv run python scripts/cleanup.py` lists the space they use; add `--apply` to delete them. Earlier versions reassembled only the final timestep, so those copies hold the only copy of the previous one. They are kept unless you add `--reconstruct`, which reassembles those timesteps in the solver container before deleting the copies. Failed and cancelled runs are never touched.
+
+The solver uses four MPI processes. On the tested Apple M1, six or eight were slower. The cause wasn't isolated; efficiency cores, MPI communication and memory bandwidth are all candidates. On a machine with more performance cores, set `EASYCFD_PROCESSES` before `./scripts/start.sh` and compare solver times. Docker's CPU limit never exceeds the runtime's CPU count.
 
 On a server restart, queued jobs resume; an interrupted active run is marked failed and its logs are retained. Start a fresh run to retry. Cancellation stops the active solver container. Keep one backend server per data directory.
 

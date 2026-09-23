@@ -20,7 +20,13 @@ def write(path, content, cls="dictionary", dimensions=None, internal=None):
 
 
 def generate(
-    case: Path, geometry_folder: Path, geometry: dict, settings: Settings, quality=None, reference_case=None
+    case: Path,
+    geometry_folder: Path,
+    geometry: dict,
+    settings: Settings,
+    quality=None,
+    reference_case=None,
+    processes=4,
 ):
     p = PRESETS[quality or settings.quality]
     first_layer = 2 * 100 * 1.5e-5 / (0.05 * settings.speed_kmh / 3.6)
@@ -176,7 +182,7 @@ maxConcave 80; minVol 1e-13; minTetQuality 1e-15; minArea -1;
 minTwist .02; minDeterminant .001; minFaceWeight .02; minVolRatio .01; minTriangleTwist -1;
 """,
     )
-    write(case / "system/decomposeParDict", "numberOfSubdomains 4; method scotch;")
+    write(case / "system/decomposeParDict", f"numberOfSubdomains {processes}; method scotch;")
     write(
         case / "system/fvSchemes",
         """
@@ -253,6 +259,7 @@ relaxationFactors {fields {p .3;} equations {U .7; k .7; omega .7;}}
         freestream=mag,
         base_cells=math.prod(counts),
         preset=p,
+        processes=processes,
         tunnel_cross_section=cross_section,
         blockage_ratio=blockage_ratio,
     )

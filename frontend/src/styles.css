@@ -490,6 +490,10 @@ input[type="range"] {
 .secondary:hover {
   background: #edf4f1;
 }
+.secondary small {
+  color: #8a9b9f;
+  font-size: 10px;
+}
 .muted {
   color: #8a9b9f;
 }
@@ -960,6 +964,9 @@ footer a {
 }
 .warnings svg {
   margin-top: 2px;
+}
+.warning-text {
+  color: #998353;
 }
 .empty-state {
   min-height: 420px;

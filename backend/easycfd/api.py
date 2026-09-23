@@ -6,8 +6,9 @@ import shutil
 import os
 import math
 import statistics
+import tempfile
 import zipfile
-from fastapi import FastAPI, File, Form, Request, UploadFile
+from fastapi import BackgroundTasks, FastAPI, File, Form, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ValidationError
@@ -251,7 +252,13 @@ def geometry_asset(key: str, part_id: str):
 
 @app.get("/api/runs")
 def runs():
-    return storage.all_records("runs")
+    # The UI polls this list; per-iteration force history is most of each record,
+    # so it is served only by the single-run endpoint.
+    records = storage.all_records("runs")
+    for record in records:
+        if record.get("result"):
+            record["result"] = {k: v for k, v in record["result"].items() if k != "history"}
+    return records
 
 
 @app.post("/api/projects/{key}/runs", status_code=202)
@@ -313,17 +320,34 @@ def logs(key: str):
 
 
 @app.get("/api/runs/{key}/export")
-def export(key: str):
+def export(key: str, cleanup: BackgroundTasks):
     root = storage.directory("runs", key)
     run = storage.get("runs", key)
     if run["status"] in ("queued", "running"):
         raise ValueError("Wait for the run to finish or cancel it before exporting.")
-    target = root / "run.zip"
-    with storage.LOCK:
-        with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-            for path in root.rglob("*"):
-                if path.is_file() and path.name not in ("run.zip", "record.tmp"):
-                    archive.write(path, path.relative_to(root))
+
+    # Per-rank folders are left out only where they duplicate the reconstructed
+    # case; otherwise, as in failed runs, they may hold the only solver output.
+    duplicates = {folder for case in root.glob("case-*") for folder in runner.redundant_processor_copies(case)}
+
+    def included(path):
+        if path.name in ("run.zip", "record.tmp"):
+            return False
+        return not any(folder in path.parents for folder in duplicates)
+
+    handle, name = tempfile.mkstemp(prefix="export-", suffix=".zip", dir=storage.ROOT)
+    os.close(handle)
+    target = Path(name)
+    try:
+        with storage.LOCK:
+            with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+                for path in root.rglob("*"):
+                    if path.is_file() and included(path):
+                        archive.write(path, path.relative_to(root))
+    except BaseException:
+        target.unlink(missing_ok=True)
+        raise
+    cleanup.add_task(target.unlink, missing_ok=True)
     return FileResponse(target, filename=f"easycfd-{key[:8]}.zip")
 
 

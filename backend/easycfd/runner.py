@@ -45,6 +45,7 @@ def health():
             ready=image.returncode == 0,
             architecture=parsed.get("Architecture"),
             memory_gb=round(parsed.get("MemTotal", 0) / 1024**3, 1),
+            cpus=parsed.get("NCPU"),
             message="Solver ready"
             if image.returncode == 0
             else "Run ./scripts/setup.sh to download the pinned solver image.",
@@ -52,6 +53,18 @@ def health():
         )
     except (OSError, subprocess.SubprocessError, ValueError):
         return dict(ready=False, message="Docker is unavailable. See the local setup instructions.")
+
+
+def processes():
+    """MPI ranks for the solver. Four unless EASYCFD_PROCESSES says otherwise.
+
+    More ranks were slower on the tested Apple M1: the 194k-cell Medium sample
+    took 45.6 s for 200 iterations on 4 ranks, 55.0 s on 6 and 61.7 s on 8. The
+    cause was not isolated (efficiency cores, MPI communication and memory
+    bandwidth are all candidates). Two is the floor because the case is always
+    decomposed and run with -parallel.
+    """
+    return min(max(int(os.environ.get("EASYCFD_PROCESSES", 4)), 2), 16)
 
 
 def patch(key, **changes):
@@ -63,14 +76,9 @@ def check_cancelled(key):
         raise InterruptedError("Run cancelled")
 
 
-def stage(key, case, command, stage_name, memory):
-    global ACTIVE
-    check_cancelled(key)
-    name = f"easycfd-{key}"
-    patch(key, stage=stage_name)
-    tool = "simpleFoam" if "simpleFoam" in command else command[0]
-    log_path = case / f"log.{tool}"
-    args = [
+def container(name, case, command, memory, cpus):
+    """Arguments for one isolated, network-less solver container on a case folder."""
+    return [
         "docker",
         "run",
         "--rm",
@@ -83,7 +91,7 @@ def stage(key, case, command, stage_name, memory):
         "--memory-swap",
         f"{memory}g",
         "--cpus",
-        "4",
+        str(cpus),
         "--pids-limit",
         "256",
         "--user",
@@ -102,6 +110,37 @@ def stage(key, case, command, stage_name, memory):
         "easycfd",
         *command,
     ]
+
+
+def redundant_processor_copies(case):
+    """The case's processor* folders, if every time they hold was reconstructed.
+
+    purgeWrite keeps more than one time, so a processor folder can hold the only
+    copy of an earlier time. Its folders are returned only when each processor
+    time directory also exists in the case root with every field it contains;
+    otherwise nothing is returned and the copies must be kept.
+    """
+    folders = sorted(path for path in case.glob("processor*") if path.is_dir())
+    for folder in folders:
+        for time_dir in folder.iterdir():
+            if time_dir.name == "constant" or not time_dir.is_dir():
+                continue
+            reconstructed = case / time_dir.name
+            if not reconstructed.is_dir():
+                return []
+            if {f.name for f in time_dir.iterdir()} - {f.name for f in reconstructed.iterdir()}:
+                return []
+    return folders
+
+
+def stage(key, case, command, stage_name, memory, cpus=4):
+    global ACTIVE
+    check_cancelled(key)
+    name = f"easycfd-{key}"
+    patch(key, stage=stage_name)
+    tool = "simpleFoam" if "simpleFoam" in command else command[0]
+    log_path = case / f"log.{tool}"
+    args = container(name, case, command, memory, cpus)
     start = time.monotonic()
     with log_path.open("w") as log:
         process = subprocess.Popen(args, stdout=log, stderr=subprocess.STDOUT)
@@ -138,8 +177,16 @@ def solve(key, tier):
     run = storage.get("runs", key)
     root = storage.directory("runs", key)
     case = root / f"case-{tier}"
+    # Runs queued before CPU detection keep the original fixed layout.
+    ranks, cpus = run.get("processes", 4), run.get("cpus", 4)
     meta = foam.generate(
-        case, root / "geometry", run["geometry"], Settings(**run["settings"]), tier, run.get("reference_case")
+        case,
+        root / "geometry",
+        run["geometry"],
+        Settings(**run["settings"]),
+        tier,
+        run.get("reference_case"),
+        processes=ranks,
     )
     if run.get("reference_case") == "ahmedml-run-1":
         from .benchmark import apply_boundaries
@@ -152,7 +199,7 @@ def solve(key, tier):
         (["snappyHexMesh", "-overwrite"], "Meshing car"),
         (["checkMesh", "-meshQuality", "-allTopology"], "Checking mesh"),
     ]:
-        timings[command[0]] = stage(key, case, command, f"{tier}: {label}", PRESETS[tier]["memory_gb"])
+        timings[command[0]] = stage(key, case, command, f"{tier}: {label}", PRESETS[tier]["memory_gb"], cpus)
     check = (case / "log.checkMesh").read_text()
     if "Mesh OK." not in check:
         raise RuntimeError("Mesh quality checks failed. Inspect log.checkMesh and repair the geometry.")
@@ -182,22 +229,29 @@ def solve(key, tier):
                 "Fewer than 20% of surface faces received boundary layers. Mesh quality was not silently reduced; review small gaps and sharp features."
             )
     timings["decomposePar"] = stage(
-        key, case, ["decomposePar", "-force"], f"{tier}: Partitioning mesh", PRESETS[tier]["memory_gb"]
+        key, case, ["decomposePar", "-force"], f"{tier}: Partitioning mesh", PRESETS[tier]["memory_gb"], cpus
     )
     timings["simpleFoam"] = stage(
         key,
         case,
-        ["mpirun", "--allow-run-as-root", "--oversubscribe", "-np", "4", "simpleFoam", "-parallel"],
+        ["mpirun", "--allow-run-as-root", "--oversubscribe", "-np", str(ranks), "simpleFoam", "-parallel"],
         f"{tier}: Solving airflow",
         PRESETS[tier]["memory_gb"],
+        cpus,
     )
+    # Reconstruct every time purgeWrite retained, not only the latest, so the
+    # processor copies below hold nothing unique.
     timings["reconstructPar"] = stage(
         key,
         case,
-        ["reconstructPar", "-latestTime"],
+        ["reconstructPar", "-newTimes"],
         f"{tier}: Reassembling results",
         PRESETS[tier]["memory_gb"],
+        cpus,
     )
+    # Per-rank copies duplicate the reconstructed case and roughly double its size.
+    for folder in redundant_processor_copies(case):
+        shutil.rmtree(folder)
     check_cancelled(key)
     patch(key, stage=f"{tier}: Preparing visualization")
     output = root / ("results" if tier == run["settings"]["quality"] else f"results-{tier}")
@@ -262,6 +316,7 @@ def execute(key):
                 finished=storage.now(),
                 iteration=int(result["iteration"]),
                 result=result,
+                disk_bytes=disk_bytes(storage.directory("runs", key)),
             )
     except InterruptedError:
         patch(key, status="cancelled", stage="Cancelled", finished=storage.now())
@@ -270,6 +325,10 @@ def execute(key):
             patch(key, status="cancelled", stage="Cancelled", finished=storage.now())
         else:
             patch(key, status="failed", stage="Failed", error=str(error), finished=storage.now())
+
+
+def disk_bytes(folder):
+    return sum(path.stat().st_size for path in folder.rglob("*") if path.is_file())
 
 
 def worker():
@@ -340,6 +399,7 @@ def enqueue(project):
         )
     if shutil.disk_usage(storage.ROOT).free < 8 * 1024**3:
         raise ValueError("Keep at least 8 GB free for mesh and results files.")
+    ranks = processes()
     key = storage.identifier()
     run = dict(
         id=key,
@@ -352,6 +412,9 @@ def enqueue(project):
         geometry=geometry,
         image=foam.IMAGE,
         pipeline_hash=PIPELINE_HASH,
+        processes=ranks,
+        # Docker refuses --cpus above the runtime's count (Colima defaults to 2).
+        cpus=min(ranks, int(status.get("cpus") or ranks)),
         reference_case=project.get("reference_case"),
         iteration=0,
         assumptions=dict(

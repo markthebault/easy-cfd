@@ -66,6 +66,30 @@ test("real results, slices and flow lines render without browser errors", async 
   expect(errors).toEqual([]);
 });
 
+test("force history recovers after a failed request", async ({
+  page,
+  request,
+}) => {
+  const runs = await (await request.get("/api/runs")).json();
+  const run = runs.find((r: { status: string }) => r.status === "completed");
+  test.skip(!run, "Requires the measured sample run from scripts/smoke.py.");
+  let failures = 0;
+  await page.route(`**/api/runs/${run.id}`, (route) =>
+    failures++ ? route.continue() : route.abort("connectionreset"),
+  );
+  await page.goto("/");
+  await page.getByRole("button", { name: "Simulation results" }).click();
+  await page.getByLabel("Saved run").selectOption(run.id);
+  await expect(
+    page.getByText("Could not load force history. Retrying…"),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("img", { name: "Drag coefficient convergence history" }),
+  ).toBeVisible();
+  await expect(page.getByText("Could not load force history")).toHaveCount(0);
+  expect(failures).toBeGreaterThan(1);
+});
+
 test("run two actual simulations from the UI, compare, reopen, and cancel", async ({
   page,
 }) => {
