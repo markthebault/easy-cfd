@@ -1,0 +1,48 @@
+{
+  "id": "8a4fdb97f9364b8882cb7aa1b59b8a07",
+  "project_id": "50fd603d47534662aeda8f0be27cb999",
+  "name": "Default sample \u00b7 screenshot box \u00b7 Medium",
+  "settings": {
+    "speed_kmh": 100,
+    "yaw_deg": 0,
+    "quality": "medium",
+    "simulation_box": {
+      "x_min": -4.7,
+      "x_max": 10.3,
+      "y_min": -3.13,
+      "y_max": 3.57,
+      "z_max": 3.72
+    },
+    "custom_mesh": "medium",
+    "custom_iterations": 1000,
+    "reference_area": 2.2,
+    "density": 1.225,
+    "moving_ground": true,
+    "wheels": true,
+    "geometry_confirmed": true
+  },
+  "domain": [
+    -4.7,
+    10.3,
+    -3.13,
+    3.57,
+    0,
+    3.72
+  ],
+  "pipeline_hash": "b5904314bd6a10b5a1856f6e639768be8021c7241dc27015e17b69e518c450f9",
+  "result": {
+    "cells": 138172,
+    "iteration": 1000,
+    "cd": 0.6049584634052,
+    "cl": 0.6032895725904,
+    "force_settled": false,
+    "residual_converged": false,
+    "warnings": [
+      "Residuals have not reached this preset's target. Forces are provisional.",
+      "Drag or lift is still changing. Do not rank designs from this run.",
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+      "Tunnel blockage is 8.8%, above the ~5% guideline. Confinement may inflate forces; use a larger domain or correct for blockage.",
+      "Only 71% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+    ]
+  }
+}

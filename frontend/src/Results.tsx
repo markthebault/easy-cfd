@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -129,6 +129,7 @@ export function ResultsView({
   presets?: Health["presets"];
   onBack: () => void;
 }) {
+  const [showBox, setShowBox] = useState(false);
   if (!current)
     return (
       <div className="empty-state">
@@ -215,7 +216,9 @@ export function ResultsView({
         )}
         <div className="canvas-panel fill">
           {result && controls}
+          {current.domain && <label className="check-row saved-box-toggle"><input type="checkbox" checked={showBox} onChange={e => setShowBox(e.target.checked)} />Show saved simulation box</label>}
           <Viewer
+            boxBounds={showBox ? current.domain : undefined}
             geometry={current.geometry}
             geometryBase={`/api/runs/${current.id}/geometry`}
             resultBase={result ? `/api/runs/${current.id}` : undefined}
@@ -229,7 +232,7 @@ export function ResultsView({
             windYaw={current.settings.yaw_deg}
             label={
               result
-                ? `${field} · calculated result`
+                ? `${field} · iteration ${result.iteration}`
                 : "Geometry · awaiting calculated results"
             }
           />
@@ -238,6 +241,14 @@ export function ResultsView({
       <p className="micro">
         Saved output uses the conditions shown above. Changes in the setup panel
         apply to the next run.
+        {result && (
+          <>
+            {" "}Fields show iteration {result.iteration}; forces average the last{" "}
+            {result.averaging_iterations ?? 50} iterations.
+            {(!result.force_settled || !result.residual_converged) &&
+              " Forces are provisional. Review the run checks below."}
+          </>
+        )}
       </p>
       {result && (
         <div className="details" id="run-details">
@@ -282,6 +293,8 @@ export function ResultsView({
           <div className="diagnostics">
             <div>
               <h3>Run checks</h3>
+              {current.settings.quality === "custom" && <p>Custom · {current.settings.custom_mesh} mesh · {current.settings.custom_iterations} iterations</p>}
+              {current.domain && <p>Simulation box: {(current.domain[1]-current.domain[0]).toFixed(3)} × {(current.domain[3]-current.domain[2]).toFixed(3)} × {current.domain[5].toFixed(3)} m · floor Z = 0</p>}
               <p>
                 <Check size={14} /> Mesh passed geometric checks ·{" "}
                 {result.cells.toLocaleString()} cells

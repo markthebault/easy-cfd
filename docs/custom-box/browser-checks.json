@@ -1,0 +1,15 @@
+{
+  "run_id": "b22cec46384f4eceb414825851090ede",
+  "project_id": "382e562aa399437383b9c4a9995b38cd",
+  "domain": [
+    -10,
+    20,
+    -5,
+    5,
+    0,
+    6
+  ],
+  "iterations": 125,
+  "cells": 19667,
+  "errors": []
+}

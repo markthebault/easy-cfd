@@ -2,11 +2,29 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
+class SimulationBox(BaseModel):
+    model_config = ConfigDict(allow_inf_nan=False, extra="forbid")
+    x_min: float = Field(ge=-1000, le=1000)
+    x_max: float = Field(ge=-1000, le=1000)
+    y_min: float = Field(ge=-1000, le=1000)
+    y_max: float = Field(ge=-1000, le=1000)
+    z_max: float = Field(gt=0, le=1000)
+
+    @model_validator(mode="after")
+    def ordered(self):
+        if self.x_min >= self.x_max or self.y_min >= self.y_max:
+            raise ValueError("Simulation box minimum coordinates must be below maximum coordinates.")
+        return self
+
+
 class Settings(BaseModel):
     model_config = ConfigDict(allow_inf_nan=False, extra="forbid")
     speed_kmh: float = Field(default=100, ge=5, le=300)
     yaw_deg: float = Field(default=0, ge=-20, le=20)
-    quality: Literal["fast", "medium", "precise"] = "medium"
+    quality: Literal["fast", "medium", "precise", "custom"] = "medium"
+    simulation_box: SimulationBox | None = None
+    custom_mesh: Literal["fast", "medium", "precise"] = "medium"
+    custom_iterations: int = Field(default=1000, ge=50, le=20000, strict=True)
     reference_area: float = Field(default=2.2, gt=0.001, le=100)
     density: float = Field(default=1.225, ge=0.8, le=1.5)
     moving_ground: bool = True
@@ -70,3 +88,10 @@ PRESETS = {
         memory_gb=6,
     ),
 }
+
+
+def resolved_preset(settings: Settings, quality=None):
+    tier = quality or settings.quality
+    if tier == "custom":
+        return {**PRESETS[settings.custom_mesh], "iterations": settings.custom_iterations}
+    return dict(PRESETS[tier])

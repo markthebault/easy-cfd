@@ -1,0 +1,155 @@
+{
+  "original_run": "5c39ba44b8534a71b79b6b300b8067b6",
+  "run_id": "9bb542f30646479490a2f4206f1877d7",
+  "project_id": "382e562aa399437383b9c4a9995b38cd",
+  "unchanged_settings": {
+    "speed_kmh": 100,
+    "yaw_deg": 0,
+    "quality": "medium",
+    "simulation_box": {
+      "x_min": -4.700000000000001,
+      "x_max": 10.300000000000004,
+      "y_min": -3.13,
+      "y_max": 3.57,
+      "z_max": 3.72
+    },
+    "custom_mesh": "fast",
+    "custom_iterations": 125,
+    "reference_area": 2.2,
+    "density": 1.225,
+    "moving_ground": true,
+    "wheels": true,
+    "geometry_confirmed": true
+  },
+  "domain": [
+    -4.700000000000001,
+    10.300000000000004,
+    -3.13,
+    3.57,
+    0,
+    3.72
+  ],
+  "geometry_fingerprint": "893412988bca7cc83b6cc45de0de3d72ffe03b939beffef19aa370fbda3cda00",
+  "max_skewness": 3.34297222,
+  "result": {
+    "cd": 0.6206527626035999,
+    "cl": 0.7134297291142001,
+    "drag": 645.3160475373079,
+    "downforce": -741.7797530720561,
+    "force_settled": false,
+    "cd_span": 0.011249975420000058,
+    "cl_span": 0.039561326499999994,
+    "averaging_iterations": 50,
+    "breakdown": {
+      "body": {
+        "drag": 372.0424997315201,
+        "downforce": -498.97381756388995,
+        "cd": 0.35782343573435993,
+        "cl": 0.4799035751857524,
+        "pressure_drag": 352.6627458366001,
+        "viscous_drag": 19.37975389492,
+        "pressure_downforce": -495.62733898939996,
+        "viscous_downforce": -3.3464785744899994
+      },
+      "wheels": {
+        "drag": 273.27354780612,
+        "downforce": -242.80593550832378,
+        "cd": 0.26282932686955957,
+        "cl": 0.23352615392859932,
+        "pressure_drag": 268.99326626600003,
+        "viscous_drag": 4.28028154012,
+        "pressure_downforce": -242.53295625139998,
+        "viscous_downforce": -0.27297925692380004
+      },
+      "pressure_drag": 621.6560121026001,
+      "viscous_drag": 23.66003543504,
+      "consistent": true
+    },
+    "blockage_ratio": 0.08826833574065159,
+    "wall_target_fraction": 0.7177396682597694,
+    "residuals": {
+      "Ux": 0.0005967746317,
+      "Uy": 0.001139041024,
+      "Uz": 0.001259263046,
+      "p": 0.006075097754,
+      "omega": 9.617396789e-05,
+      "k": 0.001006813786
+    },
+    "residual_converged": false,
+    "ranges": {
+      "Pressure": [
+        -759.8007202148438,
+        515.0942993164062
+      ],
+      "Speed": [
+        0,
+        40.698638916015625
+      ],
+      "Turbulence": [
+        0.09535422921180725,
+        18.81516456604004
+      ]
+    },
+    "iteration": 1000,
+    "cells": 142040,
+    "warnings": [
+      "Residuals have not reached this preset's target. Forces are provisional.",
+      "Drag or lift is still changing. Do not rank designs from this run.",
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+      "Tunnel blockage is 8.8%, above the ~5% guideline. Confinement may inflate forces; use a larger domain or correct for blockage.",
+      "Only 72% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+    ],
+    "y_plus": [
+      {
+        "patch": "part0",
+        "minimum": 22.838823431,
+        "maximum": 1649.4362783,
+        "mean": 196.11367237
+      },
+      {
+        "patch": "part1",
+        "minimum": 39.140287172,
+        "maximum": 3867.5874484,
+        "mean": 441.70247786
+      },
+      {
+        "patch": "part2",
+        "minimum": 39.075890063,
+        "maximum": 2504.7991552,
+        "mean": 328.39427971
+      },
+      {
+        "patch": "part3",
+        "minimum": 50.269505353,
+        "maximum": 3235.0130417,
+        "mean": 531.09289691
+      },
+      {
+        "patch": "part4",
+        "minimum": 60.049051914,
+        "maximum": 2611.8854397,
+        "mean": 447.37829317
+      }
+    ],
+    "slice_bounds": [
+      -6.300000000000001,
+      10.5,
+      -1.67,
+      1.67,
+      0.02,
+      2.02
+    ],
+    "timings": {
+      "blockMesh": 0.5390430833213031,
+      "snappyHexMesh": 22.301786750089377,
+      "checkMesh": 2.041132665704936,
+      "decomposePar": 1.5366994589567184,
+      "simpleFoam": 294.6146452501416,
+      "reconstructPar": 1.0319394581019878
+    },
+    "mesh_ok": true,
+    "preset": "medium",
+    "layer_coverage": 0.9770459081836327
+  },
+  "browser_errors": []
+}

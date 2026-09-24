@@ -2,6 +2,8 @@
 
 This document separates software functionality, numerical behavior, and physical validation. A successful solver exit is not evidence that a car's predicted forces are accurate.
 
+The [September 2026 Ahmed comparison](ahmed-validation/README.md) ran a reduced GitHub reference and checked EasyCFD's solver output and browser displays. Shared-mesh coefficients agreed within 0.008%; the normal Medium run did not converge or reproduce the reference forces. A subsequent normal Precise run converged, but remained 8.4% high in Cd and 21.0% high in Cl against the reduced reference. It is not an experimental validation.
+
 ## Verified environment
 
 - Apple M1, 16 GB host memory, macOS ARM64.

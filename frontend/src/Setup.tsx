@@ -293,6 +293,7 @@ export function RunBar({
   dirty,
   onRun,
   onSave,
+  setupError,
 }: {
   project: Project;
   settings: Settings;
@@ -304,6 +305,7 @@ export function RunBar({
   dirty: boolean;
   onRun: () => void;
   onSave: () => void;
+  setupError?: string;
 }) {
   const blocked = !health?.ready
     ? health?.message || "Waiting for the solver."
@@ -311,6 +313,8 @@ export function RunBar({
       ? "Import a model first."
       : project.geometry.errors.length
         ? "Fix the geometry problems in 01 Geometry."
+        : setupError
+          ? setupError
         : !settings.geometry_confirmed
           ? "Confirm the geometry check to run."
           : "";
@@ -320,7 +324,7 @@ export function RunBar({
         <span className="step">03</span> Run
       </div>
       <div className="quality-picker" role="group" aria-label="Quality">
-        {(["fast", "medium", "precise"] as const).map((q) => (
+        {(["fast", "medium", "precise", "custom"] as const).map((q) => (
           <button
             key={q}
             className={settings.quality === q ? "chosen" : ""}
@@ -329,20 +333,32 @@ export function RunBar({
           >
             {q}
             <small>
-              {q === "fast" ? "Explore" : q === "medium" ? "Compare" : "Refine"}
+              {q === "fast" ? "Explore" : q === "medium" ? "Compare" : q === "precise" ? "Refine" : "Configure"}
             </small>
           </button>
         ))}
       </div>
+      {settings.quality === "custom" && <div className="input-pair">
+        <label className="input-label">Mesh resolution
+          <select aria-label="Custom mesh resolution" value={settings.custom_mesh ?? "medium"} onChange={e => update("custom_mesh", e.target.value as Settings["custom_mesh"])}>
+            <option value="fast">Fast · coarse, no layers</option><option value="medium">Medium · with layers</option><option value="precise">Precise · finer, with layers</option>
+          </select>
+        </label>
+        <label className="input-label">Iteration limit
+          <input aria-label="Custom iteration limit" type="number" min="50" max="20000" step="1" value={settings.custom_iterations ?? 1000} onChange={e => update("custom_iterations", +e.target.value)} />
+        </label>
+      </div>}
       <p className="micro quality-copy">
         {settings.quality === "fast"
           ? "Coarse mesh for a first look. Forces are provisional."
           : settings.quality === "medium"
             ? "Finer surface and wake resolution with boundary layers."
-            : "Runs Medium and a finer mesh, then reports how the forces change."}{" "}
+            : settings.quality === "precise"
+              ? "Runs Medium and a finer mesh, then reports how the forces change."
+              : "One mesh with your iteration limit. No automatic refinement comparison."}{" "}
         <span className="nowrap">
           <Layers size={11} />{" "}
-          {health?.presets[settings.quality]?.memory_gb ?? "—"} GB cap
+          {health?.presets[settings.quality === "custom" ? (settings.custom_mesh ?? "medium") : settings.quality]?.memory_gb ?? "—"} GB cap
         </span>
         {" · "}
         {estimate?.previous_seconds

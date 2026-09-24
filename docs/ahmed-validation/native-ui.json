@@ -1,0 +1,11 @@
+{
+  "run_id": "fa415a20e52649fc9f55a6b56ed39cce",
+  "checks": [
+    "rounded Cd, Cl and drag",
+    "vertical force sign and kg conversion",
+    "warnings",
+    "pressure, speed slice, streamlines, animated pressure plane",
+    "legend ranges"
+  ],
+  "errors": []
+}
