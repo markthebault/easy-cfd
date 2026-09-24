@@ -658,7 +658,7 @@ fieldset {
 }
 .quality-picker {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   background: var(--surface-3);
   border-radius: 8px;
   padding: 3px;
@@ -1991,3 +1991,10 @@ dialog.repair-dialog::backdrop { background: #0b171c88; }
 .transform-size-badge small { display: block; font-size: 10px; color: var(--muted); margin-top: 5px; }
 .transform-size-badge { max-width: calc(100% - 40px); overflow-wrap: anywhere; }
 @media(max-width:760px) { .transform-size-badge { font-size: 14px; bottom: 42px; padding: 8px; } }
+
+.tunnel-controls { border-top: 1px solid var(--border); margin-top: 16px; padding-top: 12px; }
+.tunnel-controls h3 { font-size: 13px; margin: 0 0 10px; }
+.tunnel-inputs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.tunnel-inputs .input-label, .tunnel-inputs .unit-input, .tunnel-inputs input { min-width: 0; width: 100%; }
+.box-caption { position: absolute; left: 12px; top: 48px; background: var(--panel, #fff); color: #ad4a14; padding: 5px 8px; font-size: 11px; border-radius: 4px; pointer-events: none; }
+.saved-box-toggle { margin: 6px 12px; }

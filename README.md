@@ -168,3 +168,15 @@ Open **Rotate & scale** to edit the current geometry, including capped and seale
 Rotations apply around the selection's bounding-box centre in world X, Y, Z order. The movement controls add offsets in metres. **Keep the lowest point at its current height** adjusts the selection vertically after scaling/rotation, then applies any requested Z movement. Unselected objects keep their exact asset bytes and metadata. **3D** refits the live model in the viewer.
 
 **Reset changes** discards pending edits. **Review changes** checks an immutable server preview, and **Apply changes** saves it while retaining prior geometry and originals. Changing a control invalidates the checked preview. Saved runs are unchanged and geometry confirmation resets. Wheel centres and radii follow the transform; a wheel axle tilted away from the transverse direction blocks CFD until corrected or its role is reviewed. Source-file changes still require exporting and reimporting edited geometry.
+
+## Custom simulation box and iteration limit
+
+In **02 Driving conditions → Simulation box**, select **Custom · exact coordinates**. Enter the inlet and outlet X coordinates, both side Y coordinates, and the top Z coordinate in metres. The floor stays at Z = 0. **Show box in 3D** draws the box around the model; **Fit box**, **Front**, **Side**, and **Top** help inspect it. The preview reports the resulting length, width and height. Automatic mode retains the existing model-relative tunnel.
+
+The box can be configured with any quality preset. Saving or starting a run rejects a box that intersects the enabled geometry or exceeds the background-mesh budget. Enlarging the box does not silently coarsen the mesh. These controls change box size; they do not change inlet turbulence or the existing boundary-condition types.
+
+Choose **Custom** in **03 Run** to select Fast, Medium, or Precise mesh resolution and an integer iteration limit from 50 to 20,000. Custom runs one mesh. Selecting Precise mesh resolution in Custom does not run the automatic two-level refinement check. Custom saves its field snapshot at the exact final iteration, including limits that are not multiples of 100. Forces are still averaged over the last 50 iterations and assessed for settling separately.
+
+Each new run records its own box and settings. On the results page, **Show saved simulation box** displays that run's box even after the design settings change. Comparisons warn about different custom boxes, mesh resolutions or iteration limits. Older runs remain readable, but may not have saved box coordinates to display.
+
+The feature was exercised through the browser with a real 125-iteration Custom run and a 30 × 10 × 6 m box. See [verification evidence](docs/custom-box/README.md).

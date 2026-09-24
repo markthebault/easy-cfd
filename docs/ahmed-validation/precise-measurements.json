@@ -1,0 +1,178 @@
+{
+  "run_id": "e9453fcf9a394fd89f167a2ccab7d13f",
+  "identical_geometry": true,
+  "identical_pipeline": true,
+  "settings": {
+    "speed_kmh": 144.0,
+    "yaw_deg": 0.0,
+    "quality": "precise",
+    "reference_area": 0.115032,
+    "density": 1.0,
+    "moving_ground": true,
+    "wheels": false,
+    "geometry_confirmed": true
+  },
+  "reference": {
+    "cd": 0.330370682,
+    "cl": 0.334381878,
+    "iterations": 500,
+    "timings": {
+      "surfaceFeatureExtract": 0.3121364167891443,
+      "blockMesh": 0.36905708303675056,
+      "snappyHexMesh": 13.123705124948174,
+      "checkMesh": 1.5203662081621587,
+      "decomposePar": 1.080741458106786,
+      "potentialFoam": 1.2914732499048114,
+      "simpleFoam": 99.18194220820442,
+      "reconstructPar": 2.063011333812028
+    }
+  },
+  "medium_repeat": {
+    "cd": 0.369921187964,
+    "cl": 0.2435118849754,
+    "cells": 159190,
+    "force_settled": false,
+    "residual_converged": false
+  },
+  "medium_repeat_delta_cd": 0.005211716501600017,
+  "medium_repeat_delta_cl": 0.0362061155782,
+  "precise": {
+    "run_id": "e9453fcf9a394fd89f167a2ccab7d13f",
+    "cd": 0.358166678568,
+    "cl": 0.4044791614062,
+    "drag": 32.96050349522734,
+    "downforce": -37.2224375159024,
+    "cells": 310851,
+    "iteration": 1800.0,
+    "force_settled": true,
+    "residual_converged": true,
+    "cd_span": 8.465000000956735e-08,
+    "cl_span": 4.065599999991676e-07,
+    "timings": {
+      "blockMesh": 1.0205826670862734,
+      "snappyHexMesh": 26.37211583275348,
+      "checkMesh": 2.546005541924387,
+      "decomposePar": 2.0463302079588175,
+      "simpleFoam": 628.6969189168885,
+      "reconstructPar": 2.051299249753356
+    },
+    "warnings": [
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+      "Only 78% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review.",
+      "Two mesh levels measure sensitivity, not a formal numerical uncertainty bound.",
+      "At least one mesh level did not settle or reach its residual target. The refinement comparison is inconclusive."
+    ],
+    "field_checks": {
+      "internalMesh_Pressure_max_abs_error": 0.0,
+      "internalMesh_Turbulence_max_abs_error": 0.0,
+      "part0_Pressure_max_abs_error": 0.0,
+      "part0_Turbulence_max_abs_error": 0.0
+    }
+  },
+  "diagnostics": {
+    "refinement": {
+      "medium_cd": 0.369921187964,
+      "medium_cl": 0.2435118849754,
+      "delta_cd": -0.011754509395999979,
+      "delta_cl": 0.1609672764308,
+      "both_settled": false,
+      "both_converged": false
+    },
+    "residuals": {
+      "Ux": 1.108826431e-08,
+      "Uy": 2.265595229e-08,
+      "Uz": 1.478789801e-08,
+      "p": 1.092912946e-07,
+      "omega": 8.599748089e-09,
+      "k": 7.927553791e-09
+    },
+    "y_plus": [
+      {
+        "patch": "part0",
+        "minimum": 33.890857837,
+        "maximum": 1337.1514304,
+        "mean": 223.76423822
+      }
+    ],
+    "wall_target_fraction": 0.7817440588644725,
+    "layer_coverage": 0.982331802755041,
+    "medium_timings": {
+      "blockMesh": 1.0138694168999791,
+      "snappyHexMesh": 29.929103333037347,
+      "checkMesh": 1.5368507918901742,
+      "decomposePar": 1.5356947081163526,
+      "simpleFoam": 196.23060758318752,
+      "reconstructPar": 1.0328583749942482
+    }
+  },
+  "force_windows": {
+    "medium": {
+      "50": {
+        "Cd": {
+          "mean": 0.369921187964,
+          "span": 0.02438419483000004
+        },
+        "Cl": {
+          "mean": 0.2435118849754,
+          "span": 0.10112545792
+        }
+      },
+      "100": {
+        "Cd": {
+          "mean": 0.3710567639711999,
+          "span": 0.02438419483000004
+        },
+        "Cl": {
+          "mean": 0.24368925820199996,
+          "span": 0.10112545792
+        }
+      },
+      "200": {
+        "Cd": {
+          "mean": 0.37134114432375,
+          "span": 0.02477067940000005
+        },
+        "Cl": {
+          "mean": 0.24876947182605,
+          "span": 0.10112545792
+        }
+      }
+    },
+    "precise": {
+      "50": {
+        "Cd": {
+          "mean": 0.358166678568,
+          "span": 8.465000000956735e-08
+        },
+        "Cl": {
+          "mean": 0.4044791614062,
+          "span": 4.065599999991676e-07
+        }
+      },
+      "100": {
+        "Cd": {
+          "mean": 0.3581666792264,
+          "span": 9.137000001047113e-08
+        },
+        "Cl": {
+          "mean": 0.4044791368097,
+          "span": 4.523200000106087e-07
+        }
+      },
+      "200": {
+        "Cd": {
+          "mean": 0.3581666745964,
+          "span": 1.0241999998106266e-07
+        },
+        "Cl": {
+          "mean": 0.40447913229685,
+          "span": 4.523200000106087e-07
+        }
+      }
+    }
+  },
+  "reference_error_percent": {
+    "cd": 8.413578468806126,
+    "cl": 20.963242334023846
+  }
+}

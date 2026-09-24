@@ -1,7 +1,13 @@
+export type SimulationBox = {
+  x_min: number; x_max: number; y_min: number; y_max: number; z_max: number;
+};
 export type Settings = {
   speed_kmh: number;
   yaw_deg: number;
-  quality: "fast" | "medium" | "precise";
+  quality: "fast" | "medium" | "precise" | "custom";
+  simulation_box?: SimulationBox | null;
+  custom_mesh?: "fast" | "medium" | "precise";
+  custom_iterations?: number;
   reference_area: number;
   density: number;
   moving_ground: boolean;
@@ -79,6 +85,7 @@ export type Result = {
   residuals: Record<string, number>;
   cells: number;
   iteration: number;
+  averaging_iterations?: number;
   warnings: string[];
   breakdown?: Breakdown;
   blockage_ratio?: number;
@@ -90,6 +97,7 @@ export type Result = {
   refinement?: { delta_cd: number; delta_cl: number; both_settled: boolean };
 };
 export type Run = {
+  domain?: number[];
   id: string;
   name: string;
   created: string;

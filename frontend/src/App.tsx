@@ -1,3 +1,4 @@
+import TunnelBox, { useDomain } from "./TunnelBox";
 import Transform from "./Transform";
 import MergeSeal from "./MergeSeal";
 import Repair from "./Repair";
@@ -131,6 +132,7 @@ export default function App() {
   };
   useEffect(() => {
     if (!project || !settings) return;
+    if (settings.quality === "custom" || JSON.stringify(settings.simulation_box ?? null) !== JSON.stringify(project.settings.simulation_box ?? null)) {setEstimate(null); return;}
     let disposed = false;
     api<{ previous_seconds: number | null; message: string }>(
       `/projects/${project.id}/estimate?quality=${settings.quality}`,
@@ -148,6 +150,9 @@ export default function App() {
     project?.id,
     project?.geometry?.fingerprint,
     settings?.quality,
+    settings?.simulation_box,
+    settings?.custom_iterations,
+    settings?.custom_mesh,
     runs.filter((r) => r.status === "completed").length,
   ]);
   const pick = (p: Project) => {
@@ -297,6 +302,8 @@ export default function App() {
       clearTimeout(timer);
     };
   }, [current?.id, current?.status]);
+  const [showBox, setShowBox] = useState(false);
+  const {preview: domainPreview, error: domainError, pending: domainPending} = useDomain(project, settings);
   const dirty = JSON.stringify(settings) !== JSON.stringify(project?.settings);
   const anyActive = runs.some(active);
   const openImport = (mode: "replace" | "add") =>
@@ -610,6 +617,7 @@ export default function App() {
                       project={project}
                       update={update}
                     />
+                    <TunnelBox settings={settings} bounds={domainPreview?.bounds} error={domainError} update={update} visible={showBox} onVisible={setShowBox} />
                   </Section>
                 </fieldset>
               ) : (
@@ -647,6 +655,7 @@ export default function App() {
                 disabled={busy || initializing}
               >
                 <RunBar
+                  setupError={domainError || (project.geometry && (domainPending || !domainPreview) ? "Checking simulation box…" : "")}
                   project={project}
                   settings={settings}
                   update={update}
@@ -803,6 +812,7 @@ export default function App() {
                   </span>
                 </div>
                 <Viewer
+                  boxBounds={showBox ? domainPreview?.bounds : undefined}
                   geometry={project?.geometry || null}
                   geometryBase={`/api/projects/${project?.id}/geometry`}
                   field={field}

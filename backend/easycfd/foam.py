@@ -3,9 +3,54 @@
 import math
 import shutil
 from pathlib import Path
-from .models import PRESETS, Settings
+from .models import Settings, resolved_preset
 
 IMAGE = "opencfd/openfoam-default@sha256:1ba02114b1c025c370f2e269a07677c16c9bea8d990fcd75ac8378aff9d41b50"
+
+
+def domain_bounds(geometry, settings, reference_case=None):
+    low, high = geometry["bounds"]
+    length = high[0] - low[0]
+    if settings.simulation_box is not None:
+        box = settings.simulation_box
+        bounds = [box.x_min, box.x_max, box.y_min, box.y_max, 0, box.z_max]
+    elif reference_case == "ahmedml-run-1":
+        from .benchmark import domain
+
+        bounds = domain()
+    else:
+        bounds = [
+            low[0] - 3 * length,
+            high[0] + 6 * length,
+            low[1] - 2 * length,
+            high[1] + 2 * length,
+            0,
+            high[2] + 2 * length,
+        ]
+    if settings.simulation_box is not None and not (
+        bounds[0] < low[0]
+        and bounds[1] > high[0]
+        and bounds[2] < low[1]
+        and bounds[3] > high[1]
+        and bounds[5] > high[2]
+        and low[2] > 0
+    ):
+        raise ValueError(
+            "Simulation box must surround the enabled geometry, with space at the inlet, outlet, sides and top. The floor stays at Z = 0."
+        )
+    return bounds
+
+
+def mesh_layout(geometry, settings, quality=None, reference_case=None):
+    bounds = domain_bounds(geometry, settings, reference_case)
+    p = resolved_preset(settings, quality)
+    cell = p["cell"] * (geometry["bounds"][1][0] - geometry["bounds"][0][0]) / 4.2
+    counts = [math.ceil((bounds[2 * i + 1] - bounds[2 * i]) / cell) for i in range(3)]
+    if math.prod(counts) > p["max_cells"] // 2:
+        raise ValueError(
+            "Simulation box exceeds the background mesh budget at this resolution. Reduce the box size or choose a coarser mesh."
+        )
+    return bounds, counts, cell
 
 
 def vec(values):
@@ -28,7 +73,7 @@ def generate(
     reference_case=None,
     processes=4,
 ):
-    p = PRESETS[quality or settings.quality]
+    p = resolved_preset(settings, quality)
     first_layer = 2 * 100 * 1.5e-5 / (0.05 * settings.speed_kmh / 3.6)
     for name in ("0", "system", "constant/triSurface"):
         (case / name).mkdir(parents=True, exist_ok=True)
@@ -37,22 +82,10 @@ def generate(
     low, high = geometry["bounds"]
     length = high[0] - low[0]
     width = high[1] - low[1]
-    # Domain extends 3 lengths upstream, 6 downstream; side/top clearance 2 lengths.
-    xmin, xmax = low[0] - 3 * length, high[0] + 6 * length
-    ymin, ymax = low[1] - 2 * length, high[1] + 2 * length
-    zmax = high[2] + 2 * length
-    if reference_case == "ahmedml-run-1":
-        from .benchmark import domain
-
-        xmin, xmax, ymin, ymax, _, zmax = domain()
+    bounds, counts, cell = mesh_layout(geometry, settings, quality, reference_case)
+    xmin, xmax, ymin, ymax, _, zmax = bounds
     cross_section = (ymax - ymin) * zmax
     blockage_ratio = settings.reference_area / cross_section
-    cell = p["cell"] * length / 4.2
-    counts = [math.ceil((xmax - xmin) / cell), math.ceil((ymax - ymin) / cell), math.ceil(zmax / cell)]
-    if math.prod(counts) > p["max_cells"] // 2:
-        raise ValueError(
-            "The model aspect ratio exceeds the background mesh budget. Check its orientation and dimensions."
-        )
     vertices = [
         (xmin, ymin, 0),
         (xmax, ymin, 0),
@@ -95,6 +128,8 @@ mergePatchPairs ();
             )
         refinement_entries.append(f"{part['id']} {{level ({level} {level}); patchInfo {{type wall;}}}}")
     refinements = "\n".join(refinement_entries)
+    # checkMesh's basic geometry check uses skewness 4 even on boundary faces.
+    # Enforce that during meshing too, instead of allowing faces the final gate rejects.
     write(
         case / "system/snappyHexMeshDict",
         f"""
@@ -110,7 +145,7 @@ maxLoadUnbalance .1; nCellsBetweenLevels 3; features ();
 refinementSurfaces {{{refinements}}}
 resolveFeatureAngle 30;
 refinementRegions {{wake {{mode inside; levels ((1e15 {p["wake"]}));}}}}
-locationInMesh {vec([xmin + 0.314 * cell, ymin + 0.271 * cell, 0.419 * cell])};
+locationInMesh {vec([xmin + 0.314 * min(cell, low[0] - xmin), ymin + 0.271 * min(cell, low[1] - ymin), 0.419 * cell])};
 allowFreeStandingZoneFaces true;
 }}
 snapControls {{nSmoothPatch 3; tolerance 2; nSolveIter 30; nRelaxIter 5;
@@ -125,7 +160,7 @@ maxFaceThicknessRatio .5; maxThicknessToMedialRatio .3; minMedialAxisAngle 90;
 nBufferCellsNoExtrude 1; nLayerIter 100; nRelaxedIter 100;
 }}
 meshQualityControls {{
-maxNonOrtho 65; maxBoundarySkewness 20; maxInternalSkewness 4;
+maxNonOrtho 65; maxBoundarySkewness 4; maxInternalSkewness 4;
 maxConcave 80; minVol 1e-13; minTetQuality 1e-15; minArea -1;
 minTwist .02; minDeterminant .001; minFaceWeight .02; minVolRatio .01; minTriangleTwist -1;
 nSmoothScale 4; errorReduction .75;
@@ -161,7 +196,7 @@ writeControl timeStep; writeInterval 1; log false;}}
         case / "system/controlDict",
         f"""
 application simpleFoam; startFrom startTime; startTime 0; stopAt endTime;
-endTime {p["iterations"]}; deltaT 1; writeControl timeStep; writeInterval 100;
+endTime {p["iterations"]}; deltaT 1; writeControl timeStep; writeInterval {p["iterations"] if (quality or settings.quality) == "custom" else 100};
 purgeWrite 2; writeFormat binary; writePrecision 10; writeCompression off;
 timeFormat general; timePrecision 6; runTimeModifiable false;
 functions {{
@@ -177,7 +212,7 @@ writeControl timeStep; writeInterval 1; log true;}}
     write(
         case / "system/meshQualityDict",
         """
-maxNonOrtho 65; maxBoundarySkewness 20; maxInternalSkewness 4;
+maxNonOrtho 65; maxBoundarySkewness 4; maxInternalSkewness 4;
 maxConcave 80; minVol 1e-13; minTetQuality 1e-15; minArea -1;
 minTwist .02; minDeterminant .001; minFaceWeight .02; minVolRatio .01; minTriangleTwist -1;
 """,

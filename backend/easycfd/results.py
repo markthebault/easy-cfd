@@ -264,9 +264,9 @@ def process(case, output, run, metadata):
         warnings.append("Residuals have not reached this preset's target. Forces are provisional.")
     if not values["force_settled"]:
         warnings.append("Drag or lift is still changing. Do not rank designs from this run.")
-    if run["settings"]["quality"] == "fast":
+    if metadata["preset"]["layers"] == 0:
         warnings.append(
-            "Fast uses a coarse mesh without prism layers. Use it for setup and flow exploration."
+            "This run uses a coarse mesh without prism layers. Use it for setup and flow exploration."
         )
     warnings.append(
         "No experimental validation for this car. Mesh refinement and physical testing are still needed."

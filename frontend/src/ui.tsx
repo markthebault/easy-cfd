@@ -18,10 +18,11 @@ export function simulationProgress(
   if (run.status !== "running") return null;
   if (run.stage === "Preparing") return { value: 2, detail: "Preparing" };
 
-  const tier = run.stage.match(/^(fast|medium|precise):/)?.[1] as
+  const tier = run.stage.match(/^(fast|medium|precise|custom):/)?.[1] as
       | "fast"
       | "medium"
       | "precise"
+      | "custom"
       | undefined,
     twoMeshes = run.settings.quality === "precise",
     start = twoMeshes ? (tier === "precise" ? 50 : 3) : 3,
@@ -33,9 +34,9 @@ export function simulationProgress(
   else if (run.stage.includes("Checking mesh")) fraction = 0.28;
   else if (run.stage.includes("Partitioning mesh")) fraction = 0.33;
   else if (run.stage.includes("Solving airflow")) {
-    const limit =
+    const limit = run.settings.quality === "custom" ? (run.settings.custom_iterations ?? 1000) :
       presets?.[tier || run.settings.quality]?.iterations ||
-      { fast: 300, medium: 1000, precise: 1800 }[
+      { fast: 300, medium: 1000, precise: 1800, custom: 1000 }[
         tier || run.settings.quality
       ];
     fraction = 0.38 + 0.5 * Math.min(run.iteration / limit, 1);
@@ -180,9 +181,14 @@ export function History({
   history: { iteration: number; cd: number }[];
 }) {
   const data = history.slice(-300);
+  if (!data.length) return null;
   const values = data.map((p) => p.cd),
-    min = Math.min(...values),
-    max = Math.max(...values);
+    low = Math.min(...values),
+    high = Math.max(...values),
+    center = (low + high) / 2;
+  // Keep converged numerical noise from looking like large force oscillations.
+  const span = Math.max(high - low, 0.02 * Math.max(Math.abs(center), 0.01));
+  const min = center - span / 2, max = center + span / 2;
   return (
     <svg
       className="history"

@@ -5,6 +5,7 @@ import vtkActor from "@kitware/vtk.js/Rendering/Core/Actor";
 import vtkMapper from "@kitware/vtk.js/Rendering/Core/Mapper";
 import vtkXMLPolyDataReader from "@kitware/vtk.js/IO/XML/XMLPolyDataReader";
 import vtkColorTransferFunction from "@kitware/vtk.js/Rendering/Core/ColorTransferFunction";
+import vtkCubeSource from "@kitware/vtk.js/Filters/Sources/CubeSource";
 import vtkPlaneSource from "@kitware/vtk.js/Filters/Sources/PlaneSource";
 import vtkArrowSource from "@kitware/vtk.js/Filters/Sources/ArrowSource";
 import vtkAnnotatedCubeActor from "@kitware/vtk.js/Rendering/Core/AnnotatedCubeActor";
@@ -71,6 +72,7 @@ export type RepairOverlay = {
 };
 
 type Props = {
+  boxBounds?: number[];
   modelTransforms?: Record<string, number[]>;
   repairOverlay?: RepairOverlay;
   geometry: Geometry | null;
@@ -90,6 +92,7 @@ type Props = {
   windYaw?: number;
 };
 export default function Viewer({
+  boxBounds,
   geometry,
   repairOverlay,
   modelTransforms,
@@ -175,7 +178,7 @@ export default function Viewer({
     );
     camera.setViewUp(up[0], up[1], up[2]);
     // Fit the model and the road under it, not the whole ground grid.
-    ctx.getRenderer().resetCamera([lo[0], hi[0], lo[1], hi[1], 0, hi[2]]);
+    ctx.getRenderer().resetCamera((boxBounds ?? [lo[0], hi[0], lo[1], hi[1], 0, hi[2]]) as [number, number, number, number, number, number]);
     ctx.getRenderWindow().render();
     // Kept as the saved camera, so a scene still loading keeps this view.
     cameraState.current = {
@@ -606,6 +609,42 @@ export default function Viewer({
     flow?.tracers,
     repairOverlay,
   ]);
+  const boxKey = boxBounds?.join(",");
+  const boxShown = useRef(false);
+  useEffect(() => {
+    const ctx = context.current;
+    if (!boxBounds) {boxShown.current = false; return;}
+    if (!ctx || loading) return;
+    const [xmin, xmax, ymin, ymax, zmin, zmax] = boxBounds;
+    const source = vtkCubeSource.newInstance({
+      xLength: xmax-xmin, yLength: ymax-ymin, zLength: zmax-zmin,
+      center: [(xmin+xmax)/2, (ymin+ymax)/2, (zmin+zmax)/2],
+    });
+    const mapper = vtkMapper.newInstance();
+    mapper.setInputConnection(source.getOutputPort());
+    const actor = vtkActor.newInstance();
+    actor.setMapper(mapper);
+    actor.getProperty().setRepresentationToWireframe();
+    actor.getProperty().setLighting(false);
+    actor.getProperty().setColor(0.9, 0.4, 0.08);
+    actor.getProperty().setLineWidth(2);
+    ctx.getRenderer().addActor(actor);
+    if (!boxShown.current) {
+      ctx.getRenderer().resetCamera(boxBounds as [number, number, number, number, number, number]);
+      boxShown.current = true;
+    }
+    ctx.getRenderer().resetCameraClippingRange();
+    ctx.getRenderWindow().render();
+    return () => {
+      ctx.getRenderer()?.removeActor(actor);
+      actor.delete(); mapper.delete(); source.delete();
+    };
+  }, [boxKey, loading, geometry, theme, mode]);
+  const fitBox = () => {
+    if (!boxBounds || !context.current) return;
+    context.current.getRenderer().resetCamera(boxBounds as [number, number, number, number, number, number]);
+    context.current.getRenderWindow().render();
+  };
   useEffect(() => {
     const ctx = context.current,
       marker = wind.current;
@@ -697,6 +736,7 @@ export default function Viewer({
             {name}
           </button>
         ))}
+        {boxBounds && <button onClick={fitBox}>Fit box</button>}
         <button title="Reset camera" onClick={reset} disabled={!geometry}>
           <Maximize2 size={14} /> 3D
         </button>
@@ -727,6 +767,7 @@ export default function Viewer({
             : `${windYaw > 0 ? "+" : ""}${windYaw}° yaw`}
         </small>
       </div>
+      {boxBounds && <div className="box-caption" data-testid="simulation-box" data-bounds={boxKey}>Simulation box · floor Z = 0</div>}
       {loading && <div className="viewport-message">Loading geometry…</div>}
       {error && <div className="viewport-message error">{error}</div>}
       {!geometry && (

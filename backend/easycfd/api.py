@@ -17,7 +17,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ValidationError
 from . import geometry, plane, runner, storage, results, repair, seal, transform, wake
-from .models import ImportOptions, NewProject, Settings, PRESETS
+from .models import ImportOptions, NewProject, Settings, PRESETS, resolved_preset
 
 
 @asynccontextmanager
@@ -83,12 +83,17 @@ def create(body: NewProject):
 
 
 @app.get("/api/projects/{key}/estimate")
-def estimate(key: str, quality: Literal["fast", "medium", "precise"] = "medium"):
+def estimate(key: str, quality: Literal["fast", "medium", "precise", "custom"] = "medium"):
     project = storage.get("projects", key)
+    effective = Settings(**{**project["settings"], "quality": quality})
+    preset = resolved_preset(effective)
     fingerprint = (project.get("geometry") or {}).get("fingerprint")
     measured = []
     for run in storage.all_records("runs"):
         if run["status"] != "completed" or run["settings"]["quality"] != quality:
+            continue
+        saved = Settings(**run["settings"])
+        if saved.simulation_box != effective.simulation_box or (quality == "custom" and (saved.custom_mesh != effective.custom_mesh or saved.custom_iterations != effective.custom_iterations)):
             continue
         if run["geometry"]["fingerprint"] == fingerprint:
             result = run["result"]
@@ -97,8 +102,8 @@ def estimate(key: str, quality: Literal["fast", "medium", "precise"] = "medium")
             )
     return dict(
         quality=quality,
-        memory_gb=PRESETS[quality]["memory_gb"],
-        cell_limit=PRESETS[quality]["max_cells"],
+        memory_gb=preset["memory_gb"],
+        cell_limit=preset["max_cells"],
         measured_runs=len(measured),
         previous_seconds=statistics.median(measured) if measured else None,
         message="Previous runs of this geometry; different conditions can change runtime."
@@ -138,10 +143,8 @@ def delete_project(key: str):
     return {"id": project["id"], "deleted_runs": len(related)}
 
 
-@app.put("/api/projects/{key}/settings")
-def settings(key: str, body: Settings):
-    current = storage.get("projects", key)
-    reference = current.get("reference_case")
+def settings_reference(project, body):
+    reference = project.get("reference_case")
     if reference:
         from .benchmark import REFERENCE
 
@@ -152,9 +155,39 @@ def settings(key: str, body: Settings):
             or body.moving_ground
             or body.wheels
             or body.yaw_deg != 0
+            or body.simulation_box is not None
         ):
             reference = None
+    return reference
+
+
+@app.put("/api/projects/{key}/settings")
+def settings(key: str, body: Settings):
+    current = storage.get("projects", key)
+    reference = settings_reference(current, body)
+    if current.get("geometry") and not current["geometry"]["errors"]:
+        from .foam import mesh_layout
+
+        mesh_layout(current["geometry"], body, reference_case=reference)
     return storage.update("projects", key, settings=body.model_dump(), reference_case=reference)
+
+
+@app.post("/api/projects/{key}/domain-preview")
+def domain_preview(key: str, body: Settings):
+    from .foam import domain_bounds, mesh_layout
+
+    project = storage.get("projects", key)
+    geometry = project.get("geometry")
+    if not geometry:
+        raise ValueError("Import a model before sizing the simulation box.")
+    reference = settings_reference(project, body)
+    bounds = domain_bounds(geometry, body, reference)
+    try:
+        _, counts, _ = mesh_layout(geometry, body, reference_case=reference)
+        error = None
+    except ValueError as exc:
+        counts, error = None, str(exc)
+    return dict(bounds=bounds, counts=counts, error=error)
 
 
 @app.post("/api/projects/{key}/duplicate", status_code=201)
@@ -829,6 +862,14 @@ def compare(baseline: str, variant: str):
         raise ValueError("Choose two completed runs.")
     fields = ("speed_kmh", "yaw_deg", "reference_area", "density", "moving_ground", "wheels", "quality")
     mismatch = [field for field in fields if a["settings"][field] != b["settings"][field]]
+    sa, sb = Settings(**a["settings"]), Settings(**b["settings"])
+    if sa.simulation_box != sb.simulation_box:
+        mismatch.append("simulation box")
+    if sa.quality == "custom" and sb.quality == "custom":
+        if sa.custom_mesh != sb.custom_mesh:
+            mismatch.append("custom mesh resolution")
+        if sa.custom_iterations != sb.custom_iterations:
+            mismatch.append("iteration limit")
     if a.get("pipeline_hash") != b.get("pipeline_hash"):
         mismatch.append("simulation template version")
     if a.get("reference_case") != b.get("reference_case"):

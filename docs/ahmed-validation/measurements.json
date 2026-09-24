@@ -1,0 +1,128 @@
+{
+  "upstream_revision": "25677d638b1ae6f1289cb6b70fce666f898ce560",
+  "published": {
+    "cd": 0.299,
+    "cl": 0.339,
+    "cells": 8250693
+  },
+  "upstream_coarse": {
+    "cd": 0.330370682,
+    "cl": 0.334381878,
+    "iterations": 500,
+    "timings": {
+      "surfaceFeatureExtract": 0.3121364167891443,
+      "blockMesh": 0.36905708303675056,
+      "snappyHexMesh": 13.123705124948174,
+      "checkMesh": 1.5203662081621587,
+      "decomposePar": 1.080741458106786,
+      "potentialFoam": 1.2914732499048114,
+      "simpleFoam": 99.18194220820442,
+      "reconstructPar": 2.063011333812028
+    }
+  },
+  "native": {
+    "run_id": "fa415a20e52649fc9f55a6b56ed39cce",
+    "cd": 0.36470947146239996,
+    "cl": 0.2073057693972,
+    "drag": 33.562607937010235,
+    "downforce": -19.077437812238966,
+    "cells": 159190,
+    "iteration": 1000.0,
+    "force_settled": false,
+    "residual_converged": false,
+    "cd_span": 0.02522964153999996,
+    "cl_span": 0.09624627373,
+    "timings": {
+      "blockMesh": 1.054581165779382,
+      "snappyHexMesh": 30.377416459377855,
+      "checkMesh": 1.5475546666420996,
+      "decomposePar": 1.5367448329925537,
+      "simpleFoam": 199.65795041713864,
+      "reconstructPar": 1.042127167340368
+    },
+    "warnings": [
+      "Residuals have not reached this preset's target. Forces are provisional.",
+      "Drag or lift is still changing. Do not rank designs from this run.",
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed."
+    ],
+    "field_checks": {
+      "internalMesh_Pressure_max_abs_error": 0.0,
+      "internalMesh_Turbulence_max_abs_error": 0.0,
+      "part0_Pressure_max_abs_error": 0.0,
+      "part0_Turbulence_max_abs_error": 0.0
+    }
+  },
+  "matched": {
+    "run_id": "84d07d226c724cc3b70acfce60976844",
+    "cd": 0.330390543881,
+    "cl": 0.33435640953859996,
+    "drag": 37.24537534284481,
+    "downforce": -37.69245277200335,
+    "cells": 184233,
+    "iteration": 500.0,
+    "force_settled": true,
+    "residual_converged": false,
+    "cd_span": 0.00013425382000004094,
+    "cl_span": 0.0004241565299999972,
+    "timings": {
+      "checkMesh": 1.543457459192723,
+      "decomposePar": 1.120055124629289,
+      "potentialFoam": 1.3034656248055398,
+      "simpleFoam": 106.9846098748967,
+      "reconstructPar": 1.0871212920174003
+    },
+    "warnings": [
+      "Residuals have not reached this preset's target. Forces are provisional.",
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+      "Controlled verification: upstream mesh, boundary conditions and numerical schemes, 500 iterations. This is not the standard Medium preset or an experimental validation."
+    ],
+    "field_checks": {
+      "internalMesh_Pressure_max_abs_error": 0.0,
+      "internalMesh_Turbulence_max_abs_error": 0.0,
+      "part0_Pressure_max_abs_error": 0.0,
+      "part0_Turbulence_max_abs_error": 0.0
+    }
+  },
+  "shared_mesh_field_differences": {
+    "internalMesh_p": {
+      "max_abs": 6.58349609375,
+      "relative_l2": 0.0006603708607144654
+    },
+    "internalMesh_U": {
+      "max_abs": 16.363059997558594,
+      "relative_l2": 0.0021004904992878437
+    },
+    "internalMesh_k": {
+      "max_abs": 0.7447905540466309,
+      "relative_l2": 0.0014651226811110973
+    },
+    "internalMesh_omega": {
+      "max_abs": 1085.353515625,
+      "relative_l2": 0.0013216293882578611
+    },
+    "part0_p": {
+      "max_abs": 6.11492919921875,
+      "relative_l2": 0.0008647873182781041
+    },
+    "part0_U": {
+      "max_abs": 0.0,
+      "relative_l2": 0.0
+    },
+    "part0_k": {
+      "max_abs": 0.5514014959335327,
+      "relative_l2": 0.0018468534108251333
+    },
+    "part0_omega": {
+      "max_abs": 1085.353515625,
+      "relative_l2": 0.0010560674127191305
+    }
+  },
+  "local_velocity_differences": {
+    "p99_difference_m_s": 0.03769600763916969,
+    "fraction_cells_difference_over_1_m_s": 0.0002822512796295995,
+    "max_vector_difference_m_s": 16.490177154541016,
+    "note": "Largest differences occur near the support legs; the final fields are not identical."
+  },
+  "matched_delta_cd": 1.9861880999949566e-05,
+  "matched_delta_cl": -2.5468461400057762e-05
+}

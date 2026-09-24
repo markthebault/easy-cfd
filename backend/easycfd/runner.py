@@ -12,7 +12,7 @@ import threading
 import time
 from pathlib import Path
 from . import storage, foam, results
-from .models import Settings, PRESETS
+from .models import Settings, resolved_preset
 
 JOBS = queue.Queue()
 STOP = threading.Event()
@@ -193,16 +193,27 @@ def solve(key, tier):
 
         meta = apply_boundaries(case, meta)
     (case / "metadata.json").write_text(json.dumps(meta, indent=2))
+    preset = meta["preset"]
     timings = {}
     for command, label in [
         (["blockMesh"], "Building tunnel"),
         (["snappyHexMesh", "-overwrite"], "Meshing car"),
         (["checkMesh", "-meshQuality", "-allTopology"], "Checking mesh"),
     ]:
-        timings[command[0]] = stage(key, case, command, f"{tier}: {label}", PRESETS[tier]["memory_gb"], cpus)
+        timings[command[0]] = stage(key, case, command, f"{tier}: {label}", preset["memory_gb"], cpus)
     check = (case / "log.checkMesh").read_text()
     if "Mesh OK." not in check:
-        raise RuntimeError("Mesh quality checks failed. Inspect log.checkMesh and repair the geometry.")
+        details = "\n".join(
+            line.strip().lstrip("*").strip()
+            for line in check.splitlines()
+            if line.strip().startswith(("***", "Failed "))
+        )
+        raise RuntimeError(
+            "Generated mesh failed quality checks; the airflow solver was not started. "
+            "Box dimensions and mesh resolution affect cell quality even with unchanged geometry. "
+            "Review the mesh settings and log.checkMesh."
+            + (f"\n{details}" if details else "")
+        )
     meshlog = (case / "log.snappyHexMesh").read_text()
     if re.search(r"reached.*(?:limit|maxGlobalCells)|maximum number of cells", meshlog, re.I):
         raise RuntimeError(
@@ -216,10 +227,10 @@ def solve(key, tier):
                 f"Part {part['name']} disappeared or has too few mesh faces. Use a finer preset or simplify the part."
             )
     cells = re.search(r"cells:\s+(\d+)", check)
-    if cells and int(cells.group(1)) > PRESETS[tier]["max_cells"]:
+    if cells and int(cells.group(1)) > preset["max_cells"]:
         raise RuntimeError("The final mesh exceeds the preset cell budget. Simplify the model.")
     layer_coverage = None
-    if PRESETS[tier]["layers"]:
+    if preset["layers"]:
         matches = re.findall(r"Extruding (\d+) out of (\d+) faces", meshlog)
         if matches:
             added, total = map(int, matches[-1])
@@ -229,14 +240,14 @@ def solve(key, tier):
                 "Fewer than 20% of surface faces received boundary layers. Mesh quality was not silently reduced; review small gaps and sharp features."
             )
     timings["decomposePar"] = stage(
-        key, case, ["decomposePar", "-force"], f"{tier}: Partitioning mesh", PRESETS[tier]["memory_gb"], cpus
+        key, case, ["decomposePar", "-force"], f"{tier}: Partitioning mesh", preset["memory_gb"], cpus
     )
     timings["simpleFoam"] = stage(
         key,
         case,
         ["mpirun", "--allow-run-as-root", "--oversubscribe", "-np", str(ranks), "simpleFoam", "-parallel"],
         f"{tier}: Solving airflow",
-        PRESETS[tier]["memory_gb"],
+        preset["memory_gb"],
         cpus,
     )
     # Reconstruct every time purgeWrite retained, not only the latest, so the
@@ -246,7 +257,7 @@ def solve(key, tier):
         case,
         ["reconstructPar", "-newTimes"],
         f"{tier}: Reassembling results",
-        PRESETS[tier]["memory_gb"],
+        preset["memory_gb"],
         cpus,
     )
     # Per-rank copies duplicate the reconstructed case and roughly double its size.
@@ -392,7 +403,8 @@ def enqueue(project):
     geometry = project.get("geometry")
     if not geometry or geometry["errors"]:
         raise ValueError("Import valid closed geometry before running.")
-    required = PRESETS[settings.quality]["memory_gb"]
+    foam.mesh_layout(geometry, settings, reference_case=project.get("reference_case"))
+    required = resolved_preset(settings)["memory_gb"]
     if status.get("memory_gb", 0) < required + 0.5:
         raise ValueError(
             f"This preset needs at least {required + 0.5} GB allocated to the container runtime."
@@ -410,6 +422,7 @@ def enqueue(project):
         stage="Queued",
         settings=settings.model_dump(),
         geometry=geometry,
+        domain=foam.domain_bounds(geometry, settings, project.get("reference_case")),
         image=foam.IMAGE,
         pipeline_hash=PIPELINE_HASH,
         processes=ranks,
