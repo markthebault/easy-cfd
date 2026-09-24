@@ -152,6 +152,7 @@ export function CompareView({
                     range={comparison.ranges[field]}
                     theme={theme}
                     flow={plane}
+                    windYaw={r.settings.yaw_deg}
                     sync="comparison"
                     label={i ? "Variant" : "Baseline"}
                   />

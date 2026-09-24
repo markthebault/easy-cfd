@@ -506,7 +506,14 @@ fieldset {
   gap: 2px;
   margin: 0 -8px;
 }
+.project-row {
+  display: flex;
+  align-items: center;
+  border-radius: 7px;
+}
 .project-item {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -515,15 +522,33 @@ fieldset {
   text-align: left;
   color: var(--text-2);
 }
-.project-item:hover {
+.project-row:hover {
   background: var(--surface-2);
 }
-.project-item.selected {
+.project-row.selected {
   background: var(--accent-soft);
   color: var(--text);
 }
-.project-item.selected svg {
+.project-row.selected .project-item > svg {
   color: var(--accent);
+}
+.project-actions {
+  display: flex;
+  padding-right: 5px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.project-row:hover .project-actions,
+.project-row:focus-within .project-actions,
+.project-row.selected .project-actions {
+  opacity: 1;
+}
+.project-actions .icon-button {
+  padding: 5px;
+}
+.project-actions .delete:hover:not(:disabled) {
+  color: var(--danger-text);
+  background: var(--danger-bg);
 }
 .project-text {
   min-width: 0;
@@ -1167,6 +1192,10 @@ main {
   margin-left: 12px;
   font-size: 10px;
 }
+.has-wind-indicator .flow-direction,
+.has-wind-indicator .viewport-hint {
+  left: 120px;
+}
 .viewport-message {
   position: absolute;
   top: 50%;
@@ -1247,6 +1276,44 @@ main {
 }
 .run-status .secondary {
   margin-left: auto;
+}
+.simulation-progress {
+  flex: 1 0 100%;
+  display: grid;
+  gap: 5px;
+  padding-top: 3px;
+}
+.simulation-progress > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 11.5px;
+}
+.simulation-progress strong {
+  color: var(--text-2);
+  font-weight: 600;
+}
+.simulation-progress progress {
+  width: 100%;
+  height: 7px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface-3);
+}
+.simulation-progress progress::-webkit-progress-bar {
+  background: var(--surface-3);
+  border-radius: 999px;
+}
+.simulation-progress progress::-webkit-progress-value {
+  background: var(--accent);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+.simulation-progress progress::-moz-progress-bar {
+  background: var(--accent);
+  border-radius: 999px;
 }
 .warning-link {
   margin-left: auto;
@@ -1596,6 +1663,28 @@ footer a {
   display: flex;
   color: var(--muted);
 }
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}
+.danger-button {
+  padding: 7px 12px;
+  border: 1px solid var(--danger-border);
+  border-radius: 6px;
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  font-weight: 650;
+}
+.danger-button:hover:not(:disabled) {
+  filter: brightness(0.94);
+}
+@media (hover: none) {
+  .project-actions {
+    opacity: 1;
+  }
+}
 .file-drop {
   display: flex;
   flex-direction: column;
@@ -1847,3 +1936,58 @@ footer a {
     display: none;
   }
 }
+
+/* Selective hole repair workshop */
+.repair-backdrop { z-index: 80; padding: 24px; }
+.repair-dialog { width: min(1500px, 96vw); height: min(920px, 94vh); background: var(--bg, #f6f8f8); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 80px #0005; }
+.repair-heading { display: flex; justify-content: space-between; align-items: center; padding: 20px 26px; border-bottom: 1px solid #83969b44; }
+.repair-heading h2 { display: flex; gap: 10px; align-items: center; margin: 6px 0 0; }
+.repair-layout { display: grid; grid-template-columns: 340px 1fr; flex: 1; min-height: 0; }
+.repair-controls { overflow-y: auto; padding: 20px; border-right: 1px solid #83969b44; }
+.repair-controls > p { font-size: 13px; line-height: 1.6; }
+.repair-stats { display: flex; flex-direction: column; gap: 6px; padding: 16px; background: #75999718; border: 1px solid #83969b44; border-radius: 8px; }
+.repair-stats strong { font-size: 20px; }
+.repair-stats span { font-size: 12px; }
+.repair-part h3 { font-size: 12px; margin: 18px 0 8px; overflow-wrap: anywhere; }
+.repair-opening { border: 1px solid #83969b44; border-radius: 7px; margin: 7px 0; padding: 9px; }
+.repair-opening.focused { border-color: #d6a126; background: #e9bc3212; }
+.repair-opening-row { display: flex; gap: 10px; align-items: center; }
+.repair-opening-row button { border: 0; background: transparent; text-align: left; flex: 1; display: block; padding: 0; }
+.repair-opening-row small { display: block; font-size: 11px; opacity: .65; margin-top: 4px; }
+.repair-warning { font-size: 11px; color: #ad5d2d; line-height: 1.5; }
+.repair-summary { background: #19b38f18; border: 1px solid #19b38f66; padding: 13px; border-radius: 7px; margin: 14px 0; font-size: 12px; line-height: 1.5; }
+.repair-summary p { margin-bottom: 0; }
+.repair-actions { display: grid; gap: 8px; margin-top: 18px; }
+.repair-scene { display: flex; flex-direction: column; min-width: 0; min-height: 0; position: relative; background: #e8eff0; }
+.repair-scene .viewer { flex: 1; min-height: 250px; }
+.repair-legend { display: flex; align-items: center; gap: 9px; font-size: 11px; padding: 14px 20px; color: #26444b; }
+.repair-legend > span { width: 9px; height: 9px; border-radius: 50%; margin-left: 12px; }
+.rim-dot { background: #ff451f; } .selected-dot { background: #ffbf14; } .patch-dot { background: #1fc7a3; }
+.repair-scene-note { font-size: 11px; text-align: center; padding: 10px; margin: 0; color: #26444b; }
+.repair-download { display: flex; gap: 8px; align-items: center; padding: 10px; font-size: 13px; }
+@media (max-width: 760px) { .repair-backdrop { padding: 6px; } .repair-dialog { width: 98vw; height: 97vh; } .repair-layout { grid-template-columns: 1fr; grid-template-rows: 45% 55%; } .repair-controls { border-right: 0; } .repair-heading { padding: 12px; } .repair-legend { gap: 5px; padding: 8px; } }
+dialog.repair-dialog { padding: 0; border: 1px solid #83969b44; color: var(--text); margin: auto; max-width: none; max-height: none; }
+dialog.repair-dialog::backdrop { background: #0b171c88; }
+.seal-fields { border: 0; padding: 0; margin: 0; min-width: 0; }
+.seal-parts { max-height: 165px; overflow: auto; border: 1px solid #83969b44; border-radius: 7px; margin-bottom: 16px; }
+.seal-part { display: flex; gap: 10px; padding: 11px; align-items: center; font-size: 12px; }
+.seal-part + .seal-part { border-top: 1px solid #83969b22; }
+.seal-part span { overflow-wrap: anywhere; }
+.seal-part small { display: block; font-size: 11px; opacity: .65; padding-top: 4px; }
+.seal-measurements { margin-top: 12px; }
+.seal-measurements > div { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; margin: 10px 0; }
+.seal-view-bar { display: flex; align-items: center; justify-content: space-between; padding: 10px 18px; color: #26444b; font-size: 12px; gap: 10px; }
+.seal-errors { font-size: 12px; margin: 10px 0; }
+.transform-controls h3 { font-size: 13px; margin: 18px 0 8px; }
+.transform-dimensions { border: 1px solid var(--accent); border-radius: 8px; padding: 12px; margin: 16px 0; background: var(--accent-soft); }
+.transform-dimensions-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.transform-dimensions-title select { width: 68px; }
+.transform-axis { display: flex; gap: 10px; align-items: center; margin: 7px 0; }
+.transform-axis label { display: flex; gap: 10px; align-items: center; flex: 1; }
+.transform-axis input { width: 100%; min-width: 0; }
+.transform-axis button { white-space: nowrap; }
+.transform-checkbox { display: flex; gap: 8px; align-items: center; margin-top: 15px; font-size: 12px; }
+.transform-size-badge { position: absolute; bottom: 52px; right: 20px; background: var(--surface); color: var(--text); padding: 12px 16px; border: 1px solid var(--accent); border-radius: 8px; font-size: 18px; font-variant-numeric: tabular-nums; box-shadow: var(--shadow); }
+.transform-size-badge small { display: block; font-size: 10px; color: var(--muted); margin-top: 5px; }
+.transform-size-badge { max-width: calc(100% - 40px); overflow-wrap: anywhere; }
+@media(max-width:760px) { .transform-size-badge { font-size: 14px; bottom: 42px; padding: 8px; } }

@@ -22,6 +22,132 @@ async function expectAnimatedPlane(page: Page, count: number) {
   expect(before.equals(await canvas.screenshot())).toBe(false);
 }
 
+test("running simulation shows stage and iteration progress", async ({ page }) => {
+  const settings = {
+    speed_kmh: 100,
+    yaw_deg: 0,
+    quality: "medium",
+    reference_area: 2.2,
+    density: 1.2,
+    moving_ground: false,
+    wheels: false,
+    geometry_confirmed: true,
+  };
+  let iteration = 420;
+  await page.route("**/api/projects", (route) =>
+    route.fulfill({
+      json: [
+        {
+          id: "progress-design",
+          name: "Progress test",
+          created: new Date().toISOString(),
+          settings,
+          geometry: null,
+        },
+      ],
+    }),
+  );
+  await page.route("**/api/projects/progress-design/estimate**", (route) =>
+    route.fulfill({ json: { previous_seconds: null, message: "" } }),
+  );
+  await page.route("**/api/runs", (route) =>
+    route.fulfill({
+      json: [
+        {
+          id: "progress-run",
+          project_id: "progress-design",
+          name: "Progress test",
+          created: new Date().toISOString(),
+          status: "running",
+          stage: "medium: Solving airflow",
+          settings,
+          geometry: {
+            parts: [],
+            bounds: [
+              [0, 0, 0],
+              [1, 1, 1],
+            ],
+            dimensions: [1, 1, 1],
+            errors: [],
+            warnings: [],
+            triangles: 0,
+            fingerprint: "progress-test",
+            frontal_area_estimate: 1,
+          },
+          iteration,
+        },
+      ],
+    }),
+  );
+  await page.route("**/api/health", (route) =>
+    route.fulfill({
+      json: {
+        ready: true,
+        message: "Solver ready",
+        presets: {
+          fast: { memory_gb: 3, iterations: 300 },
+          medium: { memory_gb: 5, iterations: 1000 },
+          precise: { memory_gb: 6, iterations: 1800 },
+        },
+      },
+    }),
+  );
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Simulation results" }).click();
+  const progress = page.getByRole("progressbar", {
+    name: "Simulation progress",
+  });
+  await expect(progress).toHaveAttribute("value", "59");
+  await expect(page.getByText("59% · Iteration 420 of 1,000")).toBeVisible();
+
+  iteration = 800;
+  await expect(progress).toHaveAttribute("value", "77", { timeout: 5000 });
+  await expect(page.getByText("77% · Iteration 800 of 1,000")).toBeVisible();
+});
+
+test("3D wind arrow follows crosswind yaw without reloading geometry", async ({
+  page,
+  request,
+}) => {
+  const created = await request.post("/api/projects", {
+    data: { name: "Wind arrow browser test", sample: true },
+  });
+  const design = await created.json();
+  const errors: string[] = [];
+  let geometryRequests = 0;
+  page.on("pageerror", (e) => errors.push(e.message));
+  page.on("request", (r) => {
+    if (r.url().includes("/geometry/") && r.url().endsWith(".vtp"))
+      geometryRequests += 1;
+  });
+
+  await page.goto("/");
+  await expect(
+    page.getByRole("heading", { name: "Wind arrow browser test", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("Loading geometry…")).toHaveCount(0);
+  await page.getByRole("button", { name: /Driving conditions/ }).click();
+  const canvas = page.locator('[data-testid="vtk-viewer"] canvas').first();
+  const before = await canvas.screenshot();
+  const loadedRequests = geometryRequests;
+  await expect(page.getByTestId("wind-direction")).toHaveAttribute(
+    "aria-label",
+    "Wind travels toward positive X at 0 degrees yaw",
+  );
+
+  await page.getByLabel("Crosswind yaw", { exact: true }).fill("20");
+  await expect(page.getByTestId("wind-direction")).toHaveAttribute(
+    "aria-label",
+    "Wind travels toward positive X at 20 degrees yaw",
+  );
+  await page.waitForTimeout(250);
+  expect(before.equals(await canvas.screenshot())).toBe(false);
+  expect(geometryRequests).toBe(loadedRequests);
+  expect(errors).toEqual([]);
+  expect((await request.delete(`/api/projects/${design.id}`)).ok()).toBeTruthy();
+});
+
 test("sample, geometry view, saved conditions, and duplicate", async ({
   page,
 }) => {
@@ -256,6 +382,36 @@ test("rename persists and completed results export from the UI", async ({
   const download = await downloadEvent;
   expect(await download.failure()).toBeNull();
   expect(download.suggestedFilename()).toMatch(/\.zip$/);
+});
+
+test("design rows can be renamed and deleted", async ({ page, request }) => {
+  const created = await request.post("/api/projects", {
+    data: { name: "Sidebar action target", sample: true },
+  });
+  expect(created.ok()).toBeTruthy();
+  const design = await created.json();
+
+  await page.goto("/");
+  await page.getByRole("button", { name: /Designs/ }).click();
+  await page
+    .getByRole("button", { name: "Rename Sidebar action target", exact: true })
+    .click();
+  await page.getByLabel("Design name", { exact: true }).fill("Renamed from list");
+  await page.getByRole("button", { name: "Save name", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Rename Renamed from list", exact: true }),
+  ).toBeVisible();
+
+  await page
+    .getByRole("button", { name: "Delete Renamed from list", exact: true })
+    .click();
+  const dialog = page.getByRole("dialog", { name: "Delete design" });
+  await expect(dialog).toContainText("0 saved runs");
+  await dialog.getByRole("button", { name: "Delete design", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Rename Renamed from list", exact: true }),
+  ).toHaveCount(0);
+  expect((await request.get(`/api/projects/${design.id}`)).status()).toBe(404);
 });
 
 test("Precise result displays its two-mesh sensitivity", async ({

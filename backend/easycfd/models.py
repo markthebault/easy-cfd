@@ -21,6 +21,7 @@ class NewProject(BaseModel):
 
 
 class ImportOptions(BaseModel):
+    components: Literal["split", "group"] = "split"
     units: Literal["m", "mm", "cm", "in"] = "m"
     forward: Literal["+X", "-X", "+Y", "-Y", "+Z", "-Z"] = "-X"
     up: Literal["+X", "-X", "+Y", "-Y", "+Z", "-Z"] = "+Z"

@@ -21,13 +21,14 @@ export function OrientationTools({
   geometry: Geometry;
   apply: (options: ImportOptions) => void;
 }) {
-  const options = geometry.import_options;
+  const edited = geometry.repaired || geometry.transformed;
+  const options = edited ? undefined : geometry.import_options;
   const [clearance, setClearance] = useState(options?.clearance ?? 0.01);
   useEffect(
     () => setClearance(options?.clearance ?? 0.01),
     [options?.clearance],
   );
-  const found = hints(geometry);
+  const found = edited ? [] : hints(geometry);
   const hasStl = geometry.sources?.some((s) => /\.stl$/i.test(s.name));
   return (
     <>
@@ -124,7 +125,8 @@ export function OrientationTools({
         </div>
       ) : (
         <p className="micro">
-          Import the model again to adjust its orientation or add parts.
+          Use Rotate & scale to adjust this geometry. Import again to replace
+          source files.
         </p>
       )}
     </>

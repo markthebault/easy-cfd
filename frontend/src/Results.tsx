@@ -19,10 +19,11 @@ import {
   Metric,
   parts,
   share,
+  simulationProgress,
   time,
   Warnings,
 } from "./ui";
-import type { Run } from "./types";
+import type { Health, Run } from "./types";
 
 export function RunList({
   runs,
@@ -112,6 +113,7 @@ export function ResultsView({
   position,
   theme,
   plane,
+  presets,
   onBack,
 }: {
   current?: Run;
@@ -124,6 +126,7 @@ export function ResultsView({
   position: number;
   theme: string;
   plane: PlaneSettings;
+  presets?: Health["presets"];
   onBack: () => void;
 }) {
   if (!current)
@@ -141,6 +144,7 @@ export function ResultsView({
       </div>
     );
   const result = current.result;
+  const progress = simulationProgress(current, presets);
   return (
     <>
       <div className="fold">
@@ -160,6 +164,21 @@ export function ResultsView({
               <AlertTriangle size={13} /> {result.warnings.length} warning
               {result.warnings.length > 1 ? "s" : ""}
             </a>
+          )}
+          {progress && active(current) && (
+            <div className="simulation-progress">
+              <div>
+                <span>Estimated progress</span>
+                <strong>
+                  {progress.value}% · {progress.detail}
+                </strong>
+              </div>
+              <progress
+                aria-label="Simulation progress"
+                value={progress.value}
+                max="100"
+              />
+            </div>
           )}
         </div>
         {current.error && (
@@ -207,6 +226,7 @@ export function ResultsView({
             range={result?.ranges[field]}
             theme={theme}
             flow={plane}
+            windYaw={current.settings.yaw_deg}
             label={
               result
                 ? `${field} · calculated result`

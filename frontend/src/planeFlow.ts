@@ -196,8 +196,21 @@ export class Tracers {
         this.spawn(n);
         continue;
       }
-      const i = x + velocity[0] * dt * cells,
-        j = y + velocity[1] * dt * rows;
+      // Midpoint integration follows curved flow more smoothly than Euler steps.
+      const midpoint = this.sample(
+        x + velocity[0] * dt * cells * 0.5,
+        y + velocity[1] * dt * rows * 0.5,
+      );
+      if (!midpoint) {
+        this.spawn(n);
+        continue;
+      }
+      const i = x + midpoint[0] * dt * cells,
+        j = y + midpoint[1] * dt * rows;
+      if (!this.sample(i, j)) {
+        this.spawn(n);
+        continue;
+      }
       segment(x, y, i, j);
       this.px[n] = i;
       this.py[n] = j;

@@ -1,0 +1,80 @@
+// Run from the repo root after preparing the labelled Z4 demo in isolated storage.
+import { chromium, expect } from '../frontend/node_modules/@playwright/test/index.mjs';
+import { mkdir, writeFile } from 'node:fs/promises';
+const output = new URL('../docs/repair-demo/', import.meta.url).pathname;
+await mkdir(output, {recursive:true});
+const browser = await chromium.launch({headless:true, args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+const context = await browser.newContext({viewport:{width:1440,height:1000}, recordVideo:{dir:output, size:{width:1440,height:1000}}});
+const page = await context.newPage();
+const errors=[];
+page.on('pageerror', e=>errors.push(e.message));
+await page.goto(process.env.EASYCFD_TEST_URL || 'http://127.0.0.1:8010');
+await expect(page.getByRole('heading',{name:'BMW Z4 · repair demo · controlled openings',exact:true})).toBeVisible();
+const pause = ms => page.waitForTimeout(ms);
+async function click(locator) {
+  await locator.scrollIntoViewIfNeeded();
+  const box=await locator.boundingBox();
+  await page.mouse.move(box.x+box.width/2,box.y+box.height/2,{steps:20});
+  await pause(350); await locator.click();
+}
+await click(page.getByRole('button',{name:'Inspect & repair openings'}));
+const dialog=page.getByRole('dialog',{name:'Repair openings'});
+await expect(dialog.getByText('2 openings found',{exact:true})).toBeVisible();
+await expect(dialog.getByText('Loading geometry…')).toHaveCount(0);
+async function caption(text) {
+  await dialog.evaluate((el,text)=>{
+    let node=el.querySelector('#demo-caption');
+    if(!node){node=document.createElement('div');node.id='demo-caption';node.style.cssText='position:absolute;bottom:38px;right:26px;left:365px;z-index:99;background:#112a32ed;color:white;padding:16px 20px;border-radius:8px;font:16px/1.5 system-ui;pointer-events:none;box-shadow:0 4px 18px #0002';el.appendChild(node);}
+    node.textContent=text;
+  },text);
+}
+await caption('Demo fixture: a prepared BMW Z4 with two deliberately opened holes. This is not the original downloaded mesh.');
+await pause(5500);
+await click(dialog.getByRole('button',{name:'Top',exact:true}));
+await caption('1. Inspect the model. Red outlines show two open rims; the list gives their size and affected part.');
+await pause(5000);
+await page.screenshot({path:output+'01-openings.png'});
+const boxes=dialog.getByRole('checkbox');
+await click(boxes.nth(0));
+await caption('2. Select one opening. Its rim turns yellow. The other opening stays unselected.');
+await pause(4500);
+await click(dialog.getByRole('button',{name:'Preview 1 cap',exact:true}));
+await expect(dialog.getByText('1 opening remaining',{exact:true})).toBeVisible();
+await caption('3. Preview the green cap. Only this hole is closed; the existing bodywork stays in place.');
+await pause(5000);
+await page.screenshot({path:output+'02-one-cap.png'});
+await click(dialog.getByRole('button',{name:'Reset selection'}));
+await caption('4. Reset discards the preview. The saved model has not changed.');
+await pause(3500);
+await click(boxes.nth(0)); await click(boxes.nth(1));
+await click(dialog.getByRole('button',{name:'Preview 2 caps',exact:true}));
+await expect(dialog.getByText('0 openings remaining',{exact:true})).toBeVisible();
+await caption('5. Preview both caps. All 12 parts are now watertight in the preview. No existing vertices moved.');
+await pause(5000);
+await page.screenshot({path:output+'03-both-caps.png'});
+await click(dialog.getByRole('button',{name:'3D',exact:true}));
+const canvas=dialog.locator('[data-testid="vtk-viewer"]');
+const bounds=await canvas.boundingBox();
+await page.mouse.move(bounds.x+bounds.width*.6,bounds.y+bounds.height*.5);
+await page.mouse.down();
+await page.mouse.move(bounds.x+bounds.width*.6+90,bounds.y+bounds.height*.5+50,{steps:40});
+await page.mouse.up();
+await caption('Rotate to inspect the patches and the rear wing gap before applying. Intentional airflow gaps should stay open.');
+await pause(5500);
+await click(dialog.getByRole('button',{name:'Apply repairs',exact:true}));
+await expect(dialog.getByText('Repairs applied',{exact:true})).toBeVisible();
+await caption('6. Apply saves the repaired geometry and reruns the checks. Original geometry is retained. No CFD simulation was run for this demo.');
+await pause(6000);
+const downloaded=page.waitForEvent('download');
+await click(dialog.getByRole('link',{name:'Download repaired STLs'}));
+await (await downloaded).saveAs(output+'repaired-z4-demo.zip');
+await caption('Download the repaired STLs. Curved tears, non-manifold connections and intersections still need manual repair.');
+await pause(5000);
+await page.screenshot({path:output+'04-applied.png'});
+const video=page.video();
+await context.close();
+await video.saveAs(output+'repair-walkthrough.webm');
+await browser.close();
+await writeFile(output+'browser-errors.json',JSON.stringify(errors,null,2));
+if(errors.length) throw new Error(errors.join('\n'));
+console.log(output+'repair-walkthrough.webm');

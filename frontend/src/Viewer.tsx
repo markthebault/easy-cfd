@@ -6,8 +6,10 @@ import vtkMapper from "@kitware/vtk.js/Rendering/Core/Mapper";
 import vtkXMLPolyDataReader from "@kitware/vtk.js/IO/XML/XMLPolyDataReader";
 import vtkColorTransferFunction from "@kitware/vtk.js/Rendering/Core/ColorTransferFunction";
 import vtkPlaneSource from "@kitware/vtk.js/Filters/Sources/PlaneSource";
+import vtkArrowSource from "@kitware/vtk.js/Filters/Sources/ArrowSource";
 import vtkAnnotatedCubeActor from "@kitware/vtk.js/Rendering/Core/AnnotatedCubeActor";
 import vtkOrientationMarkerWidget from "@kitware/vtk.js/Interaction/Widgets/OrientationMarkerWidget";
+import vtkPolyData from "@kitware/vtk.js/Common/DataModel/PolyData";
 import vtkTexture from "@kitware/vtk.js/Rendering/Core/Texture";
 import type { Geometry } from "./types";
 import {
@@ -33,23 +35,25 @@ const size = (g: Geometry) => Math.max(...g.dimensions);
 const PALETTE = {
   light: {
     background: [0.91, 0.935, 0.94],
-    ground: [0.67, 0.72, 0.74],
-    groundOpacity: 0.35,
+    ground: [1, 1, 1],
+    groundOpacity: 0.9,
     body: [0.64, 0.71, 0.74],
     wheel: [0.15, 0.19, 0.23],
     attention: [0.92, 0.32, 0.12],
     slice: [0.5, 0.6, 0.7],
     streamlines: [0.1, 0.6, 0.7],
+    airflow: [0.02, 0.55, 0.49],
   },
   dark: {
     background: [0.07, 0.1, 0.12],
-    ground: [0.3, 0.37, 0.41],
-    groundOpacity: 0.45,
+    ground: [1, 1, 1],
+    groundOpacity: 0.9,
     body: [0.6, 0.66, 0.7],
     wheel: [0.25, 0.29, 0.33],
     attention: [0.96, 0.45, 0.22],
     slice: [0.5, 0.6, 0.7],
     streamlines: [0.3, 0.75, 0.8],
+    airflow: [0.25, 0.95, 0.8],
   },
 };
 // Orthographic views looking along a world axis, with +X (airflow) to the right
@@ -60,7 +64,15 @@ const VIEWS = {
   Top: { direction: [0, 0, -1], up: [0, 1, 0] },
 } as const;
 
+export type RepairOverlay = {
+  edges: number[][][];
+  patches: number[][][];
+  selectedEdges: number[][][];
+};
+
 type Props = {
+  modelTransforms?: Record<string, number[]>;
+  repairOverlay?: RepairOverlay;
   geometry: Geometry | null;
   geometryBase: string;
   resultBase?: string;
@@ -75,9 +87,12 @@ type Props = {
   theme?: string;
   // Animation settings for the "plane" mode.
   flow?: PlaneSettings;
+  windYaw?: number;
 };
 export default function Viewer({
   geometry,
+  repairOverlay,
+  modelTransforms,
   geometryBase,
   resultBase,
   field,
@@ -90,9 +105,23 @@ export default function Viewer({
   highlight,
   theme = "light",
   flow,
+  windYaw,
 }: Props) {
+  const actors = useRef(
+    new Map<string, ReturnType<typeof vtkActor.newInstance>>(),
+  );
+  const transforms = useRef(modelTransforms);
+  transforms.current = modelTransforms;
+  const identity = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
   const flowSettings = useRef(flow);
   flowSettings.current = flow;
+  const windYawValue = useRef(windYaw);
+  windYawValue.current = windYaw;
+  const wind = useRef<{
+    source: ReturnType<typeof vtkArrowSource.newInstance>;
+    actor: ReturnType<typeof vtkActor.newInstance>;
+    widget: ReturnType<typeof vtkOrientationMarkerWidget.newInstance>;
+  } | null>(null);
   const cut = mode === "slice" || mode === "plane";
   const colors = theme === "dark" ? PALETTE.dark : PALETTE.light;
   const container = useRef<HTMLDivElement>(null);
@@ -113,6 +142,17 @@ export default function Viewer({
     camera.setFocalPoint((lo[0] + hi[0]) / 2, 0, (lo[2] + hi[2]) / 2);
     camera.setViewUp(0, 0, 1);
     camera.setParallelProjection(false);
+    if (modelTransforms && actors.current.size) {
+      const all = [...actors.current.values()].map((a) => a.getBounds());
+      const b = [0, 1, 2, 3, 4, 5].map((i) =>
+        i % 2
+          ? Math.max(...all.map((v) => v[i]))
+          : Math.min(...all.map((v) => v[i])),
+      );
+      ctx
+        .getRenderer()
+        .resetCamera(b as [number, number, number, number, number, number]);
+    }
     ctx.getRenderer().resetCameraClippingRange();
     ctx.getRenderWindow().render();
     // A scene still loading would otherwise restore the camera saved before
@@ -202,6 +242,7 @@ export default function Viewer({
     const owned: { delete: () => void }[] = [];
     const renderer = ctx.getRenderer();
     renderer.removeAllViewProps();
+    actors.current.clear();
     renderer.setBackground(...(colors.background as [number, number, number]));
     setLoading(true);
     setError("");
@@ -211,6 +252,7 @@ export default function Viewer({
       color: number[],
       colored: boolean,
       opacity = 1,
+      partId?: string,
     ) => {
       const response = await fetch(url, { signal: abort.signal });
       if (!response.ok) throw new Error("Could not load visualization data.");
@@ -226,6 +268,14 @@ export default function Viewer({
       const actor = vtkActor.newInstance();
       owned.push(actor);
       actor.setMapper(mapper);
+      if (partId) {
+        actors.current.set(partId, actor);
+        actor.setUserMatrix(
+          (transforms.current?.[partId] || identity) as Parameters<
+            typeof actor.setUserMatrix
+          >[0],
+        );
+      }
       actor.getProperty().setColor(color[0], color[1], color[2]);
       actor.getProperty().setOpacity(opacity);
       actor.getProperty().setSpecular(0.25);
@@ -275,8 +325,8 @@ export default function Viewer({
       look.setAmbient(1);
       look.setDiffuse(0);
       look.setSpecular(0);
-      // About 2.5 texture pixels per grid point keeps tracers sharp.
-      const scale = Math.min(4, 1600 / Math.max(h.nx, h.ny));
+      // High-resolution trails stay crisp on Retina screens and close views.
+      const scale = 4096 / Math.max(h.nx, h.ny);
       const surface = document.createElement("canvas"),
         trails = document.createElement("canvas");
       surface.width = trails.width = Math.round(h.nx * scale);
@@ -295,15 +345,23 @@ export default function Viewer({
       const draw = surface.getContext("2d")!,
         pen = trails.getContext("2d")!;
       pen.lineCap = "round";
-      pen.lineWidth = 1.6;
-      pen.strokeStyle = "rgba(255,255,255,0.9)";
+      pen.lineWidth = 1.8;
+      pen.strokeStyle = "rgba(255,255,255,0.65)";
       const W = surface.width,
         H = surface.height;
+      // Resample the static field once, rather than on every animation frame.
+      const background = document.createElement("canvas");
+      background.width = W;
+      background.height = H;
+      const backgroundDraw = background.getContext("2d")!;
+      backgroundDraw.imageSmoothingEnabled = true;
+      backgroundDraw.imageSmoothingQuality = "high";
+      backgroundDraw.drawImage(tile, 0, 0, W, H);
       const tracers = new Tracers(data, flowSettings.current?.tracers ?? 3500);
       const compose = () => {
         draw.clearRect(0, 0, W, H);
         draw.imageSmoothingEnabled = true;
-        draw.drawImage(tile, 0, 0, W, H);
+        draw.drawImage(background, 0, 0);
         draw.drawImage(trails, 0, 0);
         texture.modified();
         ctx.getRenderWindow().render();
@@ -318,7 +376,7 @@ export default function Viewer({
         const settings = flowSettings.current;
         if (!settings?.playing) return;
         pen.globalCompositeOperation = "destination-out";
-        pen.fillStyle = "rgba(0,0,0,0.07)";
+        pen.fillStyle = `rgba(0,0,0,${1 - Math.exp(-elapsed / 180)})`;
         pen.fillRect(0, 0, W, H);
         pen.globalCompositeOperation = "source-over";
         pen.beginPath();
@@ -337,7 +395,7 @@ export default function Viewer({
     };
     const render = async () => {
       const tasks: Promise<void>[] = [];
-      if (resultBase && mode === "surface")
+      if (resultBase && (mode === "surface" || mode === "wake"))
         tasks.push(add(resultBase + "/assets/surface.vtp", colors.body, true));
       else
         for (const part of geometry.parts)
@@ -345,7 +403,7 @@ export default function Viewer({
             add(
               `${geometryBase}/${part.id}.vtp`,
               part.id === highlight ||
-                (part.issues.length && part.enabled !== false)
+                (!repairOverlay && part.issues.length && part.enabled !== false)
                 ? colors.attention
                 : part.role === "wheel"
                   ? colors.wheel
@@ -359,12 +417,15 @@ export default function Viewer({
                 : resultBase && cut
                   ? 0.4
                   : 1,
+              part.id,
             ),
           );
       if (resultBase && mode === "streamlines")
         tasks.push(
           add(resultBase + "/assets/streamlines.vtp", colors.streamlines, true),
         );
+      if (resultBase && mode === "wake")
+        tasks.push(add(resultBase + "/wake", colors.streamlines, true));
       if (resultBase && mode === "slice")
         tasks.push(
           add(
@@ -400,9 +461,89 @@ export default function Viewer({
       actor
         .getProperty()
         .setColor(...(colors.ground as [number, number, number]));
+      // Keep the grid pure white from every camera angle. Lighting would
+      // otherwise shade lines as the view rotates.
+      actor.getProperty().setLighting(false);
+      actor.getProperty().setLineWidth(1.25);
       actor.getProperty().setOpacity(colors.groundOpacity);
       renderer.addActor(actor);
+      if (windYawValue.current !== undefined) {
+        const yaw = (windYawValue.current * Math.PI) / 180,
+          direction: [number, number, number] = [
+            Math.cos(yaw),
+            Math.sin(yaw),
+            0,
+          ],
+          arrowLength = 1;
+        const source = vtkArrowSource.newInstance({
+          direction,
+          shaftRadius: 0.035,
+          shaftResolution: 24,
+          tipLength: 0.28,
+          tipRadius: 0.11,
+          tipResolution: 24,
+        });
+        const arrowMapper = vtkMapper.newInstance();
+        arrowMapper.setInputConnection(source.getOutputPort());
+        const arrowActor = vtkActor.newInstance();
+        arrowActor.setMapper(arrowMapper);
+        arrowActor.setScale(arrowLength, arrowLength, arrowLength);
+        arrowActor.setPosition(
+          -direction[0] * 0.5,
+          -direction[1] * 0.5,
+          0,
+        );
+        arrowActor
+          .getProperty()
+          .setColor(...(colors.airflow as [number, number, number]));
+        arrowActor.getProperty().setLighting(false);
+        const widget = vtkOrientationMarkerWidget.newInstance({
+          actor: arrowActor,
+          interactor: ctx.getInteractor(),
+        });
+        widget.setParentRenderer(renderer);
+        widget.setViewportCorner(vtkOrientationMarkerWidget.Corners.BOTTOM_LEFT);
+        widget.setViewportSize(0.16);
+        widget.setMinPixelSize(80);
+        widget.setMaxPixelSize(110);
+        widget.setEnabled(true);
+        widget.getRenderer().setBackground(...(colors.background as [number, number, number]));
+        widget.getRenderer().setPreserveColorBuffer(false);
+        owned.push({ delete: () => { widget.setEnabled(false); widget.delete(); } });
+        owned.push(source, arrowMapper, arrowActor);
+        wind.current = { source, actor: arrowActor, widget };
+      }
       await Promise.all(tasks);
+      if (repairOverlay && !abort.signal.aborted) {
+        const overlay = (
+          cells: number[][][],
+          triangles: boolean,
+          color: number[],
+        ) => {
+          if (!cells.length) return;
+          const poly = vtkPolyData.newInstance();
+          poly.getPoints().setData(new Float32Array(cells.flat(2)), 3);
+          const indices = cells.flatMap((cell, i) => [
+            cell.length,
+            ...cell.map((_, j) => i * cell.length + j),
+          ]);
+          if (triangles) poly.getPolys().setData(new Uint32Array(indices));
+          else poly.getLines().setData(new Uint32Array(indices));
+          const mapper = vtkMapper.newInstance();
+          mapper.setInputData(poly);
+          mapper.setScalarVisibility(false);
+          const actor = vtkActor.newInstance();
+          actor.setMapper(mapper);
+          actor.getProperty().setColor(color[0], color[1], color[2]);
+          actor.getProperty().setLighting(false);
+          actor.getProperty().setLineWidth(triangles ? 1 : 5);
+          renderer.addActor(actor);
+          owned.push(poly, mapper, actor);
+        };
+        overlay(repairOverlay.edges, false, [1, 0.27, 0.12]);
+        overlay(repairOverlay.patches, true, [0.12, 0.78, 0.64]);
+        overlay(repairOverlay.selectedEdges, false, [1, 0.75, 0.08]);
+      }
       if (abort.signal.aborted) return;
       // Keep the view across part toggles, but not across a units change that
       // would leave the model far outside it.
@@ -446,6 +587,8 @@ export default function Viewer({
           size: size(geometry),
         };
       renderer.removeAllViewProps();
+      actors.current.clear();
+      wind.current = null;
       owned.forEach((o) => o.delete());
     };
   }, [
@@ -461,7 +604,41 @@ export default function Viewer({
     highlight,
     theme,
     flow?.tracers,
+    repairOverlay,
   ]);
+  useEffect(() => {
+    const ctx = context.current,
+      marker = wind.current;
+    if (!ctx || !marker || !geometry || windYaw === undefined) return;
+    const yaw = (windYaw * Math.PI) / 180,
+      direction: [number, number, number] = [
+        Math.cos(yaw),
+        Math.sin(yaw),
+        0,
+      ];
+    marker.source.setDirection(direction);
+    marker.actor.setPosition(
+      -direction[0] * 0.5,
+      -direction[1] * 0.5,
+      0,
+    );
+    marker.widget.updateMarkerOrientation();
+    ctx.getRenderer().resetCameraClippingRange();
+    ctx.getRenderWindow().render();
+  }, [windYaw, geometry]);
+  useEffect(() => {
+    const ctx = context.current;
+    if (!ctx) return;
+    actors.current.forEach((actor, id) => {
+      actor.setUserMatrix(
+        (modelTransforms?.[id] || identity) as Parameters<
+          typeof actor.setUserMatrix
+        >[0],
+      );
+    });
+    ctx.getRenderer().resetCameraClippingRange();
+    ctx.getRenderWindow().render();
+  }, [modelTransforms, loading]);
   useEffect(() => {
     const ctx = context.current;
     if (!ctx || !sync) return;
@@ -503,7 +680,7 @@ export default function Viewer({
     };
   }, [sync]);
   return (
-    <div className="viewer">
+    <div className={`viewer${windYaw !== undefined ? " has-wind-indicator" : ""}`}>
       <div ref={container} className="vtk-canvas" data-testid="vtk-viewer" />
       <div className="viewport-label">
         <span className="dot" />
@@ -530,10 +707,25 @@ export default function Viewer({
         <Move3D size={14} />{" "}
         {resultBase && mode === "plane"
           ? NOTE
-          : "Drag to rotate · Scroll to zoom · Shift + drag to pan"}
+          : mode === "wake"
+            ? "3D paths through the saved mean flow · Coloured by the selected field"
+            : "Drag to rotate · Scroll to zoom · Shift + drag to pan"}
       </div>
-      <div className="flow-direction">
-        AIRFLOW <span>→</span> +X <small>Up +Z</small>
+      <div
+        className="flow-direction"
+        data-testid="wind-direction"
+        aria-label={
+          windYaw === undefined
+            ? "Airflow travels toward positive X"
+            : `Wind travels toward positive X at ${windYaw} degrees yaw`
+        }
+      >
+        {windYaw === undefined ? "AIRFLOW" : "WIND"} <span>→</span> +X
+        <small>
+          {windYaw === undefined
+            ? "Up +Z"
+            : `${windYaw > 0 ? "+" : ""}${windYaw}° yaw`}
+        </small>
       </div>
       {loading && <div className="viewport-message">Loading geometry…</div>}
       {error && <div className="viewport-message error">{error}</div>}

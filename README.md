@@ -138,3 +138,33 @@ Save the exact HTTPS browser origin (including port 8443) in `.easycfd/tailnet-o
 ## MX-5 NC example
 
 The development validation used a separately supplied MX-5 NC model. Its geometry and local projects are not bundled with this repository. The first coarse reconstruction was superseded by a smoother exterior. See [surface-quality checks and limitations](docs/mx5-nc-surface-quality.md).
+
+## Selective opening repair
+
+In **Geometry**, choose **Inspect & repair openings**. Open rims appear in red; select an opening in the list to highlight its rim in yellow. **Preview caps** adds green patches for inspection. Reset the selection to discard the preview, or **Apply repairs** to save a new geometry revision and rerun the existing checks. Existing vertices stay in place, and unselected openings stay open. Previous geometry and uploaded originals are retained; saved runs are unchanged.
+
+This first version caps simple, nearly planar loops, including concave outlines. It rejects branching boundaries, crossing outlines, strongly curved openings, collapsed patches, inconsistent rim winding, and rims over 1,000 vertices. Non-manifold edges are reported separately. It does not reconstruct missing curved bodywork, bridge disconnected shells, repair intersections, or automatically seal every opening. Inspect intentional intakes, wheel arches, and wing gaps before applying a cap. Passing the watertightness check is not a CFD validation.
+
+After applying repairs, download the repaired STLs to reuse them. Use Rotate & scale to change orientation or size directly. Reimport the exported STLs to change source files. Export coordinates are metres, nose −X, up +Z. Reassign wheel roles after importing. Role changes and part enable/disable remain available directly.
+
+## Group, merge, and seal fragmented STLs
+
+If a single STL exceeds the 100-part limit, select **STL components → Group each STL for repair** in the import dialog. Each STL is stored as one editable part with its component count. Grouping preserves triangle positions and does not weld or repair the surface. Separate-file wheels keep their relative positions. Standard split import, the 20-file limit, and the upload size limit remain available.
+
+Open **Merge & seal**, select the enabled body parts that belong together, and choose a resolution and gap target in millimetres. Wheels are excluded from selection. **Preview merged body** reconstructs the selected surfaces on a voxel grid, closes small gaps, fills enclosed interiors, extracts a surface, and smooths the actual mesh. Smaller resolution values retain more detail and require more memory. The gap target is approximate and rounded to the grid; it is not an exact distance-based welding tolerance.
+
+Use **Original / Sealed preview** to compare the same camera view. The panel reports connected solids, watertightness, and two directions of sampled surface distances. These are deterministic vertex/face-centre samples, not an area-weighted error estimate or a maximum-error guarantee. Removed internal surfaces affect the original-to-new distances. This method changes existing vertices and can alter intakes, panel gaps, wheel arches, and thin details.
+
+A preview cannot be applied unless it contains one connected, watertight, consistently wound, positive-volume surface with an enclosed interior. Disconnected islands are retained and reported, not discarded. A thickened open sheet without an enclosed interior is rejected. Preview work is capped at 8 million grid cells and an estimated 8 million subdivided input faces; the API accepts at most 1.5 million selected source triangles and one reconstruction at a time. It asks for a coarser resolution when those budgets are exceeded.
+
+Apply saves the exact preview in a fresh geometry folder, preserves uploaded originals and prior geometry, and resets geometry confirmation. Unselected parts keep their coordinates, enabled state, and wheel settings. Stale previews are rejected. Download the resulting STLs through the workshop; use Rotate & scale to change orientation or size, and reimport the exported STLs to change source files. Ordinary geometry checks still apply, including road clearance. Sealing is not a CFD mesh or simulation validation.
+
+The closing and interior-fill steps use SciPy's [binary closing](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.binary_closing.html) and [binary hole filling](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.binary_fill_holes.html).
+
+## Rotate, scale, and set exact dimensions
+
+Open **Rotate & scale** to edit the current geometry, including capped and sealed models. Choose the whole model or one object. Length X, width Y, and height Z update live from the actual surface vertices as you scale and rotate. Enter a target dimension in metres, centimetres, or millimetres; uniform scaling preserves proportions and updates the other dimensions. The scale slider and scale-factor input also update the model immediately.
+
+Rotations apply around the selection's bounding-box centre in world X, Y, Z order. The movement controls add offsets in metres. **Keep the lowest point at its current height** adjusts the selection vertically after scaling/rotation, then applies any requested Z movement. Unselected objects keep their exact asset bytes and metadata. **3D** refits the live model in the viewer.
+
+**Reset changes** discards pending edits. **Review changes** checks an immutable server preview, and **Apply changes** saves it while retaining prior geometry and originals. Changing a control invalidates the checked preview. Saved runs are unchanged and geometry confirmation resets. Wheel centres and radii follow the transform; a wheel axle tilted away from the transverse direction blocks CFD until corrected or its role is reviewed. Source-file changes still require exporting and reimporting edited geometry.
