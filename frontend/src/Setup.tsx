@@ -3,8 +3,10 @@ import {
   Box,
   Check,
   Layers,
+  Pencil,
   Play,
   Plus,
+  Trash2,
   Upload,
 } from "lucide-react";
 import { OrientationTools, PartList } from "./GeometryTools";
@@ -23,34 +25,55 @@ export function DesignList({
   runs,
   current,
   onPick,
+  onRename,
+  onDelete,
 }: {
   projects: Project[];
   runs: Run[];
   current?: string;
   onPick: (p: Project) => void;
+  onRename: (p: Project) => void;
+  onDelete: (p: Project) => void;
 }) {
   return (
     <div className="project-list">
       {projects.map((p) => {
         const count = runs.filter((r) => r.project_id === p.id).length;
         return (
-          <button
-            className={
-              current === p.id ? "project-item selected" : "project-item"
-            }
+          <div
+            className={current === p.id ? "project-row selected" : "project-row"}
             key={p.id}
-            onClick={() => onPick(p)}
           >
-            <Box size={15} />
-            <span className="project-text">
-              <span className="project-name">{p.name}</span>
-              {/* Names repeat across variants; parts, runs and date tell them apart. */}
-              <small>
-                {p.geometry ? `${p.geometry.parts.length} parts` : "No model"} ·{" "}
-                {count} run{count === 1 ? "" : "s"} · {time(p.created)}
-              </small>
+            <button className="project-item" onClick={() => onPick(p)}>
+              <Box size={15} />
+              <span className="project-text">
+                <span className="project-name">{p.name}</span>
+                {/* Names repeat across variants; parts, runs and date tell them apart. */}
+                <small>
+                  {p.geometry ? `${p.geometry.parts.length} parts` : "No model"} ·{" "}
+                  {count} run{count === 1 ? "" : "s"} · {time(p.created)}
+                </small>
+              </span>
+            </button>
+            <span className="project-actions">
+              <button
+                className="icon-button"
+                aria-label={`Rename ${p.name}`}
+                title="Rename design"
+                onClick={() => onRename(p)}
+              >
+                <Pencil size={13} />
+              </button>
+              <button
+                className="icon-button delete"
+                aria-label={`Delete ${p.name}`}
+                title="Delete design"
+                onClick={() => onDelete(p)}
+              >
+                <Trash2 size={13} />
+              </button>
             </span>
-          </button>
+          </div>
         );
       })}
     </div>

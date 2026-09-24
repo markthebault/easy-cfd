@@ -9,6 +9,7 @@ export type Settings = {
   geometry_confirmed: boolean;
 };
 export type Part = {
+  grouped_components?: number;
   id: string;
   name: string;
   role: "body" | "wheel";
@@ -21,6 +22,7 @@ export type Part = {
   source?: number;
 };
 export type ImportOptions = {
+  components?: "split" | "group";
   units: "m" | "mm" | "cm" | "in";
   forward: string;
   up: string;
@@ -28,6 +30,8 @@ export type ImportOptions = {
 };
 export type Source = { file: string; name: string; base: boolean };
 export type Geometry = {
+  repaired?: boolean;
+  transformed?: boolean;
   parts: Part[];
   bounds: number[][];
   dimensions: number[];

@@ -3,6 +3,10 @@ from pathlib import Path
 from typing import Literal
 from urllib.parse import urlparse
 import shutil
+import hashlib
+import json
+import re
+import threading
 import os
 import math
 import statistics
@@ -12,7 +16,7 @@ from fastapi import BackgroundTasks, FastAPI, File, Form, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ValidationError
-from . import geometry, plane, runner, storage, results
+from . import geometry, plane, runner, storage, results, repair, seal, transform, wake
 from .models import ImportOptions, NewProject, Settings, PRESETS
 
 
@@ -120,6 +124,20 @@ def rename_project(key: str, body: ProjectName):
     return storage.update("projects", key, name=name)
 
 
+@app.delete("/api/projects/{key}")
+def delete_project(key: str):
+    with storage.LOCK:
+        project = storage.get("projects", key)
+        related = [run for run in storage.all_records("runs") if run["project_id"] == key]
+        active = [run for run in related if run["status"] in ("queued", "running")]
+        if active:
+            raise ValueError("Cancel the active simulation before deleting this design.")
+        for run in related:
+            shutil.rmtree(storage.directory("runs", run["id"]))
+        shutil.rmtree(storage.directory("projects", key))
+    return {"id": project["id"], "deleted_runs": len(related)}
+
+
 @app.put("/api/projects/{key}/settings")
 def settings(key: str, body: Settings):
     current = storage.get("projects", key)
@@ -200,6 +218,10 @@ def rebuild(key, current, options, keep=(), uploads=(), base=True, carry=True):
     The previous folder is removed only after the record points at the new one;
     runs hold their own copies, so nothing else refers to it.
     """
+    if keep and any((current.get("geometry") or {}).get(flag) for flag in ("repaired", "transformed")):
+        raise ValueError(
+            "This design has geometry edits. Use Rotate & scale to change the current geometry. Export the STLs and import them to change source files. Originals are still preserved."
+        )
     root = storage.directory("projects", key)
     old = current.get("geometry") or {}
     folder_name = "geometry-" + storage.identifier()
@@ -342,6 +364,293 @@ def geometry_asset(key: str, part_id: str):
     return FileResponse(storage.directory("projects", key) / project["geometry_dir"] / f"{part_id}.vtp")
 
 
+def repair_revision(project):
+    if not project.get("geometry"):
+        raise ValueError("Import a model first.")
+    return hashlib.sha256(json.dumps(project["geometry"], sort_keys=True).encode()).hexdigest()
+
+
+class RepairSelection(BaseModel):
+    revision: str
+    selected: list[str] = Field(default_factory=list, max_length=500)
+
+
+@app.get("/api/projects/{key}/repair")
+def repair_report(key: str):
+    current = storage.get("projects", key)
+    if not current.get("geometry"):
+        raise ValueError("Import a model first.")
+    report, _ = repair.analyze(
+        storage.directory("projects", key) / current["geometry_dir"], current["geometry"]
+    )
+    return dict(report, revision=repair_revision(current))
+
+
+@app.post("/api/projects/{key}/repair/preview")
+def repair_preview(key: str, body: RepairSelection):
+    current = storage.get("projects", key)
+    if repair_revision(current) != body.revision:
+        raise ValueError("The model changed. Close and reopen the repair view.")
+    report, _ = repair.analyze(
+        storage.directory("projects", key) / current["geometry_dir"], current["geometry"], body.selected
+    )
+    return dict(report, revision=body.revision)
+
+
+@app.post("/api/projects/{key}/repair/apply")
+def repair_apply(key: str, body: RepairSelection):
+    with storage.LOCK:
+        current = storage.get("projects", key)
+        if repair_revision(current) != body.revision:
+            raise ValueError("The model changed. Close and reopen the repair view.")
+        if not body.selected:
+            raise ValueError("Select at least one opening.")
+        root = storage.directory("projects", key)
+        old = root / current["geometry_dir"]
+        report, meshes = repair.analyze(old, current["geometry"], body.selected)
+        folder_name = "geometry-" + storage.identifier()
+        folder = root / folder_name
+        folder.mkdir()
+        try:
+            if (old / "originals").exists():
+                shutil.copytree(old / "originals", folder / "originals")
+            pieces = []
+            for part, mesh in zip(current["geometry"]["parts"], meshes):
+                extra = {k: part[k] for k in ("source", "component", "enabled", "grouped_components") if k in part}
+                pieces.append((part["name"], mesh, part["role"], part.get("wheel"), extra))
+            data = geometry.persist_parts(folder, pieces)
+            for field in ("sources", "import_options"):
+                if field in current["geometry"]:
+                    data[field] = current["geometry"][field]
+            data["repaired"] = True
+            data["repair_summary"] = dict(added_triangles=report["added_triangles"], moved_vertices=0)
+            updated = storage.update(
+                "projects",
+                key,
+                geometry=data,
+                geometry_dir=folder_name,
+                sample=None,
+                reference_case=None,
+                settings={**current["settings"], "geometry_confirmed": False},
+            )
+        except Exception:
+            shutil.rmtree(folder)
+            raise
+        # Retain the prior geometry as a recoverable snapshot, including originals.
+        return updated
+
+
+@app.get("/api/projects/{key}/repair/export")
+def repair_export(key: str, background_tasks: BackgroundTasks):
+    current = storage.get("projects", key)
+    repair_revision(current)
+    folder = storage.directory("projects", key) / current["geometry_dir"]
+    with tempfile.NamedTemporaryFile(suffix=".zip", delete=False) as temp:
+        path = Path(temp.name)
+    with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as archive:
+        for part in current["geometry"]["parts"]:
+            archive.write(folder / f"{part['id']}.stl", f"{part['id']}.stl")
+        archive.writestr(
+            "README.txt",
+            "STLs in metres, nose -X, up +Z. Import all files together. Reassign wheel roles after importing. Includes disabled parts.\n",
+        )
+    background_tasks.add_task(path.unlink, missing_ok=True)
+    return FileResponse(path, filename="repaired-model.zip", background=background_tasks)
+
+
+class SealSelection(BaseModel):
+    revision: str
+    part_ids: list[str] = Field(min_length=1, max_length=100)
+    pitch_mm: float = Field(default=20, ge=5, le=100, allow_inf_nan=False)
+    gap_mm: float = Field(default=40, ge=0, le=200, allow_inf_nan=False)
+
+
+class SealApply(BaseModel):
+    token: str = Field(pattern=r"^[a-f0-9]{32}$")
+
+
+SEAL_LOCK = threading.Lock()
+
+
+def seal_folder(key, token):
+    if not re.fullmatch(r"[a-f0-9]{32}", token):
+        raise FileNotFoundError()
+    return storage.directory("projects", key) / "seal-previews" / token
+
+
+@app.get("/api/projects/{key}/seal")
+def seal_revision(key: str):
+    return {"revision": repair_revision(storage.get("projects", key))}
+
+
+@app.post("/api/projects/{key}/seal/preview")
+def seal_preview(key: str, body: SealSelection):
+    current = storage.get("projects", key)
+    if repair_revision(current) != body.revision:
+        raise ValueError("The model changed. Close and reopen Merge & seal.")
+    parts = current["geometry"]["parts"]
+    selected = set(body.part_ids)
+    chosen = [p for p in parts if p["id"] in selected]
+    if len(chosen) != len(selected):
+        raise ValueError("Unknown part selected.")
+    if any(p["role"] == "wheel" or not p.get("enabled", True) for p in chosen):
+        raise ValueError("Select enabled body parts. Keep wheels separate.")
+    if sum(p["triangles"] for p in chosen) > 1500000:
+        raise ValueError("Select at most 1.5 million source triangles for sealing.")
+    root = storage.directory("projects", key)
+    old = root / current["geometry_dir"]
+    if not SEAL_LOCK.acquire(blocking=False):
+        raise ValueError("Another sealing preview is running. Try again when it finishes.")
+    try:
+        import trimesh
+        meshes = {p["id"]: trimesh.load_mesh(old / f"{p['id']}.stl") for p in parts}
+        combined = trimesh.util.concatenate([meshes[p["id"]] for p in chosen])
+        result, report = seal.reconstruct(combined, body.pitch_mm, body.gap_mm)
+        token = storage.identifier()
+        folder = seal_folder(key, token)
+        target = folder / "geometry"
+        target.mkdir(parents=True)
+        try:
+            pieces = []
+            inserted = False
+            for part in parts:
+                if part["id"] in selected:
+                    if not inserted:
+                        pieces.append(("Merged body", result, "body", None))
+                        inserted = True
+                    continue
+                extra = {k: part[k] for k in ("source", "component", "enabled", "grouped_components") if k in part}
+                pieces.append((part["name"], meshes[part["id"]], part["role"], part.get("wheel"), extra))
+            data = geometry.persist_parts(target, pieces)
+            data["repaired"] = True
+            data["seal_summary"] = report
+            preview = dict(token=token, revision=body.revision, geometry=data, report=report)
+            (folder / "preview.json").write_text(json.dumps(preview, allow_nan=False))
+            return preview
+        except Exception:
+            shutil.rmtree(folder, ignore_errors=True)
+            raise
+    finally:
+        SEAL_LOCK.release()
+
+
+@app.get("/api/projects/{key}/seal-previews/{token}/geometry/{part_id}.vtp")
+def seal_asset(key: str, token: str, part_id: str):
+    folder = seal_folder(key, token)
+    preview = json.loads((folder / "preview.json").read_text())
+    if part_id not in [p["id"] for p in preview["geometry"]["parts"]]:
+        raise FileNotFoundError()
+    return FileResponse(folder / "geometry" / f"{part_id}.vtp")
+
+
+@app.delete("/api/projects/{key}/seal-previews/{token}")
+def discard_seal_preview(key: str, token: str):
+    with storage.LOCK:
+        shutil.rmtree(seal_folder(key, token), ignore_errors=True)
+    return {"discarded": True}
+
+
+@app.post("/api/projects/{key}/seal/apply")
+def seal_apply(key: str, body: SealApply):
+    with storage.LOCK:
+        current = storage.get("projects", key)
+        folder = seal_folder(key, body.token)
+        preview = json.loads((folder / "preview.json").read_text())
+        if repair_revision(current) != preview["revision"]:
+            raise ValueError("The model changed. Close and reopen Merge & seal.")
+        if not preview["report"]["can_apply"]:
+            raise ValueError("The preview is not one watertight body. Adjust the settings or repair manually.")
+        root = storage.directory("projects", key)
+        old = root / current["geometry_dir"]
+        folder_name = "geometry-" + storage.identifier()
+        target = root / folder_name
+        shutil.copytree(folder / "geometry", target)
+        try:
+            if (old / "originals").exists():
+                shutil.copytree(old / "originals", target / "originals")
+            updated = storage.update("projects", key, geometry=preview["geometry"], geometry_dir=folder_name,
+                                     sample=None, reference_case=None,
+                                     settings={**current["settings"], "geometry_confirmed": False})
+        except Exception:
+            shutil.rmtree(target, ignore_errors=True)
+            raise
+        shutil.rmtree(folder, ignore_errors=True)
+        return updated
+
+
+def transform_folder(key, token):
+    if not re.fullmatch(r"[a-f0-9]{32}", token):
+        raise FileNotFoundError()
+    return storage.directory("projects", key) / "transform-previews" / token
+
+
+@app.get("/api/projects/{key}/transform")
+def transform_revision(key: str):
+    return {"revision": repair_revision(storage.get("projects", key))}
+
+
+@app.post("/api/projects/{key}/transform/preview")
+def transform_preview(key: str, body: transform.TransformOptions):
+    current = storage.get("projects", key)
+    if repair_revision(current) != body.revision:
+        raise ValueError("The model changed. Close and reopen Rotate & scale.")
+    root = storage.directory("projects", key)
+    token = storage.identifier()
+    folder = transform_folder(key, token)
+    target = folder / "geometry"
+    target.mkdir(parents=True)
+    try:
+        data = transform.prepare(root / current["geometry_dir"], target, current["geometry"], body)
+        result = dict(token=token, revision=body.revision, geometry=data)
+        (folder / "preview.json").write_text(json.dumps(result, allow_nan=False))
+        return result
+    except Exception:
+        shutil.rmtree(folder, ignore_errors=True)
+        raise
+
+
+@app.get("/api/projects/{key}/transform-previews/{token}/geometry/{part_id}.vtp")
+def transform_asset(key: str, token: str, part_id: str):
+    folder = transform_folder(key, token)
+    data = json.loads((folder / "preview.json").read_text())
+    if part_id not in [p["id"] for p in data["geometry"]["parts"]]:
+        raise FileNotFoundError()
+    return FileResponse(folder / "geometry" / f"{part_id}.vtp")
+
+
+@app.delete("/api/projects/{key}/transform-previews/{token}")
+def discard_transform(key: str, token: str):
+    with storage.LOCK:
+        shutil.rmtree(transform_folder(key, token), ignore_errors=True)
+    return {"discarded": True}
+
+
+@app.post("/api/projects/{key}/transform/apply")
+def apply_transform(key: str, body: SealApply):
+    with storage.LOCK:
+        current = storage.get("projects", key)
+        folder = transform_folder(key, body.token)
+        preview = json.loads((folder / "preview.json").read_text())
+        if repair_revision(current) != preview["revision"]:
+            raise ValueError("The model changed. Close and reopen Rotate & scale.")
+        root = storage.directory("projects", key)
+        old = root / current["geometry_dir"]
+        folder_name = "geometry-" + storage.identifier()
+        target = root / folder_name
+        try:
+            shutil.copytree(folder / "geometry", target)
+            if (old / "originals").exists():
+                shutil.copytree(old / "originals", target / "originals")
+            updated = storage.update("projects", key, geometry=preview["geometry"], geometry_dir=folder_name,
+                                     sample=None, reference_case=None,
+                                     settings={**current["settings"], "geometry_confirmed": False})
+        except Exception:
+            shutil.rmtree(target, ignore_errors=True)
+            raise
+        shutil.rmtree(folder, ignore_errors=True)
+        return updated
+
+
 @app.get("/api/runs")
 def runs():
     # The UI polls this list; per-iteration force history is most of each record,
@@ -408,6 +717,16 @@ def slice_asset(key: str, axis: Literal["x", "y", "z"] = "y", position: int = 50
         path = results.slice_field(
             storage.directory("runs", key) / "results", axis, position, run["result"]["slice_bounds"]
         )
+    return FileResponse(path)
+
+
+@app.get("/api/runs/{key}/wake")
+def wake_asset(key: str):
+    run = storage.get("runs", key)
+    if run["status"] != "completed":
+        raise ValueError("Results are not available yet.")
+    with storage.LOCK:
+        path = wake.tubes(storage.directory("runs", key) / "results", run["geometry"])
     return FileResponse(path)
 
 

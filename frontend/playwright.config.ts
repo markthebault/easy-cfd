@@ -4,7 +4,7 @@ export default defineConfig({
   use: {
     actionTimeout: 15000,
     navigationTimeout: 20000,
-    baseURL: "http://127.0.0.1:8000",
+    baseURL: process.env.EASYCFD_TEST_URL || "http://127.0.0.1:8000",
     viewport: { width: 1440, height: 1000 },
     launchOptions: {
       args: [

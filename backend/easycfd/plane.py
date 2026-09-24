@@ -13,13 +13,13 @@ import numpy as np
 import vtk
 from vtk.util.numpy_support import vtk_to_numpy
 
-LONG_SIDE = 640
+LONG_SIDE = 1280
 # Cross-sections are much smaller than the flow window; this keeps them sharp.
-MIN_LONG_SIDE = 320
+MIN_LONG_SIDE = 640
 MAGIC = b"ECFP"
 # Part of the cache file name: bump when sampling or encoding changes, so
 # planes cached by an older version are rebuilt instead of served.
-VERSION = 2
+VERSION = 3
 FIELDS = ("Speed", "Pressure", "Turbulence")
 # Screen axes per plane: (world axis index, sign) for right and up. Cross-sections
 # look downstream from the nose, like the Front camera, so +Y is on the left.

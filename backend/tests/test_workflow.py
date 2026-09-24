@@ -110,6 +110,50 @@ def test_duplicate_preserves_comparison_conditions(client):
     assert clone["geometry"]["fingerprint"] == p["geometry"]["fingerprint"]
 
 
+def test_project_rename_and_delete_cascades_terminal_runs(client):
+    first = project(client)
+    second = project(client)
+    renamed = client.put(f"/api/projects/{first['id']}/name", json={"name": "  Track setup  "})
+    assert renamed.status_code == 200
+    assert renamed.json()["name"] == "Track setup"
+
+    run_id = storage.identifier()
+    storage.save(
+        "runs",
+        {
+            "id": run_id,
+            "project_id": first["id"],
+            "created": storage.now(),
+            "status": "completed",
+        },
+    )
+    deleted = client.delete(f"/api/projects/{first['id']}")
+    assert deleted.status_code == 200
+    assert deleted.json() == {"id": first["id"], "deleted_runs": 1}
+    assert client.get(f"/api/projects/{first['id']}").status_code == 404
+    assert client.get(f"/api/runs/{run_id}").status_code == 404
+    assert client.get(f"/api/projects/{second['id']}").status_code == 200
+
+
+def test_project_delete_rejects_active_run(client):
+    p = project(client)
+    run_id = storage.identifier()
+    storage.save(
+        "runs",
+        {
+            "id": run_id,
+            "project_id": p["id"],
+            "created": storage.now(),
+            "status": "queued",
+        },
+    )
+    response = client.delete(f"/api/projects/{p['id']}")
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Cancel the active simulation before deleting this design."
+    assert client.get(f"/api/projects/{p['id']}").status_code == 200
+    assert client.get(f"/api/runs/{run_id}").status_code == 200
+
+
 def test_invalid_import_does_not_replace_geometry(client):
     p = project(client)
     r = client.post(
@@ -771,7 +815,7 @@ def test_plane_grid_orients_components_and_masks_the_car(tmp_path):
     header, fields = plane.read(plane.plane_field(tmp_path, "z", 25, bounds, 27.8))
     assert (header["horizontal"], header["vertical"], header["position"]) == ("X", "Y", pytest.approx(0.5))
     nx, ny = header["nx"], header["ny"]
-    assert nx == 640 and abs(ny - 640 * 3 / 8) <= 1
+    assert nx == 1280 and abs(ny - 1280 * 3 / 8) <= 1
 
     def at(x, y, h):
         i = round((x - h["left"]) / (h["right"] - h["left"]) * (h["nx"] - 1))

@@ -1,3 +1,6 @@
+import Transform from "./Transform";
+import MergeSeal from "./MergeSeal";
+import Repair from "./Repair";
 import { useEffect, useState } from "react";
 import {
   Wind,
@@ -63,8 +66,9 @@ export default function App() {
     [sliceDraft, setSliceDraft] = useState(50);
   const [guideOpen, setGuideOpen] = useState(false);
   const [initializing, setInitializing] = useState(true);
-  const [renaming, setRenaming] = useState(false),
-    [designName, setDesignName] = useState("");
+  const [renaming, setRenaming] = useState<Project | null>(null),
+    [designName, setDesignName] = useState(""),
+    [deleting, setDeleting] = useState<Project | null>(null);
   const [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [importing, setImporting] = useState<"" | "replace" | "add">(""),
@@ -73,6 +77,9 @@ export default function App() {
     [variant, setVariant] = useState(""),
     [comparison, setComparison] = useState<Comparison | null>(null),
     [highlight, setHighlight] = useState("");
+  const [repairOpen, setRepairOpen] = useState(false);
+  const [sealOpen, setSealOpen] = useState(false);
+  const [transformOpen, setTransformOpen] = useState(false);
   const [history, setHistory] = useState<{
     run: string;
     points: { iteration: number; cd: number }[];
@@ -320,6 +327,7 @@ export default function App() {
         >
           <option value="surface">Surface</option>
           <option value="streamlines">Flow lines</option>
+          <option value="wake">3D wake flow</option>
           <option value="slice">Slice plane</option>
           <option value="plane">Animated plane</option>
         </select>
@@ -420,6 +428,14 @@ export default function App() {
           pick(p);
           setSelected("");
         }}
+        onRename={(p) => {
+          setDesignName(p.name);
+          setRenaming(p);
+        }}
+        onDelete={(p) => {
+          setError("");
+          setDeleting(p);
+        }}
       />
       {!projects.length && (
         <p className="micro">Your projects stay on this computer.</p>
@@ -506,6 +522,42 @@ export default function App() {
                     open={section === "geometry"}
                     onToggle={() => toggleSection("geometry")}
                   >
+                    <button
+                      className="secondary"
+                      disabled={!project.geometry}
+                      onClick={() =>
+                        action(async () => {
+                          await save();
+                          setRepairOpen(true);
+                        })
+                      }
+                    >
+                      Inspect & repair openings
+                    </button>
+                    <button
+                      className="secondary"
+                      disabled={!project.geometry}
+                      onClick={() =>
+                        action(async () => {
+                          await save();
+                          setSealOpen(true);
+                        })
+                      }
+                    >
+                      Merge &amp; seal
+                    </button>
+                    <button
+                      className="secondary"
+                      disabled={!project.geometry}
+                      onClick={() =>
+                        action(async () => {
+                          await save();
+                          setTransformOpen(true);
+                        })
+                      }
+                    >
+                      Rotate &amp; scale
+                    </button>
                     <GeometryBody
                       project={project}
                       highlight={highlight}
@@ -642,7 +694,7 @@ export default function App() {
                 disabled={!project || busy}
                 onClick={() => {
                   setDesignName(project!.name);
-                  setRenaming(true);
+                  setRenaming(project);
                 }}
               >
                 <Pencil size={14} />
@@ -759,6 +811,7 @@ export default function App() {
                   position={position}
                   highlight={highlight}
                   theme={resolved}
+                  windYaw={settings?.yaw_deg ?? 0}
                 />
               </div>
               <p className="micro fold-note">
@@ -781,6 +834,7 @@ export default function App() {
               axis={axis}
               position={position}
               theme={resolved}
+              presets={health?.presets}
               onBack={() => setTab("setup")}
             />
           )}
@@ -813,7 +867,7 @@ export default function App() {
           </footer>
         </main>
       </div>
-      {renaming && project && (
+      {renaming && (
         <div className="modal-backdrop">
           <div
             className="modal"
@@ -825,20 +879,19 @@ export default function App() {
               onSubmit={(e) => {
                 e.preventDefault();
                 action(async () => {
-                  await save();
                   const updated = await api<Project>(
-                    `/projects/${project.id}/name`,
+                    `/projects/${renaming.id}/name`,
                     json("PUT", { name: designName }),
                   );
-                  pick(updated);
+                  if (project?.id === renaming.id) pick(updated);
                   await refresh();
-                  setRenaming(false);
+                  setRenaming(null);
                 });
               }}
             >
               <div className="modal-heading">
                 <h2>Rename design</h2>
-                <button type="button" onClick={() => setRenaming(false)}>
+                <button type="button" onClick={() => setRenaming(null)}>
                   <X size={20} />
                 </button>
               </div>
@@ -863,6 +916,113 @@ export default function App() {
             </form>
           </div>
         </div>
+      )}
+      {deleting && (
+        <div className="modal-backdrop">
+          <div
+            className="modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Delete design"
+          >
+            <div className="modal-heading">
+              <h2>Delete design?</h2>
+              <button
+                aria-label="Close"
+                type="button"
+                onClick={() => setDeleting(null)}
+                disabled={busy}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <p>
+              <strong>{deleting.name}</strong> and {runs.filter((r) => r.project_id === deleting.id).length}{" "}
+              saved run{runs.filter((r) => r.project_id === deleting.id).length === 1 ? "" : "s"} will be removed from this computer.
+            </p>
+            <p>This cannot be undone.</p>
+            {error && (
+              <div className="alert error" role="alert">
+                <AlertTriangle size={16} />
+                <span>{error}</span>
+              </div>
+            )}
+            <div className="modal-actions">
+              <button
+                className="secondary"
+                type="button"
+                onClick={() => setDeleting(null)}
+                disabled={busy}
+              >
+                Keep design
+              </button>
+              <button
+                className="danger-button"
+                type="button"
+                disabled={busy}
+                onClick={() =>
+                  action(async () => {
+                    const removedRuns = new Set(
+                      runs.filter((r) => r.project_id === deleting.id).map((r) => r.id),
+                    );
+                    await api(`/projects/${deleting.id}`, json("DELETE"));
+                    const { p } = await refresh();
+                    if (project?.id === deleting.id) {
+                      if (p.length) pick(p[0]);
+                      else {
+                        setProject(null);
+                        setSettings(null);
+                      }
+                      setTab("setup");
+                    }
+                    if (removedRuns.has(selected)) setSelected("");
+                    if (removedRuns.has(baseline)) setBaseline("");
+                    if (removedRuns.has(variant)) setVariant("");
+                    setDeleting(null);
+                  })
+                }
+              >
+                Delete design
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {transformOpen && project?.geometry && (
+        <Transform
+          key={project.id}
+          project={project}
+          theme={resolved}
+          close={() => setTransformOpen(false)}
+          applied={async (p) => {
+            pick(p);
+            await refresh();
+          }}
+        />
+      )}
+      {sealOpen && project?.geometry && (
+        <MergeSeal
+          key={project.id}
+          project={project}
+          theme={resolved}
+          close={() => setSealOpen(false)}
+          applied={async (p) => {
+            pick(p);
+            await refresh();
+          }}
+        />
+      )}
+      {repairOpen && project?.geometry && (
+        <Repair
+          key={project.id}
+          project={project}
+          theme={resolved}
+          close={() => setRepairOpen(false)}
+          applied={async (p) => {
+            pick(p);
+            await refresh();
+          }}
+        />
       )}
       {guideOpen && <BlenderGuide close={() => setGuideOpen(false)} />}
       {importing && project && (
@@ -917,6 +1077,7 @@ function ImportModal({
   onImported: (p: Project) => Promise<void>;
 }) {
   const [files, setFiles] = useState<File[]>([]),
+    [components, setComponents] = useState("split"),
     [units, setUnits] = useState("m"),
     [forward, setForward] = useState("-X"),
     [up, setUp] = useState("+Z"),
@@ -934,7 +1095,7 @@ function ImportModal({
       if (!adding)
         body.append(
           "options",
-          JSON.stringify({ units, forward, up, clearance }),
+          JSON.stringify({ units, forward, up, clearance, components }),
         );
       await onImported(
         await api<Project>(
@@ -995,6 +1156,24 @@ function ImportModal({
         ))}
         {!adding && (
           <>
+            <label className="input-label">
+              STL components
+              <select
+                aria-label="STL components"
+                value={components}
+                onChange={(e) => setComponents(e.target.value)}
+              >
+                <option value="split">Separate parts · up to 100</option>
+                <option value="group">Group each STL for repair</option>
+              </select>
+            </label>
+            {components === "group" && (
+              <p className="micro">
+                Each STL becomes one editable part, even with more than 100
+                components. Grouping keeps the shape unchanged. Use Merge &amp;
+                seal after import to weld it. Keep wheels in separate files.
+              </p>
+            )}
             <div className="input-pair">
               <label className="input-label">
                 STL units

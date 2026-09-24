@@ -1,12 +1,58 @@
 import type { ReactNode } from "react";
 import { AlertTriangle, ChevronDown } from "lucide-react";
-import type { Run } from "./types";
+import type { Health, Run } from "./types";
 
 export const fmt = (n: number | undefined, digits = 2) =>
   n === undefined ? "—" : n.toFixed(digits);
 export const share = (part: number, total: number) =>
   total ? `${((100 * part) / total).toFixed(0)}%` : "—";
 export const active = (r: Run) => ["running", "queued"].includes(r.status);
+
+export function simulationProgress(
+  run: Run,
+  presets?: Health["presets"],
+) {
+  if (run.status === "queued")
+    return { value: 0, detail: "Waiting in queue" };
+  if (run.status === "completed") return { value: 100, detail: "Complete" };
+  if (run.status !== "running") return null;
+  if (run.stage === "Preparing") return { value: 2, detail: "Preparing" };
+
+  const tier = run.stage.match(/^(fast|medium|precise):/)?.[1] as
+      | "fast"
+      | "medium"
+      | "precise"
+      | undefined,
+    twoMeshes = run.settings.quality === "precise",
+    start = twoMeshes ? (tier === "precise" ? 50 : 3) : 3,
+    end = twoMeshes ? (tier === "precise" ? 98 : 49) : 98,
+    span = end - start;
+  let fraction = 0;
+  if (run.stage.includes("Building tunnel")) fraction = 0.02;
+  else if (run.stage.includes("Meshing car")) fraction = 0.08;
+  else if (run.stage.includes("Checking mesh")) fraction = 0.28;
+  else if (run.stage.includes("Partitioning mesh")) fraction = 0.33;
+  else if (run.stage.includes("Solving airflow")) {
+    const limit =
+      presets?.[tier || run.settings.quality]?.iterations ||
+      { fast: 300, medium: 1000, precise: 1800 }[
+        tier || run.settings.quality
+      ];
+    fraction = 0.38 + 0.5 * Math.min(run.iteration / limit, 1);
+    return {
+      value: Math.round(start + span * fraction),
+      detail: `Iteration ${run.iteration.toLocaleString()} of ${limit.toLocaleString()}`,
+    };
+  } else if (run.stage.includes("Reassembling results")) fraction = 0.91;
+  else if (run.stage.includes("Preparing visualization")) fraction = 0.96;
+  return {
+    value: Math.round(start + span * fraction),
+    detail:
+      twoMeshes && tier
+        ? `${tier[0].toUpperCase() + tier.slice(1)} mesh`
+        : run.stage,
+  };
+}
 // Optional parts differ between runs of one design, so labels name them.
 export const parts = (r: Run) =>
   [

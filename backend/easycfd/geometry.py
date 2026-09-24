@@ -145,14 +145,20 @@ def import_files(files: list[Path], folder: Path, options: ImportOptions, base=N
             if not isinstance(mesh, trimesh.Trimesh):
                 raise ValueError("Expected an STL surface mesh.")
             mesh.apply_scale(UNITS[options.units])
-            meshes = list(mesh.split(only_watertight=False))
+            if len(mesh.faces) > 1500000:
+                raise ValueError("More than 1.5 million surface triangles. Export a coarser exterior model.")
+            meshes = [mesh] if options.components == "group" else list(mesh.split(only_watertight=False, repair=False))
         stem = path.stem.split("-", 1)[-1] if path.parent.name == "originals" else path.stem
         for i, mesh in enumerate(meshes):
+            extra = dict(source=source, component=i, enabled=True)
+            if options.components == "group" and path.suffix.lower() == ".stl":
+                extra["grouped_components"] = len(trimesh.graph.connected_components(
+                    mesh.face_adjacency, nodes=np.arange(len(mesh.faces)), min_len=1))
             pieces.append(
-                [f"{stem[:60]} {i + 1}", mesh, "body", None, dict(source=source, component=i, enabled=True)]
+                [f"{stem[:60]} {i + 1}", mesh, "body", None, extra]
             )
     if not pieces or len(pieces) > 100:
-        raise ValueError("Import between 1 and 100 connected exterior parts.")
+        raise ValueError("Import between 1 and 100 connected exterior parts. For an STL with more parts, choose Group each STL for repair.")
     if not any(base):
         raise ValueError("At least one file must define the base model.")
 
@@ -196,10 +202,16 @@ def persist_parts(folder, pieces):
         key = f"part{i}"
         mesh.remove_unreferenced_vertices()
         issues = []
+        if extra and extra[0].get("grouped_components", 1) > 1:
+            issues.append(f"Grouped STL contains {extra[0]['grouped_components']} disconnected components. Use Merge & seal to create one body.")
         if len(mesh.faces) < 4 or not np.isfinite(mesh.vertices).all():
             raise ValueError(f"{name}: empty or non-finite geometry.")
+        if role == "wheel" and wheel:
+            axle = np.asarray(wheel.get("axis", [0, 1, 0]))
+            if not np.allclose(np.abs(axle), [0, 1, 0], atol=1e-6):
+                issues.append("Wheel axle is not transverse. Rotate it back or review and reassign its role before CFD.")
         if not mesh.is_watertight:
-            issues.append("Open edges or non-manifold edges. Export a closed solid.")
+            issues.append("Open edges or non-manifold edges. Inspect & repair openings.")
         if not mesh.is_winding_consistent or mesh.volume <= 0:
             issues.append("Inconsistent or inward-facing surface normals. Correct normals in CAD/Blender.")
         if np.any(mesh.area_faces < 1e-16):
