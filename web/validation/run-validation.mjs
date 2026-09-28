@@ -18,7 +18,7 @@ const wanted = args.models ? args.models.split(",") : spec.models.map((m) => m.i
 const quality = args.quality ?? "medium";
 const extra = args.settings ? JSON.parse(args.settings) : {};
 
-const server = await createServer({ root, server: { port: 5199, host: "127.0.0.1", hmr: false, watch: null }, logLevel: "error" });
+const server = await createServer({ root, server: { port: Number(args.port ?? 5199), host: "127.0.0.1", hmr: false, watch: null }, logLevel: "error" });
 await server.listen();
 const browser = await chromium.launch({ headless: true, args: ["--enable-unsafe-webgpu", "--use-angle=metal", "--enable-gpu", "--ignore-gpu-blocklist"] });
 const page = await browser.newPage();
@@ -28,13 +28,13 @@ await page.route("**/geom/**", (route) => {
   const rel = decodeURIComponent(new URL(route.request().url()).pathname.split("/geom/")[1]);
   route.fulfill({ body: readFileSync(resolve(runs, rel)), contentType: "application/octet-stream" });
 });
-await page.goto("http://127.0.0.1:5199/bench.html");
+await page.goto(`http://127.0.0.1:${args.port ?? 5199}/bench.html`);
 await page.waitForFunction(() => window.cfdBench?.ready, null, { timeout: 60000 });
 
 const results = [];
 for (const model of spec.models.filter((m) => wanted.includes(m.id))) {
   const body = {
-    parts: model.parts.map((p) => ({ url: `/geom/${model.geometryRun}/geometry/${p.file}`, name: p.name, role: p.role, wheel: p.wheel })),
+    parts: model.parts.map((p) => ({ url: `/geom/${model.geometryRun}/geometry/${p.file}`, name: p.name, role: p.role, wheel: p.wheel, active: p.active, detail: p.detail })),
     settings: { ...model.settings, quality, ...extra },
     targetPasses: args.passes ? Number(args.passes) : undefined,
     solver: args.solver ? JSON.parse(args.solver) : undefined,
@@ -57,9 +57,11 @@ for (const model of spec.models.filter((m) => wanted.includes(m.id))) {
   }
   clearInterval(logHandle);
   const ref = model.references.find((x) => x.quality === "medium") ?? model.references[0];
-  const dCd = (r.cd - ref.cd) / ref.cd;
-  const dCl = r.cl - ref.cl;
-  const line = `${model.id.padEnd(12)} cd ${r.cd.toFixed(4)} (ref ${ref.cd.toFixed(4)} ${ref.quality}, ${(dCd * 100).toFixed(1)}%)  cl ${r.cl.toFixed(4)} (ref ${ref.cl.toFixed(4)}, Δ ${dCl.toFixed(3)})  cells ${r.cells} steps ${r.steps} ${((Date.now() - t0) / 1000).toFixed(0)} s settled=${r.settled}`;
+  const dCd = ref ? (r.cd - ref.cd) / ref.cd : NaN;
+  const dCl = ref ? r.cl - ref.cl : NaN;
+  const refText = ref ? `(ref ${ref.cd.toFixed(4)} ${ref.quality}, ${(dCd * 100).toFixed(1)}%)` : "(no reference)";
+  const line = `${model.id.padEnd(12)} cd ${r.cd.toFixed(4)} ${refText}  cl ${r.cl.toFixed(4)}${ref ? ` (ref ${ref.cl.toFixed(4)}, Δ ${dCl.toFixed(3)})` : ""}  cells ${r.cells} steps ${r.steps} ${((Date.now() - t0) / 1000).toFixed(0)} s settled=${r.settled} detail=${r.detail?.ratio} thin=[${(r.thinParts ?? []).join(",")}]`;
+  for (const f of r.partForces ?? []) if (!/body|wheel/.test(f.name)) console.log(`    ${f.name.padEnd(22)} drag ${(f.pressure[0] + f.friction[0]).toFixed(1)} N  lift ${(f.pressure[2] + f.friction[2]).toFixed(1)} N`);
   console.log(line);
   results.push({ id: model.id, name: model.name, reference: ref, dCd, dCl, result: r });
 }

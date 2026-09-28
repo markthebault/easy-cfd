@@ -8,8 +8,10 @@ import { app, openDesign } from "../store/app";
 import { exportCSV, exportJSON, exportPNG, startCompare } from "../store/runs";
 import type { LoadedRun } from "../store/types";
 import { ForceChart } from "./ForceChart";
+import { StatsTable, defaultWindow } from "./StatsTable";
+import { unitFor } from "./historyUnit";
 import { stages } from "./StageView";
-import { conditionsLine, fmt, fmtCells, fmtDate, fmtDuration, fmtInt, groupsLine, pct, verticalLoad } from "./format";
+import { conditionsLine, fmt, fmtCells, fmtDate, fmtDuration, fmtInt, groupForces, groupsLine, pct, verticalLoad } from "./format";
 
 // Indicative spread over the averaging window, shown only when it is meaningful.
 function bandText(b: number | undefined) {
@@ -81,19 +83,48 @@ function Breakdown({ run }: { run: LoadedRun }) {
   );
 }
 
+function GroupForces({ run }: { run: LoadedRun }) {
+  const rows = groupForces(run.doc.result, run.doc.geometry);
+  if (rows.length < 2) return null;
+  return (
+    <div className="breakdown group-forces" data-testid="group-forces">
+      <div className="section-title">
+        Forces by group
+        <span className="muted">downforce (− = lift) · drag</span>
+      </div>
+      <table>
+        <tbody>
+          {rows.map((g) => (
+            <tr key={g.id} title={g.parts.join(", ")}>
+              <th scope="row">{g.name}</th>
+              <td className="num">{g.downforceKg < 0 ? "−" : ""}{fmt(Math.abs(g.downforceKg), 1)} kg</td>
+              <td className="num muted">{fmtInt(g.drag)} N</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export function ResultsPanel() {
   const run = useStore(app, (s) => s.run);
   const runs = useStore(app, (s) => s.runs);
   const design = useStore(app, (s) => s.design);
   const [compareWith, setCompareWith] = useState("");
+  const [pick, setPick] = useState<number | null>(null);
   if (!run) return null;
   const { doc } = run;
   const r = doc.result;
-  const L = doc.geometry.dimensions[0];
-  const passTime = L / r.freestream;
+  const L = r.length ?? doc.geometry.dimensions[0];
+  const of = r.engine === "openfoam" ? r.openfoam : undefined;
+  const unit = unitFor(r.engine);
+  const passTime = of ? 1 : L / r.freestream;
   const preset = resolvePreset(doc.settings);
-  // Extended runs average over the last 30 % of the full (extended) length.
-  const avgFrom = (preset.passes + (r.extendedPasses ?? 0)) * passTime * (1 - preset.averageFraction);
+  // Extended runs average over the last 30 % of the full (extended) length; OpenFOAM over its
+  // last iterations.
+  const win = pick ?? defaultWindow(preset.passes + (r.extendedPasses ?? 0), unit);
+  const avgFrom = of ? of.iterations - of.averagingIterations : (preset.passes + (r.extendedPasses ?? 0)) * passTime * (1 - preset.averageFraction);
   const [x0, x1, y0, y1, , z1] = r.domain;
   const others = runs.filter((x) => x.id !== doc.id);
 
@@ -102,6 +133,7 @@ export function ResultsPanel() {
       <div className="results-head">
         <div className="results-eyebrow">
           <span className="eyebrow">Result · {fmtDate(doc.createdAt)}</span>
+          <span className="engine-badge" data-testid="result-engine">{of ? "OpenFOAM" : "WebGPU"}</span>
           {r.settled ? (
             <span className="badge ok" title="Forces varied little over the averaging window"><CheckCircle2 size={13} /> Settled</span>
           ) : (
@@ -124,6 +156,7 @@ export function ResultsPanel() {
       )}
 
       <Breakdown run={run} />
+      <GroupForces run={run} />
 
       {r.levels && r.meshSensitivity && (
         <div className="breakdown">
@@ -151,12 +184,24 @@ export function ResultsPanel() {
       )}
 
       <div className="section-title">Force history <span className="muted">shaded: averaging window</span></div>
-      <ForceChart history={r.history} passTime={passTime} averageFrom={avgFrom} height={150} />
+      <ForceChart history={r.history} passTime={passTime} averageFrom={avgFrom} height={150} maPasses={win} unit={unit} />
+      <StatsTable history={r.history} passTime={passTime} passes={win} onPasses={setPick} unit={unit} />
 
       <dl className="meta">
         <div><dt>Cells</dt><dd>{fmtCells(r.cells)}</dd></div>
-        <div><dt>Steps</dt><dd>{fmtInt(r.steps)}</dd></div>
-        <div><dt>Simulated</dt><dd>{fmt(r.simulatedTime, 2)} s</dd></div>
+        {of ? (
+          <>
+            <div><dt>Iterations</dt><dd>{fmtInt(of.iterations)}</dd></div>
+            <div><dt>Residuals</dt><dd title={Object.entries(of.residuals).map(([k, v]) => `${k} ${v.toExponential(1)}`).join(", ")}>{of.residualConverged ? "converged" : "above target"}</dd></div>
+            {of.layerCoverage !== undefined && <div><dt>Prism layers</dt><dd>{fmt(of.layerCoverage * 100, 0)} % of wall</dd></div>}
+            {of.wallTargetFraction !== undefined && <div><dt>y+ 30–300</dt><dd>{fmt(of.wallTargetFraction * 100, 0)} % of wall</dd></div>}
+          </>
+        ) : (
+          <>
+            <div><dt>Steps</dt><dd>{fmtInt(r.steps)}</dd></div>
+            <div><dt>Simulated</dt><dd>{fmt(r.simulatedTime, 2)} s</dd></div>
+          </>
+        )}
         <div><dt>Wall time</dt><dd>{fmtDuration(r.wallSeconds)}</dd></div>
         <div><dt>Blockage</dt><dd>{fmt(r.blockage * 100, 1)} %</dd></div>
         <div className="wide"><dt>Tunnel box</dt><dd>{fmt(x1 - x0, 1)} × {fmt(y1 - y0, 1)} × {fmt(z1, 1)} m</dd></div>
@@ -164,7 +209,7 @@ export function ResultsPanel() {
         <div><dt>Density</dt><dd>{fmt(doc.settings.density, 3)}</dd></div>
         <div><dt>Ground</dt><dd>{doc.settings.moving_ground ? "moving" : "fixed"}</dd></div>
         <div><dt>Wheels</dt><dd>{doc.settings.wheels ? "rotating" : "fixed"}</dd></div>
-        <div className="wide"><dt>GPU</dt><dd title={doc.adapter}>{doc.adapter || "–"}</dd></div>
+        <div className="wide"><dt>{of ? "Solver" : "GPU"}</dt><dd title={doc.adapter}>{doc.adapter || "–"}</dd></div>
       </dl>
 
       <div className="actions">
@@ -178,7 +223,7 @@ export function ResultsPanel() {
             <select value={compareWith} onChange={(e) => setCompareWith(e.target.value)} aria-label="Run to compare with">
               <option value="">Compare with…</option>
               {others.map((o) => (
-                <option key={o.id} value={o.id}>{o.designName}{groupsLine(o.geometry) ? ` · ${groupsLine(o.geometry)}` : ""} · {Math.round(o.settings.speed_kmh)} km/h · {fmtDate(o.createdAt)}</option>
+                <option key={o.id} value={o.id}>{o.designName}{groupsLine(o.geometry) ? ` · ${groupsLine(o.geometry)}` : ""} · {o.result.engine === "openfoam" ? "OpenFOAM" : "WebGPU"} · {Math.round(o.settings.speed_kmh)} km/h · {fmtDate(o.createdAt)}</option>
               ))}
             </select>
             <button className="btn ghost sm" disabled={!compareWith} onClick={() => startCompare(doc.id, compareWith)}><Columns2 size={15} /> Compare</button>

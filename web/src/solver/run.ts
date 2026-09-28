@@ -2,7 +2,8 @@
 
 import { FlowSolver, HISTORY_SLOTS } from "./gpu";
 import { prepareCase, type CaseSetup } from "./setup";
-import { PRESETS, resolvePreset, type ForceBreakdown, type ForceSample, type RunResult, type Settings, type SolverPart, type Vec3 } from "./types";
+import { DETAIL_CELL_BUDGET } from "./detail";
+import { PRESETS, resolvePreset, type ForceBreakdown, type ForceSample, type PartForce, type RunResult, type Settings, type SolverPart, type Vec3 } from "./types";
 
 export interface Progress {
   stage: "preparing" | "solving" | "finishing";
@@ -76,8 +77,16 @@ export function timeFactors(c: CaseSetup, vel: Float32Array, turb: Float32Array,
         const ci = Math.min(Math.max(i, 1), NX - 2), cj = Math.min(Math.max(j, 1), NY - 2), ck = Math.min(Math.max(k, 1), NZ - 2);
         fac[i + NX * (j + NY * k)] = fac[ci + NX * (cj + NY * ck)];
       }
+  // Pace of the car region: wall cells of the base size (detail zones have many small wall cells
+  // that would otherwise set a slower pace; they converge locally within a few chord lengths).
   const near: number[] = [];
-  for (let q = 0; q < c.faceCount; q++) near.push(fac[c.faces[2 * q]]);
+  const hBase = 0.9 * c.grid.h;
+  for (let q = 0; q < c.faceCount; q++) {
+    const g = c.faces[2 * q];
+    const i = g % NX, j = ((g / NX) | 0) % NY, k = (g / (NX * NY)) | 0;
+    if (Math.min(w(0, i), w(1, j), w(2, k)) >= hBase) near.push(fac[g]);
+  }
+  if (near.length < 0.2 * c.faceCount) for (let q = 0; q < c.faceCount; q++) near.push(fac[c.faces[2 * q]]);
   near.sort((a, b) => a - b);
   const fRef = near.length ? near[Math.floor(near.length / 2)] : 1;
   return { fac, dtRef, fRef };
@@ -151,6 +160,9 @@ export async function runSimulation(
     settled: a.settled && b.settled,
     steps: a.steps + b.steps,
     wallSeconds: (performance.now() - started) / 1000,
+    partForces: a.partForces && b.partForces && a.partForces.length === b.partForces.length
+      ? b.partForces.map((f, i) => ({ ...f, pressure: avg(a.partForces![i].pressure, f.pressure), friction: avg(a.partForces![i].friction, f.friction) }))
+      : b.partForces,
     levels: [
       { label: "Medium grid", cells: a.cells, cd: a.cd, cl: a.cl, drag: a.drag, lift: a.lift },
       { label: "Fine grid", cells: b.cells, cd: b.cd, cl: b.cl, drag: b.drag, lift: b.lift },
@@ -195,6 +207,8 @@ async function runLevel(
   const qA = q * settings.reference_area;
   const raw: RawRecord[] = [];
   const samples: ForceSample[] = [];
+  // Running pseudo-time integrals of the per-part forces, read with the force history.
+  const partSnaps: { time: number; acc: Float32Array }[] = [];
   let lastStep = 0;
   let time = 0; // pseudo time at the pace of the flow around the car
   let batch = 4;
@@ -236,6 +250,7 @@ async function runLevel(
         const f = await solver.readFields();
         const tf = timeFactors(setup, f.vel, f.turb, opts.ltsMaxFactor);
         solver.setTimeFactors(tf.fac, tf.dtRef);
+        solver.setPace(tf.fRef);
         const cur = await solver.readState();
         // From here the GPU clock advances by dtRef per step and the car region by dtRef·fRef.
         segments.push({ t0: cur[1], tau0: tauOf(cur[1]), f: tf.fRef });
@@ -252,6 +267,7 @@ async function runLevel(
           samples.push(toSample(r));
         }
         lastStep = step;
+        partSnaps.push({ time, acc: await solver.readPartForces() });
       }
       opts.onProgress?.({
         stage: "solving",
@@ -278,16 +294,46 @@ async function runLevel(
   opts.onProgress?.({ stage: "finishing", fraction: 1, time, targetTime, steps: solver.steps, history: samples, elapsed: (performance.now() - started) / 1000, cells: setup.grid.cells });
   const result = summarise(raw, samples, setup, settings, preset.averageFraction, targetTime);
   result.wallSeconds = (performance.now() - started) / 1000;
+  result.partForces = partAverages(partSnaps, setup, settings.density, targetTime * (1 - preset.averageFraction));
   if (targetTime > baseTarget * 1.001) {
+    // The run stops extending when the mean stops drifting (settled) or at the maximum length.
     result.extendedPasses = ((targetTime - baseTarget) * U) / L;
-    result.warnings = result.warnings.filter((w) => !w.startsWith("Forces were still changing"));
+    result.warnings = result.warnings.filter((w) => !w.startsWith("Forces were still drifting at the end"));
     result.warnings.unshift(
       `Forces were still drifting, so the run was extended by ${result.extendedPasses.toFixed(1)} flow passes.` +
-        (result.settled ? "" : " They had not settled at the maximum length; the ± bands show the remaining spread."),
+        (result.settled ? " The average then settled." : " They were still drifting at the maximum length; treat them as provisional."),
     );
   }
   (result as RunResult & { lts?: unknown }).lts = ltsLog;
   return { result, solver, setup };
+}
+
+/** Short fingerprint of the grid's face coordinates: equal ids mean identical cells. */
+export function gridId(c: CaseSetup): string {
+  let h = 2166136261;
+  for (const a of [c.grid.x, c.grid.y, c.grid.z])
+    for (const f of a.faces) {
+      h ^= Math.round(f * 1e5) | 0;
+      h = Math.imul(h, 16777619);
+    }
+  return `${c.grid.x.n}x${c.grid.y.n}x${c.grid.z.n}-${(h >>> 0).toString(36)}`;
+}
+
+/** Time-averaged force per part over [tStart, end] from running integrals read during the run. */
+export function partAverages(snaps: { time: number; acc: Float32Array }[], setup: CaseSetup, rho: number, tStart: number): PartForce[] {
+  if (snaps.length < 2) return [];
+  const end = snaps[snaps.length - 1];
+  const start = snaps.find((q) => q.time >= tStart && q !== end) ?? snaps[0];
+  const span = end.time - start.time;
+  if (!(span > 0)) return [];
+  const f = (p: number, m: number) => (rho * (end.acc[6 * p + m] - start.acc[6 * p + m])) / span;
+  return setup.partNames.map((name, p) => ({
+    id: setup.partIds[p],
+    name,
+    group: setup.partGroups[p],
+    pressure: [f(p, 0), f(p, 1), f(p, 2)] as Vec3,
+    friction: [f(p, 3), f(p, 4), f(p, 5)] as Vec3,
+  }));
 }
 
 /**
@@ -363,14 +409,25 @@ export function summarise(
   };
   const cdSpan = spread("cd");
   const clSpan = spread("cl");
-  const settled = cdSpan <= 0.02 * Math.max(Math.abs(cd), 0.01) * 2.5 && clSpan <= 0.02 * Math.max(Math.abs(cl), 0.05) * 5;
+  // Settled: the mean no longer drifts across the averaging window (the criterion that also stops
+  // run extension). Oscillation around a settled mean shows in the ± bands.
+  const settled = !drifting(samples, targetTime, averageFraction);
   const [, , y0, y1, , z1] = setup.domain;
   const blockage = settings.reference_area / ((y1 - y0) * z1);
   const warnings: string[] = [];
-  if (!settled) warnings.push("Forces were still changing over the averaging window. Treat them as provisional or run longer.");
+  if (!settled) warnings.push("Forces were still drifting at the end of the run. Treat them as provisional or run longer.");
   if (blockage > 0.05) warnings.push(`Tunnel blockage is ${(blockage * 100).toFixed(1)} %. Above 5 % the walls speed up the flow around the car.`);
   if (setup.thinParts.length)
-    warnings.push(`Thinner than about 1.5 grid cells, modelled as zero-thickness walls: ${setup.thinParts.join(", ")}. Their forces are approximate; Precise resolves them better.`);
+    warnings.push(`Modelled as zero-thickness walls (thinner than about 1.5 cells, even with detail refinement): ${setup.thinParts.join(", ")}. Their outline and angle are resolved; their thickness is not.`);
+  if (setup.detail?.zones.length || setup.thinParts.length)
+    warnings.push("Wings and other aero parts: their drag change is close to OpenFOAM's, but their downforce is under-predicted (a third to two thirds of OpenFOAM's change in our checks), and similar wing angles can look alike. Compare variants on drag first and cross-check the final wing with the OpenFOAM version.");
+  const thick = (setup.thickenedParts ?? []).filter((t) => t.mm > 0);
+  if (thick.length)
+    warnings.push(`Thickened slightly so the grid can carry their profile: ${thick.map((t) => `${t.name} (+${t.mm} mm)`).join(", ")}.`);
+  if (setup.detail && setup.detail.ratio < setup.detail.requested)
+    warnings.push(`Detail cells were limited to ${setup.detail.ratio}× finer (instead of ${setup.detail.requested}×) to stay within ${(DETAIL_CELL_BUDGET / 1e6).toFixed(1)} M cells.`);
+  if (setup.lowFillWheels?.length)
+    warnings.push(`Only part of the volume of ${setup.lowFillWheels.join(", ")} could be filled: the wheel mesh looks open or has inside-out faces. Check it in a mesh tool.`);
   if (setup.sealedCells > 0) warnings.push("Enclosed air pockets inside the geometry were filled as solid.");
   return {
     cd,
@@ -396,5 +453,8 @@ export function summarise(
     domain: setup.domain,
     blockage,
     warnings,
+    detail: setup.detail,
+    length: setup.length,
+    gridId: gridId(setup),
   };
 }

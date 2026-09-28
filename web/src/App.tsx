@@ -6,6 +6,7 @@ import { domainFor } from "./solver/setup";
 import type { Vec3 } from "./solver/types";
 import { useStore } from "./store/store";
 import { app, init } from "./store/app";
+import { gridBounds } from "./store/geometry";
 import { DropOverlay, Toasts, TopBar, ViewBar } from "./ui/Chrome";
 import { CompareView } from "./ui/CompareView";
 import { EmptyState } from "./ui/EmptyState";
@@ -63,8 +64,15 @@ export function App() {
 
   const box = useMemo(() => {
     if (view !== "setup" || !design || !report || !(showBox || (step === "conditions" && design.settings.simulation_box))) return null;
-    return domainFor(design.settings, report.low as Vec3, report.high as Vec3) as number[];
-  }, [view, design?.settings, report, showBox, step]);
+    const b = gridBounds(parts) ?? { low: report.low as Vec3, high: report.high as Vec3 };
+    return domainFor(design.settings, b.low, b.high) as number[];
+  }, [view, design?.settings, report, showBox, step, parts]);
+
+  const detailOutlines = useMemo(() => {
+    const list = design?.settings.detail_boxes ?? [];
+    if (view !== "setup" || step === "car" || !list.length) return null;
+    return list.map((b) => [b.x_min, b.x_max, b.y_min, b.y_max, b.z_min, b.z_max]);
+  }, [view, step, design?.settings.detail_boxes]);
 
   const content =
     view === "live" && live
@@ -96,6 +104,7 @@ export function App() {
           dark={dark}
           box={box}
           fitBox={!!box && showBox}
+          detailBoxes={detailOutlines}
           helpers={content.helpers && !box}
           insets={insets}
           gizmo={gizmo}

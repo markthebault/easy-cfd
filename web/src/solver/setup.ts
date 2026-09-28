@@ -1,9 +1,10 @@
 // CPU preprocessing: everything the GPU kernels need, as flat typed arrays.
 
-import { automaticDomain, buildGrid, type Axis, type Grid } from "./grid";
-import { meshVolumeArea, voxelize, wallDistance } from "./voxelize";
+import { automaticDomain, type Axis, type Grid } from "./grid";
+import { detailGrid, detailZones, partShapes, type PartShape } from "./detail";
+import { meshVolumeArea, thinSpacing, voxelize, wallDistance } from "./voxelize";
 import { closeThinFaces, fractions, nodeDistance, nodeGrid } from "./cutcell";
-import { NU, resolvePreset, type ExperimentalSettings, type Settings, type SolverPart, type Vec3 } from "./types";
+import { NU, detailRatio, resolvePreset, type ExperimentalSettings, type Settings, type SolverPart, type Vec3 } from "./types";
 
 export const MG_LEVELS = 5;
 export const MAX_PARTS = 64;
@@ -25,6 +26,9 @@ export const WALL_MODEL: "k" | "log" = "k";
 /** Thin parts: "wall" (zero-thickness closed faces) or "dilate" (smooth plate, at least THIN_MIN_CELLS thick). */
 export const THIN_MODE: "wall" | "dilate" = "wall";
 export const THIN_MIN_CELLS = 1.2;
+/** Closed thin parts at least THICKEN_MIN × this many cells thick become solids of this thickness. */
+export const THICKEN_CELLS = 1.6;
+export const THICKEN_MIN = 0.6;
 /** Refine the road clearance (half-size vertical cells under the car). */
 export const CLEARANCE_BAND = false;
 
@@ -54,9 +58,19 @@ export interface CaseSetup {
   flags: Uint32Array;
   wallDist: Float32Array;
   levels: Level[];
-  /** Wall cells for force integration: (ghosted cell, part | wheel << 16). */
+  /** Wall cells for force integration: (ghosted cell, part | wheel << 16), sorted by part. */
   faces: Uint32Array;
   faceCount: number;
+  /** Per simulated part: first and one-past-last index into `faces`. */
+  partRanges: Uint32Array;
+  /** Names of the simulated parts, in solver order. */
+  partNames: string[];
+  partIds: string[];
+  partGroups: (string | undefined)[];
+  /** Detail refinement actually used (ratio lowered if the cell budget would be exceeded). */
+  detail: { ratio: number; requested: number; hmin: number; zones: string[] };
+  /** Wheels whose voxelised volume is far below their mesh volume (open or doubled meshes). */
+  lowFillWheels: string[];
   /** Per ghosted cell: open fraction of the +x, +y, +z faces and fluid volume fraction θ. */
   aper: Float32Array;
   /** Per ghosted cell: wall area vector (into the solid, m²) and wall distance of the fluid centroid. */
@@ -87,6 +101,8 @@ export interface CaseSetup {
   /** Level-0 ingredients for rebuilding the pressure hierarchy with local time-step factors. */
   base: { x: Axis; y: Axis; z: Axis; openX: Float32Array; openY: Float32Array; openZ: Float32Array; fluid: Uint8Array; sideMode: number };
   thinParts: string[];
+  /** Thin closed parts modelled as solids thickened by `mm` in total (0: not thickened). */
+  thickenedParts: { name: string; mm: number }[];
   sealedCells: number;
   /** Projected frontal area of the voxelised car (m²). */
   voxelFrontalArea: number;
@@ -223,11 +239,15 @@ export function scaledLevels(c: CaseSetup, fac: Float32Array): Level[] {
   return levels;
 }
 
-export function prepareCase(allParts: SolverPart[], settings: Settings): CaseSetup {
+export function prepareCase(allParts: SolverPart[], settings: Settings, shapes?: PartShape[]): CaseSetup {
   const t0 = performance.now();
   const timings: Record<string, number> = {};
-  const parts = allParts.slice(0, MAX_PARTS);
-  const { low, high } = boundsOf(parts);
+  // Every part passed in shapes the grid; only active ones are simulated. Switching a group off
+  // therefore leaves the grid unchanged, and variants are compared on the same cells.
+  const gridParts = allParts;
+  const parts = allParts.filter((p) => p.active !== false).slice(0, MAX_PARTS);
+  if (!parts.length) throw new Error("Switch at least one part on to run a simulation.");
+  const { low, high } = boundsOf(gridParts);
   const length = high[0] - low[0];
   const domain = domainFor(settings, low, high);
   const problem = validateDomain(domain, low, high);
@@ -235,19 +255,38 @@ export function prepareCase(allParts: SolverPart[], settings: Settings): CaseSet
   const preset = resolvePreset(settings);
   const ext = settings as Settings & ExperimentalSettings;
   // Road clearance: half-size cells from the road to a little above the lowest body (non-wheel) point.
-  const bodyParts = parts.filter((p) => p.role !== "wheel");
+  const bodyParts = gridParts.filter((p) => p.role !== "wheel");
   const bodyLow = bodyParts.length ? boundsOf(bodyParts).low[2] : low[2];
   const clearanceBand = ext.clearanceBand ?? (CLEARANCE_BAND ? Math.min(1.5 * bodyLow + 0.02 * length, 0.25 * length) : 0);
-  const grid = buildGrid({ domain, low, high, cellsPerLength: preset.cellsPerLength, levels: MG_LEVELS, wakeLength: ext.wakeLength, wakeGrowth: ext.wakeGrowth, phase: ext.phase, clearanceBand });
+  const h0 = length / preset.cellsPerLength;
+  const zones = detailZones(shapes ?? partShapes(gridParts), h0, settings.detail_boxes ?? []);
+  const { grid, ratio, requested } = detailGrid(
+    { domain, low, high, cellsPerLength: preset.cellsPerLength, levels: MG_LEVELS, wakeLength: ext.wakeLength, wakeGrowth: ext.wakeGrowth, phase: ext.phase, clearanceBand },
+    zones,
+    detailRatio(settings),
+    ext.detailBudget,
+  );
   timings.grid = performance.now() - t0;
   const { x, y, z } = grid;
   const nx = x.n, ny = y.n, nz = z.n;
   const cells = grid.cells;
   const hmin = grid.h;
 
-  // Thin parts (thinner than ~2 cells) are rasterised as solid cell layers; everything else is cut.
-  const vox = voxelize(grid, parts);
-  const thin = new Set(vox.thinParts);
+  // Thin parts (thinner than ~1.5 cells) are rasterised as solid cell layers; everything else is cut.
+  const vox = voxelize(grid, parts, true, ext.thinCells ?? 1.5);
+  const thinMode = ext.thinMode ?? THIN_MODE;
+  // Closed thin parts within reach of the grid (a wing profile) become cut-cell solids thickened to
+  // THICKEN_CELLS local cells, so their rounded nose is kept: a zero-thickness stepped plate has a
+  // sharp leading edge and stalls early. Plates much thinner than that stay zero-thickness walls.
+  const thickened = new Map<number, number>();
+  if (thinMode === "wall" && !ext.thinCells)
+    for (const p of vox.thinParts) {
+      const { volume, area } = meshVolumeArea(parts[p].positions);
+      const t = area > 0 ? (2 * Math.abs(volume)) / area : 0;
+      const target = THICKEN_CELLS * thinSpacing(grid, parts[p].positions);
+      if (t >= THICKEN_MIN * target) thickened.set(p, Math.max(0, 0.5 * (target - t)));
+    }
+  const thin = new Set(vox.thinParts.filter((p) => !thickened.has(p)));
   const cutParts = parts.filter((_, i) => !thin.has(i));
   const ng = nodeGrid(grid);
   const inside = cutParts.length ? voxelize(ng, cutParts, false).solid : new Uint8Array(ng.cells);
@@ -257,9 +296,14 @@ export function prepareCase(allParts: SolverPart[], settings: Settings): CaseSet
   const cutIndex = partMap.filter((i) => !thin.has(i));
   const sdf = new Float32Array(ng.cells);
   for (let n = 0; n < ng.cells; n++) sdf[n] = inside[n] ? -nd.dist[n] : nd.dist[n];
+  // Thickened parts: offset surface (distance to the part below the offset is solid).
+  if (thickened.size)
+    for (let n = 0; n < ng.cells; n++) {
+      const off = thickened.get(nd.part[n]);
+      if (off) sdf[n] -= off;
+    }
   // Thin parts: either zero-thickness walls of closed faces ("wall"), or smooth cut-cell plates
   // thickened to a minimum that the grid can carry ("dilate").
-  const thinMode = ext.thinMode ?? THIN_MODE;
   if (thinMode === "dilate" && thin.size) {
     for (const p of thin) {
       const { volume, area } = meshVolumeArea(parts[p].positions);
@@ -502,7 +546,20 @@ export function prepareCase(allParts: SolverPart[], settings: Settings): CaseSet
   // the sum of the fine conductances crossing it; boundary terms add up.
   for (let l = 1; l < MG_LEVELS; l++) levels.push(galerkin(levels[l - 1]));
   timings.multigrid = performance.now() - t0 - timings.grid - timings.voxelize - timings.walls;
-  const faces = new Uint32Array(wallList.length ? wallList : [0, 0]);
+  // Sort wall entries by part so per-part forces are sums over contiguous ranges.
+  const order = Array.from({ length: wallList.length / 2 }, (_, q) => q).sort((a, b) => (wallList[2 * a + 1] & 255) - (wallList[2 * b + 1] & 255) || a - b);
+  const faces = new Uint32Array(wallList.length ? wallList.length : 2);
+  order.forEach((q, n) => {
+    faces[2 * n] = wallList[2 * q];
+    faces[2 * n + 1] = wallList[2 * q + 1];
+  });
+  const partRanges = new Uint32Array(2 * parts.length);
+  for (let n = 0; n < order.length; n++) {
+    const part = faces[2 * n + 1] & 255;
+    if (part >= parts.length) continue;
+    if (partRanges[2 * part + 1] === 0) partRanges[2 * part] = n;
+    partRanges[2 * part + 1] = n + 1;
+  }
 
   // Frontal area of the solid model: projected columns containing a mostly-solid cell.
   let voxelFrontalArea = 0;
@@ -536,6 +593,12 @@ export function prepareCase(allParts: SolverPart[], settings: Settings): CaseSet
     levels,
     faces,
     faceCount: wallList.length / 2,
+    partRanges,
+    partNames: parts.map((p) => p.name),
+    partIds: parts.map((p) => p.id),
+    partGroups: parts.map((p) => p.group),
+    detail: { ratio, requested, hmin: grid.hmin ?? grid.h, zones: ratio > 1 ? zones.map((z) => z.name) : [] },
+    lowFillWheels: parts.filter((p, i) => p.role === "wheel" && vox.partFill[i] < 0.5).map((p) => p.name),
     aper,
     wall,
     parts: partData,
@@ -559,7 +622,8 @@ export function prepareCase(allParts: SolverPart[], settings: Settings): CaseSet
     mergeBoost: boost,
     limiter: ext.limiter ?? 0,
     wallModel: ext.wallModel ?? WALL_MODEL,
-    thinParts: vox.thinParts.map((i) => parts[i].name),
+    thinParts: [...thin].map((i) => parts[i].name),
+    thickenedParts: [...thickened].map(([i, off]) => ({ name: parts[i].name, mm: Math.round(2000 * off) })),
     sealedCells,
     voxelFrontalArea,
     timings,

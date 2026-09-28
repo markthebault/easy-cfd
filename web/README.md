@@ -20,13 +20,23 @@ Browsers: Chrome or Edge 113+, Safari 26+, Firefox 141+ on Windows. The app tell
 
 ## Using it
 
-1. **Car.** Drop STL, OBJ, GLB or glTF files anywhere on the page, or open the sample car (with an optional rear wing). Set units, which way the nose points, which way is up, and road clearance. Wheels are detected by name or shape; check them in the part list and set their radius. Parts are organised in groups (body, wheels, rear wing, one per added file) that you can rename, create and switch on or off, for example to run several wing versions from one import. Confirm the checklist.
-2. **Conditions.** Road speed (5–300 km/h), crosswind yaw (±20°), reference area (with an exact frontal-area estimate), air density, moving road, rotating wheels, and an automatic or custom tunnel box.
-3. **Run.** Choose Fast, Medium or Precise, or Custom (cells along the car and number of flow passes). Medium, Precise and Custom runs extend themselves by up to 10 flow passes while forces are still drifting. The flow develops live on screen while forces converge.
-4. **Results.** Lift or downforce in kg and N, drag, Cd and Cl with a ± band (the spread over the averaging window), where the drag comes from (body/wheels, pressure/friction), force history and warnings. Visualise surface pressure, smoke, streamlines, a section plane (speed, pressure, total pressure, turbulence) and the wake volume.
-5. **Compare.** Pick two runs to see them side by side with synchronised cameras, shared colour scales and the changes in drag, downforce, Cd and Cl.
+1. **Car.** Drop STL, OBJ, GLB or glTF files anywhere on the page, or open the sample car (with an optional rear wing). Set units, which way the nose points, which way is up, and road clearance. Wheels are detected by name or shape; check them in the part list and set their radius. Parts are organised in groups (body, wheels, rear wing, one per added file) that you can rename, create and switch on or off, for example to run several wing versions from one import. Each group has a **Detail** setting (auto, always, off) that applies when detail cells are switched on. Confirm the checklist.
+2. **Conditions.** Road speed (5–300 km/h), crosswind yaw (±20°), reference area (with an exact frontal-area estimate), air density, moving road, rotating wheels, an automatic or custom tunnel box, and **detail boxes**: regions with finer cells for features inside a larger part, such as vents or holes in the hood.
+3. **Run.** Choose Fast, Medium or Precise, or Custom (cells along the car and number of flow passes). Optionally switch on experimental detail cells around aero parts. Medium, Precise and Custom runs extend themselves by up to 10 flow passes while forces are still drifting. The flow develops live on screen while forces converge.
+4. **Results.** Lift or downforce in kg and N, drag, Cd and Cl with a ± band (the spread over the averaging window), where the drag comes from (body/wheels, pressure/friction), downforce and drag of each group, force history with a moving average and its min, median and max, and warnings. Visualise surface pressure, smoke, streamlines, a section plane (speed, pressure, total pressure, turbulence) and the wake volume.
+5. **Compare.** Pick two runs to see them side by side with synchronised cameras, shared colour scales and the changes in drag, downforce, Cd and Cl, overall and per group. Every part whose own switch is on shapes the grid, even when its group is off, so variants of a design run on identical cells and Compare says so.
 
 Designs and runs are saved in the browser (IndexedDB). Runs can be exported as JSON with a CSV of the force history, and the view as PNG.
+
+## Engines
+
+WebGPU (in the browser, the default) or OpenFOAM (the EasyCFD server, for final checks), chosen in the Run step.
+- **When OpenFOAM is available:** when the page is served by the OpenFOAM app (`just run-openfoam`); detected at `/api/health`.
+- **Client:** `src/engine/openfoam.ts` is the server client and the mapping from server records to UI results. It measures the frame offset from the uploaded parts' bounds.
+- **Run flow:** `src/store/openfoamRuns.ts` runs, follows and opens OpenFOAM runs.
+- **Backend:** its endpoints for the viewer are in `backend/easycfd/webview.py`.
+
+See the main README for what OpenFOAM runs include.
 
 ## The solver
 
@@ -34,13 +44,13 @@ Designs and runs are saved in the browser (IndexedDB). Runs can be exported as J
 |---|---|
 | Equations | Steady incompressible RANS, k-ω SST (Menter 2003, OpenFOAM coefficients) |
 | Boundary conditions | As in the OpenFOAM app: fixed-velocity inlet with 1 % turbulence, fixed-pressure outlet, freestream sides, symmetry top, moving road, rotating wheels, wall functions |
-| Grid | Stretched Cartesian grid, finest around the car and near wake. Staggered velocities. |
-| Geometry | Cut cells: every cell and face crossed by the surface keeps its open fraction, from a signed distance field. Cells with a small fluid fraction are merged with a neighbour. Parts thinner than about 1.5 cells are zero-thickness walls. |
+| Grid | Stretched Cartesian grid, finest around the car and near wake. Staggered velocities. Optional (experimental, off by default): detail bands with cells 2–4× finer along the axes in which a thin or small part (wing, endplate, canard, splitter) or a detail box is small, capped at 4.5 M cells. |
+| Geometry | Cut cells: every cell and face crossed by the surface keeps its open fraction, from a signed distance field. Cells with a small fluid fraction are merged with a neighbour. Parts thinner than about 1.5 cells (measured along their own thin direction) are zero-thickness walls with their true outline and angle. Overlapping shells in one part stay solid (winding rule); wheels are never thin walls. |
 | Time marching | Local time steps toward the steady state; the pressure is projected every step with a geometric multigrid solver |
-| Forces | Pressure and wall shear on the cut surface, averaged over the last 30 % of the run |
+| Forces | Pressure and wall shear on the cut surface, averaged over the last 30 % of the run, in total and per part |
 | Tunnel | 3 car lengths upstream, 6 downstream, 2 to the sides and above (or a custom box) |
 
-Presets on a 4.2 m car: Fast and Medium use the same ≈ 1.7 M-cell grid (72 cells along the car); Fast stops after 5 flow passes, Medium after 10. Precise also solves a 2.5 M-cell grid and reports the mean of both. On an Apple M1: Fast 30–50 s, Medium 50–100 s, Precise 3–5 min.
+Presets on a 4.2 m car: Fast and Medium use a ≈ 1.7 M-cell grid (72 cells along the car); Fast stops after 5 flow passes, Medium after 10. Precise also solves a 2.5 M-cell grid and reports the mean of both. On an Apple M1: Fast 30–50 s, Medium 50–100 s, Precise 3–5 min. Detail cells (off by default) add cells and steps, 3–6× the run time: see [VALIDATION.md](VALIDATION.md#aero-parts-synthetic-kit-on-the-mx-5).
 
 Accuracy against the OpenFOAM app, model by model, is recorded in [VALIDATION.md](VALIDATION.md), including the models that miss the ±10 % target.
 

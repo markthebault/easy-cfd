@@ -20,6 +20,8 @@ interface Props {
   dark: boolean;
   box: number[] | null;
   fitBox?: boolean;
+  /** Detail boxes to outline ([x0, x1, y0, y1, z0, z1] each). */
+  detailBoxes?: number[][] | null;
   helpers: boolean;
   gizmo?: { right: number; bottom: number; size: number };
   insets?: { left: number; bottom: number };
@@ -66,6 +68,7 @@ export function StageView(props: Props) {
   useEffect(() => stage.current?.setField(props.field, props.ranges), [props.field, props.ranges]);
   useEffect(() => stage.current?.setViz(props.viz), [props.viz]);
   useEffect(() => stage.current?.setBox(props.box, props.fitBox), [props.box, props.fitBox]);
+  useEffect(() => stage.current?.setDetailBoxes(props.detailBoxes ?? null), [props.detailBoxes]);
   useEffect(() => stage.current?.setHelpers(props.helpers), [props.helpers]);
   useEffect(() => {
     if (stage.current && props.gizmo) {

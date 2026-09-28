@@ -1,6 +1,8 @@
 // Geometry to solid mask. Each part is ray-cast along X, Y and Z through cell centres; a cell
-// is solid when at least two of the three parity tests put its centre inside. The vote keeps
-// a single missing triangle or small crack from filling a whole row of cells.
+// is solid when at least two of the three tests put its centre inside. The vote keeps a single
+// missing triangle or small crack from filling a whole row of cells. Along a ray whose crossings
+// are consistently wound, the inside test is the non-zero winding rule, so overlapping or nested
+// shells (a tyre and a rim in one file) stay solid; other rays fall back to parity.
 // Parts too thin to contain any cell centre (wings, splitters) are rasterised as a surface layer.
 
 import { locate, type Axis, type Grid } from "./grid";
@@ -8,16 +10,21 @@ import { locate, type Axis, type Grid } from "./grid";
 interface Hits {
   ray: Int32Array;
   at: Float32Array;
+  /** +1 entering (normal against the ray), −1 leaving. */
+  dir: Int8Array;
   n: number;
 }
 
 function grow(h: Hits) {
   const ray = new Int32Array(h.ray.length * 2);
   const at = new Float32Array(h.at.length * 2);
+  const dir = new Int8Array(h.dir.length * 2);
   ray.set(h.ray);
   at.set(h.at);
+  dir.set(h.dir);
   h.ray = ray;
   h.at = at;
+  h.dir = dir;
 }
 
 function span(axis: Axis, lo: number, hi: number): [number, number] {
@@ -41,7 +48,7 @@ function castAxis(grid: Grid, tri: Float32Array, a: number, out: Uint8Array, jit
   const A = axes[a];
   const B = axes[b];
   const C = axes[c];
-  const hits: Hits = { ray: new Int32Array(1 << 16), at: new Float32Array(1 << 16), n: 0 };
+  const hits: Hits = { ray: new Int32Array(1 << 16), at: new Float32Array(1 << 16), dir: new Int8Array(1 << 16), n: 0 };
   // Irrational offsets keep rays off shared edges and vertices of axis-aligned input.
   const jb = jitter * 0.7548776662;
   const jc = jitter * 0.5698402909;
@@ -68,6 +75,8 @@ function castAxis(grid: Grid, tri: Float32Array, a: number, out: Uint8Array, jit
         if (hits.n === hits.ray.length) grow(hits);
         hits.ray[hits.n] = jb2 + B.n * jc2;
         hits.at[hits.n] = at;
+        // area is the triangle normal's component along the ray: negative means entering
+        hits.dir[hits.n] = area < 0 ? 1 : -1;
         hits.n++;
       }
     }
@@ -78,20 +87,38 @@ function castAxis(grid: Grid, tri: Float32Array, a: number, out: Uint8Array, jit
   for (let i = 0; i < hits.n; i++) start[hits.ray[i] + 1]++;
   for (let r = 0; r < rays; r++) start[r + 1] += start[r];
   const sorted = new Float32Array(hits.n);
+  const sortedDir = new Int8Array(hits.n);
   const fill = start.slice(0, rays);
-  for (let i = 0; i < hits.n; i++) sorted[fill[hits.ray[i]]++] = hits.at[i];
+  for (let i = 0; i < hits.n; i++) {
+    const k = fill[hits.ray[i]]++;
+    sorted[k] = hits.at[i];
+    sortedDir[k] = hits.dir[i];
+  }
   const stride = [1, grid.x.n, grid.x.n * grid.y.n];
   for (let r = 0; r < rays; r++) {
     const s = start[r];
     const e = start[r + 1];
     if (e - s < 2) continue;
-    const list = Array.from(sorted.subarray(s, e)).sort((p, q) => p - q);
+    const order = Array.from({ length: e - s }, (_, m) => s + m).sort((p, q) => sorted[p] - sorted[q]);
     const jb2 = r % B.n;
     const jc2 = (r / B.n) | 0;
     const base = jb2 * stride[b] + jc2 * stride[c];
-    for (let m = 0; m + 1 < list.length; m += 2) {
-      const [i0, i1] = span(A, list[m], list[m + 1]);
-      for (let i = i0; i <= i1; i++) out[base + i * stride[a]]++;
+    let total = 0;
+    for (const k of order) total += sortedDir[k];
+    if (total === 0) {
+      // Consistent winding: inside wherever the running winding number is non-zero.
+      let wind = 0;
+      for (let m = 0; m + 1 < order.length; m++) {
+        wind += sortedDir[order[m]];
+        if (!wind) continue;
+        const [i0, i1] = span(A, sorted[order[m]], sorted[order[m + 1]]);
+        for (let i = i0; i <= i1; i++) out[base + i * stride[a]]++;
+      }
+    } else {
+      for (let m = 0; m + 1 < order.length; m += 2) {
+        const [i0, i1] = span(A, sorted[order[m]], sorted[order[m + 1]]);
+        for (let i = i0; i <= i1; i++) out[base + i * stride[a]]++;
+      }
     }
   }
 }
@@ -111,7 +138,7 @@ export function meshVolumeArea(tri: Float32Array): { volume: number; area: numbe
 }
 
 function rasteriseSurface(grid: Grid, tri: Float32Array, label: number, solid: Uint8Array) {
-  const step = 0.4 * grid.h;
+  const step = 0.4 * (grid.hmin ?? grid.h);
   const nx = grid.x.n, nxy = grid.x.n * grid.y.n;
   for (let o = 0; o < tri.length; o += 9) {
     const e1 = Math.hypot(tri[o + 3] - tri[o], tri[o + 4] - tri[o + 1], tri[o + 5] - tri[o + 2]);
@@ -135,27 +162,70 @@ export interface VoxelResult {
   solid: Uint8Array;
   thinParts: number[];
   partCells: number[];
+  /** Solid volume found for each part relative to its mesh volume (low for open or inside-out meshes). */
+  partFill: number[];
 }
 
-export function voxelize(grid: Grid, parts: { positions: Float32Array }[], detectThin = true): VoxelResult {
+/** Mean width of the cells covering [lo, hi] on an axis. */
+function meanWidth(a: Axis, lo: number, hi: number): number {
+  const i0 = locate(a, lo), i1 = locate(a, hi);
+  let s = 0;
+  for (let i = i0; i <= i1; i++) s += a.widths[i];
+  return s / (i1 - i0 + 1);
+}
+
+/**
+ * Cell width a part's thickness is judged against: the grid spacing along the part's surface
+ * normals (area-weighted), over its bounding box. A wing (normals mostly vertical) is measured
+ * against the vertical spacing, an endplate against the lateral one.
+ */
+export function thinSpacing(grid: Grid, tri: Float32Array): number {
+  const w = [0, 0, 0];
+  const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+  for (let o = 0; o < tri.length; o += 9) {
+    const bx = tri[o + 3] - tri[o], by = tri[o + 4] - tri[o + 1], bz = tri[o + 5] - tri[o + 2];
+    const cx = tri[o + 6] - tri[o], cy = tri[o + 7] - tri[o + 1], cz = tri[o + 8] - tri[o + 2];
+    const n = [by * cz - bz * cy, bz * cx - bx * cz, bx * cy - by * cx];
+    const l = Math.hypot(n[0], n[1], n[2]);
+    if (l > 0) for (let a = 0; a < 3; a++) w[a] += (n[a] * n[a]) / l; // area × n_a², unit normal
+    for (let v = 0; v < 9; v += 3)
+      for (let a = 0; a < 3; a++) {
+        lo[a] = Math.min(lo[a], tri[o + v + a]);
+        hi[a] = Math.max(hi[a], tri[o + v + a]);
+      }
+  }
+  const sum = w[0] + w[1] + w[2];
+  if (!(sum > 0)) return grid.h;
+  const axes = [grid.x, grid.y, grid.z];
+  return axes.reduce((s, a, i) => s + (w[i] / sum) * meanWidth(a, lo[i], hi[i]), 0);
+}
+
+export function voxelize(grid: Grid, parts: { positions: Float32Array; role?: "body" | "wheel" }[], detectThin = true, thinCells = 1.5): VoxelResult {
   const cells = grid.cells;
   const solid = new Uint8Array(cells);
   const votes = new Uint8Array(cells);
   const thinParts: number[] = [];
   const partCells: number[] = [];
-  const cellVolume = grid.h ** 3;
+  const partFill: number[] = [];
+  const nx = grid.x.n, nxy = grid.x.n * grid.y.n;
+  const cellVolume = (i: number) => grid.x.widths[i % nx] * grid.y.widths[((i / nx) | 0) % grid.y.n] * grid.z.widths[(i / nxy) | 0];
   parts.forEach((part, p) => {
     votes.fill(0);
     for (let a = 0; a < 3; a++) castAxis(grid, part.positions, a, votes, grid.h * 1e-3);
     let count = 0;
+    let filled = 0;
     for (let i = 0; i < cells; i++)
       if (votes[i] >= 2) {
         if (!solid[i]) solid[i] = p + 1;
         count++;
+        if (detectThin) filled += cellVolume(i);
       }
     const { volume, area } = meshVolumeArea(part.positions);
     const thickness = area > 0 ? (2 * Math.abs(volume)) / area : 0;
-    if (detectThin && (thickness < 1.5 * grid.h || count * cellVolume < 0.5 * Math.abs(volume))) {
+    const fill = Math.abs(volume) > 0 ? filled / Math.abs(volume) : 1;
+    partFill.push(fill);
+    // Wheels are never thin: a tyre is wide, and a low fill means an open or doubled mesh, not a plate.
+    if (detectThin && part.role !== "wheel" && (thickness < thinCells * thinSpacing(grid, part.positions) || fill < 0.5)) {
       thinParts.push(p);
       rasteriseSurface(grid, part.positions, p + 1, solid);
       count = 0;
@@ -163,7 +233,7 @@ export function voxelize(grid: Grid, parts: { positions: Float32Array }[], detec
     }
     partCells.push(count);
   });
-  return { solid, thinParts, partCells };
+  return { solid, thinParts, partCells, partFill };
 }
 
 // Exact squared Euclidean distance transform on a non-uniform grid (Felzenszwalb & Huttenlocher),

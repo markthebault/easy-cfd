@@ -37,11 +37,12 @@ await page.route("**/geom/**", (route) => route.fulfill({ body: readFileSync(res
 await page.goto("http://127.0.0.1:5197/bench.html");
 await page.waitForFunction(() => window.cfdBench?.ready);
 const body = {
-  parts: model.parts.map((p) => ({ url: `/geom/${model.geometryRun}/geometry/${p.file}`, name: p.name, role: p.role, wheel: p.wheel })),
+  parts: model.parts.map((p) => ({ url: `/geom/${model.geometryRun}/geometry/${p.file}`, name: p.name, role: p.role, wheel: p.wheel, active: p.active, detail: p.detail })),
   settings: { ...model.settings, quality, ...extra }, targetPasses: Number(passes),
 };
 const zmid = model.dimensions[2] * 0.3;
-const out = await page.evaluate((b) => window.cfdBench.slices(b[0], b[1]), [body, [{ axis: "y", at: 0 }, { axis: "z", at: zmid }, { axis: "y", at: 1.05 * model.dimensions[1] / 2.34 }]]);
+const planeList = process.env.PLANES ? JSON.parse(process.env.PLANES) : [{ axis: "y", at: 0 }, { axis: "z", at: zmid }, { axis: "y", at: 1.05 * model.dimensions[1] / 2.34 }];
+const out = await page.evaluate((b) => window.cfdBench.slices(b[0], b[1]), [body, planeList]);
 const dir = resolve(here, "results", "slices");
 mkdirSync(dir, { recursive: true });
 const U = model.settings.speed_kmh / 3.6;

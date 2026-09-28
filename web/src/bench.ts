@@ -10,6 +10,8 @@ interface BenchPart {
   name: string;
   role: "body" | "wheel";
   wheel?: { center: [number, number, number]; radius: number } | null;
+  active?: boolean;
+  detail?: "auto" | "always" | "off";
 }
 
 interface BenchSpec {
@@ -34,13 +36,13 @@ async function run(spec: BenchSpec) {
   const parts: SolverPart[] = [];
   for (const p of spec.parts) {
     const buf = await (await fetch(p.url)).arrayBuffer();
-    parts.push({ id: p.name, name: p.name, role: p.role, wheel: p.wheel ?? null, positions: parseSTL(buf) });
+    parts.push({ id: p.name, name: p.name, role: p.role, wheel: p.wheel ?? null, positions: parseSTL(buf), active: p.active, detail: p.detail });
   }
   const settings: Settings = { ...DEFAULT_SETTINGS, ...spec.settings };
   const t0 = performance.now();
   const setup = prepareCase(parts, settings);
   const prepSeconds = (performance.now() - t0) / 1000;
-  log(`grid ${setup.grid.x.n}x${setup.grid.y.n}x${setup.grid.z.n} = ${setup.grid.cells} cells, h=${setup.grid.h.toFixed(4)}, faces ${setup.faceCount}, prep ${prepSeconds.toFixed(1)} s`);
+  log(`grid ${setup.grid.x.n}x${setup.grid.y.n}x${setup.grid.z.n} = ${setup.grid.cells} cells, h=${setup.grid.h.toFixed(4)}, hmin=${(setup.grid.hmin ?? 0).toFixed(4)}, detail ${setup.detail.ratio}× (${setup.detail.zones.length} zones), thin [${setup.thinParts.join(", ")}], thickened [${setup.thickenedParts.map((t) => `${t.name}+${t.mm}mm`).join(", ")}], faces ${setup.faceCount}, prep ${prepSeconds.toFixed(1)} s`);
   let lastLog = 0;
   const { result, solver } = await runSimulation(device, parts, settings, {
     setup,
@@ -65,6 +67,9 @@ async function run(spec: BenchSpec) {
     h: setup.grid.h,
     faces: setup.faceCount,
     thinParts: setup.thinParts,
+    thickenedParts: setup.thickenedParts,
+    detailZones: setup.detail.zones,
+    gridAxes: [setup.grid.x.n, setup.grid.y.n, setup.grid.z.n],
     sealedCells: setup.sealedCells,
     voxelFrontalArea: setup.voxelFrontalArea,
     timings: setup.timings,
@@ -83,7 +88,7 @@ async function debug(spec: BenchSpec, steps: number, opts: { vcycles?: number; p
   const parts: SolverPart[] = [];
   for (const p of spec.parts) {
     const buf = await (await fetch(p.url)).arrayBuffer();
-    parts.push({ id: p.name, name: p.name, role: p.role, wheel: p.wheel ?? null, positions: parseSTL(buf) });
+    parts.push({ id: p.name, name: p.name, role: p.role, wheel: p.wheel ?? null, positions: parseSTL(buf), active: p.active, detail: p.detail });
   }
   const settings: Settings = { ...DEFAULT_SETTINGS, ...spec.settings };
   const setup = prepareCase(parts, settings);
@@ -144,7 +149,7 @@ async function mg(spec: BenchSpec, cycles: number, variant: { pre?: number; post
   const parts: SolverPart[] = [];
   for (const p of spec.parts) {
     const buf = await (await fetch(p.url)).arrayBuffer();
-    parts.push({ id: p.name, name: p.name, role: p.role, wheel: p.wheel ?? null, positions: parseSTL(buf) });
+    parts.push({ id: p.name, name: p.name, role: p.role, wheel: p.wheel ?? null, positions: parseSTL(buf), active: p.active, detail: p.detail });
   }
   const settings: Settings = { ...DEFAULT_SETTINGS, ...spec.settings };
   const setup = prepareCase(parts, settings);
@@ -185,7 +190,7 @@ async function perf(spec: BenchSpec, steps: number, variant: { vcycles?: number;
   const parts: SolverPart[] = [];
   for (const p of spec.parts) {
     const buf = await (await fetch(p.url)).arrayBuffer();
-    parts.push({ id: p.name, name: p.name, role: p.role, wheel: p.wheel ?? null, positions: parseSTL(buf) });
+    parts.push({ id: p.name, name: p.name, role: p.role, wheel: p.wheel ?? null, positions: parseSTL(buf), active: p.active, detail: p.detail });
   }
   const settings: Settings = { ...DEFAULT_SETTINGS, ...spec.settings };
   const setup = prepareCase(parts, settings);
@@ -217,7 +222,7 @@ async function slices(spec: BenchSpec, planes: { axis: "y" | "z" | "x"; at: numb
   const parts: SolverPart[] = [];
   for (const p of spec.parts) {
     const buf = await (await fetch(p.url)).arrayBuffer();
-    parts.push({ id: p.name, name: p.name, role: p.role, wheel: p.wheel ?? null, positions: parseSTL(buf) });
+    parts.push({ id: p.name, name: p.name, role: p.role, wheel: p.wheel ?? null, positions: parseSTL(buf), active: p.active, detail: p.detail });
   }
   const settings: Settings = { ...DEFAULT_SETTINGS, ...spec.settings };
   const setup = prepareCase(parts, settings);
@@ -276,7 +281,7 @@ async function cellInfo(spec: BenchSpec, cells: number[][]) {
   const parts: SolverPart[] = [];
   for (const p of spec.parts) {
     const buf = await (await fetch(p.url)).arrayBuffer();
-    parts.push({ id: p.name, name: p.name, role: p.role, wheel: p.wheel ?? null, positions: parseSTL(buf) });
+    parts.push({ id: p.name, name: p.name, role: p.role, wheel: p.wheel ?? null, positions: parseSTL(buf), active: p.active, detail: p.detail });
   }
   const settings: Settings = { ...DEFAULT_SETTINGS, ...spec.settings };
   const s = prepareCase(parts, settings);
@@ -306,7 +311,7 @@ async function dtLimiters(spec: BenchSpec, steps: number) {
   const parts: SolverPart[] = [];
   for (const p of spec.parts) {
     const buf = await (await fetch(p.url)).arrayBuffer();
-    parts.push({ id: p.name, name: p.name, role: p.role, wheel: p.wheel ?? null, positions: parseSTL(buf) });
+    parts.push({ id: p.name, name: p.name, role: p.role, wheel: p.wheel ?? null, positions: parseSTL(buf), active: p.active, detail: p.detail });
   }
   const settings: Settings = { ...DEFAULT_SETTINGS, ...spec.settings };
   const s = prepareCase(parts, settings);

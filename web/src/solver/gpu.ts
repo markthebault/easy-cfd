@@ -4,7 +4,7 @@
 
 import { WG } from "./kernels/common";
 import { bcVelocityWGSL, correctWGSL, divergenceWGSL, dtFinalizeWGSL, dtReduceWGSL, momentumWGSL } from "./kernels/flow";
-import { forcesSumWGSL, forcesWGSL, prolongWGSL, restrictWGSL, smoothWGSL } from "./kernels/pressure";
+import { forcesSumWGSL, forcesWGSL, partForcesWGSL, prolongWGSL, restrictWGSL, smoothWGSL } from "./kernels/pressure";
 import { bcTurbWGSL, turbulenceWGSL } from "./kernels/turbulence";
 import { scaledLevels, type CaseSetup } from "./setup";
 import { NU } from "./types";
@@ -117,10 +117,14 @@ export class FlowSolver {
     this.buffer("wall", c.wall);
     this.buffer("faces", c.faces);
     this.buffer("partials", this.forceGroups * 12 * 4);
+    this.buffer("faceForce", Math.max(1, c.faceCount) * 6 * 4);
+    this.buffer("partRanges", c.partRanges.length ? c.partRanges : new Uint32Array(2));
+    this.buffer("partAcc", Math.max(1, c.partRanges.length / 2) * 6 * 4);
     this.buffer("history", HISTORY_SLOTS * 16 * 4);
     this.buffer("lmax", 16);
-    const hmin = c.grid.h;
-    this.buffer("state", new Float32Array([(0.1 * hmin) / c.freestream, 0, 0, 0]));
+    const hmin = c.grid.hmin ?? c.grid.h;
+    // [dt, GPU time, step, pace factor of pseudo time (set with local time stepping)]
+    this.buffer("state", new Float32Array([(0.1 * hmin) / c.freestream, 0, 0, 1]));
 
     // Initial field: free stream everywhere, zero on faces touching solid cells.
     const vel = new Float32Array(3 * NC);
@@ -193,7 +197,8 @@ export class FlowSolver {
     this.kernel("turbulence", turbulenceWGSL, [...base, "read", "read", "rw", "read", "read", "read"]);
     this.kernel("dtReduce", dtReduceWGSL, [...base, "read", "read", "rw", "read"]);
     this.kernel("dtFinalize", dtFinalizeWGSL, [...base, "rw", "rw"]);
-    this.kernel("forces", forcesWGSL, [...base, "read", "read", "read", "read", "rw", "read"]);
+    this.kernel("forces", forcesWGSL, [...base, "read", "read", "read", "read", "rw", "read", "rw"]);
+    this.kernel("partForces", partForcesWGSL, [...base, "read", "read", "read", "rw"], { NPARTS: Math.max(1, this.c.partRanges.length / 2) });
     this.kernel("forcesSum", forcesSumWGSL, [...base, "read", "rw", "rw"], { GROUPS: this.forceGroups });
     this.kernel("smooth0", smoothWGSL, ["uniform", "read", "rw", "read"], { COLOR: 0 });
     this.kernel("smooth1", smoothWGSL, ["uniform", "read", "rw", "read"], { COLOR: 1 });
@@ -227,7 +232,7 @@ export class FlowSolver {
       this.group(`momentum:${cur}`, "momentum", [...base, b.vel, b.velStar, t, b.aper, b.state, b.wall]);
       this.group(`turbulence:${cur}`, "turbulence", [...base, b.vel, t, tn, b.state, b.aper, b.wall]);
       this.group(`dtReduce:${cur}`, "dtReduce", [...base, b.vel, t, b.lmax, b.aper]);
-      this.group(`forces:${cur}`, "forces", [...base, b.vel, t, this.levelBuffers[0].phi, b.faces, b.partials, b.wall]);
+      this.group(`forces:${cur}`, "forces", [...base, b.vel, t, this.levelBuffers[0].phi, b.faces, b.partials, b.wall, b.faceForce]);
     }
     const L = this.levelBuffers;
     this.group("divergence", "divergence", [...base, b.velStar, L[0].rhs, b.state, b.aper]);
@@ -235,6 +240,7 @@ export class FlowSolver {
     this.group("correct", "correct", [...base, b.velStar, b.vel, L[0].phi, b.turbA, b.state, b.aper]);
     this.group("dtFinalize", "dtFinalize", [...base, b.lmax, b.state]);
     this.group("forcesSum", "forcesSum", [...base, b.partials, b.state, b.history]);
+    this.group("partForces", "partForces", [...base, b.faceForce, b.partRanges, b.state, b.partAcc]);
     L.forEach((lv, l) => {
       this.group(`smooth0:${l}`, "smooth0", [lv.uniform, lv.coef, lv.phi, lv.rhs]);
       this.group(`smooth1:${l}`, "smooth1", [lv.uniform, lv.coef, lv.phi, lv.rhs]);
@@ -305,6 +311,7 @@ export class FlowSolver {
     const next = this.stepParity === 0 ? "A" : "B";
     this.dispatch(pass, "forces", `forces:${next}`, c.faceCount);
     this.dispatch(pass, "forcesSum", "forcesSum", WG);
+    this.dispatch(pass, "partForces", "partForces", Math.max(1, this.c.partRanges.length / 2) * WG);
     if (!this.lts && this.stepsDone % this.dtInterval === 0) {
       this.dispatch(pass, "dtReduce", `dtReduce:${next}`, NC);
       this.dispatch(pass, "dtFinalize", "dtFinalize", 1);
@@ -402,6 +409,16 @@ export class FlowSolver {
     this.device.queue.writeBuffer(this.buffers.state, 0, new Float32Array([dtRef]));
     const levels = scaledLevels(this.c, fac);
     levels.forEach((lv, l) => this.device.queue.writeBuffer(this.levelBuffers[l].coef, 0, lv.coef));
+  }
+
+  /** Pace of pseudo time relative to the GPU clock (local time stepping), used to weight part forces. */
+  setPace(f: number) {
+    this.device.queue.writeBuffer(this.buffers.state, 12, new Float32Array([f]));
+  }
+
+  /** Running pseudo-time integrals of the force on each part: pressure (3), shear (3) per part, per unit density. */
+  async readPartForces(): Promise<Float32Array> {
+    return new Float32Array(await this.read(this.buffers.partAcc, Math.max(1, this.c.partRanges.length / 2) * 24));
   }
 
   /** Encode and submit `n` steps. */

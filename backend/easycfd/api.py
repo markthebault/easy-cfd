@@ -16,7 +16,7 @@ from fastapi import BackgroundTasks, FastAPI, File, Form, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ValidationError
-from . import geometry, plane, runner, storage, results, repair, seal, transform, wake
+from . import geometry, plane, runner, storage, results, repair, seal, transform, wake, webview
 from .models import ImportOptions, NewProject, Settings, PRESETS, resolved_preset
 
 
@@ -957,6 +957,16 @@ def compare(baseline: str, variant: str):
     )
 
 
-frontend = Path(__file__).resolve().parents[2] / "frontend/dist"
-if frontend.exists():
+app.include_router(webview.router)
+
+# The web UI (web/dist) is the main interface when it is built; the original UI stays at /legacy/
+# (built with that base path by scripts/setup.sh). Without a web build the original UI is at /.
+root = Path(__file__).resolve().parents[2]
+frontend = root / "frontend/dist"
+web = root / "web/dist"
+if web.exists():
+    if frontend.exists():
+        app.mount("/legacy", StaticFiles(directory=frontend, html=True), name="legacy")
+    app.mount("/", StaticFiles(directory=web, html=True), name="ui")
+elif frontend.exists():
     app.mount("/", StaticFiles(directory=frontend, html=True), name="ui")

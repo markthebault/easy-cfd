@@ -38,6 +38,7 @@ test("sample car, short run, results, layers, reopen after reload", async ({ pag
   const cd = (await page.getByTestId("card-cd").locator(".card-value").innerText()).trim();
   const cl = (await page.getByTestId("card-cl").locator(".card-value").innerText()).trim();
   expect(cd).toMatch(/^-?\d+\.\d{4}$/);
+  await expect(page.getByTestId("window-stats").locator("tbody tr")).toHaveCount(2);
   expect(cl).toMatch(/^-?\d+\.\d{4}$/);
   expect(Number(cd)).toBeGreaterThan(0);
   await expect(page.getByTestId("card-drag").locator(".card-value")).toContainText(/\d/);

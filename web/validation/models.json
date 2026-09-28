@@ -810,6 +810,1283 @@
      "residual_converged": true
     }
    ]
+  },
+  {
+   "id": "mx5-kit-base",
+   "name": "MX-5 + synthetic kit: kit off",
+   "geometryRun": "4cffc8ba20684ef6b5b7dfbdae478469",
+   "parts": [
+    {
+     "file": "part0.stl",
+     "name": "body",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part1.stl",
+     "name": "wheel_fr",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       -1.1707747876644135,
+       0.7157635688781738,
+       0.32345501076430083
+      ]
+     }
+    },
+    {
+     "file": "part2.stl",
+     "name": "wheel_rr",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       1.1257601976394653,
+       0.7157635688781738,
+       0.32345501076430083
+      ]
+     }
+    },
+    {
+     "file": "part3.stl",
+     "name": "wheel_fl",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       -1.1707747876644135,
+       -0.7181464433670044,
+       0.32345501076430083
+      ]
+     }
+    },
+    {
+     "file": "part4.stl",
+     "name": "wheel_rl",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       1.1257601976394653,
+       -0.7181464433670044,
+       0.32345501076430083
+      ]
+     }
+    },
+    {
+     "file": "part5.stl",
+     "name": "rear_wing",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    },
+    {
+     "file": "part6.stl",
+     "name": "wing_endplate_left",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    },
+    {
+     "file": "part7.stl",
+     "name": "wing_endplate_right",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    },
+    {
+     "file": "part8.stl",
+     "name": "wing_support_left",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    },
+    {
+     "file": "part9.stl",
+     "name": "wing_support_right",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    },
+    {
+     "file": "part10.stl",
+     "name": "front_splitter",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    },
+    {
+     "file": "part11.stl",
+     "name": "canard_left",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    },
+    {
+     "file": "part12.stl",
+     "name": "canard_right",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    }
+   ],
+   "dimensions": [
+    4.1009931564331055,
+    1.8947184085845947,
+    1.2300000097602606
+   ],
+   "settings": {
+    "speed_kmh": 100.0,
+    "yaw_deg": 0.0,
+    "reference_area": 2.0,
+    "density": 1.225,
+    "moving_ground": true,
+    "wheels": true
+   },
+   "references": [
+    {
+     "run": "4cffc8ba20684ef6b5b7dfbdae478469",
+     "quality": "medium",
+     "speed_kmh": 100.0,
+     "cd": 0.32033683903079996,
+     "cl": 0.23144433927279998,
+     "cells": 165835,
+     "settled": null
+    }
+   ],
+   "note": "Synthetic aero kit (validation/aero-kit). All kit parts shape the grid; inactive ones are not simulated."
+  },
+  {
+   "id": "mx5-kit-wing",
+   "name": "MX-5 + synthetic kit: rear wing only",
+   "geometryRun": "4cffc8ba20684ef6b5b7dfbdae478469",
+   "parts": [
+    {
+     "file": "part0.stl",
+     "name": "body",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part1.stl",
+     "name": "wheel_fr",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       -1.1707747876644135,
+       0.7157635688781738,
+       0.32345501076430083
+      ]
+     }
+    },
+    {
+     "file": "part2.stl",
+     "name": "wheel_rr",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       1.1257601976394653,
+       0.7157635688781738,
+       0.32345501076430083
+      ]
+     }
+    },
+    {
+     "file": "part3.stl",
+     "name": "wheel_fl",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       -1.1707747876644135,
+       -0.7181464433670044,
+       0.32345501076430083
+      ]
+     }
+    },
+    {
+     "file": "part4.stl",
+     "name": "wheel_rl",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       1.1257601976394653,
+       -0.7181464433670044,
+       0.32345501076430083
+      ]
+     }
+    },
+    {
+     "file": "part5.stl",
+     "name": "rear_wing",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part6.stl",
+     "name": "wing_endplate_left",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part7.stl",
+     "name": "wing_endplate_right",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part8.stl",
+     "name": "wing_support_left",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part9.stl",
+     "name": "wing_support_right",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part10.stl",
+     "name": "front_splitter",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    },
+    {
+     "file": "part11.stl",
+     "name": "canard_left",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    },
+    {
+     "file": "part12.stl",
+     "name": "canard_right",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    }
+   ],
+   "dimensions": [
+    4.1009931564331055,
+    1.8947184085845947,
+    1.2300000097602606
+   ],
+   "settings": {
+    "speed_kmh": 100.0,
+    "yaw_deg": 0.0,
+    "reference_area": 2.0,
+    "density": 1.225,
+    "moving_ground": true,
+    "wheels": true
+   },
+   "references": [
+    {
+     "run": "3efac4b69b5f428291749d5dff94988a",
+     "quality": "medium",
+     "speed_kmh": 100.0,
+     "cd": 0.3710964729099999,
+     "cl": 0.010104900097381998,
+     "cells": 443916,
+     "settled": null
+    }
+   ],
+   "note": "Synthetic aero kit (validation/aero-kit). All kit parts shape the grid; inactive ones are not simulated."
+  },
+  {
+   "id": "mx5-kit-full",
+   "name": "MX-5 + synthetic kit: full kit",
+   "geometryRun": "4cffc8ba20684ef6b5b7dfbdae478469",
+   "parts": [
+    {
+     "file": "part0.stl",
+     "name": "body",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part1.stl",
+     "name": "wheel_fr",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       -1.1707747876644135,
+       0.7157635688781738,
+       0.32345501076430083
+      ]
+     }
+    },
+    {
+     "file": "part2.stl",
+     "name": "wheel_rr",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       1.1257601976394653,
+       0.7157635688781738,
+       0.32345501076430083
+      ]
+     }
+    },
+    {
+     "file": "part3.stl",
+     "name": "wheel_fl",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       -1.1707747876644135,
+       -0.7181464433670044,
+       0.32345501076430083
+      ]
+     }
+    },
+    {
+     "file": "part4.stl",
+     "name": "wheel_rl",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       1.1257601976394653,
+       -0.7181464433670044,
+       0.32345501076430083
+      ]
+     }
+    },
+    {
+     "file": "part5.stl",
+     "name": "rear_wing",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part6.stl",
+     "name": "wing_endplate_left",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part7.stl",
+     "name": "wing_endplate_right",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part8.stl",
+     "name": "wing_support_left",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part9.stl",
+     "name": "wing_support_right",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part10.stl",
+     "name": "front_splitter",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part11.stl",
+     "name": "canard_left",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part12.stl",
+     "name": "canard_right",
+     "role": "body",
+     "wheel": null
+    }
+   ],
+   "dimensions": [
+    4.1009931564331055,
+    1.8947184085845947,
+    1.2300000097602606
+   ],
+   "settings": {
+    "speed_kmh": 100.0,
+    "yaw_deg": 0.0,
+    "reference_area": 2.0,
+    "density": 1.225,
+    "moving_ground": true,
+    "wheels": true
+   },
+   "references": [],
+   "note": "Synthetic aero kit (validation/aero-kit). All kit parts shape the grid; inactive ones are not simulated."
+  },
+  {
+   "id": "mx5-hw-base",
+   "name": "MX-5 + synthetic raised wing: wing off",
+   "geometryRun": "31d9e1da047e4abd84810ccf81755fd2",
+   "parts": [
+    {
+     "file": "part0.stl",
+     "name": "body",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part1.stl",
+     "name": "wheel_fr",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       -1.220278114080429,
+       0.7157635688781738,
+       0.3234550105407834
+      ]
+     }
+    },
+    {
+     "file": "part2.stl",
+     "name": "wheel_rr",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       1.0762568712234497,
+       0.7157635688781738,
+       0.3234550105407834
+      ]
+     }
+    },
+    {
+     "file": "part3.stl",
+     "name": "wheel_fl",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       -1.220278114080429,
+       -0.7181464433670044,
+       0.3234550105407834
+      ]
+     }
+    },
+    {
+     "file": "part4.stl",
+     "name": "wheel_rl",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       1.0762568712234497,
+       -0.7181464433670044,
+       0.3234550105407834
+      ]
+     }
+    },
+    {
+     "file": "part5.stl",
+     "name": "rear_wing_high",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    },
+    {
+     "file": "part6.stl",
+     "name": "wing_high_endplate_left",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    },
+    {
+     "file": "part7.stl",
+     "name": "wing_high_endplate_right",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    },
+    {
+     "file": "part8.stl",
+     "name": "wing_high_support_left",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    },
+    {
+     "file": "part9.stl",
+     "name": "wing_high_support_right",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    }
+   ],
+   "dimensions": [
+    4.001986503601074,
+    1.8947184085845947,
+    1.4800000097602606
+   ],
+   "settings": {
+    "speed_kmh": 100.0,
+    "yaw_deg": 0.0,
+    "reference_area": 2.0,
+    "density": 1.225,
+    "moving_ground": true,
+    "wheels": true
+   },
+   "references": [
+    {
+     "run": "31d9e1da047e4abd84810ccf81755fd2",
+     "quality": "medium",
+     "speed_kmh": 100.0,
+     "cd": 0.3187952255664,
+     "cl": 0.2253142223032,
+     "cells": 165926,
+     "settled": null
+    }
+   ],
+   "note": "Synthetic raised rear wing (validation/aero-kit, *_high). All parts shape the grid; inactive ones are not simulated."
+  },
+  {
+   "id": "mx5-hw-wing",
+   "name": "MX-5 + synthetic raised wing: wing on",
+   "geometryRun": "31d9e1da047e4abd84810ccf81755fd2",
+   "parts": [
+    {
+     "file": "part0.stl",
+     "name": "body",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part1.stl",
+     "name": "wheel_fr",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       -1.220278114080429,
+       0.7157635688781738,
+       0.3234550105407834
+      ]
+     }
+    },
+    {
+     "file": "part2.stl",
+     "name": "wheel_rr",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       1.0762568712234497,
+       0.7157635688781738,
+       0.3234550105407834
+      ]
+     }
+    },
+    {
+     "file": "part3.stl",
+     "name": "wheel_fl",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       -1.220278114080429,
+       -0.7181464433670044,
+       0.3234550105407834
+      ]
+     }
+    },
+    {
+     "file": "part4.stl",
+     "name": "wheel_rl",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       1.0762568712234497,
+       -0.7181464433670044,
+       0.3234550105407834
+      ]
+     }
+    },
+    {
+     "file": "part5.stl",
+     "name": "rear_wing_high",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part6.stl",
+     "name": "wing_high_endplate_left",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part7.stl",
+     "name": "wing_high_endplate_right",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part8.stl",
+     "name": "wing_high_support_left",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part9.stl",
+     "name": "wing_high_support_right",
+     "role": "body",
+     "wheel": null
+    }
+   ],
+   "dimensions": [
+    4.001986503601074,
+    1.8947184085845947,
+    1.4800000097602606
+   ],
+   "settings": {
+    "speed_kmh": 100.0,
+    "yaw_deg": 0.0,
+    "reference_area": 2.0,
+    "density": 1.225,
+    "moving_ground": true,
+    "wheels": true
+   },
+   "references": [
+    {
+     "run": "605418af25ca42e8994a1cfb3e631d74",
+     "quality": "medium",
+     "speed_kmh": 100.0,
+     "cd": 0.37024647103299996,
+     "cl": -0.1180245628222,
+     "cells": 583385,
+     "settled": null
+    }
+   ],
+   "note": "Synthetic raised rear wing (validation/aero-kit, *_high). All parts shape the grid; inactive ones are not simulated."
+  },
+  {
+   "id": "mx5-kit-splitter",
+   "name": "MX-5 + synthetic kit: splitter only",
+   "geometryRun": "4cffc8ba20684ef6b5b7dfbdae478469",
+   "parts": [
+    {
+     "file": "part0.stl",
+     "name": "body",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part1.stl",
+     "name": "wheel_fr",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       -1.1707747876644135,
+       0.7157635688781738,
+       0.32345501076430083
+      ]
+     }
+    },
+    {
+     "file": "part2.stl",
+     "name": "wheel_rr",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       1.1257601976394653,
+       0.7157635688781738,
+       0.32345501076430083
+      ]
+     }
+    },
+    {
+     "file": "part3.stl",
+     "name": "wheel_fl",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       -1.1707747876644135,
+       -0.7181464433670044,
+       0.32345501076430083
+      ]
+     }
+    },
+    {
+     "file": "part4.stl",
+     "name": "wheel_rl",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       1.1257601976394653,
+       -0.7181464433670044,
+       0.32345501076430083
+      ]
+     }
+    },
+    {
+     "file": "part5.stl",
+     "name": "rear_wing",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    },
+    {
+     "file": "part6.stl",
+     "name": "wing_endplate_left",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    },
+    {
+     "file": "part7.stl",
+     "name": "wing_endplate_right",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    },
+    {
+     "file": "part8.stl",
+     "name": "wing_support_left",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    },
+    {
+     "file": "part9.stl",
+     "name": "wing_support_right",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    },
+    {
+     "file": "part10.stl",
+     "name": "front_splitter",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part11.stl",
+     "name": "canard_left",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    },
+    {
+     "file": "part12.stl",
+     "name": "canard_right",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    }
+   ],
+   "dimensions": [
+    4.1009931564331055,
+    1.8947184085845947,
+    1.2300000097602606
+   ],
+   "settings": {
+    "speed_kmh": 100.0,
+    "yaw_deg": 0.0,
+    "reference_area": 2.0,
+    "density": 1.225,
+    "moving_ground": true,
+    "wheels": true
+   },
+   "references": [],
+   "note": "Synthetic aero kit (validation/aero-kit). All kit parts shape the grid; inactive ones are not simulated."
+  },
+  {
+   "id": "mx5-kit-front",
+   "name": "MX-5 + synthetic kit: splitter and canards",
+   "geometryRun": "4cffc8ba20684ef6b5b7dfbdae478469",
+   "parts": [
+    {
+     "file": "part0.stl",
+     "name": "body",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part1.stl",
+     "name": "wheel_fr",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       -1.1707747876644135,
+       0.7157635688781738,
+       0.32345501076430083
+      ]
+     }
+    },
+    {
+     "file": "part2.stl",
+     "name": "wheel_rr",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       1.1257601976394653,
+       0.7157635688781738,
+       0.32345501076430083
+      ]
+     }
+    },
+    {
+     "file": "part3.stl",
+     "name": "wheel_fl",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       -1.1707747876644135,
+       -0.7181464433670044,
+       0.32345501076430083
+      ]
+     }
+    },
+    {
+     "file": "part4.stl",
+     "name": "wheel_rl",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       1.1257601976394653,
+       -0.7181464433670044,
+       0.32345501076430083
+      ]
+     }
+    },
+    {
+     "file": "part5.stl",
+     "name": "rear_wing",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    },
+    {
+     "file": "part6.stl",
+     "name": "wing_endplate_left",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    },
+    {
+     "file": "part7.stl",
+     "name": "wing_endplate_right",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    },
+    {
+     "file": "part8.stl",
+     "name": "wing_support_left",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    },
+    {
+     "file": "part9.stl",
+     "name": "wing_support_right",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    },
+    {
+     "file": "part10.stl",
+     "name": "front_splitter",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part11.stl",
+     "name": "canard_left",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part12.stl",
+     "name": "canard_right",
+     "role": "body",
+     "wheel": null
+    }
+   ],
+   "dimensions": [
+    4.1009931564331055,
+    1.8947184085845947,
+    1.2300000097602606
+   ],
+   "settings": {
+    "speed_kmh": 100.0,
+    "yaw_deg": 0.0,
+    "reference_area": 2.0,
+    "density": 1.225,
+    "moving_ground": true,
+    "wheels": true
+   },
+   "references": [],
+   "note": "Synthetic aero kit (validation/aero-kit). All kit parts shape the grid; inactive ones are not simulated."
+  },
+  {
+   "id": "wing-alone",
+   "name": "Synthetic raised wing alone (no car), reference area = planform 0.394 m\u00b2",
+   "geometryRun": "31d9e1da047e4abd84810ccf81755fd2",
+   "parts": [
+    {
+     "file": "part5.stl",
+     "name": "rear_wing_high",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part6.stl",
+     "name": "wing_high_endplate_left",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part7.stl",
+     "name": "wing_high_endplate_right",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part8.stl",
+     "name": "wing_high_support_left",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part9.stl",
+     "name": "wing_high_support_right",
+     "role": "body",
+     "wheel": null
+    }
+   ],
+   "dimensions": [
+    0.4,
+    1.42,
+    0.3
+   ],
+   "settings": {
+    "speed_kmh": 100.0,
+    "yaw_deg": 0.0,
+    "reference_area": 0.3937,
+    "density": 1.225,
+    "moving_ground": true,
+    "wheels": true
+   },
+   "references": [],
+   "note": "Numerical check of the wing model; no OpenFOAM reference."
+  },
+  {
+   "id": "mx5-mw-base",
+   "name": "MX-5 + synthetic raised wing 4\u00b0: wing off",
+   "geometryRun": "ffd5128f88d94e1ca4300486329af71c",
+   "parts": [
+    {
+     "file": "part0.stl",
+     "name": "body",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part1.stl",
+     "name": "wheel_fr",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       -1.220278114080429,
+       0.7157635688781738,
+       0.3234550105407834
+      ]
+     }
+    },
+    {
+     "file": "part2.stl",
+     "name": "wheel_rr",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       1.0762568712234497,
+       0.7157635688781738,
+       0.3234550105407834
+      ]
+     }
+    },
+    {
+     "file": "part3.stl",
+     "name": "wheel_fl",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       -1.220278114080429,
+       -0.7181464433670044,
+       0.3234550105407834
+      ]
+     }
+    },
+    {
+     "file": "part4.stl",
+     "name": "wheel_rl",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       1.0762568712234497,
+       -0.7181464433670044,
+       0.3234550105407834
+      ]
+     }
+    },
+    {
+     "file": "part5.stl",
+     "name": "rear_wing_mid",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    },
+    {
+     "file": "part6.stl",
+     "name": "wing_high_endplate_left",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    },
+    {
+     "file": "part7.stl",
+     "name": "wing_high_endplate_right",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    },
+    {
+     "file": "part8.stl",
+     "name": "wing_mid_support_left",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    },
+    {
+     "file": "part9.stl",
+     "name": "wing_mid_support_right",
+     "role": "body",
+     "wheel": null,
+     "active": false
+    }
+   ],
+   "dimensions": [
+    4.001986503601074,
+    1.8947184085845947,
+    1.4800000097602606
+   ],
+   "settings": {
+    "speed_kmh": 100.0,
+    "yaw_deg": 0.0,
+    "reference_area": 2.0,
+    "density": 1.225,
+    "moving_ground": true,
+    "wheels": true
+   },
+   "references": [
+    {
+     "run": "ffd5128f88d94e1ca4300486329af71c",
+     "quality": "medium",
+     "speed_kmh": 100.0,
+     "cd": 0.31874991236419997,
+     "cl": 0.2254939594368,
+     "cells": 165926,
+     "settled": null
+    }
+   ],
+   "note": "Synthetic raised rear wing at 4 degrees (validation/aero-kit, *_mid). All parts shape the grid; inactive ones are not simulated."
+  },
+  {
+   "id": "mx5-mw-wing",
+   "name": "MX-5 + synthetic raised wing 4\u00b0: wing on",
+   "geometryRun": "ffd5128f88d94e1ca4300486329af71c",
+   "parts": [
+    {
+     "file": "part0.stl",
+     "name": "body",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part1.stl",
+     "name": "wheel_fr",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       -1.220278114080429,
+       0.7157635688781738,
+       0.3234550105407834
+      ]
+     }
+    },
+    {
+     "file": "part2.stl",
+     "name": "wheel_rr",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       1.0762568712234497,
+       0.7157635688781738,
+       0.3234550105407834
+      ]
+     }
+    },
+    {
+     "file": "part3.stl",
+     "name": "wheel_fl",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       -1.220278114080429,
+       -0.7181464433670044,
+       0.3234550105407834
+      ]
+     }
+    },
+    {
+     "file": "part4.stl",
+     "name": "wheel_rl",
+     "role": "wheel",
+     "wheel": {
+      "radius": 0.3134550107643008,
+      "center": [
+       1.0762568712234497,
+       -0.7181464433670044,
+       0.3234550105407834
+      ]
+     }
+    },
+    {
+     "file": "part5.stl",
+     "name": "rear_wing_mid",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part6.stl",
+     "name": "wing_high_endplate_left",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part7.stl",
+     "name": "wing_high_endplate_right",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part8.stl",
+     "name": "wing_mid_support_left",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part9.stl",
+     "name": "wing_mid_support_right",
+     "role": "body",
+     "wheel": null
+    }
+   ],
+   "dimensions": [
+    4.001986503601074,
+    1.8947184085845947,
+    1.4800000097602606
+   ],
+   "settings": {
+    "speed_kmh": 100.0,
+    "yaw_deg": 0.0,
+    "reference_area": 2.0,
+    "density": 1.225,
+    "moving_ground": true,
+    "wheels": true
+   },
+   "references": [
+    {
+     "run": "c9fb097720a34fcca6cab7062adc142c",
+     "quality": "medium",
+     "speed_kmh": 100.0,
+     "cd": 0.34204059816960003,
+     "cl": -0.0546980813358,
+     "cells": 602048,
+     "settled": null
+    }
+   ],
+   "note": "Synthetic raised rear wing at 4 degrees (validation/aero-kit, *_mid). All parts shape the grid; inactive ones are not simulated."
+  },
+  {
+   "id": "wing-mid-alone",
+   "name": "Synthetic raised 4\u00b0 wing alone (no car), reference area = planform 0.394 m\u00b2",
+   "geometryRun": "ffd5128f88d94e1ca4300486329af71c",
+   "parts": [
+    {
+     "file": "part5.stl",
+     "name": "rear_wing_mid",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part6.stl",
+     "name": "wing_high_endplate_left",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part7.stl",
+     "name": "wing_high_endplate_right",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part8.stl",
+     "name": "wing_mid_support_left",
+     "role": "body",
+     "wheel": null
+    },
+    {
+     "file": "part9.stl",
+     "name": "wing_mid_support_right",
+     "role": "body",
+     "wheel": null
+    }
+   ],
+   "dimensions": [
+    0.4,
+    1.42,
+    0.3
+   ],
+   "settings": {
+    "speed_kmh": 100.0,
+    "yaw_deg": 0.0,
+    "reference_area": 0.3937,
+    "density": 1.225,
+    "moving_ground": true,
+    "wheels": true
+   },
+   "references": [],
+   "note": "Numerical check of the wing model; no OpenFOAM reference."
   }
  ]
 }

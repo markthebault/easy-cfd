@@ -28,6 +28,8 @@ export interface PartGroup {
   id: string;
   name: string;
   enabled: boolean;
+  /** Finer cells around the group's parts: auto (thin or small parts, default), always, off. */
+  detail?: "auto" | "always" | "off";
 }
 
 export interface DesignDoc {
