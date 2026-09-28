@@ -11,10 +11,12 @@ import { LegendStack } from "./Legend";
 import { StageView, stages } from "./StageView";
 import { ViewBar } from "./Chrome";
 import { VizDock } from "./VizDock";
-import { conditionsLine, fmt, fmtDate, groupsLine, qualityLabel, signed } from "./format";
+import { conditionsLine, fmt, fmtDate, groupForces, groupsLine, qualityLabel, signed } from "./format";
 
 function conditionDiffs(a: Settings, b: Settings): string[] {
   const out: string[] = [];
+  const ea = a.engine === "openfoam" ? "OpenFOAM" : "WebGPU", eb = b.engine === "openfoam" ? "OpenFOAM" : "WebGPU";
+  if (ea !== eb) out.push(`solver ${ea} vs ${eb}`);
   if (a.speed_kmh !== b.speed_kmh) out.push(`speed ${a.speed_kmh} vs ${b.speed_kmh} km/h`);
   if (a.yaw_deg !== b.yaw_deg) out.push(`yaw ${a.yaw_deg}° vs ${b.yaw_deg}°`);
   if (a.reference_area !== b.reference_area) out.push(`reference area ${a.reference_area} vs ${b.reference_area} m²`);
@@ -68,6 +70,38 @@ function Delta({ label, a, b, unit, digits, better, note }: { label: string; a: 
   );
 }
 
+/** Per-group downforce and drag of both runs, for the groups either run simulated. */
+function GroupDeltas({ a, b }: { a: LoadedRun; b: LoadedRun }) {
+  const ga = groupForces(a.doc.result, a.doc.geometry), gb = groupForces(b.doc.result, b.doc.geometry);
+  if (!ga.length || !gb.length) return null;
+  const ids = [...new Set([...ga.map((g) => g.id), ...gb.map((g) => g.id)])];
+  if (ids.length < 2) return null;
+  const val = (list: typeof ga, id: string) => list.find((g) => g.id === id);
+  return (
+    <table className="compare-groups" data-testid="compare-groups">
+      <thead>
+        <tr><th /><th colSpan={3}>Downforce (kg)</th><th colSpan={3}>Drag (N)</th></tr>
+        <tr><th /><th>A</th><th>B</th><th>Δ</th><th>A</th><th>B</th><th>Δ</th></tr>
+      </thead>
+      <tbody>
+        {ids.map((id) => {
+          const x = val(ga, id), y = val(gb, id);
+          const name = (x ?? y)!.name;
+          const cell = (v: number | undefined, d: number) => (v === undefined ? "–" : fmt(v, d));
+          const delta = (p: number | undefined, q: number | undefined, d: number) => signed((q ?? 0) - (p ?? 0), d);
+          return (
+            <tr key={id}>
+              <th scope="row">{name}</th>
+              <td>{cell(x?.downforceKg, 1)}</td><td>{cell(y?.downforceKg, 1)}</td><td className="d">{delta(x?.downforceKg, y?.downforceKg, 1)}</td>
+              <td>{cell(x?.drag, 0)}</td><td>{cell(y?.drag, 0)}</td><td className="d">{delta(x?.drag, y?.drag, 0)}</td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}
+
 export function CompareView() {
   const cmp = useStore(app, (s) => s.compare);
   const viz = useStore(app, (s) => s.viz);
@@ -97,7 +131,7 @@ export function CompareView() {
       />
       <div className="compare-tag glass">
         <b>{tag}</b> {r.doc.designName}
-        <span className="muted small">{conditionsLine(r.doc.settings)} · {fmtDate(r.doc.createdAt)}</span>
+        <span className="muted small">{r.doc.result.engine === "openfoam" ? "OpenFOAM" : "WebGPU"} · {conditionsLine(r.doc.settings)} · {fmtDate(r.doc.createdAt)}</span>
         {groupsLine(r.doc.geometry) && <span className="small groups-line">Groups: {groupsLine(r.doc.geometry)}</span>}
       </div>
     </div>
@@ -115,6 +149,11 @@ export function CompareView() {
           <Delta label="Cd" a={ra.cd} b={rb.cd} unit="" digits={4} better="lower" />
           <Delta label="Cl" a={ra.cl} b={rb.cl} unit="" digits={4} better={null} />
         </div>
+        <GroupDeltas a={a} b={b} />
+        {ra.gridId && rb.gridId && ra.gridId !== rb.gridId && (
+          <p className="compare-grid muted small"><TriangleAlert size={13} /> The runs used different grids; a few per cent of the difference can come from the grid alone.</p>
+        )}
+        {ra.gridId && ra.gridId === rb.gridId && <p className="compare-grid muted small">Same grid for both runs: the difference comes from the geometry and conditions.</p>}
         {(cond.length > 0 || parts.length > 0) && (
           <div className="compare-warn">
             {cond.length > 0 && <p><TriangleAlert size={14} /> <b>Conditions differ:</b> {cond.join(" · ")}. The difference is not only due to the shape.</p>}

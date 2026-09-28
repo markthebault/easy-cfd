@@ -1,7 +1,7 @@
 // Number and text formatting shared by the panels.
 
 import type { GeometrySummary } from "../store/types";
-import { G, type RunResult, type Settings } from "../solver/types";
+import { detailRatio, G, type RunResult, type Settings } from "../solver/types";
 import { PRESETS } from "../solver/types";
 
 export const fmt = (v: number, digits = 2) => (Number.isFinite(v) ? v.toFixed(digits) : "–");
@@ -35,8 +35,9 @@ export function verticalLoad(r: RunResult): { label: "Downforce" | "Lift"; kg: n
 }
 
 export function qualityLabel(s: Settings): string {
-  if (s.quality === "custom") return `Custom ${s.custom_cells} cells · ${s.custom_passes} passes`;
-  return PRESETS[s.quality].label;
+  const base = s.quality === "custom" ? `Custom ${s.custom_cells} cells · ${s.custom_passes} passes` : PRESETS[s.quality].label;
+  const d = detailRatio(s);
+  return d > 1 ? `${base} · detail ${d}×` : base;
 }
 
 export function conditionsLine(s: Settings): string {
@@ -62,4 +63,31 @@ export function pct(part: number, total: number): string {
 export function signed(v: number, digits = 1): string {
   if (!Number.isFinite(v)) return "–";
   return `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(digits)}`;
+}
+
+export interface GroupForce {
+  id: string;
+  name: string;
+  /** N, positive rearward. */
+  drag: number;
+  /** kg, positive pushing the car down. */
+  downforceKg: number;
+  parts: string[];
+}
+
+/** Time-averaged forces summed per group (runs saved before per-part forces have none). */
+export function groupForces(r: RunResult, g: GeometrySummary): GroupForce[] {
+  if (!r.partForces?.length) return [];
+  const names = new Map((g.groups ?? []).map((x) => [x.id, x.name]));
+  const rows = new Map<string, GroupForce>();
+  for (const f of r.partForces) {
+    const id = f.group ?? "g:body";
+    const row = rows.get(id) ?? { id, name: names.get(id) ?? (id === "g:wheels" ? "Wheels" : "Body"), drag: 0, downforceKg: 0, parts: [] };
+    row.drag += f.pressure[0] + f.friction[0];
+    row.downforceKg -= (f.pressure[2] + f.friction[2]) / G;
+    row.parts.push(f.name);
+    rows.set(id, row);
+  }
+  const order = (x: GroupForce) => (x.id === "g:body" ? 0 : x.id === "g:wheels" ? 1 : 2);
+  return [...rows.values()].sort((a, b) => order(a) - order(b));
 }

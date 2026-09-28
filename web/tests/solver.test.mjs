@@ -134,3 +134,92 @@ test("connected components and axis conversion", () => {
   const nose = [m[0] * 0 + m[1] * 1 + m[2] * 0, m[3] * 0 + m[4] * 1 + m[5] * 0, m[6] * 0 + m[7] * 1 + m[8] * 0];
   assert.deepEqual(nose.map((v) => Math.round(v)), [-1, 0, 0]);
 });
+
+test("window statistics and moving average of force history", async () => {
+  const ws = await server.ssrLoadModule("/src/ui/windowStats.ts");
+  // Synthetic history: 1 s per pass, 10 samples per pass, Cd constant 0.3, Cl a square wave 0.1/0.3.
+  const history = Array.from({ length: 50 }, (_, i) => ({ time: 0.1 * (i + 1), step: i, cd: 0.3, cl: i % 2 ? 0.3 : 0.1, cs: 0 }));
+  const s = ws.trailingStats(history, 1, 2);
+  assert.ok(Math.abs(s.from - 3) < 1e-9);
+  assert.equal(s.cd.n, 21);
+  assert.ok(Math.abs(s.cd.mean - 0.3) < 1e-12 && s.cd.min === 0.3 && s.cd.max === 0.3);
+  assert.equal(s.cl.min, 0.1);
+  assert.equal(s.cl.max, 0.3);
+  assert.ok(Math.abs(s.cl.median - 0.3) < 1e-12, `median ${s.cl.median}`); // 11 highs of 21
+  const ma = ws.movingAverage(history, 1);
+  assert.equal(ma.length, history.length);
+  assert.ok(Math.abs(ma[0].cl - 0.1) < 1e-12);
+  for (const m of ma.slice(20)) assert.ok(Math.abs(m.cl - 0.2) < 0.011, `ma ${m.cl}`);
+  assert.equal(ws.trailingStats(history.slice(0, 2), 1, 2), null);
+});
+
+// Closed axis-aligned box as a triangle soup (outward winding).
+function boxSoup(x0, x1, y0, y1, z0, z1) {
+  const p = (i, j, k) => [i ? x1 : x0, j ? y1 : y0, k ? z1 : z0];
+  const quads = [
+    [p(0, 0, 0), p(0, 1, 0), p(1, 1, 0), p(1, 0, 0)], [p(0, 0, 1), p(1, 0, 1), p(1, 1, 1), p(0, 1, 1)],
+    [p(0, 0, 0), p(1, 0, 0), p(1, 0, 1), p(0, 0, 1)], [p(0, 1, 0), p(0, 1, 1), p(1, 1, 1), p(1, 1, 0)],
+    [p(0, 0, 0), p(0, 0, 1), p(0, 1, 1), p(0, 1, 0)], [p(1, 0, 0), p(1, 1, 0), p(1, 1, 1), p(1, 0, 1)],
+  ];
+  return Float32Array.from(quads.flatMap(([a, b, c, d]) => [...a, ...b, ...c, ...a, ...c, ...d]));
+}
+const concat = (...arrs) => { const out = new Float32Array(arrs.reduce((n, a) => n + a.length, 0)); let o = 0; for (const a of arrs) { out.set(a, o); o += a.length; } return out; };
+
+test("switching a part off keeps the grid identical (variants run on the same cells)", () => {
+  const parts = sample.sampleCar(true).map((p) => ({ ...p, id: p.name }));
+  const wing = parts.findIndex((p) => /wing/i.test(p.name));
+  assert.ok(wing >= 0);
+  const settings = { ...types.DEFAULT_SETTINGS, quality: "fast", detail_ratio: 2 };
+  const on = setup.prepareCase(parts, settings);
+  const off = setup.prepareCase(parts.map((p, i) => (i === wing ? { ...p, active: false } : p)), settings);
+  for (const a of ["x", "y", "z"]) assert.deepEqual(Array.from(off.grid[a].faces), Array.from(on.grid[a].faces), `${a} faces`);
+  assert.equal(off.partNames.length, on.partNames.length - 1);
+  assert.ok(on.detail.ratio > 1 && on.detail.zones.some((z) => /wing/i.test(z)), `wing refined: ${JSON.stringify(on.detail)}`);
+  assert.ok(on.grid.hmin < 0.6 * on.grid.h, `detail cells ${on.grid.hmin} vs ${on.grid.h}`);
+  // Per-part force ranges cover every wall entry exactly once.
+  let n = 0;
+  for (let p = 0; p < on.partNames.length; p++) n += on.partRanges[2 * p + 1] - on.partRanges[2 * p];
+  assert.equal(n, on.faceCount);
+});
+
+test("overlapping shells in one part stay solid; wheels are never thin walls", () => {
+  const g = grid.buildGrid({ domain: [-2, 3, -1.5, 1.5, 0, 2], low: [-0.5, -0.5, 0.1], high: [0.5, 0.5, 0.6], cellsPerLength: 40, levels: 1 });
+  // Two overlapping boxes in one soup: parity would hollow out the overlap, the winding rule does not.
+  const soup = concat(boxSoup(-0.5, 0.2, -0.3, 0.3, 0.1, 0.5), boxSoup(-0.2, 0.5, -0.3, 0.3, 0.1, 0.5));
+  const v = vox.voxelize(g, [{ positions: soup }]);
+  const cellVol = (i) => g.x.widths[i % g.x.n] * g.y.widths[Math.floor(i / g.x.n) % g.y.n] * g.z.widths[Math.floor(i / (g.x.n * g.y.n))];
+  let solidVol = 0;
+  for (let i = 0; i < g.cells; i++) if (v.solid[i]) solidVol += cellVol(i);
+  const union = 1.0 * 0.6 * 0.4;
+  assert.ok(Math.abs(solidVol - union) / union < 0.15, `solid ${solidVol} vs union ${union}`);
+  // A thin disc marked as a wheel is not turned into a zero-thickness wall.
+  const disc = boxSoup(-0.3, 0.3, -0.01, 0.01, 0.1, 0.4);
+  const w = vox.voxelize(g, [{ positions: disc, role: "wheel" }, { positions: disc, role: "body" }]);
+  assert.deepEqual(w.thinParts, [1]);
+});
+
+test("detail bands: finer cells inside the band, bounded growth, multigrid-friendly count", () => {
+  const spec = { lo: -10, hi: 20, fineLo: -2, fineHi: 5, h: 0.05, growthLo: 1.15, growthHi: 1.08, hmax: 0.8 };
+  const a = grid.buildAxis(spec, 16, undefined, [{ lo: 1, hi: 1.3, h: 0.0125 }]);
+  assert.equal(a.n % 16, 0);
+  const inBand = [...a.centers].map((c, i) => [c, a.widths[i]]).filter(([c]) => c > 1.02 && c < 1.28);
+  for (const [, w] of inBand) assert.ok(w < 0.0135, `band width ${w}`);
+  for (let i = 1; i < a.n; i++) {
+    const r = a.widths[i] / a.widths[i - 1];
+    assert.ok(r < 2.01 && r > 0.49, `ratio ${r}`);
+  }
+  const plain = grid.buildAxis(spec, 16);
+  assert.deepEqual(Array.from(grid.buildAxis(spec, 16, undefined, []).faces), Array.from(plain.faces));
+});
+
+test("detail boxes refine a region inside a larger part", () => {
+  const parts = sample.sampleCar(false).map((p) => ({ ...p, id: p.name }));
+  const settings = { ...types.DEFAULT_SETTINGS, quality: "fast" };
+  const plain = setup.prepareCase(parts, settings);
+  assert.equal(plain.detail.ratio, 1);
+  const box = { name: "Hood vent", x_min: -1.6, x_max: -1.0, y_min: -0.4, y_max: 0.4, z_min: 0.7, z_max: 1.0 };
+  const c = setup.prepareCase(parts, { ...settings, detail_ratio: 3, detail_boxes: [box] });
+  assert.deepEqual(c.detail.zones, ["Hood vent"]);
+  const i = grid.locate(c.grid.x, -1.3), j = grid.locate(c.grid.y, 0), k = grid.locate(c.grid.z, 0.85);
+  for (const [a, n] of [[c.grid.x, i], [c.grid.y, j], [c.grid.z, k]]) assert.ok(a.widths[n] < 0.6 * c.grid.h, `width ${a.widths[n]} vs h ${c.grid.h}`);
+});

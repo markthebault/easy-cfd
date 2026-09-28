@@ -15,7 +15,10 @@ if ! docker info >/dev/null 2>&1; then
 fi
 uv sync --locked --python 3.12
 npm --prefix frontend ci
-npm --prefix frontend run build
+# The original UI is served at /legacy/ next to the web UI at /.
+npm --prefix frontend run build -- --base=/legacy/
+npm --prefix web ci
+npm --prefix web run build
 solver_image=$(uv run python -c 'from easycfd.foam import IMAGE; print(IMAGE)')
 docker pull "$solver_image"
 echo "Setup complete. Start with ./scripts/start.sh and open http://127.0.0.1:8000"

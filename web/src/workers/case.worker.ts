@@ -33,7 +33,8 @@ self.onmessage = (e: MessageEvent<CaseRequest>) => {
   const msg = e.data;
   try {
     if (msg.type === "prepare") {
-      parts = msg.parts;
+      // Surfaces are sampled for the simulated parts only (inactive parts just shape the grid).
+      parts = msg.parts.filter((p) => p.active !== false);
       const setup = prepareCase(parts, msg.settings);
       setup.caseKey = nextKey++;
       // Only what extraction reads; everything else is transferred to the main thread.

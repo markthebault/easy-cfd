@@ -9,6 +9,15 @@ fi
 if [[ ! -d .venv || ! -f frontend/dist/index.html ]]; then
   ./scripts/setup.sh
 fi
+# The web UI (served at /) is rebuilt on each start so it matches the checkout; the original UI
+# (served at /legacy/) is rebuilt when it was built for another base path.
+if command -v npm >/dev/null 2>&1; then
+  [[ -d web/node_modules ]] || npm --prefix web ci
+  npm --prefix web run build --silent >/dev/null
+  if ! grep -q '/legacy/assets/' frontend/dist/index.html; then
+    npm --prefix frontend run build --silent -- --base=/legacy/ >/dev/null
+  fi
+fi
 if [[ "${1:-}" == "--open" ]]; then
   uv run python -c 'import threading, webbrowser; t=threading.Timer(3, lambda: webbrowser.open("http://127.0.0.1:8000")); t.start()' &
 fi

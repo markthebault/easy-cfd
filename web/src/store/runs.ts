@@ -1,7 +1,8 @@
 // Running simulations, saving them, reopening them and exporting them.
 
 import type { Part } from "../geometry/model";
-import type { SurfaceSample } from "../solver/extract";
+import type { SurfaceSample, VizField } from "../solver/extract";
+import { cancelOpenFoamRun, startOpenFoamRun } from "./openfoamRuns";
 import { runSimulation } from "../solver/run";
 import { resolvePreset } from "../solver/types";
 import { CaseWorker } from "../workers/caseClient";
@@ -22,17 +23,32 @@ function patchLive(p: Partial<LiveState>) {
   app.set((s) => (s.live ? { live: { ...s.live, ...p } } : {}));
 }
 
+/** Save a finished run (either engine) in the browser and show it. */
+export async function saveAndShow(doc: RunDoc, enabled: Part[], field: VizField | null, surface: SurfaceSample[] | null) {
+  const keys = enabled.map(partKey);
+  try {
+    if (field) await put("fields", { id: doc.id, field: encodeField(field), surface: encodeSurface(keys, surface ?? []) });
+    await put("runs", doc);
+  } catch (e) {
+    toast(`The result could not be saved in the browser (${e instanceof Error ? e.message : String(e)}). It is shown but will be lost on reload.`, "error");
+  }
+  refreshLists();
+  const ranges = computeRanges(field, surface, doc.result.freestream, doc.settings.density);
+  app.set({ view: "results", live: null, run: { doc, parts: enabled, field, surface, ranges } });
+}
+
 export async function startRun() {
   const s = app.get();
   const design = s.design;
   if (!design || !s.report || s.report.errors.length || !s.confirmed) return;
+  if (design.settings.engine === "openfoam") return startOpenFoamRun();
   if (s.gpu.status === "unavailable" || s.gpu.status === "checking") {
     toast(s.gpu.message || "WebGPU is not ready yet.", "error");
     return;
   }
   const settings = { ...design.settings };
   const enabled = s.parts.filter((p) => p.enabled);
-  const solverParts = toSolverParts(s.parts);
+  const solverParts = toSolverParts(s.parts, s.groups);
   const geometry = summarize(s.parts, s.report, s.groups);
   const { low, high } = partsBounds(s.parts);
   controller = new AbortController();
@@ -41,7 +57,7 @@ export async function startRun() {
     view: "live",
     viz: vizForCar(s.viz, low, high),
     live: {
-      stage: "preparing", fraction: 0, time: 0, targetTime: 1, steps: 0, elapsed: 0, cells: 0, history: [],
+      stage: "preparing", fraction: 0, time: 0, targetTime: 1, passTime: 1, steps: 0, elapsed: 0, cells: 0, history: [],
       field: null, ranges: null, parts: enabled, settings, designName: design.name, snapshots: 0, error: null,
     },
   });
@@ -50,6 +66,7 @@ export async function startRun() {
   try {
     const { device, adapterName } = await gpuDevice();
     const setup = await worker.prepare(solverParts, settings);
+    patchLive({ passTime: setup.length / setup.freestream });
     if (signal.aborted) throw new DOMException("Simulation cancelled", "AbortError");
     let snapBusy = false;
     let lastUi = 0;
@@ -90,7 +107,7 @@ export async function startRun() {
     solver.destroy();
     const { field, surface } = await worker.extract(fields, solver.c, FINAL_POINTS, true);
     const preset = resolvePreset(settings);
-    if (!result.levels) recordRun(result.cells, result.steps, solveSeconds, preset.passes, preset.cellsPerLength);
+    if (!result.levels) recordRun(result.cells, result.steps, solveSeconds, preset.passes, preset.cellsPerLength * Math.sqrt(result.detail?.ratio ?? 1));
     const doc: RunDoc = {
       id: newId("r"),
       designId: design.id,
@@ -106,16 +123,7 @@ export async function startRun() {
       adapter: adapterName,
       hasField: true,
     };
-    const keys = enabled.map(partKey);
-    try {
-      await put("fields", { id: doc.id, field: encodeField(field), surface: encodeSurface(keys, surface ?? []) });
-      await put("runs", doc);
-    } catch (e) {
-      toast(`The result could not be saved in the browser (${e instanceof Error ? e.message : String(e)}). It is shown but will be lost on reload.`, "error");
-    }
-    refreshLists();
-    const ranges = computeRanges(field, surface, result.freestream, settings.density);
-    app.set({ view: "results", live: null, run: { doc, parts: enabled, field, surface, ranges } });
+    await saveAndShow(doc, enabled, field, surface);
   } catch (e) {
     if (e instanceof DOMException && e.name === "AbortError") {
       app.set({ view: "setup", live: null, step: "run" });
@@ -129,6 +137,7 @@ export async function startRun() {
 
 export function cancelRun() {
   controller?.abort();
+  cancelOpenFoamRun();
 }
 
 export function dismissLive() {

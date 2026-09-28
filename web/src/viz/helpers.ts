@@ -129,6 +129,21 @@ export function tunnelBox(domain: number[]): THREE.Group {
   return g;
 }
 
+/** Wireframe outlines of detail boxes ([x0, x1, y0, y1, z0, z1] each). */
+export function detailBoxes(boxes: number[][]): THREE.Group {
+  const g = new THREE.Group();
+  for (const [x0, x1, y0, y1, z0, z1] of boxes) {
+    const edges = new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(Math.max(x1 - x0, 1e-3), Math.max(y1 - y0, 1e-3), Math.max(z1 - z0, 1e-3))),
+      new THREE.LineBasicMaterial({ color: 0xffa23d, transparent: true, opacity: 0.95, depthTest: false }),
+    );
+    edges.position.set((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
+    edges.renderOrder = 4;
+    g.add(edges);
+  }
+  return g;
+}
+
 // ---------------------------------------------------------------------------------------------
 // Orientation cube
 // ---------------------------------------------------------------------------------------------

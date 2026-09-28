@@ -4,6 +4,7 @@
 import { checkGeometry, DEFAULT_IMPORT, LIMITS, type GeometryReport, type ImportOptions, type Part } from "../geometry/model";
 import type { VizField } from "../solver/extract";
 import { requestDevice, type GpuInfo } from "../solver/gpu";
+import { probeServer, type ServerInfo } from "../engine/openfoam";
 import { DEFAULT_SETTINGS, type ForceSample, type Settings } from "../solver/types";
 import type { VizSettings } from "../viz/stage";
 import { collectFiles, get, getAll, hasKey, newId, put, remove, sha256 } from "./db";
@@ -23,10 +24,18 @@ export interface GpuState {
 }
 
 export interface LiveState {
+  /** Solver of this run (absent: WebGPU). */
+  engine?: "webgpu" | "openfoam";
+  /** OpenFOAM: the server's stage text, iteration and iteration budget. */
+  serverStage?: string;
+  iteration?: number;
+  iterations?: number;
   stage: "preparing" | "solving" | "finishing" | "saving";
   fraction: number;
   time: number;
   targetTime: number;
+  /** Simulated seconds per flow pass (car length / speed). */
+  passTime: number;
   steps: number;
   elapsed: number;
   cells: number;
@@ -46,10 +55,17 @@ export interface Toast {
   kind: "info" | "error";
 }
 
+/** The OpenFOAM app's backend, when this page is served by it. */
+export interface ServerState {
+  status: "checking" | "ready" | "busy" | "unavailable";
+  info: ServerInfo | null;
+}
+
 export interface AppState {
   theme: ThemePref;
   dark: boolean;
   gpu: GpuState;
+  server: ServerState;
   design: DesignDoc | null;
   parts: Part[];
   /** Part groups of the current design, in display order. */
@@ -109,6 +125,7 @@ export const app = createStore<AppState>({
   theme: initialTheme,
   dark: initialTheme === "system" ? systemDark() : initialTheme === "dark",
   gpu: { status: "checking", adapter: "", message: "" },
+  server: { status: "checking", info: null },
   design: null,
   parts: [],
   groups: [],
@@ -254,7 +271,7 @@ async function rebuild(opts: { resetConfirm?: boolean; fit?: boolean } = {}) {
   }
 }
 
-function newDesignDoc(name: string, source: SourceRef, settings: Settings = DEFAULT_SETTINGS): DesignDoc {
+export function newDesignDoc(name: string, source: SourceRef, settings: Settings = DEFAULT_SETTINGS): DesignDoc {
   const now = Date.now();
   return { id: newId("d"), name, createdAt: now, updatedAt: now, source, importOptions: { ...DEFAULT_IMPORT }, overrides: {}, settings: { ...settings } };
 }
@@ -355,6 +372,7 @@ function upsertGroup(id: string, patch: Partial<PartGroup>, resetConfirm = true)
 /** Switching groups does not change the geometry itself, so the checklist stays confirmed. */
 export const setGroupEnabled = (id: string, enabled: boolean) => upsertGroup(id, { enabled }, false);
 export const renameGroup = (id: string, name: string) => upsertGroup(id, { name: name.trim() || "Group" }, false);
+export const setGroupDetail = (id: string, detail: "auto" | "always" | "off") => upsertGroup(id, { detail }, false);
 
 /** Switch on exactly one group among `ids` (e.g. one rear-wing version) and switch the others off. */
 export function soloGroup(id: string, ids: string[]) {
@@ -508,8 +526,14 @@ export function closeCompare() {
 // Start-up
 // ---------------------------------------------------------------------------------------------
 
+export async function checkServer() {
+  const info = await probeServer();
+  app.set({ server: { status: info ? (info.ready ? "ready" : "busy") : "unavailable", info } });
+}
+
 export async function init() {
   checkGpu();
+  checkServer();
   try {
     await refreshLists();
     const last = localStorage.getItem(LAST_DESIGN);

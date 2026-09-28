@@ -1,5 +1,7 @@
 # EasyCFD legacy: OpenFOAM version
 
+> The web UI (`web/`) now drives this backend as its OpenFOAM engine and is served at `/`; this original UI is at `/legacy/`. See the main [README](../README.md#two-engines-webgpu-and-openfoam).
+
 > This is the original README of the OpenFOAM-based app, kept unchanged apart from link paths. The browser version in [`web/`](../web/README.md) is now the primary EasyCFD tool; this version is kept to cross-check final designs. Start it with `just run-openfoam`.
 
 A local virtual wind tunnel for importing car geometry, running OpenFOAM, and comparing designs. The browser displays calculated fields and forces. It never fills in missing results with generated pictures or synthetic numbers.

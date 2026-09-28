@@ -1,7 +1,9 @@
 // Designs and runs saved in this browser.
 
-import { useEffect, useRef, useState } from "react";
-import { Check, Columns2, Copy, FilePlus2, Pencil, Trash2, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Check, Columns2, Copy, FilePlus2, Pencil, RefreshCw, Trash2, X } from "lucide-react";
+import { listRuns, type ServerRun } from "../engine/openfoam";
+import { importedRunIds, importServerRun } from "../store/openfoamRuns";
 import { useStore } from "../store/store";
 import { app, deleteDesign, duplicateDesign, newDesign, openDesign, renameDesign } from "../store/app";
 import { deleteRun, openRun, startCompare } from "../store/runs";
@@ -27,12 +29,55 @@ function Rename({ value, onDone }: { value: string; onDone: (v: string | null) =
   );
 }
 
+/** Runs on the OpenFOAM server (from this UI or the original one), to open here. */
+function ServerRuns() {
+  const [list, setList] = useState<ServerRun[] | null>(null);
+  const [error, setError] = useState("");
+  const saved = useStore(app, (s) => s.runs);
+  const load = () => {
+    setError("");
+    listRuns().then(setList).catch((e) => setError(e instanceof Error ? e.message : String(e)));
+  };
+  useEffect(load, []);
+  // Recomputed when the browser's run list changes (after an import).
+  const imported = useMemo(() => importedRunIds(), [saved]);
+  return (
+    <>
+      <div className="compare-bar">
+        <span className="muted small">Runs made on this server, also from the original UI.</span>
+        <button className="btn ghost sm" onClick={load}><RefreshCw size={14} /> Refresh</button>
+      </div>
+      {error && <p className="inline-error">{error}</p>}
+      {list && !list.length && <p className="muted small center">No runs on the server yet.</p>}
+      <ul className="lib-list">
+        {(list ?? []).map((r) => {
+          const done = r.status === "completed";
+          const have = imported.has(r.id);
+          return (
+            <li key={r.id}>
+              <button className="lib-main" disabled={!done || have} onClick={() => importServerRun(r.id)} data-testid="server-run">
+                <b>{r.name}</b>
+                <span><span className="engine-tag">OpenFOAM</span> {Math.round(r.settings.speed_kmh)} km/h · {r.settings.yaw_deg}° yaw · {String(r.settings.quality)} · {fmtDate(Date.parse(r.created))}</span>
+                <span className="lib-nums">
+                  {done && r.result ? `Cd ${Number(r.result.cd).toFixed(3)} · Cl ${Number(r.result.cl).toFixed(3)}` : `${r.status}${r.stage ? ` · ${r.stage}` : ""}`}
+                  {have ? " · already in this browser" : done ? " · click to open" : ""}
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </>
+  );
+}
+
 export function Library() {
   const open = useStore(app, (s) => s.library);
   const designs = useStore(app, (s) => s.designs);
   const runs = useStore(app, (s) => s.runs);
   const current = useStore(app, (s) => s.design?.id);
-  const [tab, setTab] = useState<"designs" | "runs">("runs");
+  const server = useStore(app, (s) => s.server.status);
+  const [tab, setTab] = useState<"designs" | "runs" | "server">("runs");
   const [renaming, setRenaming] = useState<string | null>(null);
   const [pick, setPick] = useState<string[]>([]);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
@@ -53,6 +98,9 @@ export function Library() {
           <div className="segmented md" role="tablist">
             <button role="tab" aria-selected={tab === "runs"} className={tab === "runs" ? "on" : ""} onClick={() => setTab("runs")}>Runs <span className="count">{runs.length}</span></button>
             <button role="tab" aria-selected={tab === "designs"} className={tab === "designs" ? "on" : ""} onClick={() => setTab("designs")}>Designs <span className="count">{designs.length}</span></button>
+            {server !== "unavailable" && server !== "checking" && (
+              <button role="tab" aria-selected={tab === "server"} className={tab === "server" ? "on" : ""} onClick={() => setTab("server")} data-testid="tab-server">OpenFOAM server</button>
+            )}
           </div>
           <button className="icon-btn" aria-label="Close" onClick={() => app.set({ library: false })}><X size={18} /></button>
         </div>
@@ -106,7 +154,7 @@ export function Library() {
                     </button>
                     <button className="lib-main" onClick={() => openRun(r.id)} data-testid="run-item">
                       <b>{r.designName}</b>
-                      <span>{conditionsLine(r.settings)}{groupsLine(r.geometry) ? ` · ${groupsLine(r.geometry)}` : ""}</span>
+                      <span><span className="engine-tag">{r.result.engine === "openfoam" ? "OpenFOAM" : "WebGPU"}</span> {conditionsLine(r.settings)}{groupsLine(r.geometry) ? ` · ${groupsLine(r.geometry)}` : ""}</span>
                       <span className="lib-nums">Cd {r.result.cd.toFixed(3)} · Cl {r.result.cl.toFixed(3)} · {v.label} {v.kg.toFixed(1)} kg · {fmtDate(r.createdAt)}</span>
                     </button>
                     <div className="lib-actions">
@@ -122,6 +170,7 @@ export function Library() {
             </ul>
           </>
         )}
+        {tab === "server" && <ServerRuns />}
         <p className="muted small drawer-foot">Stored in this browser only (IndexedDB). Clearing site data removes them.</p>
       </aside>
     </>

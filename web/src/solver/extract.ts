@@ -3,6 +3,7 @@
 // value is interpolated from computed cells, and points without fluid neighbours are marked invalid.
 
 import type { FlowFields } from "./gpu";
+import { locate } from "./grid";
 import type { CaseSetup } from "./setup";
 import type { Vec3 } from "./types";
 
@@ -76,7 +77,8 @@ function axisWeights(centers: Float64Array, coords: number[]): AxisWeights {
 }
 
 export interface Sampler {
-  sample(x: number, y: number, z: number, out: Float32Array): boolean;
+  /** `side` (point, unit normal): skip cells behind that plane. */
+  sample(x: number, y: number, z: number, out: Float32Array, side?: Float64Array): boolean;
 }
 
 /** Trilinear interpolation using only fluid cells (weights renormalised). out = [u, v, w, p, k]. */
@@ -97,7 +99,7 @@ export function makeSampler(c: CaseSetup, f: FlowFields): Sampler {
     return [lo + 1, (v - centers[lo]) / (centers[lo + 1] - centers[lo])];
   };
   return {
-    sample(px, py, pz, out) {
+    sample(px, py, pz, out, side) {
       const [i, tx] = locate(x.centers, px);
       const [j, ty] = locate(y.centers, py);
       const [k, tz] = locate(z.centers, pz);
@@ -108,6 +110,8 @@ export function makeSampler(c: CaseSetup, f: FlowFields): Sampler {
           for (let di = 0; di < 2; di++) {
             const idx = i + di + NX * (j + dj + NY * (k + dk));
             if (c.flags[idx] & 1) continue;
+            // Surface samples use only cells on the surface's own side (thin walls have fluid on both).
+            if (side && (x.centers[i + di - 1] - side[0]) * side[3] + (y.centers[j + dj - 1] - side[1]) * side[4] + (z.centers[k + dk - 1] - side[2]) * side[5] <= 0) continue;
             const w = (di ? tx : 1 - tx) * (dj ? ty : 1 - ty) * (dk ? tz : 1 - tz);
             if (w <= 0) continue;
             wsum += w;
@@ -124,23 +128,33 @@ export function makeSampler(c: CaseSetup, f: FlowFields): Sampler {
   };
 }
 
-export function vizBox(c: CaseSetup): { low: Vec3; high: Vec3 } {
-  const L = c.length;
-  const [x0, x1, y0, y1, , z1] = c.domain;
-  const W = c.high[1] - c.low[1];
+/** The visualisation window around a car (bounds low/high, length L) inside a tunnel domain. */
+export function vizBoxFor(low: Vec3, high: Vec3, domain: number[], L: number): { low: Vec3; high: Vec3 } {
+  const [x0, x1, y0, y1, , z1] = domain;
+  const W = high[1] - low[1];
   return {
-    low: [Math.max(x0, c.low[0] - 0.6 * L), Math.max(y0, c.low[1] - 0.25 * W - 0.25 * L), 0],
-    high: [Math.min(x1, c.high[0] + 2.2 * L), Math.min(y1, c.high[1] + 0.25 * W + 0.25 * L), Math.min(z1, c.high[2] + 0.45 * L)],
+    low: [Math.max(x0, low[0] - 0.6 * L), Math.max(y0, low[1] - 0.25 * W - 0.25 * L), 0],
+    high: [Math.min(x1, high[0] + 2.2 * L), Math.min(y1, high[1] + 0.25 * W + 0.25 * L), Math.min(z1, high[2] + 0.45 * L)],
   };
+}
+
+export function vizBox(c: CaseSetup): { low: Vec3; high: Vec3 } {
+  return vizBoxFor(c.low, c.high, c.domain, c.length);
+}
+
+/** Uniform grid of about `target` points over a box (the layout every VizField uses). */
+export function vizGrid(low: Vec3, high: Vec3, target: number): { origin: Vec3; spacing: Vec3; dims: [number, number, number] } {
+  const ext: Vec3 = [high[0] - low[0], high[1] - low[1], high[2] - low[2]];
+  const h = Math.cbrt((ext[0] * ext[1] * ext[2]) / target);
+  const dims: [number, number, number] = [Math.max(8, Math.round(ext[0] / h)), Math.max(8, Math.round(ext[1] / h)), Math.max(8, Math.round(ext[2] / h))];
+  const spacing: Vec3 = [ext[0] / (dims[0] - 1), ext[1] / (dims[1] - 1), ext[2] / (dims[2] - 1)];
+  return { origin: low, spacing, dims };
 }
 
 /** Resample onto a uniform grid of about `target` points covering the car and near wake. */
 export function extractViz(c: CaseSetup, f: FlowFields, target = 1_200_000): VizField {
   const { low, high } = vizBox(c);
-  const ext: Vec3 = [high[0] - low[0], high[1] - low[1], high[2] - low[2]];
-  const h = Math.cbrt((ext[0] * ext[1] * ext[2]) / target);
-  const dims: [number, number, number] = [Math.max(8, Math.round(ext[0] / h)), Math.max(8, Math.round(ext[1] / h)), Math.max(8, Math.round(ext[2] / h))];
-  const spacing: Vec3 = [ext[0] / (dims[0] - 1), ext[1] / (dims[1] - 1), ext[2] / (dims[2] - 1)];
+  const { spacing, dims } = vizGrid(low, high, target);
   const n = dims[0] * dims[1] * dims[2];
   const out = {
     u: new Float32Array(n), v: new Float32Array(n), w: new Float32Array(n),
@@ -199,8 +213,9 @@ export function sampleSurface(c: CaseSetup, sampler: Sampler, positions: Float32
   const cp = new Float32Array(nv);
   const shear = new Float32Array(nv * 3);
   const q = 0.5 * c.freestream * c.freestream;
-  const h = c.grid.h;
+  const { x, y, z } = c.grid;
   const s = new Float32Array(5);
+  const side = new Float64Array(6);
   for (let t = 0; t < nv / 3; t++) {
     const o = t * 9;
     const ax = positions[o + 3] - positions[o], ay = positions[o + 4] - positions[o + 1], az = positions[o + 5] - positions[o + 2];
@@ -210,9 +225,12 @@ export function sampleSurface(c: CaseSetup, sampler: Sampler, positions: Float32
     nx /= l; ny /= l; nz /= l;
     for (let v = 0; v < 3; v++) {
       const px = positions[o + 3 * v], py = positions[o + 3 * v + 1], pz = positions[o + 3 * v + 2];
+      // Offset in units of the local cell size along the normal (detail zones have smaller cells).
+      const h = Math.abs(nx) * x.widths[locate(x, px)] + Math.abs(ny) * y.widths[locate(y, py)] + Math.abs(nz) * z.widths[locate(z, pz)];
+      side.set([px, py, pz, nx, ny, nz]);
       let ok = false;
       for (const d of [0.9, 1.6, 2.5]) {
-        if (sampler.sample(px + nx * d * h, py + ny * d * h, pz + nz * d * h, s)) {
+        if (sampler.sample(px + nx * d * h, py + ny * d * h, pz + nz * d * h, s, side)) {
           ok = true;
           break;
         }

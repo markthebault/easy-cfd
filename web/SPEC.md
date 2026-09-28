@@ -51,3 +51,101 @@ Out of scope for this version: STEP import, geometry repair/merge/seal tools, tr
 | 5. No synthetic data; WebGPU missing is reported | Met. |
 
 Changes from the original plan: cut cells replaced the voxel staircase; local time stepping replaced time-accurate marching; Precise averages two grid levels.
+
+## Aero parts and variant comparison (28 September 2026)
+
+Purpose: test thin and small aero parts (rear wings, canards, splitters, vents and holes) and compare variants of them reliably.
+
+### Scope
+
+1. **Same grid for every variant.** Grid extent, spacing and refinement come from every part in the design, whether it is switched on or not. The car length (cells per length, flow passes) is measured the same way. Switching groups changes only the solid geometry.
+2. **Forces per part and per group.** Time-averaged drag, lift and side force (pressure and friction) per part over the averaging window, summed per group by the app. Shown in the results and in Compare.
+3. **Finer cells around aero parts.** Refinement zones around parts that are thin or small for the grid: bands of finer spacing along the axes in which the part is small (tensor-product grid, so a band spans the domain in the other two directions).
+   - Spacing inside a zone is h / r, r from 1 (off, the default after validation) to 4, set in the Run step.
+   - Per group: **Auto** (thin or small parts), **Always** or **Off**.
+   - **Detail boxes**: user-defined boxes refined the same way, for features inside a larger part (holes and vents in a hood, gaps under a wing).
+   - A cell budget caps the grid; if it would be exceeded, r is lowered and the run says so.
+   - A part counts as thin against the spacing in its own thin direction. Parts thick enough at the refined spacing become cut-cell solids instead of zero-thickness walls.
+4. **Wheels are never thin walls.** Voxelisation handles overlapping and nested shells (winding number where a ray's crossings are consistent, parity otherwise).
+5. **Run extension.** One criterion decides both whether to extend a run and whether it is reported as settled; the warning states whether the maximum length was reached.
+6. **Surface pressure on thin parts** is sampled at a distance scaled to the local cell size, on each side.
+
+Out of scope: adaptive (octree) refinement, automatic detection of holes inside a single part (use a detail box).
+
+### Acceptance criteria
+
+1. Switching any group on or off leaves the grid axes identical (unit test).
+2. Per-part forces add up to the total force within 0.5 % (bench check).
+3. MX-5 with a synthetic aero kit (`validation/aero-kit`, OpenFOAM Medium references for no kit, wing only and full kit): at Medium, the browser's change in Cl and Cd from adding the wing and the full kit has the same sign as OpenFOAM's and is within ±30 % of it (±0.03 absolute for Cl changes below 0.1). Results with and without refinement are both reported.
+4. The eight existing validation models do not get worse: mean |ΔCd| against OpenFOAM at Medium rises by no more than 1 point.
+5. Wheels never appear in the thin-parts warning; nested-shell voxelisation has a unit test.
+6. Runtime of MX-5 + kit at Medium on an M1 is reported; target within 4× the same run without refinement.
+
+### Risks
+
+- Refinement bands add cells across the whole domain and highly anisotropic cells far from the car; the multigrid pressure solve and local time stepping may converge more slowly.
+- OpenFOAM Medium resolves the kit with its own surface refinement (at least two cells across each part's thickness) and is a reference, not ground truth.
+
+### Status (28 September 2026)
+
+| Criterion | Result |
+|---|---|
+| 1. Grid identical when groups switch | Met (unit test). |
+| 2. Per-part forces add up to the total | Met: per-part ranges cover every wall cell once (unit test). Per-part forces are averaged over the same pseudo-time window as the totals. |
+| 3. Kit deltas within ±30 % of OpenFOAM | **Not met.** Lift changes are 31–56 % of OpenFOAM's in both settings. Drag changes are 111–238 % with detail cells off and 59–95 % with them. The splitter cases have no reference (OpenFOAM's mesh failed its quality checks). See VALIDATION.md. |
+| 4. Existing models not worse | Met with detail cells off (the default). With detail cells on, two of the three older wing cars got worse, which is why they are opt-in. |
+| 5. Wheels never thin; nested shells | Met (unit tests). |
+| 6. Runtime within 4× | **Not met with detail cells:** 3–6×, up to 11× when a run extends to its maximum length. Without them, run time is unchanged. |
+
+Changes from the plan:
+- **Detail cells opt-in.** Detail cells are off by default because validation did not show a gain and found regressions.
+- **Wing profiles.** Closed thin parts that the refined grid can almost carry (wing profiles) are modelled as solids thickened to 1.6 local cells: a zero-thickness plate stalls early.
+- **Near-wall model.** Improving wing lift further needs a near-wall model for small parts. The next step is to specify it separately.
+
+## OpenFOAM engine in the web UI (28 September 2026)
+
+Purpose: one UI for both solvers. WebGPU (this device) stays the default for quick work; the OpenFOAM app's backend becomes an optional **engine** for precise final checks, with the same car and conditions steps, results, animations and comparison.
+
+### Scope
+
+1. **Hosting.**
+   - The OpenFOAM backend serves the web UI at `/`, and the old UI stays unchanged at `/legacy/`.
+   - `just run-openfoam` opens the new UI with both engines, and `just run` stays static and WebGPU-only.
+   - Tailscale access works as before; no new service or dependency.
+2. **Engine choice** in the Run step: WebGPU (default) or OpenFOAM, the latter shown only when the backend answers `/api/health`. OpenFOAM is labelled for final checks, with its presets (Fast, Medium, Precise), cell budget and measured run times. Custom quality and detail cells are WebGPU-only.
+3. **Running.**
+   - **Upload:** the UI uploads the design's parts as STL in the UI's world frame into one backend project per design geometry, reused while the geometry is unchanged.
+   - **Setup:** it sets the wheel roles, switches parts on and off to match the groups, maps the conditions and queues the run.
+   - **Frame:** the backend recentres imported geometry, so the offset between the two frames is measured from the part bounds and applied to all sampling.
+4. **Live view:** stage, iteration progress and the force history streamed from OpenFOAM's force coefficients, with the moving-average statistics. There is no 3D flow while solving (OpenFOAM writes the field at the end), and the panel says so. Cancel stops the server run.
+5. **Results.** When the run completes, the UI requests:
+   - **Flow field:** the finished field resampled on the same uniform grid the WebGPU viewer uses (velocity, kinematic pressure, turbulence, valid-point mask).
+   - **Surface:** pressure and near-wall flow direction at the UI's own surface vertices.
+
+   The run is saved in the browser like a WebGPU run, so results, the library, Compare, exports and every visualisation work unchanged. Runs record their engine, and Compare names the engine when it differs.
+6. **Existing OpenFOAM runs** on the server can be opened from the run list. The UI imports the run's geometry as a design and its results as a run.
+7. **Backend additions** go in a separate module that only reads saved solver output, like the existing plane view. The pipeline hash and saved runs are unchanged.
+
+Out of scope: legacy-only tools in the new UI (STEP import, opening repair, merge and seal, rotate and scale: use `/legacy/`); per-group forces for OpenFOAM runs (the case records body and wheel forces only); resuming a live view after the tab was closed (the run continues on the server and can be opened from the run list).
+
+### Acceptance criteria
+
+1. `just run-openfoam` serves the new UI at `/` and the old UI at `/legacy/`, and both work.
+2. With the backend reachable, an OpenFOAM Fast run of the sample car started from the new UI completes. Its Cd and Cl equal the backend's own record, and smoke, streamlines, slice, wake and surface pressure display.
+3. The flow field and surface pressure are aligned with the car in the UI's frame (checked by the stagnation point on the nose, and a unit test of the frame offset).
+4. A WebGPU and an OpenFOAM run of the same design open side by side in Compare.
+5. An existing OpenFOAM run can be opened from the run list.
+6. Without a backend (static hosting), the UI shows WebGPU only and says how to enable OpenFOAM.
+7. Backend tests cover the new endpoints; the web unit and end-to-end tests pass.
+
+### Status (29 September 2026)
+
+| Criterion | Result |
+|---|---|
+| 1. New UI at `/`, original at `/legacy/` | Met. Both are served by the backend and checked in a browser. |
+| 2. OpenFOAM run from the new UI | Met. A Fast (2 min) and a Medium run of the sample car completed. Cd and Cl equal the server records (0.5169 / 0.6064 and 0.5392 / 0.5843), and every view displays. |
+| 3. Field and surface aligned | Met. The stagnation region sits on the nose, and a unit test covers the offset. The surface pressure is looked up a quarter of the way into each triangle so coarse faces show face values. |
+| 4. WebGPU and OpenFOAM runs in Compare | Met. Compare names the solver difference. |
+| 5. Existing server runs open | Met. An MX-5 run from the aero study opened with its recorded Cd 0.3420. |
+| 6. Static hosting | Met. The engine choice is disabled and explains `just run-openfoam` (end-to-end test). |
+| 7. Tests | 5 new backend tests (72 in total), 3 new web unit tests, 2 new end-to-end tests against a mocked server. |

@@ -8,7 +8,7 @@ import type { VizField } from "../solver/extract";
 import type { Ranges } from "../store/types";
 import { applyPressureColors, carGeometry, clayMaterial, pressureMaterial } from "./car";
 import { createFieldGPU, disposeFieldGPU, fieldBox, type FieldGPU } from "./field";
-import { flowArrow, labelSprite, OrientationCube, road, tunnelBox, type ViewName } from "./helpers";
+import { detailBoxes, flowArrow, labelSprite, OrientationCube, road, tunnelBox, type ViewName } from "./helpers";
 import { oilFlowGeometry, oilFlowMaterial } from "./oilflow";
 import { Particles } from "./particles";
 import { Slice, type SliceField } from "./slice";
@@ -572,6 +572,25 @@ export class Stage {
     front.position.set(b.min.x - 0.02 * L, (b.min.y + b.max.y) / 2, b.max.z * 0.75);
     this.helperGroup.add(arrow, air, front);
     this.helperGroup.visible = this.showHelpers;
+  }
+
+  private detailGroup: THREE.Group | null = null;
+
+  setDetailBoxes(boxes: number[][] | null) {
+    if (this.detailGroup) {
+      this.detailGroup.traverse((x) => {
+        const m = x as THREE.Mesh;
+        m.geometry?.dispose();
+        (m.material as THREE.Material)?.dispose?.();
+      });
+      this.scene.remove(this.detailGroup);
+      this.detailGroup = null;
+    }
+    if (boxes?.length) {
+      this.detailGroup = detailBoxes(boxes);
+      this.scene.add(this.detailGroup);
+    }
+    this.dirty = true;
   }
 
   setBox(domain: number[] | null, fit = false) {

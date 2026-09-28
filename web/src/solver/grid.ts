@@ -16,9 +16,66 @@ export interface Grid {
   x: Axis;
   y: Axis;
   z: Axis;
-  /** Smallest spacing in the refined region. */
+  /** Spacing of the uniformly fine region around the car (before detail refinement). */
   h: number;
+  /** Smallest cell width on any axis (detail zones are finer than h). */
+  hmin?: number;
   cells: number;
+}
+
+/** A band of finer cells along one axis (detail refinement around small parts). */
+export interface Band {
+  lo: number;
+  hi: number;
+  h: number;
+}
+
+/** Growth ratio of cell widths leaving a detail band. */
+export const BAND_GROWTH = 1.25;
+
+/**
+ * Widths filling [a, b] at spacing `hf`, finer inside `bands` with geometric transitions.
+ * Marches with the local target size, then rescales to end exactly at b.
+ */
+function bandedWidths(a: number, b: number, hf: number, bands: Band[]): number[] {
+  const g = BAND_GROWTH - 1;
+  const target = (c: number) => {
+    let t = hf;
+    for (const band of bands) {
+      const d = c < band.lo ? band.lo - c : c > band.hi ? c - band.hi : 0;
+      t = Math.min(t, band.h + g * d);
+    }
+    return t;
+  };
+  const out: number[] = [];
+  let pos = a;
+  while (b - pos > 1e-12) {
+    let w = target(pos);
+    w = Math.min(w, target(pos + w));
+    w = Math.min(w, target(pos + w));
+    const rest = b - pos;
+    if (rest < 1.5 * w) {
+      if (rest < 0.5 * w && out.length) out[out.length - 1] += rest;
+      else out.push(rest);
+      break;
+    }
+    out.push(w);
+    pos += w;
+  }
+  const sum = out.reduce((s, w) => s + w, 0);
+  return out.map((w) => (w * (b - a)) / sum);
+}
+
+/** Merge overlapping or touching bands, keeping the finer spacing where they meet. */
+export function mergeBands(bands: Band[]): Band[] {
+  const sorted = [...bands].sort((p, q) => p.lo - q.lo);
+  const out: Band[] = [];
+  for (const b of sorted) {
+    const last = out[out.length - 1];
+    if (last && b.lo <= last.hi && Math.abs(b.h - last.h) < 1e-9 * last.h) last.hi = Math.max(last.hi, b.hi);
+    else out.push({ ...b });
+  }
+  return out;
 }
 
 export interface AxisSpec {
@@ -51,11 +108,23 @@ function side(length: number, h: number, growth: number, hmax: number): number[]
   return out;
 }
 
-export function buildAxis(spec: AxisSpec, multiple: number, extra?: { hi: number; h: number }): Axis {
+export function buildAxis(spec: AxisSpec, multiple: number, extra?: { hi: number; h: number }, bands: Band[] = []): Axis {
   const fineLo = Math.max(spec.lo, spec.fineLo);
   const fineHi = Math.min(spec.hi, spec.fineHi);
   let widths: number[];
-  if (extra && extra.hi > fineLo && extra.hi < fineHi) {
+  const inside = bands
+    .map((b) => ({ lo: Math.max(b.lo, fineLo), hi: Math.min(b.hi, fineHi), h: b.h }))
+    .filter((b) => b.hi > b.lo && b.h < spec.h);
+  if (inside.length) {
+    // Detail bands: the fine region keeps spacing h except where a band asks for finer cells.
+    // The road-clearance band becomes one more band.
+    if (extra && extra.hi > fineLo) inside.push({ lo: fineLo, hi: extra.hi, h: extra.h });
+    const nf = Math.max(1, Math.ceil((fineHi - fineLo) / spec.h - 1e-9));
+    const hf = (fineHi - fineLo) / nf;
+    const lower = side(fineLo - spec.lo, hf, spec.growthLo, spec.hmax).reverse();
+    const upper = side(spec.hi - fineHi, hf, spec.growthHi, spec.hmax);
+    widths = [...lower, ...bandedWidths(fineLo, fineHi, hf, mergeBands(inside)), ...upper];
+  } else if (extra && extra.hi > fineLo && extra.hi < fineHi) {
     // Extra-fine band at the low end (road clearance), a short transition, then the fine region.
     const n2 = Math.max(2, Math.ceil((extra.hi - fineLo) / extra.h - 1e-9));
     const h2 = (extra.hi - fineLo) / n2;
@@ -112,6 +181,8 @@ export interface GridRequest {
   phase?: [number, number, number];
   /** Height up to which the road clearance gets half-size cells (0: off). */
   clearanceBand?: number;
+  /** Detail refinement bands per axis (x, y, z). */
+  bands?: [Band[], Band[], Band[]];
 }
 
 export function buildGrid(req: GridRequest): Grid {
@@ -127,18 +198,24 @@ export function buildGrid(req: GridRequest): Grid {
   const x = buildAxis(
     { lo: x0, hi: x1, fineLo: low[0] - 0.25 * L - ph[0] * h, fineHi: high[0] + (req.wakeLength ?? 0.8) * L - ph[0] * h, h, growthLo: 1.15, growthHi: req.wakeGrowth ?? 1.08, hmax },
     multiple,
+    undefined,
+    req.bands?.[0],
   );
   const pad = 0.15 * Math.max(W, 0.3 * L);
   const y = buildAxis(
     { lo: y0, hi: y1, fineLo: low[1] - pad - ph[1] * h, fineHi: high[1] + pad - ph[1] * h, h, growthLo: 1.15, growthHi: 1.15, hmax },
     multiple,
+    undefined,
+    req.bands?.[1],
   );
   const z = buildAxis(
     { lo: 0, hi: z1, fineLo: 0, fineHi: H + 0.25 * Math.max(H, 0.2 * L) + ph[2] * h, h, growthLo: 1.15, growthHi: 1.15, hmax },
     multiple,
     req.clearanceBand ? { hi: req.clearanceBand + ph[2] * 0.5 * h, h: 0.5 * h } : undefined,
+    req.bands?.[2],
   );
-  return { x, y, z, h, cells: x.n * y.n * z.n };
+  const hmin = Math.min(...[x, y, z].map((a) => Math.min(...a.widths)));
+  return { x, y, z, h, hmin, cells: x.n * y.n * z.n };
 }
 
 /** Index of the cell containing coordinate c (clamped). */

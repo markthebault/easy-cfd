@@ -100,13 +100,37 @@ export function applyGroups(parts: Part[], overrides: Record<string, PartOverrid
   return { parts: out, groups: list };
 }
 
-export function toSolverParts(parts: Part[]): SolverPart[] {
+/**
+ * Solver input: every part whose own switch is on. Parts in switched-off groups go along as
+ * inactive, so they shape the grid (and its detail refinement) without being simulated: all
+ * variants of a design then run on identical cells.
+ */
+export function toSolverParts(parts: Part[], groups: PartGroup[] = []): SolverPart[] {
+  const detail = new Map(groups.map((g) => [g.id, g.detail ?? "auto"] as const));
   return parts
-    .filter((p) => p.enabled)
-    .map((p) => ({ id: p.id, name: p.name, role: p.role, positions: p.positions, wheel: p.role === "wheel" ? p.wheel : null }));
+    .filter((p) => p.selfEnabled ?? p.enabled)
+    .map((p) => ({
+      id: p.id, name: p.name, role: p.role, positions: p.positions, wheel: p.role === "wheel" ? p.wheel : null,
+      active: p.enabled, detail: (p.group && detail.get(p.group)) || "auto", group: p.group,
+    }));
 }
 
-export function summarize(parts: Part[], report: GeometryReport, groups?: GroupView[]): GeometrySummary {
+/** Bounds of the parts that shape the grid (own switch on, whatever their group's switch). */
+export function gridBounds(parts: Part[]): { low: Vec3; high: Vec3 } | null {
+  const shaping = parts.filter((p) => p.selfEnabled ?? p.enabled);
+  if (!shaping.length) return null;
+  const low: Vec3 = [Infinity, Infinity, Infinity], high: Vec3 = [-Infinity, -Infinity, -Infinity];
+  for (const p of shaping)
+    for (let i = 0; i < p.positions.length; i += 3)
+      for (let c = 0; c < 3; c++) {
+        const v = p.positions[i + c];
+        if (v < low[c]) low[c] = v;
+        if (v > high[c]) high[c] = v;
+      }
+  return { low, high };
+}
+
+export function summarize(parts: Part[], report: Pick<GeometryReport, "dimensions" | "triangles" | "frontalArea">, groups?: GroupView[]): GeometrySummary {
   return {
     dimensions: report.dimensions,
     triangles: report.triangles,

@@ -3,6 +3,8 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { ForceSample } from "../solver/types";
+import { PASSES, type HistoryUnit } from "./historyUnit";
+import { movingAverage } from "./windowStats";
 
 interface Props {
   history: ForceSample[];
@@ -11,6 +13,11 @@ interface Props {
   averageFrom?: number;
   height?: number;
   live?: boolean;
+  /** Draw a trailing moving average over this many flow passes (raw traces are dimmed). */
+  maPasses?: number;
+  /** Shade the trailing statistics window starting at this simulated time. */
+  windowFrom?: number;
+  unit?: HistoryUnit;
 }
 
 const PAD = { l: 40, r: 44, t: 10, b: 24 };
@@ -25,7 +32,7 @@ function niceTicks(lo: number, hi: number, count = 4): number[] {
   return out;
 }
 
-export function ForceChart({ history, passTime, averageFrom, height = 150, live }: Props) {
+export function ForceChart({ history, passTime, averageFrom, height = 150, live, maPasses, windowFrom, unit = PASSES }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(320);
   const [hover, setHover] = useState<number | null>(null);
@@ -41,9 +48,15 @@ export function ForceChart({ history, passTime, averageFrom, height = 150, live 
 
   const data = useMemo(() => {
     const every = Math.max(1, Math.ceil(history.length / 500));
-    const pts = history.filter((_, i) => i % every === 0 || i === history.length - 1);
-    return pts.map((h) => ({ x: h.time / passTime, cd: h.cd, cl: h.cl }));
-  }, [history, passTime]);
+    // Moving average on the full history, then thinned like the raw trace.
+    const ma = maPasses ? movingAverage(history, maPasses * passTime) : null;
+    const out: { x: number; cd: number; cl: number; mcd?: number; mcl?: number }[] = [];
+    history.forEach((h, i) => {
+      if (i % every !== 0 && i !== history.length - 1) return;
+      out.push({ x: h.time / passTime, cd: h.cd, cl: h.cl, mcd: ma?.[i].cd, mcl: ma?.[i].cl });
+    });
+    return out;
+  }, [history, passTime, maPasses]);
 
   const w = Math.max(160, width);
   const iw = w - PAD.l - PAD.r, ih = height - PAD.t - PAD.b;
@@ -57,7 +70,8 @@ export function ForceChart({ history, passTime, averageFrom, height = 150, live 
   hi += padY;
   const sx = (x: number) => PAD.l + (x / xMax) * iw;
   const sy = (y: number) => PAD.t + ih - ((y - lo) / (hi - lo)) * ih;
-  const path = (key: "cd" | "cl") => data.map((d, i) => `${i ? "L" : "M"}${sx(d.x).toFixed(1)},${sy(d[key]).toFixed(1)}`).join("");
+  const path = (key: "cd" | "cl" | "mcd" | "mcl") =>
+    data.map((d, i) => `${i ? "L" : "M"}${sx(d.x).toFixed(1)},${sy(d[key] ?? NaN).toFixed(1)}`).join("");
   const last = data[data.length - 1];
   const yt = niceTicks(lo, hi, 4);
   const xt = niceTicks(0, xMax, Math.max(2, Math.floor(iw / 70)));
@@ -85,7 +99,8 @@ export function ForceChart({ history, passTime, averageFrom, height = 150, live 
       <div className="chart-legend">
         <span><i className="key cd" /> Cd drag</span>
         <span><i className="key cl" /> Cl lift</span>
-        <span className="muted">x: flow passes</span>
+        {maPasses && <span className="muted">bold: {maPasses}-{unit.one} average</span>}
+        <span className="muted">x: {unit.axis}</span>
       </div>
       <svg width={w} height={height} onPointerMove={onMove} onPointerLeave={() => setHover(null)} role="img" aria-label="Force coefficient history">
         <defs>
@@ -105,9 +120,18 @@ export function ForceChart({ history, passTime, averageFrom, height = 150, live 
         {xt.map((v) => (
           <text key={v} className="tick" x={sx(v)} y={height - 6} textAnchor="middle">{+v.toFixed(2)}</text>
         ))}
+        {windowFrom !== undefined && data.length > 0 && (
+          <rect className="avg-window" x={sx(Math.max(0, windowFrom / passTime))} y={PAD.t} width={Math.max(0, sx(xMax) - sx(Math.max(0, windowFrom / passTime)))} height={ih} />
+        )}
         <g clipPath={`url(#${clip})`}>
-          <path className="line cd" d={path("cd")} />
-          <path className="line cl" d={path("cl")} />
+          <path className={`line cd ${maPasses ? "raw" : ""}`} d={path("cd")} />
+          <path className={`line cl ${maPasses ? "raw" : ""}`} d={path("cl")} />
+          {maPasses && data.length > 1 && (
+            <>
+              <path className="line cd ma" d={path("mcd")} />
+              <path className="line cl ma" d={path("mcl")} />
+            </>
+          )}
         </g>
         {last && (
           <>
@@ -130,9 +154,9 @@ export function ForceChart({ history, passTime, averageFrom, height = 150, live 
       </svg>
       {hv && (
         <div className="chart-tip" style={{ left: Math.min(w - 130, Math.max(0, sx(hv.x) + 10)) }}>
-          <b>{hv.x.toFixed(2)} passes</b>
-          <span><i className="key cd" /> Cd {hv.cd.toFixed(4)}</span>
-          <span><i className="key cl" /> Cl {hv.cl.toFixed(4)}</span>
+          <b>{unit === PASSES ? hv.x.toFixed(2) : Math.round(hv.x)} {unit.many}</b>
+          <span><i className="key cd" /> Cd {hv.cd.toFixed(4)}{hv.mcd !== undefined && <small> · avg {hv.mcd.toFixed(4)}</small>}</span>
+          <span><i className="key cl" /> Cl {hv.cl.toFixed(4)}{hv.mcl !== undefined && <small> · avg {hv.mcl.toFixed(4)}</small>}</span>
         </div>
       )}
     </div>
