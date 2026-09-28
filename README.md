@@ -1,182 +1,88 @@
-# Easy CFD
+# EasyCFD
 
-A local virtual wind tunnel for importing car geometry, running OpenFOAM, and comparing designs. The browser displays calculated fields and forces. It never fills in missing results with generated pictures or synthetic numbers.
+A virtual wind tunnel for cars that runs entirely in the browser. Drop in a car, choose a speed, and the airflow is computed on your own graphics card through WebGPU. There is no server, no Docker and no OpenFOAM: the app is a folder of static files, and your geometry never leaves the computer.
 
-![Easy CFD comparing MX-5 NC pressure fields and aerodynamic forces](docs/presentation.png)
+![EasyCFD in the browser: smoke over the car, force history and drag breakdown](docs/easycfd-web.png)
 
-MX-5 NC model by [Nieve5677](https://sketchfab.com/iori308408), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); [source and geometry modifications](docs/mx5-nc.md).
+The browser version in [`web/`](web/README.md) is the primary EasyCFD tool. The original OpenFOAM version is kept intact as the [legacy version](#legacy-openfoam-version) for cross-checking final designs.
 
-## Install and start
-
-```sh
-./scripts/start.sh
-```
-
-Open **http://127.0.0.1:8000**. You can also double-click **Start Easy CFD.command** in Finder. Keep the terminal open while simulations run. Stop with Ctrl-C.
-
-For a fresh installation, install these prerequisites:
-
-- [uv](https://docs.astral.sh/uv/) for Python. The project uses Python 3.12.
-- Node.js 22 or later and npm.
-- A Docker-compatible container runtime. [Colima](https://github.com/abiosoft/colima) is an open-source option for macOS. Allocate about 8 GB and at least 4 CPUs to its Linux VM on a 16 GB Mac, leaving memory for macOS (for example `colima start --cpu 4 --memory 8`). An existing Docker runtime also works.
-
-Then run:
+## Start
 
 ```sh
-./scripts/setup.sh
-./scripts/start.sh
+just run            # browser version: builds web/ and serves http://127.0.0.1:4173
+just run-openfoam   # legacy OpenFOAM version: http://127.0.0.1:8000
 ```
 
-Setup downloads Python/JavaScript dependencies and a pinned OpenCFD OpenFOAM 2412 image. Internet access is needed during setup. Models and simulations remain local. The solver container runs without network access, and the browser loads no external fonts, analytics, or cloud services.
+`just run` needs Node.js 22+ and Python 3 (for the static file server). It installs the npm packages on first use. Open the page in Chrome or Edge 113+, or Safari 26+. The app tells you if WebGPU is missing, or if the browser only offers a slow software fallback. Without `just`: `cd web && npm install && npm run build`, then serve `web/dist` from any static web server over `https://` or `http://localhost`.
 
-Linux uses the same scripts with Docker Engine. Windows support means running the project inside WSL2 with a Docker-compatible Linux runtime; native Windows is not supported. macOS ARM64 is the tested platform.
+## Using it
 
-## First comparison
+1. **Car.** Drop STL, OBJ, GLB or glTF files anywhere on the page, or open the sample car. Set units, which way the nose points, which way is up, and road clearance. Check the wheels and confirm the checklist.
+2. **Conditions.** Road speed (5–300 km/h), crosswind yaw (±20°), reference area (with an exact frontal-area estimate), air density, moving road, rotating wheels, and an automatic or custom tunnel box.
+3. **Run.** Fast (about 1 minute on an Apple M1), Medium (1–2 minutes), Precise (two grid levels, 3–5 minutes) or Custom. The flow develops live on screen while the forces converge.
+4. **Results.** Lift or downforce in kg and N, drag, Cd and Cl with a ± band, where the drag comes from, force history and warnings. Visualise surface pressure, smoke, streamlines, a section plane and the wake volume.
+5. **Compare.** Two runs side by side with synchronised cameras, shared colour scales, force deltas and the parts or groups that differ.
 
-1. Click **+** beside Designs to open the sample car. The sidebar holds **01 Geometry**, **02 Driving conditions**, and a **03 Run** area that stays in view; the icon at the top right switches between system, light, and dark themes.
-2. Rotate it and check its dimensions. The nose points toward −X, incoming air travels toward +X, and +Z is up.
-3. Confirm the geometry checklist. Set road speed and reference area.
-4. Select **Fast** and run. Inspect pressure, flow lines, and velocity slices.
-5. Duplicate the design, then add the rear wing or import your own complete modified assembly. For your own model, **Add parts** loads optional pieces such as wings or splitters into the same design; switch them on or off before each run.
-6. Keep the driving conditions and reference area the same. Run the variant and choose both completed runs in **Compare designs**.
-7. Use **Medium**, then **Precise**, before drawing conclusions about forces. Review the mesh, force history, residuals, near-wall resolution, and changes between mesh levels.
+Designs and runs are saved in the browser (IndexedDB). Runs can be exported as JSON with a CSV of the force history, and views as PNG.
 
-The included car and removable wing are original, simplified demonstration geometry. They are not a production car, optimized aerofoil, or experimental benchmark. Wheels are separate cylinders with simplified road clearance and no spokes or contact deformation.
+### Part groups: test variants without re-importing
 
-Simulation results show **Downforce** or **Lift** in kilograms of equivalent weight at the saved run speed. The value is the magnitude of the calculated vertical force in newtons divided by 9.80665. Downforce pushes the car onto the road; lift unloads it. The card also shows the force in newtons. Existing saved runs support this display without rerunning. Set road speed between 5 and 300 km/h before running to calculate the load at that speed; changing setup does not change a saved result. These loads retain the run's mesh and convergence limitations.
+Parts are organised in groups that are switched on and off together, so several versions of a part can live in one design:
 
-## Importing geometry
+- **Automatic groups.** Body and Wheels. Aero parts are recognised by name (wings, endplates and wing supports go into "Rear wing"; also splitters and diffusers). Every file added with **Add parts** gets its own group.
+- **Your own groups.** Click a group's name to rename it. Use **New group**, or the menu on each part row, to move parts into another group. Deleting a group returns its parts to their automatic groups.
+- **Switches.** A part is simulated when both its own switch and its group's switch are on. **Only this** switches one optional group on and the other optional groups off; Body and Wheels are left alone. This is the quick way to cycle through wing versions.
+- **Runs remember their groups.** Results, the run list and **Compare** name the groups each run simulated, for example "Groups: Wing A · 12°" against "no optional groups".
 
-For Blender models, open **Blender export guide** in the page header or import dialog. The six-step guide covers scale, separate wheels, closed surfaces, mesh checks, STL export settings, and import. It was checked against the Blender 5.2.2 LTS manual on 22 September 2026.
+Typical workflow: import the car, then add three rear-wing versions with **Add parts** (each becomes a group). Run the baseline with the wing groups off, then **Only this** on each wing in turn, and compare the runs.
 
-- **STEP / STP:** Open CASCADE reads embedded length units, tessellates the solids, then converts millimetres to metres internally.
-- **STL:** Select export units explicitly. STL does not reliably encode units.
-- Import all assembly files together so their relative positions are preserved. Imports replace the current project geometry, while previous run snapshots remain intact.
-- Choose the original forward and up axes. The app centers the assembly horizontally and places its lowest point at the requested distance above the road.
-- Original files are kept with the design. After import, **Turn 90°**, **Nose ↔ tail**, **Pitch 90°**, **Flip**, STL units, and road clearance rebuild the model from them without uploading again. Hints suggest a fix when the bounding box looks wrong, for example a car wider than it is long or a length that fits another unit. They are suggestions from the bounding box only and are applied only when you choose them.
-- **Add parts** imports optional parts exported from the same scene as the car, without moving the car. They use the car's units and axes, and keep their exported position: they are not re-centered or placed on the road. A part that reaches within 5 mm of the road blocks the run.
-- Each file and part can be switched off. Switched-off parts stay in the design, appear faint in the preview, and are left out of the simulation, dimensions, frontal-area estimate, and geometry checks. Each run keeps only the parts it simulated. Run labels and **Compare designs** name the parts that differ.
-- **Front**, **Side**, and **Top** show orthographic views for checking orientation. The labelled cube shows the car's front, rear, left, and right.
-- Identify wheels as separate parts. The initial wheel center comes from that part's bounding box; set its radius in the part list. The wheel axis is transverse to the car, so arbitrary steered or cambered wheels are outside this version's model.
-- Export a closed exterior, without cabin furniture, engine internals, or unnecessary fasteners. Fix open edges and incorrect normals in CAD/Blender. Automatic checks do not prove the absence of intersecting surfaces.
-- Current import limits are 20 files, 100 MB combined, 100 connected parts, and 1.5 million surface triangles. Supported model lengths are 0.1–15 m.
+[![Part groups walkthrough: three rear-wing versions run and compared](web/docs/groups-walkthrough.gif)](web/docs/groups-walkthrough.mp4)
 
-Confirming geometry is a review step, not a CFD accuracy certificate. Thin parts, narrow gaps, overlapping bodies, and wheel/ground contact can prevent meshing or require more resolution than this Mac's presets provide.
+[Watch the part-groups walkthrough](web/docs/groups-walkthrough.mp4) (2 min 20 s; the three solver runs are sped up 6×). It uses the synthetic demo geometry in [`web/demo/groups`](web/demo/groups/README.md).
 
-## Quality presets
+## Accuracy
 
-| Preset | Purpose | Solver RAM cap | Iteration budget |
-|---|---|---:|---:|
-| Fast | Geometry/setup checks and coarse flow exploration; no prism layers | 3 GB | 300 |
-| Medium | Finer surfaces and wake, with prism-layer meshing | 5 GB | 1,000 |
-| Precise | Runs Medium followed by a finer mesh with more prism layers | 6 GB | 1,000 + 1,800 |
+The browser solver was checked against the OpenFOAM app on eight cases, using the same geometry and conditions: the sample car (also at 10° yaw and with a rear wing), an MX-5, two BMW Z4 versions, a simple one-piece car and the Ahmed body. Drag is within ±10 % of OpenFOAM Medium for 6 of 8 cases on Fast, and 5 of 8 on Medium and Precise. All are within 16 %. On average the browser's drag is about 9 % lower. Lift is less reliable: it is 0.2–0.3 off in Cl on four models. The full tables, sensitivity studies and reproduction steps are in [web/VALIDATION.md](web/VALIDATION.md).
 
-The app runs one solver job at a time, with a four-CPU container quota. The flow solution uses four MPI processes; meshing and result extraction are separate stages. Actual speedup depends on the case and runtime allocation. A run needs 8 GB of free disk space before it starts. Mesh cell limits are conservative ceilings, not targets. Meshing failures remain visible, with their logs.
+On the sample car in the app: Fast gave Cd 0.511 ± 0.006 and Cl 0.839 in 61 s; Medium gave Cd 0.513 ± 0.001 and Cl 0.845 in 108 s. OpenFOAM Medium gives Cd 0.547.
 
-Preset names describe effort, not guaranteed accuracy. Local timings and verification evidence are recorded in [docs/validation.md](docs/validation.md). A real detailed car can cost much more than the sample.
+### Lift that does not settle on fine grids
 
-## Interpreting results
+On fine grids some cars have no steady answer for lift. On the simple car at 120 cells per car length, lift keeps swinging between about 0.15 and 0.44, with a period of 8–10 flow passes, while drag stays within about ±3 %. At 72 cells per length the same car converges: lift settles at 0.22–0.25. The finer grid resolves an unsteady wake that the coarser grid damps. Gentler local time stepping ran twice as slowly and still fluctuated (0.13–0.35) around the same mean, so this is the flow, not a solver setting.
 
-- **Drag, N:** force along the car's longitudinal +X axis, including at nonzero crosswind yaw.
-- **Downforce, N:** negative vertical lift. A negative downforce value means the simulation predicts upward lift.
-- **Cd / Cl:** dimensionless forces normalized by `0.5 × density × airspeed² × reference area`. Reference area defaults to 2.2 m² and must be checked for your model. It is not silently recalculated for a variant.
-- **Pressure, Pa:** pressure relative to the outlet ambient reference. OpenFOAM's kinematic pressure is multiplied by air density before display.
-- **Speed, m/s:** local air velocity magnitude. A stationary no-slip body surface has zero velocity; inspect a slice for air motion around it.
-- **Modeled turbulence, m²/s²:** turbulent kinetic energy, `k`. This is a modeled average quantity, not resolved eddies.
-- **Flow lines:** streamlines through the steady velocity field. They are not a time history of turbulent motion.
+What the app does about it:
 
-The solver is `simpleFoam` with steady incompressible k–omega SST RANS. Standard air defaults are density 1.225 kg/m³, kinematic viscosity 1.5e-5 m²/s, and 1% inlet turbulence. Yaw adds lateral air velocity while the road and wheels follow longitudinal road speed. The wind tunnel extends three car lengths upstream, six downstream, and two lengths to each side and above the car.
+- Medium, Precise and Custom runs extend themselves by up to 10 flow passes (or twice their length, if shorter) while Cd or Cl is still drifting, then average over the longer window. Fast is never extended.
+- Cd and Cl are shown with a ± band: half the range of six sub-window means over the averaging window.
 
-The forces are averaged over the last 50 iterations. “Settled” means the final 50-iteration range is below 2% of the mean magnitude, with a coefficient floor of 0.01. Residual checks are separate. Neither establishes physical accuracy. Precise compares two mesh levels; it does not provide a formal uncertainty interval or establish grid independence.
+How to read it: use 72–100 cells per car length for design comparisons. Compare designs on drag first, and treat lift differences smaller than the ± band as noise. At 120+ cells, report the average and its band.
 
-## Files, recovery, and development
+## How the solver works
 
-Local state is in `.easycfd/` beside this README. `EASYCFD_DATA` can choose another directory. Projects contain original imports and prepared surfaces. Each run contains an independent geometry snapshot, settings, OpenFOAM dictionaries, logs, solved fields, and visualization assets. Every retained timestep is reassembled after a parallel solve. The per-process copies are then deleted, but only when they hold nothing the reassembled case lacks. The results page shows each completed run's size. **Export run** downloads a ZIP for inspection in other tools, including ParaView.
+Steady incompressible RANS with the k-ω SST turbulence model, the same model and boundary conditions as the OpenFOAM version: a fixed-velocity inlet with 1 % turbulence, a fixed-pressure outlet, freestream sides, a symmetry top, a moving road, rotating wheels and wall functions. It uses a stretched Cartesian grid with cut cells, so sloped and curved surfaces are smooth rather than stepped. Small cut cells are merged with a neighbour, and thin parts such as wings are zero-thickness walls. The flow is marched to a steady state with local time steps and a multigrid pressure solver, all as WebGPU compute shaders. See [web/README.md](web/README.md) for details and development commands.
 
-Runs saved by earlier versions may still hold those per-process copies and old `run.zip` exports. `uv run python scripts/cleanup.py` lists the space they use; add `--apply` to delete them. Earlier versions reassembled only the final timestep, so those copies hold the only copy of the previous one. They are kept unless you add `--reconstruct`, which reassembles those timesteps in the solver container before deleting the copies. Failed and cancelled runs are never touched.
+## Legacy OpenFOAM version
 
-The solver uses four MPI processes. On the tested Apple M1, six or eight were slower. The cause wasn't isolated; efficiency cores, MPI communication and memory bandwidth are all candidates. On a machine with more performance cores, set `EASYCFD_PROCESSES` before `./scripts/start.sh` and compare solver times. Docker's CPU limit never exceeds the runtime's CPU count.
-
-On a server restart, queued jobs resume; an interrupted active run is marked failed and its logs are retained. Start a fresh run to retry. Cancellation stops the active solver container. Keep one backend server per data directory.
+The original app is unchanged in `backend/`, `frontend/` and `scripts/`. It runs OpenFOAM v2412 in Docker and includes the tools the browser version does not have yet: STEP import, opening repair, merge & seal, and rotate & scale. Use it to cross-check final designs with an independent solver and mesh.
 
 ```sh
-# Backend checks, without Docker
-uv run pytest -q
-uv run ruff check backend scripts
-
-# Build the local browser application
-npm --prefix frontend run build
-
-# Browser checks, with the local server running
-cd frontend
-npx playwright install chromium
-npm run test:e2e
-
-# Real end-to-end CFD, from the repository root with the server running
-uv run python scripts/smoke.py --quality fast
-uv run python scripts/smoke.py --quality precise
+./scripts/setup.sh    # first time: Python/JS dependencies and the pinned OpenFOAM image
+just run-openfoam     # or ./scripts/start.sh
 ```
 
-For frontend development, run `npm --prefix frontend run dev` alongside the backend; Vite proxies `/api` to port 8000. Interactive API documentation is at http://127.0.0.1:8000/docs. Do not expose this single-user local application on a public network.
-
-## Limits
-
-This release is for design exploration. It is not a validated automotive aerodynamics package. Cooling/internal flow, heat transfer, deforming parts, moving wheel geometry, adaptive meshing, arbitrary automatic CAD repair, remote compute, and transient LES/DES are not implemented. Detailed whole-car accuracy may require substantially more computation and specialist setup than the local presets support.
-
-Before using a predicted improvement, verify that it survives mesh refinement and a suitable experimental benchmark. See [validation evidence and remaining work](docs/validation.md).
-
-## Open-source components
-
-Application code and original sample geometry are MIT-licensed. OpenFOAM remains a separately distributed GPL component in its upstream container. Dependencies retain their own licenses; see [THIRD_PARTY.md](THIRD_PARTY.md).
+Its full documentation is in [docs/legacy-openfoam.md](docs/legacy-openfoam.md).
 
 ## Private Tailscale access
 
-You can optionally serve the UI privately with `tailscale serve --bg --https=8443 http://127.0.0.1:8000`. Connect the testing device to your tailnet and use the host's Tailscale DNS name with `:8443`.
+Both versions can be shared privately on your tailnet (Tailscale Serve, not public Funnel):
 
-Save the exact HTTPS browser origin (including port 8443) in `.easycfd/tailnet-origin`; it is loaded by `scripts/start.sh` on startup. To disable the proxy, run `tailscale serve --https=8443 off`. This uses private Tailscale Serve, not public Funnel.
+```sh
+tailscale serve --bg --https=8444 http://127.0.0.1:4173   # browser version (while `just run` is running)
+tailscale serve --bg --https=8443 http://127.0.0.1:8000   # legacy OpenFOAM version
+```
 
-## MX-5 NC example
+For the browser version, the flow is computed on the viewer's device, not the host. Designs are stored per browser. Stop sharing with `tailscale serve --https=8444 off`.
 
-The development validation used a separately supplied MX-5 NC model. Its geometry and local projects are not bundled with this repository. The first coarse reconstruction was superseded by a smoother exterior. See [surface-quality checks and limitations](docs/mx5-nc-surface-quality.md).
+## Licenses
 
-## Selective opening repair
-
-In **Geometry**, choose **Inspect & repair openings**. Open rims appear in red; select an opening in the list to highlight its rim in yellow. **Preview caps** adds green patches for inspection. Reset the selection to discard the preview, or **Apply repairs** to save a new geometry revision and rerun the existing checks. Existing vertices stay in place, and unselected openings stay open. Previous geometry and uploaded originals are retained; saved runs are unchanged.
-
-This first version caps simple, nearly planar loops, including concave outlines. It rejects branching boundaries, crossing outlines, strongly curved openings, collapsed patches, inconsistent rim winding, and rims over 1,000 vertices. Non-manifold edges are reported separately. It does not reconstruct missing curved bodywork, bridge disconnected shells, repair intersections, or automatically seal every opening. Inspect intentional intakes, wheel arches, and wing gaps before applying a cap. Passing the watertightness check is not a CFD validation.
-
-After applying repairs, download the repaired STLs to reuse them. Use Rotate & scale to change orientation or size directly. Reimport the exported STLs to change source files. Export coordinates are metres, nose −X, up +Z. Reassign wheel roles after importing. Role changes and part enable/disable remain available directly.
-
-## Group, merge, and seal fragmented STLs
-
-If a single STL exceeds the 100-part limit, select **STL components → Group each STL for repair** in the import dialog. Each STL is stored as one editable part with its component count. Grouping preserves triangle positions and does not weld or repair the surface. Separate-file wheels keep their relative positions. Standard split import, the 20-file limit, and the upload size limit remain available.
-
-Open **Merge & seal**, select the enabled body parts that belong together, and choose a resolution and gap target in millimetres. Wheels are excluded from selection. **Preview merged body** reconstructs the selected surfaces on a voxel grid, closes small gaps, fills enclosed interiors, extracts a surface, and smooths the actual mesh. Smaller resolution values retain more detail and require more memory. The gap target is approximate and rounded to the grid; it is not an exact distance-based welding tolerance.
-
-Use **Original / Sealed preview** to compare the same camera view. The panel reports connected solids, watertightness, and two directions of sampled surface distances. These are deterministic vertex/face-centre samples, not an area-weighted error estimate or a maximum-error guarantee. Removed internal surfaces affect the original-to-new distances. This method changes existing vertices and can alter intakes, panel gaps, wheel arches, and thin details.
-
-A preview cannot be applied unless it contains one connected, watertight, consistently wound, positive-volume surface with an enclosed interior. Disconnected islands are retained and reported, not discarded. A thickened open sheet without an enclosed interior is rejected. Preview work is capped at 8 million grid cells and an estimated 8 million subdivided input faces; the API accepts at most 1.5 million selected source triangles and one reconstruction at a time. It asks for a coarser resolution when those budgets are exceeded.
-
-Apply saves the exact preview in a fresh geometry folder, preserves uploaded originals and prior geometry, and resets geometry confirmation. Unselected parts keep their coordinates, enabled state, and wheel settings. Stale previews are rejected. Download the resulting STLs through the workshop; use Rotate & scale to change orientation or size, and reimport the exported STLs to change source files. Ordinary geometry checks still apply, including road clearance. Sealing is not a CFD mesh or simulation validation.
-
-The closing and interior-fill steps use SciPy's [binary closing](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.binary_closing.html) and [binary hole filling](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.binary_fill_holes.html).
-
-## Rotate, scale, and set exact dimensions
-
-Open **Rotate & scale** to edit the current geometry, including capped and sealed models. Choose the whole model or one object. Length X, width Y, and height Z update live from the actual surface vertices as you scale and rotate. Enter a target dimension in metres, centimetres, or millimetres; uniform scaling preserves proportions and updates the other dimensions. The scale slider and scale-factor input also update the model immediately.
-
-Rotations apply around the selection's bounding-box centre in world X, Y, Z order. The movement controls add offsets in metres. **Keep the lowest point at its current height** adjusts the selection vertically after scaling/rotation, then applies any requested Z movement. Unselected objects keep their exact asset bytes and metadata. **3D** refits the live model in the viewer.
-
-**Reset changes** discards pending edits. **Review changes** checks an immutable server preview, and **Apply changes** saves it while retaining prior geometry and originals. Changing a control invalidates the checked preview. Saved runs are unchanged and geometry confirmation resets. Wheel centres and radii follow the transform; a wheel axle tilted away from the transverse direction blocks CFD until corrected or its role is reviewed. Source-file changes still require exporting and reimporting edited geometry.
-
-## Custom simulation box and iteration limit
-
-In **02 Driving conditions → Simulation box**, select **Custom · exact coordinates**. Enter the inlet and outlet X coordinates, both side Y coordinates, and the top Z coordinate in metres. The floor stays at Z = 0. **Show box in 3D** draws the box around the model; **Fit box**, **Front**, **Side**, and **Top** help inspect it. The preview reports the resulting length, width and height. Automatic mode retains the existing model-relative tunnel.
-
-The box can be configured with any quality preset. Saving or starting a run rejects a box that intersects the enabled geometry or exceeds the background-mesh budget. Enlarging the box does not silently coarsen the mesh. These controls change box size; they do not change inlet turbulence or the existing boundary-condition types.
-
-Choose **Custom** in **03 Run** to select Fast, Medium, or Precise mesh resolution and an integer iteration limit from 50 to 20,000. Custom runs one mesh. Selecting Precise mesh resolution in Custom does not run the automatic two-level refinement check. Custom saves its field snapshot at the exact final iteration, including limits that are not multiples of 100. Forces are still averaged over the last 50 iterations and assessed for settling separately.
-
-Each new run records its own box and settings. On the results page, **Show saved simulation box** displays that run's box even after the design settings change. Comparisons warn about different custom boxes, mesh resolutions or iteration limits. Older runs remain readable, but may not have saved box coordinates to display.
-
-The feature was exercised through the browser with a real 125-iteration Custom run and a 30 × 10 × 6 m box. See [verification evidence](docs/custom-box/README.md).
+Application code and the original sample geometry are MIT-licensed. The browser version depends on three.js (MIT), React (MIT) and lucide-react (ISC). The legacy version runs OpenFOAM, a separately distributed GPL component in its upstream container. See [THIRD_PARTY.md](THIRD_PARTY.md).
