@@ -29,6 +29,9 @@ function Guide() {
       </ol>
       <h3>Reading the results</h3>
       <ul className="guide">
+        <li><b>Explore airflow</b> sets up a view and its camera. Vertical streamlines follow air over and under the car; horizontal streamlines follow air around its sides. Settings let you move the seed rake and change the number of lines.</li>
+        <li><b>3D pressure clouds</b> mark equal static pressure in the air. Blue is suction and coral is positive pressure. Lower the threshold to reveal weaker regions. Surface flow shows near-wall direction, not friction stress; turbulent energy is not an acoustic noise level.</li>
+        <li><b>Force arrows</b> show the saved average forces in newtons with a shared length scale. Their position is illustrative, not a measured centre of pressure.</li>
         <li><b>Downforce</b> (kg) pushes the car onto the road; negative Cl means downforce. <b>Lift</b> is the opposite.</li>
         <li>Use <b>Fast</b> to check the setup and <b>Medium</b> or <b>Precise</b> before comparing designs. Compare runs with the same speed, reference area and quality.</li>
         <li>A <b>Provisional</b> badge means forces were still moving at the end: run longer (more passes) before trusting small differences.</li>
@@ -36,7 +39,10 @@ function Guide() {
       </ul>
       <h3>Controls</h3>
       <ul className="guide">
-        <li>Drag to orbit, right-drag or two-finger drag to pan, scroll to zoom. Click a face of the orientation cube to snap the camera.</li>
+        <li>The <b>Driving preview</b> shows five soft smoke streams bending over the body and around its sides, a moving road and tyre rotation. The smoke is a lightweight illustration of the shape and crosswind. Run a simulation for computed airflow. Road and wheels follow your Conditions settings; playback is slowed for viewing.</li>
+        <li><b>Place wheels on ground</b> positions the car at road level with the 5 mm clearance needed for a run. <b>Lift car</b> raises it to 150 mm; enter a height for other positions, including 0 mm for exact contact in the preview. The body and all added parts move together.</li>
+        <li><b>Expand view</b> hides the setup or results panel. Pause freezes smoke, road, tyres and computed flow together. Road &amp; tyres and Smoke switches control what is drawn; they do not change a saved run.</li>
+        <li>Drag to orbit, right-drag or two-finger drag to pan, scroll to zoom. Orbit below the road or choose <b>Underbody</b> to inspect the floor and diffuser. The road fades out below the car. Click a face of the orientation cube to snap the camera.</li>
         <li>Coloured knobs in the view move the smoke rake, the streamline rake and the slice.</li>
       </ul>
     </div>

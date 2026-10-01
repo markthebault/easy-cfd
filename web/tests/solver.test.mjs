@@ -111,6 +111,24 @@ test("frontal area of the sample car", () => {
   assert.ok(Math.abs(a - (1.62 + 2 * disc)) < 0.03, `frontal ${a}`);
 });
 
+test("road and wheel choices set independent solver wall velocities without changing wind", () => {
+  const parts = car().map((p, i) => ({ ...p, id: `p${i}` }));
+  const speed = 108 / 3.6;
+  for (const moving_ground of [false, true]) for (const wheels of [false, true]) {
+    const c = setup.prepareCase(parts, { ...types.DEFAULT_SETTINGS, quality: "custom", custom_cells: 40, speed_kmh: 108, yaw_deg: 10, moving_ground, wheels });
+    assert.equal(c.groundSpeed, moving_ground ? speed : 0);
+    assert.equal(c.inlet[0], speed);
+    assert.ok(Math.abs(c.inlet[1] - speed * Math.tan(10 * Math.PI / 180)) < 1e-6);
+    assert.equal(c.parts[3], 0, "body stays fixed");
+    parts.forEach((p, i) => {
+      if (p.role !== "wheel") return;
+      const omega = c.parts[4 * i + 3];
+      assert.ok(Math.abs(omega - (wheels ? -speed / p.wheel.radius : 0)) < 1e-5);
+      if (wheels) assert.deepEqual(Array.from(c.parts.slice(4 * i, 4 * i + 3)), p.wheel.center.map(Math.fround));
+    });
+  }
+});
+
 test("STL binary round trip and ASCII parsing", () => {
   const body = car()[0].positions;
   const back = stl.parseSTL(stl.writeSTL(body));

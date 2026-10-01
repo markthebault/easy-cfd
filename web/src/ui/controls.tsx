@@ -42,6 +42,16 @@ export function Toggle(props: { checked: boolean; onChange: (v: boolean) => void
   );
 }
 
+export function Checkbox(props: { checked: boolean; onChange: (v: boolean) => void; label: string; hint: string }) {
+  const id = useId();
+  return (
+    <label className="boundary-checkbox" htmlFor={id}>
+      <input id={id} type="checkbox" aria-label={props.label} aria-describedby={`${id}-hint`} checked={props.checked} onChange={(e) => props.onChange(e.target.checked)} />
+      <span><b>{props.label}</b><small id={`${id}-hint`}>{props.hint}</small></span>
+    </label>
+  );
+}
+
 /** Number input that only commits valid values (on blur / Enter), so typing never fights the state. */
 export function NumberField(props: {
   value: number;
@@ -116,6 +126,8 @@ export function Slider(props: {
       </span>
       <input
         type="range"
+        aria-label={props.label}
+        aria-valuetext={typeof props.display === "string" ? props.display : undefined}
         min={props.min}
         max={props.max}
         step={props.step ?? 1}

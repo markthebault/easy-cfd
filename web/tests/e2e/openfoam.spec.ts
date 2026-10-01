@@ -31,29 +31,39 @@ const record = (status: string) => ({
   },
 });
 
-test("OpenFOAM engine: choose it, run, follow live, open the result", async ({ page }) => {
+for (const moving_ground of [false, true]) for (const wheels of [false, true]) test(`OpenFOAM motion: road ${moving_ground}, wheels ${wheels}, run and reopen result`, async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   let polls = 0;
   let fieldRequest: { origin: number[]; spacing: number[]; dims: number[] } | null = null;
+  let settingsRequest: Record<string, unknown> | null = null;
+  const runRecord = (status: string) => ({ ...record(status), settings: { ...record(status).settings, moving_ground, wheels } });
+  const boundaries = `Road ${moving_ground ? "moving" : "fixed"} · Wheels ${wheels ? "rotating" : "fixed"}`;
   const json = (route: Route, body: unknown) => route.fulfill({ contentType: "application/json", body: JSON.stringify(body) });
   await page.route("**/api/**", async (route) => {
     const url = new URL(route.request().url());
     const path = url.pathname.replace(/^\/api/, "");
     const method = route.request().method();
     if (path === "/health") return json(route, health);
-    if (path === "/runs" && method === "GET") return json(route, polls > 3 ? [record("completed")] : []);
+    if (path === "/runs" && method === "GET") return json(route, polls > 3 ? [runRecord("completed")] : []);
     if (path === "/projects" && method === "POST") return json(route, { id: P });
     if (path === `/projects/${P}/import`) return json(route, { id: P, geometry: { parts: serverParts, errors: [] } });
     if (path === `/projects/${P}`) return json(route, { id: P, geometry: { parts: serverParts } });
+    if (path === `/projects/${P}/settings` && method === "PUT") {
+      settingsRequest = route.request().postDataJSON();
+      return json(route, {});
+    }
     if (path.startsWith(`/projects/${P}/`) && method === "PUT") return json(route, {});
-    if (path === `/projects/${P}/runs`) return json(route, record("queued"));
+    if (path === `/projects/${P}/runs`) {
+      expect(settingsRequest).toMatchObject({ moving_ground, wheels });
+      return json(route, runRecord("queued"));
+    }
     if (path === `/runs/${R}/live`) {
       polls++;
       const done = polls > 3;
       return json(route, { status: done ? "completed" : "running", stage: done ? "Complete" : "fast: Solving airflow", iteration: done ? 300 : 120, history: [{ iteration: 1, cd: 0.9, cl: 0.4 }, { iteration: 120, cd: 0.55, cl: 0.6 }] });
     }
-    if (path === `/runs/${R}`) return json(route, record("completed"));
+    if (path === `/runs/${R}`) return json(route, runRecord("completed"));
     if (path === `/runs/${R}/viz-field`) {
       fieldRequest = JSON.parse(route.request().postData() ?? "{}");
       const [nx, ny, nz] = fieldRequest!.dims;
@@ -74,7 +84,20 @@ test("OpenFOAM engine: choose it, run, follow live, open the result", async ({ p
   await page.getByTestId("try-sample").click();
   await page.getByText("I checked size, orientation, wheels and clearance.").click();
   await page.getByRole("button", { name: "Continue to conditions" }).click();
+  await page.getByRole("checkbox", { name: "Moving road", exact: true }).setChecked(moving_ground);
+  await page.getByRole("checkbox", { name: "Rotating wheels", exact: true }).setChecked(wheels);
+  await expect.poll(() => page.evaluate(() => {
+    const s = (window as any).__easycfd.app.get();
+    return s.designs.find((d: any) => d.id === s.design.id)?.settings;
+  })).toMatchObject({ moving_ground, wheels });
+  await page.reload();
+  await expect(page.getByText("536 triangles", { exact: true })).toBeVisible();
+  await page.getByText("I checked size, orientation, wheels and clearance.").click();
+  await page.getByRole("button", { name: "Continue to conditions" }).click();
+  await expect(page.getByRole("checkbox", { name: "Moving road", exact: true })).toBeChecked({ checked: moving_ground });
+  await expect(page.getByRole("checkbox", { name: "Rotating wheels", exact: true })).toBeChecked({ checked: wheels });
   await page.getByRole("button", { name: "Continue to run" }).click();
+  await expect(page.getByTestId("run-boundaries")).toHaveText(boundaries);
   await expect(page.getByTestId("engine-openfoam")).toBeEnabled();
   await page.getByTestId("engine-openfoam").click();
   await page.getByRole("radio", { name: /^Fast/ }).click();
@@ -83,9 +106,12 @@ test("OpenFOAM engine: choose it, run, follow live, open the result", async ({ p
 
   await expect(page.locator(".live-head h2")).toHaveText(/Solving airflow \(fast\)/, { timeout: 20_000 });
   await expect(page.locator(".live-stats")).toContainText("120");
+  await expect(page.getByTestId("run-boundaries")).toHaveText(boundaries);
   await expect(page.getByTestId("card-cd")).toBeVisible({ timeout: 60_000 });
   await expect(page.getByTestId("card-cd").locator(".card-value")).toHaveText("0.5169");
   await expect(page.getByTestId("result-engine")).toHaveText("OpenFOAM");
+  await expect(page.getByTestId("run-boundaries")).toHaveText(boundaries);
+  expect(settingsRequest).toMatchObject({ moving_ground, wheels });
   await expect(page.locator(".chart-legend")).toContainText("x: iterations");
 
   // The flow grid was requested in the server's frame: the UI's window shifted by the offset.
@@ -98,6 +124,10 @@ test("OpenFOAM engine: choose it, run, follow live, open the result", async ({ p
   await expect(page.getByTestId("run-item").first()).toContainText("OpenFOAM");
   await page.getByTestId("tab-server").click();
   await expect(page.getByTestId("server-run").first()).toContainText("already in this browser");
+  await page.reload();
+  await page.getByTestId("open-library").click();
+  await page.getByTestId("run-item").first().click();
+  await expect(page.getByTestId("run-boundaries")).toHaveText(boundaries);
   expect(errors).toEqual([]);
 });
 

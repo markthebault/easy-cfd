@@ -10,6 +10,7 @@ import type { VizSettings } from "../viz/stage";
 import { collectFiles, get, getAll, hasKey, newId, put, remove, sha256 } from "./db";
 import { applyGroups, applyOverrides, partKey, rawFromSource, summarize, turn90, type GroupView, type RawPart } from "./geometry";
 import { buildParts } from "../geometry/model";
+import { clearanceForRoadHeight, roadPosition } from "../geometry/roadPosition";
 import { createStore } from "./store";
 import type { DesignDoc, FileRef, LoadedRun, PartGroup, PartOverride, Ranges, RunDoc, SourceRef } from "./types";
 
@@ -97,6 +98,13 @@ export const DEFAULT_VIZ: VizSettings = {
   streamlines: false,
   slice: false,
   wake: false,
+  pressureCloud: false,
+  cloudLevel: 0.15,
+  cloudOpacity: 0.32,
+  cloudSign: "both",
+  forces: false,
+  motion: true,
+  windDirection: true,
   playing: !reducedMotion,
   flowSpeed: 1,
   smokeDensity: 0.3,
@@ -337,6 +345,17 @@ export function setImport(patch: Partial<ImportOptions>) {
   if (d) setDesign({ ...d, importOptions: { ...d.importOptions, ...patch } });
 }
 
+export function setRoadHeight(height: number, simulationGap = false) {
+  const s = app.get(), d = s.design;
+  if (!d || s.busy || !Number.isFinite(height) || height < 0 || height > 2) return;
+  const position = roadPosition(s.parts);
+  const anchor = simulationGap ? position.lowest : position.height;
+  if (anchor === null) return;
+  const clearance = clearanceForRoadHeight(d.importOptions.clearance, anchor, height);
+  if (Math.abs(clearance - d.importOptions.clearance) < 1e-8) return;
+  setImport({ clearance });
+}
+
 export function applyHint(apply: Partial<ImportOptions> & { turn?: boolean }) {
   const d = app.get().design;
   if (!d) return;
@@ -492,7 +511,7 @@ export function vizForCar(v: VizSettings, low: number[], high: number[]): VizSet
   return {
     ...v,
     rake: { x: low[0] - 0.14 * L, y: yc, z: zc, width: W * 0.9, height: H * 0.9 },
-    stream: { ...v.stream, x: low[0] - 0.12 * L, y: yc + 0.02 * W, z: zc, length: H * 1.05 },
+    stream: { ...v.stream, x: low[0] - 0.12 * L, y: yc + 0.02 * W, z: zc, length: v.stream.orientation === "vertical" ? H * 1.05 : W * 1.2 },
     slicePos: v.sliceAxis === 1 ? yc : v.sliceAxis === 2 ? zc : high[0] + 0.3 * L,
   };
 }

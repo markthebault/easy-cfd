@@ -6,6 +6,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 import { parseSTL } from "./stl";
 import type { Vec3 } from "../solver/types";
+import { ROAD_CONTACT_ERROR } from "./roadPosition";
 
 export type Units = "m" | "mm" | "cm" | "in";
 export type AxisName = "+X" | "-X" | "+Y" | "-Y" | "+Z" | "-Z";
@@ -347,10 +348,13 @@ export function checkGeometry(parts: Part[], hasStl: boolean): GeometryReport {
   const longest = Math.max(...dims);
   if (enabled.length && (longest < LIMITS.minLength || longest > LIMITS.maxLength))
     errors.push(`The model is ${longest.toFixed(2)} m long. Supported lengths are ${LIMITS.minLength}–${LIMITS.maxLength} m; check the units.`);
+  const tooClose: string[] = [];
   for (const p of enabled) {
     const b = soupBounds([p.positions]);
-    if (b.low[2] < 0.005) errors.push(`${p.name} reaches within 5 mm of the road. Raise the clearance.`);
+    if (b.low[2] < -1e-6) errors.push(`${p.name} extends below the road. Raise the car.`);
+    else if (b.low[2] < 0.005 - 1e-6) tooClose.push(p.name);
   }
+  if (tooClose.length) errors.push(ROAD_CONTACT_ERROR);
   const openParts = enabled.filter((p) => openEdges(p.positions) > 0).map((p) => p.name);
   if (openParts.length)
     warnings.push(`Open edges in ${openParts.length} part${openParts.length > 1 ? "s" : ""}. Small holes are tolerated by the solver's voxel vote; large openings fill or leak.`);

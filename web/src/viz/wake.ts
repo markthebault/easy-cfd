@@ -35,12 +35,14 @@ export function surfaceNets(f: VizField, values: Float32Array, level: number): {
     for (let j = 0; j < cy; j++)
       for (let i = 0; i < cx; i++) {
         let mask = 0;
+        let valid = true;
         for (let c = 0; c < 8; c++) {
           const v = at(i + (c & 1), j + ((c >> 1) & 1), k + ((c >> 2) & 1)) - level;
+          if (!Number.isFinite(v)) valid = false;
           corner[c] = v;
           if (v < 0) mask |= 1 << c;
         }
-        if (mask === 0 || mask === 255) continue;
+        if (!valid || mask === 0 || mask === 255) continue;
         let sx = 0, sy = 0, sz = 0, cnt = 0;
         for (const [a, b] of EDGES) {
           const va = corner[a], vb = corner[b];

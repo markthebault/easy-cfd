@@ -5,7 +5,8 @@ import type { Part } from "../geometry/model";
 import type { SurfaceSample, VizField } from "../solver/extract";
 import type { Ranges } from "../store/types";
 import { dragHandle } from "../store/app";
-import { Stage, type CameraState, type StagePart, type VizSettings } from "../viz/stage";
+import { Stage, type CameraState, type StagePart, type VizSettings, type ForceValues } from "../viz/stage";
+import type { DrivingConditions } from "../viz/driving";
 
 export const stages: Record<string, Stage | undefined> = {};
 
@@ -17,6 +18,10 @@ interface Props {
   field: VizField | null;
   ranges: Ranges | null;
   viz: VizSettings;
+  driving?: DrivingConditions | null;
+  forces?: ForceValues | null;
+  forceScale?: number;
+  forceLength?: number;
   dark: boolean;
   box: number[] | null;
   fitBox?: boolean;
@@ -24,7 +29,7 @@ interface Props {
   detailBoxes?: number[][] | null;
   helpers: boolean;
   gizmo?: { right: number; bottom: number; size: number };
-  insets?: { left: number; bottom: number };
+  insets?: { left: number; bottom: number; top?: number };
   onCamera?: (s: CameraState) => void;
   className?: string;
 }
@@ -49,13 +54,13 @@ export function StageView(props: Props) {
   }, [props.id]);
 
   useEffect(() => stage.current?.setTheme(props.dark), [props.dark]);
-  useEffect(() => stage.current?.setInsets(props.insets?.left ?? 0, props.insets?.bottom ?? 0), [props.insets?.left, props.insets?.bottom]);
+  useEffect(() => stage.current?.setInsets(props.insets?.left ?? 0, props.insets?.bottom ?? 0, props.insets?.top ?? 0), [props.insets?.left, props.insets?.bottom, props.insets?.top]);
 
   useEffect(() => {
     const s = stage.current;
     if (!s) return;
     const parts: StagePart[] = props.parts.map((p, i) => ({
-      id: p.id, role: p.role, enabled: p.enabled, positions: p.positions, cp: props.surface?.[i]?.cp ?? null, shear: props.surface?.[i]?.shear ?? null,
+      id: p.id, role: p.role, enabled: p.enabled, positions: p.positions, wheel: p.wheel, cp: props.surface?.[i]?.cp ?? null, shear: props.surface?.[i]?.shear ?? null,
     }));
     const first = !s.renderer.domElement.dataset.hasParts && parts.length > 0;
     s.setParts(parts, props.partsKey, props.ranges?.cp);
@@ -67,6 +72,8 @@ export function StageView(props: Props) {
 
   useEffect(() => stage.current?.setField(props.field, props.ranges), [props.field, props.ranges]);
   useEffect(() => stage.current?.setViz(props.viz), [props.viz]);
+  useEffect(() => stage.current?.setDriving(props.driving ?? null), [props.driving]);
+  useEffect(() => stage.current?.setForces(props.forces ?? null, props.forceScale, props.forceLength), [props.forces, props.forceScale, props.forceLength, props.partsKey]);
   useEffect(() => stage.current?.setBox(props.box, props.fitBox), [props.box, props.fitBox]);
   useEffect(() => stage.current?.setDetailBoxes(props.detailBoxes ?? null), [props.detailBoxes]);
   useEffect(() => stage.current?.setHelpers(props.helpers), [props.helpers]);

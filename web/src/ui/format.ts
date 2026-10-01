@@ -44,6 +44,10 @@ export function conditionsLine(s: Settings): string {
   return `${Math.round(s.speed_kmh)} km/h · ${fmt(s.yaw_deg, 0)}° yaw · ${qualityLabel(s)}`;
 }
 
+export function boundaryLine(s: Pick<Settings, "moving_ground" | "wheels">): string {
+  return `Road ${s.moving_ground ? "moving" : "fixed"} · Wheels ${s.wheels ? "rotating" : "fixed"}`;
+}
+
 /**
  * Optional groups a run simulated (everything except Body and Wheels), e.g. "Rear wing B".
  * Empty when the run has no optional groups; "no optional groups" when all were off.

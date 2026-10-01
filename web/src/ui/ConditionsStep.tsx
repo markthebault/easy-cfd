@@ -7,7 +7,7 @@ import type { DetailBox, SimulationBox, Vec3 } from "../solver/types";
 import { useStore } from "../store/store";
 import { app, goStep, setSettings } from "../store/app";
 import { gridBounds } from "../store/geometry";
-import { Badge, Field, NumberField, Segmented, Slider, Toggle } from "./controls";
+import { Badge, Checkbox, Field, NumberField, Segmented, Slider } from "./controls";
 import { fmt } from "./format";
 
 const MIN = 5, MAX = 300;
@@ -54,7 +54,7 @@ function SpeedDial({ value, onChange }: { value: number; onChange: (v: number) =
       viewBox="0 0 200 180"
       role="slider"
       tabIndex={0}
-      aria-label="Road speed"
+      aria-label="Wind speed"
       aria-valuemin={MIN}
       aria-valuemax={MAX}
       aria-valuenow={value}
@@ -193,6 +193,7 @@ export function ConditionsStep() {
   return (
     <div className="step-body">
       <div className="speed-block">
+        <span className="field-label">Wind speed</span>
         <SpeedDial value={Math.round(s.speed_kmh)} onChange={(v) => setSettings({ speed_kmh: v })} />
         <div className="presets" role="group" aria-label="Speed presets">
           {[50, 100, 130, 200, 250].map((v) => (
@@ -211,6 +212,18 @@ export function ConditionsStep() {
       </div>
 
       <div className="group">
+        <div className="group-title">
+          <span>Road &amp; wheel motion</span>
+          <Badge kind="neutral">{s.moving_ground && s.wheels ? "Rolling road" : !s.moving_ground && !s.wheels ? "Static wind tunnel" : "Custom motion"}</Badge>
+        </div>
+        <div className="boundary-options" role="group" aria-label="Road and wheel motion">
+          <Checkbox checked={s.moving_ground} onChange={(v) => setSettings({ moving_ground: v })} label="Moving road" hint="Road surface moves at the selected speed. Uncheck for a fixed road." />
+          <Checkbox checked={s.wheels} onChange={(v) => setSettings({ wheels: v })} label="Rotating wheels" hint="Parts marked Wheel turn at the selected speed. Uncheck to hold them still." />
+        </div>
+        <small className="field-hint" role="status">{!s.moving_ground && !s.wheels ? "Road and wheels stay fixed. Air still flows at the selected wind speed." : "These settings apply to the preview and to both simulation engines. Airflow stays on."}</small>
+      </div>
+
+      <div className="group">
         <Field label="Reference area" hint="Used for Cd and Cl. Keep it the same when you compare designs.">
           <div className="row gap-s">
             <NumberField value={s.reference_area} min={0.01} max={20} step={0.05} digits={2} unit="m²" label="Reference area" onChange={(v) => setSettings({ reference_area: v })} width={116} />
@@ -224,8 +237,6 @@ export function ConditionsStep() {
         <Field label="Air density">
           <NumberField value={s.density} min={0.5} max={1.5} step={0.005} digits={3} unit="kg/m³" label="Air density" onChange={(v) => setSettings({ density: v })} width={136} />
         </Field>
-        <Toggle checked={s.moving_ground} onChange={(v) => setSettings({ moving_ground: v })} label="Moving ground" hint="The road moves at car speed, as on a rolling road." />
-        <Toggle checked={s.wheels} onChange={(v) => setSettings({ wheels: v })} label="Rotating wheels" hint="Parts marked Wheel spin at road speed." />
       </div>
 
       <div className="group">

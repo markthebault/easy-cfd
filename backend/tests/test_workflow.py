@@ -216,6 +216,41 @@ def test_road_and_wheel_directions_and_yaw(tmp_path):
     assert "rhoInf 1.225" in control
 
 
+@pytest.mark.parametrize("moving_ground", [False, True])
+@pytest.mark.parametrize("wheels", [False, True])
+def test_motion_choices_persist_per_run_and_generate_wall_boundaries(client, moving_ground, wheels):
+    p = project(client)
+    settings = {
+        **p["settings"], "geometry_confirmed": True, "quality": "fast",
+        "speed_kmh": 108, "yaw_deg": 10, "moving_ground": moving_ground, "wheels": wheels,
+    }
+    url = f"/api/projects/{p['id']}/settings"
+    assert client.put(url, json=settings).status_code == 200
+    assert client.get(f"/api/projects/{p['id']}").json()["settings"] == settings
+    response = client.post(f"/api/projects/{p['id']}/runs")
+    assert response.status_code == 202
+    key = response.json()["id"]
+    # Editing the design after queueing cannot alter this run's walls.
+    client.put(url, json={**settings, "moving_ground": not moving_ground, "wheels": not wheels})
+    saved = client.get(f"/api/runs/{key}").json()
+    assert saved["settings"] == settings
+    root = storage.directory("runs", key)
+    meta = foam.generate(root / "case", root / "geometry", saved["geometry"], Settings(**saved["settings"]))
+    u = (root / "case/0/U").read_text()
+    assert f"ground {{type fixedValue; value uniform ({30 if moving_ground else 0} 0 0);}}" in u
+    assert meta["velocity"][0] == 30
+    assert meta["velocity"][1] == pytest.approx(30 * np.tan(np.deg2rad(10)))
+    for part in saved["geometry"]["parts"]:
+        wall = re.search(rf"^{part['id']} \{{([^}}]+)\}}", u, re.M).group(1)
+        if part["role"] == "wheel" and wheels:
+            assert "type rotatingWallVelocity;" in wall
+            assert f"origin {foam.vec(part['wheel']['center'])}; axis (0 1 0);" in wall
+            omega = float(re.search(r"omega ([^;]+);", wall).group(1))
+            assert omega == pytest.approx(-30 / part["wheel"]["radius"])
+        else:
+            assert wall == "type noSlip;"
+
+
 def test_cancellation_and_failed_stage(client, monkeypatch):
     p = project(client)
     client.put(

@@ -69,12 +69,20 @@ export function road(): THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial> {
       uLine: { value: new THREE.Color(0x2c313a) },
       uFade: { value: 18 },
       uCell: { value: 0.5 },
+      uDistance: { value: 0 },
+      uDriving: { value: false },
+      uRoadCenter: { value: 0 },
+      uRoadWidth: { value: 2 },
+      uCarLength: { value: 4 },
+      uVisibility: { value: 1 },
     },
     vertexShader: /* glsl */ `
       varying vec3 vWorld;
       void main() { vec4 w = modelMatrix * vec4(position, 1.0); vWorld = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`,
     fragmentShader: /* glsl */ `
       uniform vec3 uColor; uniform vec3 uLine; uniform float uFade; uniform float uCell;
+      uniform float uDistance, uRoadCenter, uRoadWidth, uCarLength, uVisibility;
+      uniform bool uDriving;
       varying vec3 vWorld;
       void main() {
         vec2 g = vWorld.xy / uCell;
@@ -86,7 +94,21 @@ export function road(): THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial> {
         float r = length(vWorld.xy) / uFade;
         float fade = 1.0 - smoothstep(0.35, 1.0, r);
         vec3 col = mix(uColor, uLine, max(line * 0.55, major) * fade);
-        gl_FragColor = vec4(col, fade);
+        if (uDriving) {
+          float y = abs(vWorld.y - uRoadCenter);
+          float belt = 1.0 - smoothstep(uRoadWidth * 0.49, uRoadWidth * 0.51, y);
+          float x = vWorld.x - uDistance;
+          vec2 cell = floor(vec2(x, vWorld.y) * 95.0);
+          float grain = fract(sin(dot(cell, vec2(12.9898, 78.233))) * 43758.5453);
+          vec3 asphalt = vec3(0.075 + 0.018 * grain);
+          float edge = 1.0 - smoothstep(uCarLength * 0.004, uCarLength * 0.008, abs(y - uRoadWidth * 0.45));
+          float dash = step(0.54, fract(x / (uCarLength * 0.36)));
+          float mark = 1.0 - smoothstep(uCarLength * 0.004, uCarLength * 0.008, abs(y - uRoadWidth * 0.38));
+          asphalt = mix(asphalt, vec3(0.3, 0.5, 0.6), edge * 0.65);
+          asphalt = mix(asphalt, vec3(0.57, 0.65, 0.69), mark * dash * 0.8);
+          col = mix(col, asphalt, belt * fade);
+        }
+        gl_FragColor = vec4(col, fade * uVisibility);
         #include <colorspace_fragment>
       }`,
     transparent: true,
@@ -148,7 +170,7 @@ export function detailBoxes(boxes: number[][]): THREE.Group {
 // Orientation cube
 // ---------------------------------------------------------------------------------------------
 
-export type ViewName = "front" | "side" | "top" | "rear" | "iso";
+export type ViewName = "front" | "side" | "top" | "bottom" | "rear" | "iso";
 
 export class OrientationCube {
   readonly scene = new THREE.Scene();
@@ -243,6 +265,7 @@ export class OrientationCube {
     if (n.x > 0.5) return "rear";
     if (Math.abs(n.y) > 0.5) return "side";
     if (n.z > 0.5) return "top";
+    if (n.z < -0.5) return "bottom";
     return "iso";
   }
 }

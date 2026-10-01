@@ -12,7 +12,7 @@ import { estimate } from "../store/estimate";
 import { toSolverParts } from "../store/geometry";
 import { startRun } from "../store/runs";
 import { Slider } from "./controls";
-import { fmt, fmtCells, fmtDuration } from "./format";
+import { boundaryLine, fmt, fmtCells, fmtDuration } from "./format";
 
 const QUALITIES: { q: Quality; label: string; blurb: string }[] = [
   { q: "fast", label: "Fast", blurb: "Check the setup" },
@@ -152,6 +152,7 @@ export function RunStep() {
       <button className="btn run block" disabled={blocked || (openfoam ? !serverReady : noGpu)} onClick={() => startRun()} data-testid="run">
         <Play size={20} fill="currentColor" /> {openfoam ? "Run on OpenFOAM" : "Run simulation"}
       </button>
+      <p className="small center" data-testid="run-boundaries">{boundaryLine(s)}</p>
       {blocked && <small className="field-hint center">Finish the car step and tick the check box first.</small>}
       {openfoam && !blocked && <small className="field-hint center">The run continues on the server if you close this tab; open it later from the run list.</small>}
     </div>

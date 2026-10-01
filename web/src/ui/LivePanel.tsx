@@ -10,7 +10,7 @@ import { ForceChart } from "./ForceChart";
 import { StatsTable, defaultWindow } from "./StatsTable";
 import { unitFor } from "./historyUnit";
 import { trailingStats } from "./windowStats";
-import { conditionsLine, fmt, fmtCells, fmtDuration, fmtInt } from "./format";
+import { boundaryLine, conditionsLine, fmt, fmtCells, fmtDuration, fmtInt } from "./format";
 
 const STAGE: Record<string, string> = {
   preparing: "Preparing the grid",
@@ -57,6 +57,7 @@ export function LivePanel() {
         <span className="eyebrow"><span className="rec" /> Live{openfoam ? " · OpenFOAM server" : ""}</span>
         <h2>{openfoam ? serverStageText(live.serverStage) : STAGE[live.stage]}</h2>
         <p className="muted small">{live.designName} · {conditionsLine(live.settings)}</p>
+        <p className="muted small" data-testid="run-boundaries">{boundaryLine(live.settings)}</p>
       </div>
       <div className="progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(live.fraction * 100)}>
         <div className={`progress-fill ${live.stage === "preparing" ? "indeterminate" : ""}`} style={{ width: live.stage === "preparing" ? "30%" : `${live.fraction * 100}%` }} />
