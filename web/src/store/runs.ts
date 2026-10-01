@@ -1,3 +1,4 @@
+import { computeLease } from "../engine/computeLease";
 // Running simulations, saving them, reopening them and exporting them.
 
 import type { Part } from "../geometry/model";
@@ -8,7 +9,7 @@ import { resolvePreset } from "../solver/types";
 import { CaseWorker } from "../workers/caseClient";
 import { app, gpuDevice, partsBounds, refreshLists, toast, vizForCar, type LiveState } from "./app";
 import { decodeField, decodeSurface, encodeField, encodeSurface } from "./codec";
-import { collectFiles, get, newId, put, remove } from "./db";
+import { collectFiles, get, newId, put, remove, sha256 } from "./db";
 import { recordRun } from "./estimate";
 import { buildDesignParts, partKey, rawFromSource, summarize, toSolverParts, type RawPart } from "./geometry";
 import { computeRanges, mergeRanges } from "./ranges";
@@ -63,8 +64,13 @@ export async function startRun() {
   });
   const worker = new CaseWorker();
   const started = performance.now();
+  signal.addEventListener("abort",()=>worker.dispose(),{once:true});
+  let releaseLease:(()=>Promise<void>)|undefined;
   try {
+    releaseLease=await computeLease(signal,()=>controller?.abort(),s.server.status === "ready" || s.server.status === "busy");
     const { device, adapterName } = await gpuDevice();
+    if (signal.aborted) throw new DOMException("Simulation cancelled", "AbortError");
+    settings.gpu_buffer_limit=Math.min(device.limits.maxBufferSize,device.limits.maxStorageBufferBindingSize);
     const setup = await worker.prepare(solverParts, settings);
     patchLive({ passTime: setup.length / setup.freestream });
     if (signal.aborted) throw new DOMException("Simulation cancelled", "AbortError");
@@ -73,6 +79,7 @@ export async function startRun() {
     let solveStart = 0;
     const { result, solver } = await runSimulation(device, solverParts, settings, {
       setup,
+      deadline: started+1000*(settings.max_seconds ?? (settings.quality === "fast"?300:600)),
       prepareLevel: (lv) => worker.prepare(solverParts, lv),
       signal,
       snapshotSeconds: 2.5,
@@ -103,8 +110,7 @@ export async function startRun() {
     });
     const solveSeconds = (performance.now() - (solveStart || started)) / 1000;
     patchLive({ stage: "saving", fraction: 1 });
-    const fields = await solver.readFields();
-    solver.destroy();
+    const fields = await solver.readFields(true).finally(()=>solver.destroy());
     const { field, surface } = await worker.extract(fields, solver.c, FINAL_POINTS, true);
     const preset = resolvePreset(settings);
     if (!result.levels) recordRun(result.cells, result.steps, solveSeconds, preset.passes, preset.cellsPerLength * Math.sqrt(result.detail?.ratio ?? 1));
@@ -123,14 +129,16 @@ export async function startRun() {
       adapter: adapterName,
       hasField: true,
     };
+    if(result.provenance)result.provenance.geometry=await sha256(new TextEncoder().encode(JSON.stringify([doc.source,doc.importOptions,doc.overrides,doc.geometry])).buffer);
     await saveAndShow(doc, enabled, field, surface);
   } catch (e) {
-    if (e instanceof DOMException && e.name === "AbortError") {
+    if (signal.aborted || (e instanceof DOMException && e.name === "AbortError")) {
       app.set({ view: "setup", live: null, step: "run" });
       toast("Simulation cancelled.");
     } else patchLive({ error: e instanceof Error ? e.message : String(e) });
   } finally {
     worker.dispose();
+    await releaseLease?.();
     controller = null;
   }
 }
@@ -239,6 +247,7 @@ const safe = (s: string) => s.replace(/[^\w.-]+/g, "_").slice(0, 60) || "run";
 export function exportJSON(doc: RunDoc) {
   const body = {
     app: "EasyCFD Web",
+    conventions: "Equivalent aerodynamic axle loads about the road below the front axle; drag at height contributes to pitch. Lift +Z, pitch +Y nose-up; kgf=N/9.80665. These are not actual tyre loads.",
     exportedAt: new Date().toISOString(),
     run: { id: doc.id, design: doc.designName, createdAt: new Date(doc.createdAt).toISOString(), adapter: doc.adapter },
     settings: doc.settings,
@@ -250,7 +259,7 @@ export function exportJSON(doc: RunDoc) {
 }
 
 export function exportCSV(doc: RunDoc) {
-  const rows = ["time_s,step,cd,cl,cs", ...doc.result.history.map((h) => `${h.time},${h.step},${h.cd},${h.cl},${h.cs}`)];
+  const rows = [`${doc.result.engine === "openfoam" ? "iteration" : "pseudo_time_s"},step,cd,cl,cs,pitch_Nm,front_lift_N,rear_lift_N`, ...doc.result.history.map((h) => `${h.time},${h.step},${h.cd},${h.cl},${h.cs},${h.pitch ?? ""},${h.frontLift ?? ""},${h.rearLift ?? ""}`)];
   download(new Blob([rows.join("\n")], { type: "text/csv" }), `${safe(doc.designName)}-${doc.id}-history.csv`);
 }
 

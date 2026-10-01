@@ -44,6 +44,12 @@ function Options({ layer, viz, field, particles, stageIds, forces, driving }: { 
     <p className="tip">Drag points along the car’s X axis. The vertical arrow shows whether air lifts the car or pushes it onto the road.</p>
     <Toggle checked={viz.forces} onChange={forces => setViz({ forces })} label="Show force arrows" />
   </>;
+  if (layer === "surface" && viz.friction) return <>
+    <p className="muted small">Wall-stress magnitude on the car. Grey means no valid wall sample. This is the final solver snapshot, separate from averaged forces.</p>
+    <Segmented<"Pa" | "Cf"> label="Friction units" value={viz.frictionUnit ?? "Pa"} options={[{value:"Pa",label:"Pa"},{value:"Cf",label:"Cf"}]} onChange={frictionUnit=>setViz({frictionUnit,frictionMax:undefined})} />
+    <Slider label="Colour scale maximum" min={viz.frictionUnit === "Cf" ? .0001 : .1} max={viz.frictionUnit === "Cf" ? .1 : 50} step={viz.frictionUnit === "Cf" ? .0001 : .1} value={viz.frictionMax ?? (stages[(stageIds ?? ["main"])[0]]?.frictionScale(viz.frictionUnit) ?? (viz.frictionUnit === "Cf" ? .01 : 5))} display={`${(viz.frictionMax ?? (stages[(stageIds ?? ["main"])[0]]?.frictionScale(viz.frictionUnit) ?? (viz.frictionUnit === "Cf" ? .01 : 5))).toFixed(viz.frictionUnit === "Cf" ? 4 : 1)} ${viz.frictionUnit ?? "Pa"}`} onChange={frictionMax=>setViz({frictionMax})} />
+    <p className="tip">Cf = wall stress / dynamic pressure. Both comparison views use this unit and scale; physical zero stays at zero.</p>
+  </>;
   if (layer === "surface")
     return (
       <>
@@ -142,7 +148,7 @@ function Options({ layer, viz, field, particles, stageIds, forces, driving }: { 
   );
 }
 
-export function VizDock(props: { field: VizField | null; particles: boolean; surface: boolean; forces?: ForceValues | null; stageIds?: string[]; driving?: DrivingConditions | null; focused?: boolean; onFocus?: () => void }) {
+export function VizDock(props: { field: VizField | null; particles: boolean; surface: boolean; friction?: boolean; forces?: ForceValues | null; stageIds?: string[]; driving?: DrivingConditions | null; focused?: boolean; onFocus?: () => void }) {
   const { field, particles, surface } = props;
   const viz = useStore(app, (s) => s.viz);
   const [focus, setFocus] = useState<Layer | null>(null);
@@ -174,7 +180,7 @@ export function VizDock(props: { field: VizField | null; particles: boolean; sur
   const focusTitle = current?.layer === shownFocus ? current.title : LAYERS.find(l => l.key === shownFocus)?.label ?? (shownFocus === "pressureCloud" ? "3D pressure clouds" : "Forces");
   return (
     <div className="viz-dock">
-      {picker && <AnalysisPicker active={active} surface={surface} forces={!!props.forces} onPick={pick} onClose={closePicker} />}
+      {picker && <AnalysisPicker active={active} surface={surface} friction={props.friction} forces={!!props.forces} onPick={pick} onClose={closePicker} />}
       {!picker && shownFocus && (
         <div className="viz-options glass" role="region" aria-label={`${shownFocus} options`}>
           <div className="viz-options-head">

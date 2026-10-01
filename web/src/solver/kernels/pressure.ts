@@ -123,14 +123,14 @@ export const forcesWGSL = common + /* wgsl */ `
 @group(0) @binding(9) var<storage, read> wall: array<vec4<f32>>;
 @group(0) @binding(10) var<storage, read_write> faceForce: array<f32>; // per wall cell: pressure (3), shear (3)
 
-var<workgroup> acc: array<f32, ${WG * 12}>;
+var<workgroup> acc: array<f32, ${WG * 24}>;
 
 // Force on the car from one wall cell: pressure on the wall area vector plus wall-function shear.
 @compute @workgroup_size(${WG})
 fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>,
         @builtin(local_invocation_index) li: u32, @builtin(workgroup_id) wid: vec3<u32>) {
   let fid = gidx(gid, nwg);
-  for (var m = 0u; m < 12u; m++) { acc[li * 12u + m] = 0.0; }
+  for (var m = 0u; m < 24u; m++) { acc[li * 24u + m] = 0.0; }
   if (fid < u32(P.misc.w)) {
     let f = cellsList[fid];
     let idx = i32(f.x);
@@ -138,7 +138,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
     let wheel = (f.y >> 16u) & 1u;
     let e = decode(f.x);
     let wv = wall[f.x];
-    let o = li * 12u + wheel * 6u;
+    let o = li * 24u + wheel * 6u;
     if (((f.y >> 17u) & 1u) == 1u) {
       // road contact under a solid cell: pressure of the fluid neighbours at road level, upward
       var ps = 0.0;
@@ -148,7 +148,14 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
         if (!solid(nb)) { ps += pres[u32(nb)]; cnt += 1.0; }
       }
       acc[o + 2u] = P.turb.w * select(0.0, ps / cnt, cnt > 0.0) * wv.z;
-      for (var m = 0u; m < 6u; m++) { faceForce[fid * 6u + m] = select(0.0, acc[o + 2u], m == 2u); }
+      let fp = vec3<f32>(0.0, 0.0, acc[o + 2u]);
+      let mp = cross(vec3<f32>(cc(0u,e.x), cc(1u,e.y), 0.0) - P.origin.xyz, fp);
+      let mo = li * 24u + 12u + wheel * 6u;
+      acc[mo] = mp.x; acc[mo+1u] = mp.y; acc[mo+2u] = mp.z;
+      for (var m = 0u; m < 6u; m++) {
+        faceForce[fid * 12u + m] = select(0.0, acc[o + 2u], m == 2u);
+        faceForce[fid * 12u + 6u + m] = acc[mo + m];
+      }
     }
   }
   if (fid < u32(P.misc.w) && ((cellsList[fid].y >> 17u) & 1u) == 0u) {
@@ -179,21 +186,30 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
     var slip = uc - wallVelocity(part, pos);
     slip = slip - dot(slip, nrm) * nrm;
     let fv = rho * wallShear(slip, wv.w, turb[f.x]) * area;
-    let o = li * 12u + wheel * 6u;
+    let o = li * 24u + wheel * 6u;
     acc[o] = fp.x; acc[o + 1u] = fp.y; acc[o + 2u] = fp.z;
     acc[o + 3u] = fv.x; acc[o + 4u] = fv.y; acc[o + 5u] = fv.z;
-    for (var m = 0u; m < 6u; m++) { faceForce[fid * 6u + m] = acc[o + m]; }
+    // Use the wall application point, rather than an illustrative resultant location.
+    let arm = pos + nrm * wv.w - P.origin.xyz;
+    let mp = cross(arm, fp); let mv = cross(arm, fv);
+    let mo = li * 24u + 12u + wheel * 6u;
+    acc[mo] = mp.x; acc[mo+1u] = mp.y; acc[mo+2u] = mp.z;
+    acc[mo+3u] = mv.x; acc[mo+4u] = mv.y; acc[mo+5u] = mv.z;
+    for (var m = 0u; m < 6u; m++) {
+      faceForce[fid * 12u + m] = acc[o + m];
+      faceForce[fid * 12u + 6u + m] = acc[mo + m];
+    }
   }
   workgroupBarrier();
   for (var s = ${WG / 2}u; s > 0u; s >>= 1u) {
     if (li < s) {
-      for (var m = 0u; m < 12u; m++) { acc[li * 12u + m] += acc[(li + s) * 12u + m]; }
+      for (var m = 0u; m < 24u; m++) { acc[li * 24u + m] += acc[(li + s) * 24u + m]; }
     }
     workgroupBarrier();
   }
   if (li == 0u) {
     let g = wid.x + wid.y * nwg.x;
-    for (var m = 0u; m < 12u; m++) { partials[g * 12u + m] = acc[m]; }
+    for (var m = 0u; m < 24u; m++) { partials[g * 24u + m] = acc[m]; }
   }
 }
 `;
@@ -204,19 +220,19 @@ export const forcesSumWGSL = common + /* wgsl */ `
 @group(0) @binding(6) var<storage, read_write> history: array<f32>;
 override GROUPS: u32;
 
-var<workgroup> acc: array<f32, ${WG * 12}>;
+var<workgroup> acc: array<f32, ${WG * 24}>;
 
 @compute @workgroup_size(${WG})
 fn main(@builtin(local_invocation_index) li: u32) {
-  var local: array<f32, 12>;
+  var local: array<f32, 24>;
   for (var g = li; g < GROUPS; g += ${WG}u) {
-    for (var m = 0u; m < 12u; m++) { local[m] += partials[g * 12u + m]; }
+    for (var m = 0u; m < 24u; m++) { local[m] += partials[g * 24u + m]; }
   }
-  for (var m = 0u; m < 12u; m++) { acc[li * 12u + m] = local[m]; }
+  for (var m = 0u; m < 24u; m++) { acc[li * 24u + m] = local[m]; }
   workgroupBarrier();
   for (var s = ${WG / 2}u; s > 0u; s >>= 1u) {
     if (li < s) {
-      for (var m = 0u; m < 12u; m++) { acc[li * 12u + m] += acc[(li + s) * 12u + m]; }
+      for (var m = 0u; m < 24u; m++) { acc[li * 24u + m] += acc[(li + s) * 24u + m]; }
     }
     workgroupBarrier();
   }
@@ -225,12 +241,12 @@ fn main(@builtin(local_invocation_index) li: u32) {
     state[1] = state[1] + dt;
     state[2] = state[2] + 1.0;
     let slot = u32(state[2]) % P.modes.w;
-    let o = slot * 16u;
+    let o = slot * 32u;
     history[o] = state[1];
     history[o + 1u] = dt;
     history[o + 2u] = state[2];
     history[o + 3u] = 0.0;
-    for (var m = 0u; m < 12u; m++) { history[o + 4u + m] = acc[m]; }
+    for (var m = 0u; m < 24u; m++) { history[o + 4u + m] = acc[m]; }
   }
 }
 `;
@@ -244,30 +260,30 @@ export const partForcesWGSL = common + /* wgsl */ `
 @group(0) @binding(7) var<storage, read_write> partAcc: array<f32>;
 override NPARTS: u32;
 
-var<workgroup> acc: array<f32, ${WG * 6}>;
+var<workgroup> acc: array<f32, ${WG * 12}>;
 
 @compute @workgroup_size(${WG})
 fn main(@builtin(local_invocation_index) li: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {
   let p = wid.x + wid.y * nwg.x;
-  var local: array<f32, 6>;
+  var local: array<f32, 12>;
   if (p < NPARTS) {
     let a = ranges[2u * p];
     let b = ranges[2u * p + 1u];
     for (var f = a + li; f < b; f += ${WG}u) {
-      for (var m = 0u; m < 6u; m++) { local[m] += faceForce[f * 6u + m]; }
+      for (var m = 0u; m < 12u; m++) { local[m] += faceForce[f * 12u + m]; }
     }
   }
-  for (var m = 0u; m < 6u; m++) { acc[li * 6u + m] = local[m]; }
+  for (var m = 0u; m < 12u; m++) { acc[li * 12u + m] = local[m]; }
   workgroupBarrier();
   for (var s = ${WG / 2}u; s > 0u; s >>= 1u) {
     if (li < s) {
-      for (var m = 0u; m < 6u; m++) { acc[li * 6u + m] += acc[(li + s) * 6u + m]; }
+      for (var m = 0u; m < 12u; m++) { acc[li * 12u + m] += acc[(li + s) * 12u + m]; }
     }
     workgroupBarrier();
   }
   if (li == 0u && p < NPARTS) {
     let w = state[0] * state[3];
-    for (var m = 0u; m < 6u; m++) { partAcc[p * 6u + m] += w * acc[m]; }
+    for (var m = 0u; m < 12u; m++) { partAcc[p * 12u + m] += w * acc[m]; }
   }
 }
 `;

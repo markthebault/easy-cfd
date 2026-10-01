@@ -75,3 +75,31 @@ test("a server run record becomes a UI run result", () => {
   assert.equal(r.gridId, `openfoam:${rec.id}`);
   assert.ok(Math.abs(r.freestream - 100 / 3.6) < 1e-12);
 });
+
+
+test("advanced profile and confirmed axles map without reinterpreting old presets", () => {
+ const axes={frontX:-1,rearX:2,centrelineY:0,confirmed:true};
+ const s=of.serverSettings({...types.DEFAULT_SETTINGS,engine:"openfoam",profile:"advanced2",max_seconds:90,axles:axes,refine_groups:["g:wing"],refine_underfloor:false});
+ assert.deepEqual(s.axles,axes);assert.equal(s.profile,"advanced2");assert.equal(s.max_seconds,90);
+ assert.deepEqual(s.refine_groups,["g:wing"]);assert.equal(s.refine_underfloor,false);
+ const legacy=of.serverSettings(types.DEFAULT_SETTINGS);assert.equal(legacy.profile,undefined);assert.equal(legacy.axles,undefined);assert.equal(legacy.refine_underfloor,undefined);
+});
+
+
+test("native refinement retains load sensitivity and translated origins for every mesh", () => {
+  const axles = {frontX:-1,rearX:2,centrelineY:0,confirmed:true};
+  const level = (cd, pitch) => ({preset:"mesh",cells:100,cd,cl:-.2,drag:100,downforce:90,
+    aero:{force:[100,0,-90],moment:[0,pitch,0],origin:[4,2,0],pressureMoment:[0,pitch,0],frictionMoment:[0,0,0]}});
+  const record = {id:"a".repeat(32), settings:{speed_kmh:100,yaw_deg:0,density:1.225,reference_area:2,axles},
+    result:{cd:.32,cl:-.2,drag:100,downforce:90,refinement_levels:[level(.3,90),level(.32,120),level(.31,180)]}};
+  const result = of.resultFromRecord(record,4,[5,2,0],[0,0,0,0,0,0]);
+  assert.deepEqual(result.levels.map(l=>l.aero.origin),[[-1,0,0],[-1,0,0],[-1,0,0]]);
+  assert.equal(result.meshSensitivity.frontLift,30);
+  assert.equal(result.meshSensitivity.rearLift,30);
+  assert.equal(result.meshSensitivity.pitch,90);
+  assert.ok(Math.abs(result.meshSensitivity.dCd-.02)<1e-12);
+  delete record.settings.axles;
+  assert.equal(of.resultFromRecord(record,4,[5,2,0],[0,0,0,0,0,0]).meshSensitivity.frontLift,undefined);
+  assert.equal(result.cdBand,undefined);
+  assert.equal(result.clBand,undefined);
+});

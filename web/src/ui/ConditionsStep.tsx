@@ -2,6 +2,8 @@
 
 import { useMemo, useRef } from "react";
 import { Box, Plus, Trash2, Wand2 } from "lucide-react";
+import { axleError, suggestAxles } from "../solver/aero";
+import { toSolverParts } from "../store/geometry";
 import { domainFor, validateDomain } from "../solver/setup";
 import type { DetailBox, SimulationBox, Vec3 } from "../solver/types";
 import { useStore } from "../store/store";
@@ -189,6 +191,10 @@ export function ConditionsStep() {
     setSettings({ simulation_box: { ...cur, ...patch } });
   };
   const box = s.simulation_box;
+  const axles = s.axles;
+  const suggested = suggestAxles(toSolverParts(parts));
+  const setAxle = (patch: Partial<NonNullable<typeof axles>>) => setSettings({axles:{frontX:axles?.frontX ?? 0,rearX:axles?.rearX ?? 0,centrelineY:axles?.centrelineY ?? 0,confirmed:false,...patch}});
+  const axleProblem = axleError(axles,low,high);
 
   return (
     <div className="step-body">
@@ -273,6 +279,20 @@ export function ConditionsStep() {
         </small>
       </div>
 
+      <div className="group" data-testid="axle-setup">
+        <div className="group-title"><span>Aerodynamic balance</span><Badge kind={axleProblem ? "neutral" : "ok"}>{axleProblem ? "Axles needed" : `${fmt(axles!.rearX-axles!.frontX,3)} m wheelbase`}</Badge></div>
+        <p className="field-hint">Set the axle positions in the car frame. Front is toward −X. Runs can continue without balance.</p>
+        <div className="box-grid">
+          <Field label="Front axle X"><NumberField label="Front axle X" value={axles?.frontX ?? 0} unit="m" step={.01} digits={3} onChange={frontX=>setAxle({frontX})} /></Field>
+          <Field label="Rear axle X"><NumberField label="Rear axle X" value={axles?.rearX ?? 0} unit="m" step={.01} digits={3} onChange={rearX=>setAxle({rearX})} /></Field>
+          <Field label="Centreline Y"><NumberField label="Centreline Y" value={axles?.centrelineY ?? 0} unit="m" step={.01} digits={3} onChange={centrelineY=>setAxle({centrelineY})} /></Field>
+        </div>
+        <button className="btn ghost sm" disabled={!suggested} onClick={()=>setSettings({axles:suggested})}><Wand2 size={14} /> Suggest from marked wheels</button>
+        {!suggested && <small className="field-hint">No unambiguous pair of wheel axles found. Enter the positions manually.</small>}
+        <Checkbox hint="Use these saved positions for this run’s balance." label="Confirm axle positions" checked={axles?.confirmed ?? false} onChange={confirmed=>setAxle({confirmed: confirmed && !axleError(axles ? {...axles,confirmed:true}:undefined,low,high)})} />
+        {axleProblem && <p className="field-hint" role="status">{axleProblem}</p>}
+        <details className="analysis-availability"><summary>What these loads mean</summary><p>Equivalent aerodynamic loads use the whole-car force and pitching moment about the road below the front axle. Drag acting above the road contributes to pitch. These are forces, not tyre loads or a model of vehicle mass and suspension.</p></details>
+      </div>
       <DetailBoxes low={low} high={high} />
 
       <button className="btn primary block" disabled={!!boxError} onClick={() => goStep("run")}>

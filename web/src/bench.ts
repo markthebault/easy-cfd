@@ -1,4 +1,5 @@
 // Headless harness used by validation/run-validation.mjs. Not linked from the app.
+import { computeLease } from "./engine/computeLease";
 import { parseSTL } from "./geometry/stl";
 import { requestDevice } from "./solver/gpu";
 import { runSimulation } from "./solver/run";
@@ -31,6 +32,9 @@ const log = (m: string) => {
 let devicePromise: ReturnType<typeof requestDevice> | null = null;
 
 async function run(spec: BenchSpec) {
+  const controller=new AbortController();
+  const release=await computeLease(controller.signal,()=>controller.abort(),Boolean((window as unknown as {cfdBenchBackend?:boolean}).cfdBenchBackend));
+  try {
   devicePromise ??= requestDevice();
   const { device, adapterName } = await devicePromise;
   const parts: SolverPart[] = [];
@@ -46,6 +50,7 @@ async function run(spec: BenchSpec) {
   let lastLog = 0;
   const { result, solver } = await runSimulation(device, parts, settings, {
     setup,
+    signal:controller.signal,
     targetPasses: spec.targetPasses,
     solver: spec.solver,
     lts: spec.lts,
@@ -76,6 +81,7 @@ async function run(spec: BenchSpec) {
     ...result,
     history: result.history.filter((_, i) => i % every === 0),
   };
+  } finally {await release();}
 }
 
 (window as unknown as { cfdBench: unknown }).cfdBench = { run, ready: true };

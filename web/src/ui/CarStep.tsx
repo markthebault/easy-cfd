@@ -31,7 +31,7 @@ export function CarStep() {
   const o = design.importOptions;
   const sample = design.source.kind === "sample";
   const dims = report?.dimensions ?? [0, 0, 0];
-  const canContinue = !!report && report.errors.length === 0 && confirmed;
+  const canContinue = !busy && !!report && report.errors.length === 0 && confirmed;
   const position = roadPosition(parts);
   const height = position.height ?? 0;
   const geometryErrors = report?.errors.filter(e => e !== ROAD_CONTACT_ERROR) ?? [];
@@ -165,7 +165,7 @@ export function CarStep() {
       <small className="field-hint">Wheels spin at road speed about their centre when "Rotating wheels" is on.</small>
 
       <label className={`confirm ${confirmed ? "on" : ""}`}>
-        <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
+        <input type="checkbox" disabled={!!busy || !report} checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
         <span>I checked size, orientation, wheels and clearance.</span>
       </label>
       <button className="btn primary block" disabled={!canContinue} onClick={() => goStep("conditions")}>

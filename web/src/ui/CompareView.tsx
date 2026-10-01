@@ -24,6 +24,7 @@ function conditionDiffs(a: Settings, b: Settings): string[] {
   if (a.moving_ground !== b.moving_ground) out.push("moving ground differs");
   if (a.wheels !== b.wheels) out.push("rotating wheels differ");
   if (qualityLabel(a) !== qualityLabel(b)) out.push(`quality ${qualityLabel(a)} vs ${qualityLabel(b)}`);
+  if (a.profile !== b.profile) out.push(`profile ${a.profile ?? "legacy"} vs ${b.profile ?? "legacy"}`);
   if (JSON.stringify(a.simulation_box) !== JSON.stringify(b.simulation_box)) out.push("simulation box differs");
   return out;
 }
@@ -73,6 +74,7 @@ function Delta({ label, a, b, unit, digits, better, note }: { label: string; a: 
 /** Per-group downforce and drag of both runs, for the groups either run simulated. */
 function GroupDeltas({ a, b }: { a: LoadedRun; b: LoadedRun }) {
   const ga = groupForces(a.doc.result, a.doc.geometry), gb = groupForces(b.doc.result, b.doc.geometry);
+  if (a.doc.result.reconciliation?.complete === false || b.doc.result.reconciliation?.complete === false) return null;
   if (!ga.length || !gb.length) return null;
   const ids = [...new Set([...ga.map((g) => g.id), ...gb.map((g) => g.id)])];
   if (ids.length < 2) return null;
@@ -80,7 +82,7 @@ function GroupDeltas({ a, b }: { a: LoadedRun; b: LoadedRun }) {
   return (
     <table className="compare-groups" data-testid="compare-groups">
       <thead>
-        <tr><th /><th colSpan={3}>Downforce (kg)</th><th colSpan={3}>Drag (N)</th></tr>
+        <tr><th /><th colSpan={3}>Downforce (kgf)</th><th colSpan={3}>Drag (N)</th></tr>
         <tr><th /><th>A</th><th>B</th><th>Δ</th><th>A</th><th>B</th><th>Δ</th></tr>
       </thead>
       <tbody>
@@ -88,7 +90,7 @@ function GroupDeltas({ a, b }: { a: LoadedRun; b: LoadedRun }) {
           const x = val(ga, id), y = val(gb, id);
           const name = (x ?? y)!.name;
           const cell = (v: number | undefined, d: number) => (v === undefined ? "–" : fmt(v, d));
-          const delta = (p: number | undefined, q: number | undefined, d: number) => signed((q ?? 0) - (p ?? 0), d);
+          const delta = (p: number | undefined, q: number | undefined, d: number) => p === undefined || q === undefined ? "unavailable" : signed(q - p, d);
           return (
             <tr key={id}>
               <th scope="row">{name}</th>
@@ -110,6 +112,10 @@ export function CompareView() {
   const { a, b } = cmp;
   const ra = a.doc.result, rb = b.doc.result;
   const cond = conditionDiffs(a.doc.settings, b.doc.settings);
+  if(JSON.stringify(a.doc.settings.axles)!==JSON.stringify(b.doc.settings.axles)) cond.push("axle definitions differ");
+  if(JSON.stringify(ra.aero?.origin)!==JSON.stringify(rb.aero?.origin)) cond.push("moment origins differ");
+  if(!ra.provenance?.version || !rb.provenance?.version || ra.provenance.version!==rb.provenance.version) cond.push("solver versions differ or are unavailable");
+  if(ra.provenance?.pipeline!==rb.provenance?.pipeline) cond.push("solver pipeline identities differ or are unavailable");
   const parts = partDiffs(a, b);
   const sync = (from: "cmpA" | "cmpB") => (c: CameraState) => stages[from === "cmpA" ? "cmpB" : "cmpA"]?.applyCamera(c);
   const side = (r: LoadedRun, id: "cmpA" | "cmpB", tag: string) => (
@@ -119,6 +125,7 @@ export function CompareView() {
         className="stage-host compare-stage"
         parts={r.parts}
         partsKey={`cmp:${r.doc.id}`}
+        axles={r.doc.settings.axles}
         surface={r.surface}
         field={r.field}
         ranges={r.ranges}
@@ -148,16 +155,21 @@ export function CompareView() {
       </div>
       <div className="compare-top glass">
         <div className="compare-cards">
-          <Delta label="Drag" a={ra.drag} b={rb.drag} unit="N" digits={0} better="lower" />
-          <Delta label="Downforce" note="negative = lift" a={ra.downforce / G} b={rb.downforce / G} unit="kg" digits={1} better="higher" />
-          <Delta label="Cd" a={ra.cd} b={rb.cd} unit="" digits={4} better="lower" />
+          <Delta label="Drag" a={ra.drag} b={rb.drag} unit="N" digits={0} better={null} />
+          <Delta label="Downforce" note="negative = lift" a={ra.downforce / G} b={rb.downforce / G} unit="kgf" digits={1} better={null} />
+          <Delta label="Cd" a={ra.cd} b={rb.cd} unit="" digits={4} better={null} />
           <Delta label="Cl" a={ra.cl} b={rb.cl} unit="" digits={4} better={null} />
         </div>
+        {ra.balance && rb.balance && <div className="compare-cards"><Delta label="Front lift" a={ra.balance.frontLift} b={rb.balance.frontLift} unit="N" digits={1} better={null}/><Delta label="Rear lift" a={ra.balance.rearLift} b={rb.balance.rearLift} unit="N" digits={1} better={null}/><Delta label="Pitching moment" a={ra.balance.pitch} b={rb.balance.pitch} unit="N m" digits={2} better={null}/></div>}
+        <p className="compare-grid muted small">{ra.cdBand === undefined || rb.cdBand === undefined ? "Significance unknown: averaging-window variation is unavailable." : Math.abs(rb.cd-ra.cd)<=Math.max(ra.cdBand+rb.cdBand,Math.abs(ra.meshSensitivity?.dCd ?? 0),Math.abs(rb.meshSensitivity?.dCd ?? 0)) ? "Drag change is smaller than observed variation or measured grid sensitivity; the ranking is unresolved." : "Drag change exceeds recorded variation. Physical prediction uncertainty remains unknown."}</p>
+        <p className="compare-grid muted small">{ra.clBand === undefined || rb.clBand === undefined ? "Lift significance unknown: averaging-window variation is unavailable." : Math.abs(rb.cl-ra.cl) <= Math.max(ra.clBand+rb.clBand,Math.abs(ra.meshSensitivity?.dCl ?? 0),Math.abs(rb.meshSensitivity?.dCl ?? 0)) ? "Lift change is smaller than observed variation or measured grid sensitivity; the ranking is unresolved." : "Lift change exceeds recorded variation; physical uncertainty remains unknown."}</p>
+        {ra.balance && rb.balance && <p className="compare-grid muted small">{(["frontLift","rearLift","pitch"] as const).map(k=>{const x=ra.balanceBands?.[k],y=rb.balanceBands?.[k];const threshold=Math.max((x??0)+(y??0),Math.abs(ra.meshSensitivity?.[k]??0),Math.abs(rb.meshSensitivity?.[k]??0));return `${k === "pitch" ? "Pitch" : k === "frontLift" ? "Front load" : "Rear load"}: ${x === undefined || y === undefined ? "significance unknown" : Math.abs(rb.balance![k]-ra.balance![k]) <= threshold ? "change within observed variation or grid sensitivity" : "change exceeds recorded variation"}`;}).join(" · ")}. A change in balance is not automatically an improvement; physical uncertainty remains unknown.</p>}
+        {(ra.reconciliation?.complete === false || rb.reconciliation?.complete === false) && <p className="compare-grid muted small">Component attribution did not reconcile with whole-car forces or moments. Group deltas are unavailable; inspect the run diagnostics.</p>}
         <GroupDeltas a={a} b={b} />
         {ra.gridId && rb.gridId && ra.gridId !== rb.gridId && (
-          <p className="compare-grid muted small"><TriangleAlert size={13} /> The runs used different grids; a few per cent of the difference can come from the grid alone.</p>
+          <p className="compare-grid muted small"><TriangleAlert size={13} /> The runs used different grids; the grid can contribute to the difference. Grid independence has not been established.</p>
         )}
-        {ra.gridId && ra.gridId === rb.gridId && <p className="compare-grid muted small">Same grid for both runs: the difference comes from the geometry and conditions.</p>}
+        {ra.gridId && ra.gridId === rb.gridId && <p className="compare-grid muted small">Same grid for both runs: this controls grid placement but does not establish physical accuracy.</p>}
         {(cond.length > 0 || parts.length > 0) && (
           <div className="compare-warn">
             {cond.length > 0 && <p><TriangleAlert size={14} /> <b>Conditions differ:</b> {cond.join(" · ")}. The difference is not only due to the shape.</p>}
@@ -167,7 +179,7 @@ export function CompareView() {
         <button className="icon-btn compare-close" aria-label="Close comparison" onClick={closeCompare}><X size={18} /></button>
       </div>
       <ViewBar ids={["cmpA", "cmpB"]} />
-      <VizDock field={a.field ?? b.field} particles surface={!!a.surface?.some(Boolean) && !!b.surface?.some(Boolean)} forces={a.doc.result} driving={a.doc.settings} stageIds={["cmpA", "cmpB"]} />
+      <VizDock friction={!!a.surface?.some(s=>s?.stressValid?.some(v=>v===1)) && !!b.surface?.some(s=>s?.stressValid?.some(v=>v===1))} field={a.field ?? b.field} particles surface={!!a.surface?.some(Boolean) && !!b.surface?.some(Boolean)} forces={a.doc.result} driving={a.doc.settings} stageIds={["cmpA", "cmpB"]} />
       <LegendStack viz={viz} ranges={a.ranges} hasSurface={!!a.surface} hasField={!!a.field} />
     </div>
   );

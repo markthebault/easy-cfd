@@ -2,6 +2,7 @@
 // and turning GPU fields into visualisation data. The worker keeps a light copy of the case so
 // live snapshots can be resampled without sending the grid back and forth.
 
+import { sampleWallStress } from "../solver/wallStress";
 import { extractViz, makeSampler, sampleSurface, type SurfaceSample } from "../solver/extract";
 import type { FlowFields } from "../solver/gpu";
 import { prepareCase, type CaseSetup } from "../solver/setup";
@@ -20,6 +21,7 @@ export type CaseResponse =
 const lites = new Map<number, CaseSetup>();
 let nextKey = 1;
 let parts: SolverPart[] = [];
+let density = 1.225;
 
 function buffersOf(value: unknown, out: Set<ArrayBuffer>) {
   if (ArrayBuffer.isView(value)) out.add(value.buffer as ArrayBuffer);
@@ -35,10 +37,12 @@ self.onmessage = (e: MessageEvent<CaseRequest>) => {
     if (msg.type === "prepare") {
       // Surfaces are sampled for the simulated parts only (inactive parts just shape the grid).
       parts = msg.parts.filter((p) => p.active !== false);
-      const setup = prepareCase(parts, msg.settings);
+      density = msg.settings.density;
+      const setup = prepareCase(msg.parts, msg.settings);
       setup.caseKey = nextKey++;
       // Only what extraction reads; everything else is transferred to the main thread.
       const lite = {
+        faces: setup.faces.slice(), wall: setup.wall.slice(), faceCount: setup.faceCount, partIds: setup.partIds,
         grid: structuredClone(setup.grid), NX: setup.NX, NY: setup.NY, NZ: setup.NZ, NC: setup.NC, flags: setup.flags.slice(),
         domain: setup.domain, low: setup.low, high: setup.high, length: setup.length, freestream: setup.freestream, inlet: setup.inlet,
       } as CaseSetup;
@@ -54,7 +58,7 @@ self.onmessage = (e: MessageEvent<CaseRequest>) => {
       let surface: SurfaceSample[] | null = null;
       if (msg.surface) {
         const sampler = makeSampler(lite, msg.fields);
-        surface = parts.map((p) => sampleSurface(lite, sampler, p.positions));
+        surface = parts.map((p) => ({ ...sampleSurface(lite, sampler, p.positions), ...sampleWallStress(lite, msg.fields, p.positions,p.id,density) }));
       }
       const transfer = new Set<ArrayBuffer>();
       buffersOf(field, transfer);

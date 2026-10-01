@@ -50,9 +50,9 @@ export function decodeField(e: EncodedField): VizField {
 }
 
 export function encodeSurface(keys: string[], s: SurfaceSample[]): FieldDoc["surface"] {
-  return s.map((x, i) => ({ key: keys[i], cp: quantize(x.cp), shear: quantize(x.shear) }));
+  return s.map((x, i) => ({ key: keys[i], cp: quantize(x.cp), shear: quantize(x.shear), version: 2, wallStress: x.wallStress, stressValid: x.stressValid, snapshot: x.snapshot }));
 }
 
 export function decodeSurface(s: FieldDoc["surface"]): SurfaceSample[] {
-  return s.map((x) => ({ cp: dequantize(x.cp), shear: dequantize(x.shear) }));
+  return s.map((x) => ({ cp: dequantize(x.cp), shear: dequantize(x.shear), wallStress: x.wallStress, stressValid: x.stressValid, snapshot: x.snapshot }));
 }

@@ -27,6 +27,7 @@ test("part groups: import, rename, solo, run", async ({ page }) => {
   await page.getByText("I checked size, orientation, wheels and clearance.").click();
   await cont.click();
   await page.getByRole("button", { name: "Continue to run" }).click();
+  await page.getByText("Expert WebGPU settings",{exact:true}).click();
   await page.getByRole("radio", { name: /Custom/ }).click();
   const sliders = page.locator(".step.open input[type=range]");
   await sliders.nth(0).fill("40");

@@ -12,6 +12,7 @@ struct Params {
   misc: vec4<f32>,     // cfl, max dt, dt growth cap, face count
   modes: vec4<u32>,    // side mode (0 outflow both, 1 y- inflow, 2 y+ inflow), wheels on, parts, history slots
   goff: vec4<u32>,     // grid buffer offsets: centres x, y, z; widths base
+  origin: vec4<f32>,   // saved moment reference in metres
   opts: vec4<u32>,     // wall model (0 k-based as OpenFOAM nutkWallFunction, 1 equilibrium log law)
 };
 

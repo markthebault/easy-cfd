@@ -39,6 +39,7 @@ function sequential(lo: number, hi: number, digits = 1): Tick[] {
 export function LegendStack({ viz, ranges, hasSurface, hasField }: { viz: VizSettings; ranges: Ranges | null; hasSurface: boolean; hasField: boolean }) {
   if (!ranges) return null;
   const out: ReactElement[] = [];
+  if(hasSurface && viz.friction) { const cf=viz.frictionUnit === "Cf", hi=viz.frictionMax ?? (cf?ranges.cf?.[1]:ranges.friction?.[1]) ?? 1; out.push(<Legend key="friction" title="Surface friction · final snapshot" unit={cf?"Cf":"Pa"} map="speed" ticks={sequential(0,hi,cf?4:2)} />); }
   if (hasField && viz.pressureCloud) out.push(<div className="legend cloud-legend" key="clouds"><div className="legend-title">Pressure clouds <span className="muted">Cp · Pa</span></div>{viz.cloudSign !== "positive" && <div><i className="cloud-dot negative" /><span>Suction</span><b>−{viz.cloudLevel.toFixed(2)}<small>−{n(viz.cloudLevel * ranges.q, 0)} Pa</small></b></div>}{viz.cloudSign !== "negative" && <div><i className="cloud-dot positive" /><span>Positive</span><b>+{viz.cloudLevel.toFixed(2)}<small>+{n(viz.cloudLevel * ranges.q, 0)} Pa</small></b></div>}</div>);
   const speedShown = hasField && (viz.smoke || viz.streamlines || (viz.wake && viz.wakeColor === "speed") || (viz.slice && viz.sliceField === "speed"));
   const cpShown = (viz.surface && hasSurface) || (hasField && viz.wake && viz.wakeColor === "cp");

@@ -2,11 +2,12 @@ import type { VizSettings } from "./stage";
 import type { ViewName } from "./helpers";
 import type { VizField } from "../solver/extract";
 
-export type AnalysisMode = "pressure" | "clouds" | "surfaceFlow" | "vertical" | "horizontal" | "wake" | "turbulence" | "forces";
+export type AnalysisMode = "pressure" | "friction" | "clouds" | "surfaceFlow" | "vertical" | "horizontal" | "wake" | "turbulence" | "forces";
 export type AnalysisLayer = "surface" | "smoke" | "streamlines" | "slice" | "wake" | "pressureCloud" | "forces";
 
-export const ANALYSES: { id: AnalysisMode; title: string; description: string; layer: AnalysisLayer; view: ViewName; needsSurface?: boolean; needsForces?: boolean }[] = [
+export const ANALYSES: { id: AnalysisMode; title: string; description: string; layer: AnalysisLayer; view: ViewName; needsSurface?: boolean; needsStress?: boolean; needsForces?: boolean }[] = [
   { id: "pressure", title: "Surface pressure", description: "Find suction and high-pressure areas on the car.", layer: "surface", view: "iso", needsSurface: true },
+  { id: "friction", title: "Surface friction", description: "Physical wall stress from the solver, in Pa or Cf.", layer: "surface", view: "iso", needsStress: true },
   { id: "clouds", title: "3D pressure clouds", description: "See pressure regions in the air around the car.", layer: "pressureCloud", view: "iso" },
   { id: "vertical", title: "Vertical streamlines", description: "Follow air over the roof and under the floor.", layer: "streamlines", view: "side" },
   { id: "horizontal", title: "Horizontal streamlines", description: "See how air splits around the sides of the car.", layer: "streamlines", view: "top" },
@@ -21,7 +22,8 @@ export function analysisPreset(mode: AnalysisMode, v: VizSettings, f: VizField, 
   const { low, high } = bounds;
   const L = high[0] - low[0], W = high[1] - low[1], H = high[2] - low[2];
   const clamp = (value: number, axis: number) => Math.min(f.origin[axis] + f.spacing[axis] * (f.dims[axis] - 1), Math.max(f.origin[axis], value));
-  const reset: Partial<VizSettings> = { surface: false, surfaceFlow: false, smoke: false, streamlines: false, slice: false, wake: false, pressureCloud: false, forces: false };
+  const reset: Partial<VizSettings> = { friction: false, surface: false, surfaceFlow: false, smoke: false, streamlines: false, slice: false, wake: false, pressureCloud: false, forces: false };
+  if (mode === "friction") return { ...reset, friction: true };
   if (mode === "pressure") return { ...reset, surface: true };
   if (mode === "clouds") return { ...reset, pressureCloud: true };
   if (mode === "surfaceFlow") return { ...reset, surfaceFlow: true };
@@ -38,13 +40,14 @@ export function analysisPreset(mode: AnalysisMode, v: VizSettings, f: VizField, 
 }
 
 export function activeAnalysis(v: VizSettings): AnalysisMode | null {
-  const count = [v.smoke, v.streamlines, v.slice, v.wake, v.pressureCloud, v.forces, v.surface || v.surfaceFlow].filter(Boolean).length;
+  const count = [v.smoke, v.streamlines, v.slice, v.wake, v.pressureCloud, v.forces, v.surface || v.friction || v.surfaceFlow].filter(Boolean).length;
   if (count !== 1) return null;
   if (v.pressureCloud) return "clouds";
   if (v.forces) return "forces";
   if (v.streamlines) return v.stream.orientation === "vertical" ? "vertical" : "horizontal";
   if (v.slice && v.sliceField === "k") return "turbulence";
   if (v.wake) return "wake";
+  if (v.friction) return "friction";
   if (v.surfaceFlow) return "surfaceFlow";
   if (v.surface) return "pressure";
   return null;

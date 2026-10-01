@@ -138,3 +138,14 @@ export function clayMaterial(role: "body" | "wheel"): THREE.MeshPhysicalMaterial
 export function pressureMaterial(): THREE.MeshStandardMaterial {
   return new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.62, metalness: 0.0 });
 }
+
+/** Keep triangle sides separate: welding would average opposite sides of a thin wing. */
+export function applyStressColors(stress: Float32Array, valid: Uint8Array | undefined, max: number, q: number): THREE.BufferAttribute {
+  const colors = new Float32Array(stress.length), rgb: [number,number,number]=[0,0,0];
+  for(let i=0;i<stress.length/3;i++) {
+    const value=Math.hypot(stress[i*3],stress[i*3+1],stress[i*3+2])/q;
+    if(valid?.[i]!==1 || !Number.isFinite(value)) colors.set([.3,.3,.3],i*3);
+    else { sample("speed",Math.min(1,value/Math.max(max,1e-12)),rgb); colors.set(rgb.map(toLinear),i*3); }
+  }
+  return new THREE.BufferAttribute(colors,3);
+}

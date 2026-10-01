@@ -30,6 +30,7 @@ export function computeRanges(field: VizField | null, surface: (SurfaceSample | 
     cp: [-1.5, 1],
     k: [0, 0.05 * freestream * freestream],
     cp0: [-0.2, 1],
+    friction: [0, Math.max(.001, .01*q)], cf: [0,.01],
     q,
     density,
   };
@@ -55,10 +56,16 @@ export function computeRanges(field: VizField | null, surface: (SurfaceSample | 
       r.cp = [Math.max(-3, Math.min(-0.3, lo)), Math.min(1, Math.max(0.3, hi))];
     }
   }
+  const stress: number[] = [], cf: number[] = [];
+  for (const s of surface ?? []) if (s?.wallStress && s.stressValid) for(let i=0;i<s.stressValid.length;i+=Math.max(1,Math.floor(s.stressValid.length/20000))) if(s.stressValid[i]===1) {
+    const tau=Math.hypot(...s.wallStress.subarray(3*i,3*i+3));
+    if(Number.isFinite(tau)) { stress.push(tau); cf.push(tau/(s.snapshot?.dynamicPressure ?? q)); }
+  }
+  if(stress.length) { r.friction=[0,Math.max(.001,percentile(Float32Array.from(stress),stress.length,.99))]; r.cf=[0,Math.max(.00001,percentile(Float32Array.from(cf),cf.length,.99))]; }
   return r;
 }
 
 export function mergeRanges(a: Ranges, b: Ranges): Ranges {
   const m = (x: [number, number], y: [number, number]): [number, number] => [Math.min(x[0], y[0]), Math.max(x[1], y[1])];
-  return { speed: m(a.speed, b.speed), pressure: m(a.pressure, b.pressure), cp: m(a.cp, b.cp), k: m(a.k, b.k), cp0: m(a.cp0, b.cp0), q: Math.max(a.q, b.q), density: a.density };
+  return { friction: m(a.friction ?? [0,1],b.friction ?? [0,1]), cf: m(a.cf ?? [0,.01],b.cf ?? [0,.01]), speed: m(a.speed, b.speed), pressure: m(a.pressure, b.pressure), cp: m(a.cp, b.cp), k: m(a.k, b.k), cp0: m(a.cp0, b.cp0), q: Math.max(a.q, b.q), density: a.density };
 }

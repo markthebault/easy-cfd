@@ -6,7 +6,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import type { VizField } from "../solver/extract";
 import type { Ranges } from "../store/types";
-import { applyPressureColors, carGeometry, clayMaterial, pressureMaterial } from "./car";
+import { applyPressureColors, applyStressColors, carGeometry, clayMaterial, pressureMaterial } from "./car";
 import { createFieldGPU, disposeFieldGPU, fieldBox, type FieldGPU } from "./field";
 import { detailBoxes, labelSprite, OrientationCube, road, tunnelBox, type ViewName } from "./helpers";
 import { oilFlowGeometry, oilFlowMaterial } from "./oilflow";
@@ -17,6 +17,7 @@ import { totalPressureCoefficient, wakeGeometry, wakeMaterial, type WakeColor } 
 import { pressureCloudGeometry, pressureCloudMaterial, pressureCoefficients } from "./pressureCloud";
 import { drivingVelocity, MOTION_TIME_SCALE, rollingAngle, type DrivingConditions } from "./driving";
 import { ShapeSmokePreview } from "./previewSmoke";
+import type { Axles } from "../solver/types";
 import { wheelCenterOfMass } from "../geometry/centroid";
 
 THREE.Object3D.DEFAULT_UP.set(0, 0, 1);
@@ -27,12 +28,18 @@ export interface StagePart {
   enabled: boolean;
   positions: Float32Array;
   cp?: Float32Array | null;
+  wallStress?: Float32Array;
+  stressValid?: Uint8Array;
+  stressQ?: number;
   shear?: Float32Array | null;
   wheel?: { center: [number, number, number]; radius: number } | null;
 }
 
 export interface VizSettings {
   surface: boolean;
+  friction?: boolean;
+  frictionUnit?: "Pa" | "Cf";
+  frictionMax?: number;
   surfaceFlow: boolean;
   smoke: boolean;
   streamlines: boolean;
@@ -81,6 +88,7 @@ const TRACER_SIZE = 128;
 export class Stage {
   readonly renderer: THREE.WebGLRenderer;
   readonly scene = new THREE.Scene();
+  private axleMarkers = new THREE.Group();
   readonly camera = new THREE.PerspectiveCamera(32, 1, 0.05, 2000);
   readonly controls: OrbitControls;
   private container: HTMLElement;
@@ -574,12 +582,14 @@ export class Stage {
       const p = this.parts.find((q) => q.id === m.userData.partId);
       if (!p) continue;
       const geo = m.geometry;
-      const wantCp = surface && !!p.cp;
+      const wantFriction = !!this.viz?.friction && !!p.wallStress;
+      const wantCp = (surface && !!p.cp) || wantFriction;
       let mat = m.material as THREE.MeshStandardMaterial;
       if (wantCp) {
-        const key = `${this.cpRange[0]}:${this.cpRange[1]}`;
+        const max = this.viz?.frictionMax ?? (this.viz?.frictionUnit === "Cf" ? this.ranges?.cf?.[1] : this.ranges?.friction?.[1]) ?? 1;
+        const key = `${this.cpRange[0]}:${this.cpRange[1]}:${wantFriction}:${this.viz?.frictionUnit}:${max}`;
         if (geo.userData.cpFor !== p.cp || geo.userData.cpKey !== key) {
-          const colors = applyPressureColors(p.positions, p.cp ?? null, this.cpRange);
+          const colors = wantFriction ? applyStressColors(p.wallStress!,p.stressValid,max,this.viz?.frictionUnit === "Cf" ? p.stressQ ?? 1 : 1) : applyPressureColors(p.positions, p.cp ?? null, this.cpRange);
           if (colors) geo.setAttribute("color", colors);
           geo.userData.cpFor = p.cp;
           geo.userData.cpKey = key;
@@ -751,6 +761,21 @@ export class Stage {
     this.dirty = true;
   }
 
+  frictionScale(unit?: "Pa" | "Cf") { return (unit === "Cf" ? this.ranges?.cf?.[1] : this.ranges?.friction?.[1]) ?? (unit === "Cf" ? .01 : 5); }
+
+  setAxles(axles: Axles | undefined) {
+    this.clearGroup(this.axleMarkers);
+    this.scene.add(this.axleMarkers);
+    if(axles && Number.isFinite(axles.frontX) && axles.rearX>axles.frontX) {
+      const box=this.carBounds(),half=(box.high[1]-box.low[1])*.65;
+      for(const [x,color] of [[axles.frontX,0x70acff],[axles.rearX,0x67d6be]]) {
+        const geo=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x,axles.centrelineY-half,.008),new THREE.Vector3(x,axles.centrelineY+half,.008)]);
+        this.axleMarkers.add(new THREE.Line(geo,new THREE.LineBasicMaterial({color,transparent:true,opacity:axles.confirmed?.7:.35})));
+      }
+    }
+    this.requestRender();
+  }
+
   setDriving(conditions: DrivingConditions | null) {
     this.driving = conditions;
     this.applyDriving();
@@ -774,7 +799,7 @@ export class Stage {
     for (const w of this.wheelMotion) {
       const p = this.parts.find(p => p.id === w.id);
       const coloured = !!v?.surface && !!p?.cp;
-      const keepFieldAligned = coloured || !!v?.surfaceFlow || !!v?.slice;
+      const keepFieldAligned = coloured || !!v?.friction || !!v?.surfaceFlow || !!v?.slice;
       w.spinGeometry = !!v?.motion && !!d && !!p?.enabled && !keepFieldAligned;
       w.radius = p?.wheel?.radius ?? w.radius;
       // Saved surface samples describe a fixed pose. Restore that pose in surface analyses.
@@ -1102,8 +1127,16 @@ export class Stage {
 
   async screenshot(): Promise<Blob> {
     this.render();
+    const canvas=document.createElement("canvas"); canvas.width=this.renderer.domElement.width; canvas.height=this.renderer.domElement.height;
+    const ctx=canvas.getContext("2d")!; ctx.drawImage(this.renderer.domElement,0,0);
+    if(this.viz?.friction) {
+      const cf=this.viz.frictionUnit==="Cf",max=this.viz.frictionMax ?? (cf?this.ranges?.cf?.[1]:this.ranges?.friction?.[1]) ?? 1;
+      ctx.fillStyle="rgba(15,20,28,.92)";ctx.fillRect(24,canvas.height-94,520,70);
+      ctx.fillStyle="#f3f5f8";ctx.font="18px sans-serif";ctx.fillText(`Surface friction · final snapshot · ${cf?"Cf":"Pa"}`,40,canvas.height-65);
+      ctx.font="16px sans-serif";ctx.fillText(`0 → ${max.toFixed(cf?4:2)} ${cf?"Cf":"Pa"}  ·  grey = missing data`,40,canvas.height-37);
+    }
     return new Promise((resolve, reject) =>
-      this.renderer.domElement.toBlob((b) => (b ? resolve(b) : reject(new Error("Screenshot failed."))), "image/png"),
+      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("Screenshot failed."))), "image/png"),
     );
   }
 

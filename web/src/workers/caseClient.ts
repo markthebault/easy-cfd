@@ -15,6 +15,7 @@ export class CaseWorker {
   private worker = new Worker(new URL("./case.worker.ts", import.meta.url), { type: "module" });
   private pending = new Map<number, Pending>();
   private next = 1;
+  private disposed = false;
 
   constructor() {
     this.worker.onmessage = (e: MessageEvent<CaseResponse>) => {
@@ -31,6 +32,7 @@ export class CaseWorker {
   }
 
   private call(req: Req, transfer: Transferable[] = []): Promise<CaseResponse> {
+    if (this.disposed) return Promise.reject(new DOMException("Worker stopped", "AbortError"));
     const id = this.next++;
     return new Promise((resolve, reject) => {
       this.pending.set(id, { resolve, reject });
@@ -49,12 +51,13 @@ export class CaseWorker {
   /** `setup` is the grid the fields were computed on (from this worker's prepare()). */
   async extract(fields: FlowFields, setup: CaseSetup, target: number, surface: boolean): Promise<{ field: VizField; surface: SurfaceSample[] | null }> {
     if (setup.caseKey === undefined) throw new Error("That grid was not prepared by this worker.");
-    const r = await this.call({ type: "extract", fields, target, surface, caseKey: setup.caseKey }, [fields.vel.buffer, fields.pres.buffer, fields.turb.buffer]);
+    const r = await this.call({ type: "extract", fields, target, surface, caseKey: setup.caseKey }, [fields.vel.buffer, fields.pres.buffer, fields.turb.buffer, ...(fields.wallForces ? [fields.wallForces.buffer] : [])]);
     if (r.type !== "extracted") throw new Error("Unexpected worker reply.");
     return { field: r.field, surface: r.surface };
   }
 
   dispose() {
+    this.disposed = true;
     this.worker.terminate();
     for (const p of this.pending.values()) p.reject(new DOMException("Worker stopped", "AbortError"));
     this.pending.clear();

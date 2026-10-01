@@ -96,7 +96,7 @@ export interface FieldDoc {
   id: string;
   field: EncodedField;
   /** One entry per enabled part, in solver order. */
-  surface: { key: string; cp: Quantized; shear: Quantized }[];
+  surface: { key: string; cp: Quantized; shear: Quantized; version?: 2; wallStress?: Float32Array; stressValid?: Uint8Array; snapshot?: SurfaceSample["snapshot"] }[];
 }
 
 export interface FileDoc {
@@ -107,6 +107,8 @@ export interface FileDoc {
 
 /** Colour ranges fixed per result (and merged across a comparison). */
 export interface Ranges {
+  friction?: [number, number];
+  cf?: [number, number];
   speed: [number, number];
   pressure: [number, number];
   cp: [number, number];

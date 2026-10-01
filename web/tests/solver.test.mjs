@@ -236,7 +236,8 @@ test("detail boxes refine a region inside a larger part", () => {
   const plain = setup.prepareCase(parts, settings);
   assert.equal(plain.detail.ratio, 1);
   const box = { name: "Hood vent", x_min: -1.6, x_max: -1.0, y_min: -0.4, y_max: 0.4, z_min: 0.7, z_max: 1.0 };
-  const c = setup.prepareCase(parts, { ...settings, detail_ratio: 3, detail_boxes: [box] });
+  assert.throws(()=>setup.prepareCase(parts, { ...settings, detail_ratio: 3, detail_boxes: [box] }), /limited to 2.5 M/);
+  const c = setup.prepareCase(parts, { ...settings, detail_ratio: 2, detail_boxes: [box] });
   assert.deepEqual(c.detail.zones, ["Hood vent"]);
   const i = grid.locate(c.grid.x, -1.3), j = grid.locate(c.grid.y, 0), k = grid.locate(c.grid.z, 0.85);
   for (const [a, n] of [[c.grid.x, i], [c.grid.y, j], [c.grid.z, k]]) assert.ok(a.widths[n] < 0.6 * c.grid.h, `width ${a.widths[n]} vs h ${c.grid.h}`);

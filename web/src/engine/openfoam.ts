@@ -2,6 +2,7 @@
 // results into the data the viewer uses (RunResult, VizField, per-vertex surface values).
 // Nothing leaves this computer or the tailnet: the backend is the local EasyCFD server.
 
+import { equivalentLoads, momentOrigin } from "../solver/aero";
 import type { Part } from "../geometry/model";
 import { writeSTL } from "../geometry/stl";
 import { vizBoxFor, vizGrid, type SurfaceSample, type VizField } from "../solver/extract";
@@ -122,6 +123,11 @@ export function serverSettings(s: Settings): Record<string, unknown> {
   const quality = s.quality === "custom" ? "medium" : s.quality;
   const b = s.simulation_box;
   return {
+    ...(s.profile ? {profile:s.profile} : {}),
+    ...(s.refine_groups ? {refine_groups:s.refine_groups}:{}),
+    ...(s.refine_underfloor !== undefined ? {refine_underfloor:s.refine_underfloor}:{}),
+    ...(s.axles?.confirmed ? { axles: s.axles } : {}),
+    ...(s.max_seconds ? { max_seconds: s.max_seconds } : {}),
     speed_kmh: s.speed_kmh,
     yaw_deg: s.yaw_deg,
     quality,
@@ -162,20 +168,40 @@ export function historyFromServer(rows: { iteration: number; cd: number; cl: num
 /** A server run record as the UI's run result (`domain`: fallback tunnel in the UI frame). */
 export function resultFromRecord(run: ServerRun, carLength: number, offset: Vec3, domain: number[]): RunResult {
   const r = run.result!;
-  const U = run.settings.speed_kmh / 3.6;
+  const U = r.freestream ?? (run.settings.speed_kmh / 3.6 / Math.cos(run.settings.yaw_deg*Math.PI/180));
   const q = 0.5 * run.settings.density * U * U;
   const b = (r.breakdown ?? {}) as Record<string, Record<string, number>>;
   const role = (k: "body" | "wheels") => b[k] ?? { pressure_drag: 0, viscous_drag: 0, pressure_downforce: 0, viscous_downforce: 0 };
   const body = role("body"), wheels = role("wheels");
   const seconds = run.started && run.finished ? (Date.parse(run.finished) - Date.parse(run.started)) / 1000 : 0;
   const iterations = Number(r.iteration ?? run.iteration ?? 0);
+  const levels: RunResult["levels"] = r.refinement_levels?.map((level:any) => ({
+    label: level.preset, cells: level.cells, cd: level.cd, cl: level.cl,
+    drag: level.drag, lift: -level.downforce,
+    aero: level.aero ? {...level.aero, origin: level.aero.origin.map((v:number,i:number) => v-offset[i])} : undefined,
+    balance: level.aero ? equivalentLoads(level.aero.force, level.aero.moment, run.settings.axles as Settings["axles"], q*run.settings.reference_area) : undefined,
+  }));
+  const spread = (values: (number | undefined)[]) => values.every(v => v !== undefined && Number.isFinite(v))
+    ? Math.max(...values as number[]) - Math.min(...values as number[]) : undefined;
   return {
     cd: r.cd,
     cl: r.cl,
-    cs: 0,
+    aero: r.aero ? { ...r.aero, origin: r.aero.origin.map((v:number,i:number)=>v-offset[i]) } : undefined,
+    balance: r.aero ? equivalentLoads(r.aero.force,r.aero.moment,run.settings.axles as Settings["axles"],q*run.settings.reference_area) : undefined,
+    partForces: r.part_forces,
+    levels,
+    meshSensitivity: levels && levels.length >= 2 ? {
+      dCd: spread(levels.map(l => l.cd))!, dCl: spread(levels.map(l => l.cl))!,
+      frontLift: spread(levels.map(l => l.balance?.frontLift)),
+      rearLift: spread(levels.map(l => l.balance?.rearLift)),
+      pitch: spread(levels.map(l => l.aero?.moment[1])),
+    } : undefined,
+    reconciliation: r.reconciliation,
+    provenance: r.provenance ? { ...r.provenance, origin: r.provenance.origin.map((v:number,i:number)=>v-offset[i]) } : undefined,
+    cs: r.aero ? r.aero.force[1]/(q*run.settings.reference_area) : 0,
     drag: r.drag,
     lift: -r.downforce,
-    side: 0,
+    side: r.aero?.force[1] ?? 0,
     downforce: r.downforce,
     breakdown: {
       bodyPressure: [body.pressure_drag, 0, -body.pressure_downforce],
@@ -183,12 +209,16 @@ export function resultFromRecord(run: ServerRun, carLength: number, offset: Vec3
       wheelPressure: [wheels.pressure_drag, 0, -wheels.pressure_downforce],
       wheelViscous: [wheels.viscous_drag, 0, -wheels.viscous_downforce],
     },
-    history: historyFromServer(r.history ?? []),
+    history: (r.history ?? []).map((h:any)=> {
+      const loads=h.force && h.moment ? equivalentLoads(h.force,h.moment,run.settings.axles as Settings["axles"],q*run.settings.reference_area) : undefined;
+      return {time:h.iteration,step:h.iteration,cd:h.cd,cl:h.cl,cs:h.force ? h.force[1]/(q*run.settings.reference_area):0,...(h.moment ? {pitch:h.moment[1]} : {}),...(loads ? {frontLift:loads.frontLift,rearLift:loads.rearLift} : {})};
+    }),
+    balanceBands: r.balance_bands,
     settled: !!r.force_settled,
     cdSpan: r.cd_span ?? 0,
     clSpan: r.cl_span ?? 0,
-    cdBand: (r.cd_span ?? 0) / 2,
-    clBand: (r.cl_span ?? 0) / 2,
+    cdBand: r.cd_span === undefined ? undefined : r.cd_span / 2,
+    clBand: r.cl_span === undefined ? undefined : r.cl_span / 2,
     cells: r.cells ?? 0,
     steps: iterations,
     simulatedTime: iterations,
@@ -229,6 +259,7 @@ interface ProjectLink {
   /** Server part id per UI part key. */
   parts: Record<string, string>;
   offset: Vec3;
+  labels?: Record<string,Record<string,string>>;
 }
 
 function links(): Record<string, ProjectLink> {
@@ -262,7 +293,7 @@ export async function ensureProject(name: string, parts: { key: string; part: Pa
     try {
       const p = await api<{ geometry?: { parts: ServerPart[] } }>(`/projects/${known.project}`);
       const ids = new Set((p.geometry?.parts ?? []).map((q) => q.id));
-      if (Object.values(known.parts).every((id) => ids.has(id))) return known;
+      if (Object.values(known.parts).every((id) => ids.has(id))) return {...known,labels:Object.fromEntries(parts.map(({key,part})=>[known.parts[key],{id:key,name:part.name,...(part.group?{group:part.group}:{})}]))};
     } catch {
       /* gone: upload again */
     }
@@ -301,7 +332,8 @@ export async function ensureProject(name: string, parts: { key: string; part: Pa
       await api(`/projects/${project.id}/parts/${sp.id}`, json({ role: "wheel", radius: part.wheel.radius, center: [c[0] + offset[0], c[1] + offset[1], c[2] + offset[2]] }, "PUT"));
     }
   }
-  const link: ProjectLink = { project: project.id, parts: map, offset };
+  const labels = Object.fromEntries(files.map(f=>[map[f.key],{id:f.key,name:f.part.name,...(f.part.group ? {group:f.part.group}: {})}]));
+  const link: ProjectLink = { project: project.id, parts: map, offset, labels };
   localStorage.setItem(PROJECTS_KEY, JSON.stringify({ ...links(), [fp]: link }));
   return link;
 }
@@ -313,7 +345,7 @@ export async function queueRun(link: ProjectLink, activeKeys: string[], settings
   if (!on.length) throw new ServerError("Switch at least one part on.");
   await api(`/projects/${link.project}/parts-enabled`, json({ part_ids: all, enabled: false }, "PUT"));
   await api(`/projects/${link.project}/parts-enabled`, json({ part_ids: on, enabled: true }, "PUT"));
-  await api(`/projects/${link.project}/settings`, json(serverSettings(settings), "PUT"));
+  await api(`/projects/${link.project}/settings`, json({ ...serverSettings(settings), moment_origin: momentOrigin(settings.axles).map((v,i)=>v+link.offset[i]), part_labels: link.labels ?? {} }, "PUT"));
   return api<ServerRun>(`/projects/${link.project}/runs`, { method: "POST" });
 }
 
@@ -332,12 +364,12 @@ export interface LiveReport {
 export const liveReport = (id: string, every: number) => api<LiveReport>(`/runs/${id}/live?every=${Math.max(1, Math.round(every))}`);
 
 /** The finished flow on the viewer's grid (UI frame), sampled by the server in its own frame. */
-export async function fetchField(run: ServerRun, carLow: Vec3, carHigh: Vec3, domain: number[], target: number, offset: Vec3): Promise<VizField> {
+export async function fetchField(run: ServerRun, carLow: Vec3, carHigh: Vec3, domain: number[], target: number, offset: Vec3, signal?: AbortSignal): Promise<VizField> {
   const L = carHigh[0] - carLow[0];
   const box = vizBoxFor(carLow, carHigh, domain, L);
   const { origin, spacing, dims } = vizGrid(box.low, box.high, target);
   const serverOrigin: Vec3 = [origin[0] + offset[0], origin[1] + offset[1], origin[2] + offset[2]];
-  const buf = await api<ArrayBuffer>(`/runs/${run.id}/viz-field`, json({ origin: serverOrigin, spacing, dims }));
+  const buf = await api<ArrayBuffer>(`/runs/${run.id}/viz-field`, {...json({ origin: serverOrigin, spacing, dims }),signal});
   const n = dims[0] * dims[1] * dims[2];
   if (buf.byteLength !== 21 * n) throw new ServerError("The flow field from the server has an unexpected size.");
   const f = (i: number) => new Float32Array(buf, 4 * n * i, n);
@@ -349,12 +381,26 @@ export async function fetchField(run: ServerRun, carLow: Vec3, carHigh: Vec3, do
   return {
     origin, spacing, dims,
     u: f(0).slice(), v: f(1).slice(), w: f(2).slice(), p: f(3).slice(), k: f(4).slice(), solid,
-    freestream: U, inlet: [U, U * Math.tan(yaw), 0], length: L,
+    freestream: Math.hypot(U,U*Math.tan(yaw)), inlet: [U, U * Math.tan(yaw), 0], length: L,
   };
 }
 
 /** Surface pressure coefficient and near-wall flow direction at each part's soup vertices. */
-export async function fetchSurface(run: ServerRun, parts: Part[], offset: Vec3): Promise<SurfaceSample[]> {
+export async function fetchSurface(run: ServerRun, parts: Part[], offset: Vec3, patches: Record<string,string> = {}, signal?: AbortSignal): Promise<SurfaceSample[]> {
+  if (run.result?.provenance?.version === "openfoam-wall-integrals-2") {
+    const result: SurfaceSample[] = [];
+    for(const p of parts) {
+      const key=`${p.file}::${p.name}`;
+      const patch=patches[key] ?? run.result.part_forces?.find((f:any)=>f.id===key)?.patch;
+      if(!patch) { result.push({cp:new Float32Array(p.positions.length/3).fill(NaN),shear:new Float32Array(p.positions.length)}); continue; }
+      const soup=p.positions.map((v,i)=>v+offset[i%3]);
+      const buf=await api<ArrayBuffer>(`/runs/${run.id}/surface-samples?version=2&part_id=${encodeURIComponent(patch)}`,{method:"POST",headers:{"Content-Type":"application/octet-stream"},body:soup,signal});
+      const nv=p.positions.length/3, header=new Uint32Array(buf,0,4);
+      if(buf.byteLength!==16+29*nv || header[0]!==0x53464345 || header[1]!==2 || header[2]!==nv) throw new ServerError("Invalid version 2 surface data.");
+      result.push({cp:new Float32Array(buf,16,nv).slice(),shear:new Float32Array(buf,16+4*nv,3*nv).slice(),wallStress:new Float32Array(buf,16+16*nv,3*nv).slice(),stressValid:new Uint8Array(buf,16+28*nv,nv).slice(),snapshot:{iteration:header[3],grid:`openfoam:${run.id}`,unit:"Pa",dynamicPressure:.5*run.settings.density*(run.result?.freestream ?? (run.settings.speed_kmh/3.6/Math.cos(run.settings.yaw_deg*Math.PI/180)))**2}});
+    }
+    return result;
+  }
   const total = parts.reduce((n, p) => n + p.positions.length, 0);
   const soup = new Float32Array(total);
   let o = 0;
@@ -366,7 +412,7 @@ export async function fetchSurface(run: ServerRun, parts: Part[], offset: Vec3):
       soup[o++] = a[i + 2] + offset[2];
     }
   }
-  const buf = await api<ArrayBuffer>(`/runs/${run.id}/surface-samples`, { method: "POST", headers: { "Content-Type": "application/octet-stream" }, body: soup });
+  const buf = await api<ArrayBuffer>(`/runs/${run.id}/surface-samples`, { method: "POST", headers: { "Content-Type": "application/octet-stream" }, body: soup, signal });
   const nv = total / 3;
   if (buf.byteLength !== 16 * nv) throw new ServerError("The surface values from the server have an unexpected size.");
   const cp = new Float32Array(buf, 0, nv);

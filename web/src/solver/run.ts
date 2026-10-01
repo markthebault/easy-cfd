@@ -1,5 +1,7 @@
 // Drives a simulation to the preset's simulated time and turns GPU force history into results.
 
+import { integrateWalls } from "./wallStress";
+import { add, equivalentLoads } from "./aero";
 import { FlowSolver, HISTORY_SLOTS } from "./gpu";
 import { prepareCase, type CaseSetup } from "./setup";
 import { DETAIL_CELL_BUDGET } from "./detail";
@@ -25,6 +27,7 @@ export interface RunOptions {
   /** Override for tests. */
   targetPasses?: number;
   setup?: CaseSetup;
+  deadline?: number;
   /** Prepares the grid for one level of a Precise run (e.g. in a worker). */
   prepareLevel?: (settings: Settings) => Promise<CaseSetup>;
   /** Local time stepping toward the steady state (default on). */
@@ -102,9 +105,9 @@ function decodeHistory(buf: Float32Array, fromStep: number, toStep: number): Raw
   const out: RawRecord[] = [];
   const first = Math.max(fromStep + 1, toStep - HISTORY_SLOTS + 1);
   for (let s = first; s <= toStep; s++) {
-    const o = (s % HISTORY_SLOTS) * 16;
+    const o = (s % HISTORY_SLOTS) * 32;
     if (Math.round(buf[o + 2]) !== s) continue;
-    out.push({ time: buf[o], step: s, f: Array.from(buf.subarray(o + 4, o + 16)) });
+    out.push({ time: buf[o], step: s, f: Array.from(buf.subarray(o + 4, o + 28)) });
   }
   return out;
 }
@@ -112,7 +115,7 @@ function decodeHistory(buf: Float32Array, fromStep: number, toStep: number): Raw
 /**
  * Run a simulation. Fast, Medium and Custom solve one grid. Precise solves the Medium grid and a
  * finer one and reports the mean of the two, with their difference as a mesh-sensitivity band
- * (separation on car rear ends shifts with resolution; averaging two levels halves that noise).
+ * History and displayed fields come from the fine grid. This is a sensitivity check, not proof of mesh independence.
  */
 export async function runSimulation(
   device: GPUDevice,
@@ -120,6 +123,7 @@ export async function runSimulation(
   settings: Settings,
   opts: RunOptions = {},
 ): Promise<{ result: RunResult; solver: FlowSolver; setup: CaseSetup }> {
+  opts={...opts,deadline:opts.deadline ?? performance.now()+1000*(settings.max_seconds ?? (settings.quality === "fast"?300:600))};
   if (settings.quality !== "precise") return runLevel(device, parts, settings, opts);
   const started = performance.now();
   const level = (p: typeof PRESETS.medium): Settings => ({ ...settings, quality: "custom", custom_cells: p.cellsPerLength, custom_passes: p.passes });
@@ -157,21 +161,25 @@ export async function runSimulation(
       wheelPressure: avg(a.breakdown.wheelPressure, b.breakdown.wheelPressure),
       wheelViscous: avg(a.breakdown.wheelViscous, b.breakdown.wheelViscous),
     },
+    aero: a.aero && b.aero ? { origin: b.aero.origin, force: avg(a.aero.force,b.aero.force), moment: avg(a.aero.moment,b.aero.moment), pressureMoment: avg(a.aero.pressureMoment,b.aero.pressureMoment), frictionMoment: avg(a.aero.frictionMoment,b.aero.frictionMoment) } : undefined,
     settled: a.settled && b.settled,
     steps: a.steps + b.steps,
     wallSeconds: (performance.now() - started) / 1000,
     partForces: a.partForces && b.partForces && a.partForces.length === b.partForces.length
-      ? b.partForces.map((f, i) => ({ ...f, pressure: avg(a.partForces![i].pressure, f.pressure), friction: avg(a.partForces![i].friction, f.friction) }))
+      ? b.partForces.map((f, i) => ({ ...f, pressure: avg(a.partForces![i].pressure, f.pressure), friction: avg(a.partForces![i].friction, f.friction), pressureMoment: avg(a.partForces![i].pressureMoment!,f.pressureMoment!), frictionMoment: avg(a.partForces![i].frictionMoment!,f.frictionMoment!) }))
       : b.partForces,
     levels: [
-      { label: "Medium grid", cells: a.cells, cd: a.cd, cl: a.cl, drag: a.drag, lift: a.lift },
-      { label: "Fine grid", cells: b.cells, cd: b.cd, cl: b.cl, drag: b.drag, lift: b.lift },
+      { label: "Medium grid", cells: a.cells, cd: a.cd, cl: a.cl, drag: a.drag, lift: a.lift, aero: a.aero, balance:a.balance },
+      { label: "Fine grid", cells: b.cells, cd: b.cd, cl: b.cl, drag: b.drag, lift: b.lift, aero: b.aero, balance:b.balance },
     ],
-    meshSensitivity: { dCd: b.cd - a.cd, dCl: b.cl - a.cl },
+    meshSensitivity: { dCd: b.cd - a.cd, dCl: b.cl - a.cl, frontLift:a.balance && b.balance ? b.balance.frontLift-a.balance.frontLift : undefined,rearLift:a.balance && b.balance ? b.balance.rearLift-a.balance.rearLift : undefined,pitch:a.aero && b.aero ? b.aero.moment[1]-a.aero.moment[1] : undefined },
+    balanceBands: a.balanceBands && b.balanceBands ? {frontLift:(a.balanceBands.frontLift+b.balanceBands.frontLift)/2,rearLift:(a.balanceBands.rearLift+b.balanceBands.rearLift)/2,pitch:(a.balanceBands.pitch+b.balanceBands.pitch)/2} : undefined,
+    provenance: b.provenance ? {...b.provenance,aggregation:"mean-of-levels",averagingLevels:[a.provenance!.averaging,b.provenance.averaging],historyGrid:b.gridId} : undefined,
     cdBand: Math.hypot(a.cdBand ?? 0, b.cdBand ?? 0) / 2,
     clBand: Math.hypot(a.clBand ?? 0, b.clBand ?? 0) / 2,
     warnings: [...new Set([...a.warnings, ...b.warnings])],
   };
+  if (result.aero) result.balance = equivalentLoads(result.aero.force,result.aero.moment,settings.axles,result.dynamicPressure*settings.reference_area);
   const rel = Math.abs(b.cd - a.cd) / Math.max(Math.abs(result.cd), 1e-6);
   if (rel > 0.1)
     result.warnings.push(`The two grid levels differ by ${(rel * 100).toFixed(0)} % in drag. The flow around this shape is sensitive to resolution; treat differences between designs smaller than that with caution.`);
@@ -208,7 +216,7 @@ async function runLevel(
   const raw: RawRecord[] = [];
   const samples: ForceSample[] = [];
   // Running pseudo-time integrals of the per-part forces, read with the force history.
-  const partSnaps: { time: number; acc: Float32Array }[] = [];
+  const partSnaps: { time: number; acc: Float32Array }[] = [{ time: 0, acc: new Float32Array(setup.partIds.length*12) }];
   let lastStep = 0;
   let time = 0; // pseudo time at the pace of the flow around the car
   let batch = 4;
@@ -230,12 +238,16 @@ async function runLevel(
     const fy = r.f[1] + r.f[4] + r.f[7] + r.f[10];
     const fz = r.f[2] + r.f[5] + r.f[8] + r.f[11];
     const rho = settings.density;
-    return { time: r.time, step: r.step, cd: (rho * fx) / qA, cl: (rho * fz) / qA, cs: (rho * fy) / qA };
+    const moment: Vec3 = [0,1,2].map(i => rho*(r.f[12+i]+r.f[15+i]+r.f[18+i]+r.f[21+i])) as Vec3;
+    const balance = equivalentLoads([rho*fx,rho*fy,rho*fz], moment, settings.axles, qA);
+    return { pitch: moment[1], frontLift: balance?.frontLift, rearLift: balance?.rearLift, time: r.time, step: r.step, cd: (rho * fx) / qA, cl: (rho * fz) / qA, cs: (rho * fy) / qA };
   };
   try {
    for (;;) {
     while (time < targetTime) {
       if (opts.signal?.aborted) throw new DOMException("Simulation cancelled", "AbortError");
+      if (performance.now() > (opts.deadline ?? Infinity)) throw new Error("Elapsed-time limit reached. This run has no complete final result; shorten the run or choose a larger limit.");
+      await new Promise<void>(resolve => setTimeout(resolve, 0));
       const t0 = performance.now();
       // Keep roughly one batch in flight; adapt batch size to ~120 ms of GPU work.
       solver.run(batch);
@@ -291,10 +303,29 @@ async function runLevel(
     solver.destroy();
     throw e;
   }
+  try {
   opts.onProgress?.({ stage: "finishing", fraction: 1, time, targetTime, steps: solver.steps, history: samples, elapsed: (performance.now() - started) / 1000, cells: setup.grid.cells });
-  const result = summarise(raw, samples, setup, settings, preset.averageFraction, targetTime);
+  // Exactly the same window boundaries and pseudo-time weights for every force and moment.
+  const windowStart = partSnaps.find(s => s.time >= targetTime*(1-preset.averageFraction) && s !== partSnaps.at(-1))?.time ?? 0;
+  const result = summarise(raw, samples, setup, settings, preset.averageFraction, targetTime, windowStart);
+  const native=integrateWalls(setup,await solver.readWallForces(),settings.density), instant=raw.at(-1)!;
+  const f=[0,1,2].map(i=>settings.density*(instant.f[i]+instant.f[i+3]+instant.f[i+6]+instant.f[i+9]));
+  const m=[0,1,2].map(i=>settings.density*(instant.f[i+12]+instant.f[i+15]+instant.f[i+18]+instant.f[i+21]));
+  const v=[0,1,2].map(i=>settings.density*(instant.f[i+3]+instant.f[i+9]));
+  const error=(a:number[],b:number[])=>Math.hypot(...a.map((v,i)=>v-b[i]));
+  const tolerance=Math.max(1e-4,.005*native.frictionMagnitude), frictionError=error(native.friction,v);
+  const forceTolerance=Math.max(1e-4,.005*native.forceMagnitude),momentTolerance=Math.max(1e-4,.005*native.momentMagnitude);
+  result.wallIntegration={iteration:solver.steps,coverage:native.coverage,faces:native.faces,forceError:error(native.force,f),momentError:error(native.moment,m),frictionError,tolerance,forceTolerance,momentTolerance,passed:native.coverage===1 && frictionError<=tolerance && error(native.force,f)<=forceTolerance && error(native.moment,m)<=momentTolerance};
   result.wallSeconds = (performance.now() - started) / 1000;
-  result.partForces = partAverages(partSnaps, setup, settings.density, targetTime * (1 - preset.averageFraction));
+  result.partForces = partAverages(partSnaps, setup, settings.density, windowStart);
+  if(result.aero && result.partForces?.length) {
+    const sum=(kind:"force"|"moment") => result.partForces!.reduce((a,f)=>add(a,kind==="force"?add(f.pressure,f.friction):add(f.pressureMoment!,f.frictionMoment!)),[0,0,0] as Vec3);
+    const norm=(v:Vec3)=>Math.hypot(...v);
+    const tolerance=(kind:"force"|"moment")=>Math.max(1e-4,.005*result.partForces!.reduce((s,f)=>s+norm(kind==="force"?add(f.pressure,f.friction):add(f.pressureMoment!,f.frictionMoment!)),0));
+    const error=(kind:"force"|"moment")=>norm(sum(kind).map((v,i)=>v-result.aero![kind][i]) as Vec3);
+    result.reconciliation={forceError:error("force"),momentError:error("moment"),forceTolerance:tolerance("force"),momentTolerance:tolerance("moment"),complete:error("force")<=tolerance("force") && error("moment")<=tolerance("moment")};
+    if(!result.reconciliation.complete) result.warnings.push("Component integrals do not reconcile with whole-car forces and moments; attribution is provisional.");
+  }
   if (targetTime > baseTarget * 1.001) {
     // The run stops extending when the mean stops drifting (settled) or at the maximum length.
     result.extendedPasses = ((targetTime - baseTarget) * U) / L;
@@ -306,6 +337,7 @@ async function runLevel(
   }
   (result as RunResult & { lts?: unknown }).lts = ltsLog;
   return { result, solver, setup };
+  } catch(error) {solver.destroy();throw error;}
 }
 
 /** Short fingerprint of the grid's face coordinates: equal ids mean identical cells. */
@@ -326,11 +358,13 @@ export function partAverages(snaps: { time: number; acc: Float32Array }[], setup
   const start = snaps.find((q) => q.time >= tStart && q !== end) ?? snaps[0];
   const span = end.time - start.time;
   if (!(span > 0)) return [];
-  const f = (p: number, m: number) => (rho * (end.acc[6 * p + m] - start.acc[6 * p + m])) / span;
+  const f = (p: number, m: number) => (rho * (end.acc[12 * p + m] - start.acc[12 * p + m])) / span;
   return setup.partNames.map((name, p) => ({
     id: setup.partIds[p],
     name,
     group: setup.partGroups[p],
+    pressureMoment: [f(p, 6), f(p, 7), f(p, 8)] as Vec3,
+    frictionMoment: [f(p, 9), f(p, 10), f(p, 11)] as Vec3,
     pressure: [f(p, 0), f(p, 1), f(p, 2)] as Vec3,
     friction: [f(p, 3), f(p, 4), f(p, 5)] as Vec3,
   }));
@@ -347,7 +381,13 @@ export function drifting(samples: ForceSample[], targetTime: number, averageFrac
   const mean = (a: ForceSample[], k: "cd" | "cl") => a.reduce((n, s) => n + s[k], 0) / a.length;
   const a = win.slice(0, half), b = win.slice(half);
   const cd = mean(win, "cd"), cl = mean(win, "cl");
-  return Math.abs(mean(b, "cd") - mean(a, "cd")) > 0.01 * Math.max(Math.abs(cd), 0.05) ||
+  const loadKeys=["frontLift","rearLift","pitch"] as const;
+  const balanceDrift=loadKeys.some(key=>{
+    if(win.some(s=>s[key]===undefined)) return false;
+    const avg=(arr:ForceSample[])=>arr.reduce((n,s)=>n+s[key]!,0)/arr.length;
+    return Math.abs(avg(b)-avg(a))>Math.max(key==="pitch"?.05:.1,.04*Math.abs(avg(win)));
+  });
+  return balanceDrift || Math.abs(mean(b, "cd") - mean(a, "cd")) > 0.01 * Math.max(Math.abs(cd), 0.05) ||
     Math.abs(mean(b, "cl") - mean(a, "cl")) > Math.max(0.01, 0.04 * Math.abs(cl));
 }
 
@@ -358,23 +398,24 @@ export function summarise(
   settings: Settings,
   averageFraction: number,
   targetTime: number,
+  windowStart?: number,
 ): RunResult {
   const U = setup.freestream;
   const q = 0.5 * settings.density * U * U;
   const qA = q * settings.reference_area;
-  const tStart = targetTime * (1 - averageFraction);
+  const tStart = windowStart ?? targetTime * (1 - averageFraction);
   // Time-weighted average over the final window.
   let wsum = 0;
-  const acc = new Array(12).fill(0);
+  const acc = new Array(24).fill(0);
   let prev = raw.length ? raw[0].time : 0;
-  const window = raw.filter((r) => r.time >= tStart);
+  const window = raw.filter((r) => r.time > tStart);
   const use = window.length > 10 ? window : raw.slice(-Math.max(1, Math.floor(raw.length * averageFraction)));
-  prev = use.length ? use[0].time - (use.length > 1 ? use[1].time - use[0].time : 0) : 0;
+  prev = windowStart ?? (use.length ? use[0].time - (use.length > 1 ? use[1].time - use[0].time : 0) : 0);
   for (const r of use) {
     const w = Math.max(r.time - prev, 0);
     prev = r.time;
     wsum += w;
-    for (let m = 0; m < 12; m++) acc[m] += w * r.f[m];
+    for (let m = 0; m < 24; m++) acc[m] += w * (r.f[m] ?? 0);
   }
   const rho = settings.density;
   const avg = acc.map((v) => (rho * v) / Math.max(wsum, 1e-30));
@@ -400,11 +441,11 @@ export function summarise(
     return Math.max(...means) - Math.min(...means);
   };
   // Spread of the window: half the range of six sub-window means (an indicative ± band).
-  const band = (key: "cd" | "cl") => {
+  const band = (key: "cd" | "cl" | "pitch" | "frontLift" | "rearLift") => {
     if (win.length < 12) return NaN;
     const chunk = Math.floor(win.length / 6);
     const means: number[] = [];
-    for (let i = 0; i + chunk <= win.length; i += chunk) means.push(win.slice(i, i + chunk).reduce((n, s) => n + s[key], 0) / chunk);
+    for (let i = 0; i + chunk <= win.length; i += chunk) means.push(win.slice(i, i + chunk).reduce((n, s) => n + (s[key] ?? 0), 0) / chunk);
     return 0.5 * (Math.max(...means) - Math.min(...means));
   };
   const cdSpan = spread("cd");
@@ -429,7 +470,12 @@ export function summarise(
   if (setup.lowFillWheels?.length)
     warnings.push(`Only part of the volume of ${setup.lowFillWheels.join(", ")} could be filled: the wheel mesh looks open or has inside-out faces. Check it in a mesh tool.`);
   if (setup.sealedCells > 0) warnings.push("Enclosed air pockets inside the geometry were filled as solid.");
+  const pressureMoment = add(vec(12),vec(18)), frictionMoment = add(vec(15),vec(21));
+  const aero = { force: [drag,side,lift] as Vec3, moment: add(pressureMoment,frictionMoment), pressureMoment, frictionMoment, origin: setup.momentOrigin };
   return {
+    aero, balance: equivalentLoads(aero.force,aero.moment,settings.axles,qA),
+    balanceBands: { frontLift: band("frontLift"), rearLift: band("rearLift"), pitch: band("pitch") },
+    provenance: { version: "webgpu-wall-integrals-2", averaging: { start: tStart, end: raw.at(-1)?.time ?? targetTime, unit: "pseudo-time" }, origin: setup.momentOrigin, qualification: "exploratory" },
     cd,
     cl,
     cs,
