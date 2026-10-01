@@ -130,17 +130,17 @@ export function RunStep() {
               );
             }}
           >
-            <option value="legacy">Legacy presets</option>
+            <option value="legacy">Basic</option>
             <option value="advanced1">
-              Level 1 · ≤1 M cells · 5 GiB · 2 CPUs · 3 h
+              Advanced level 1 · ≤1 M cells · 5 GiB · 2 CPUs · 3 h
             </option>
             <option value="advanced2">
-              Level 2 · 3 meshes, ≤2 M each · 6 GiB · 2 CPUs · 12 h
+              Advanced level 2 · 3 meshes, ≤2 M each · 6 GiB · 2 CPUs · 12 h
             </option>
           </select>
           <p className="field-hint">
             Runtime ceilings are safety limits, not measured completion times.
-            These profiles are not yet numerically qualified. Level 2 stops when
+            These profiles are not yet numerically qualified. Advanced level 2 stops when
             a mesh level remains unstable.
           </p>
         </div>
