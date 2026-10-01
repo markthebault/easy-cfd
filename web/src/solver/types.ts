@@ -3,7 +3,7 @@
 export type Vec3 = [number, number, number];
 
 /** Coordinates in the car frame; the moment origin is on the road below the front axle. */
-export interface Axles { frontX: number; rearX: number; centrelineY: number; confirmed: boolean }
+export interface Axles { frontX: number; rearX: number; centrelineY: number; confirmed: boolean; source?: "wheels" | "manual" }
 export interface AeroBalance {
   frontLift: number; rearLift: number; frontCl: number; rearCl: number;
   wheelbase: number; pitch: number; frontDownforcePercent?: number; percentageReason?: string;

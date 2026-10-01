@@ -15,7 +15,8 @@ import threading
 import time
 from pathlib import Path
 from . import storage, foam, compute_lease
-from .models import Settings, resolved_preset
+from .models import Axles, Settings, resolved_preset
+from .aerodynamics import detected_axles
 
 JOBS = queue.Queue()
 STOP = threading.Event()
@@ -662,6 +663,9 @@ def enqueue(project):
     geometry = project.get("geometry")
     if not geometry or geometry["errors"]:
         raise ValueError("Import valid closed geometry before running.")
+    if settings.axles is None or settings.axles.source == "wheels":
+        inferred = detected_axles(geometry["parts"])
+        settings.axles = Axles(**inferred) if inferred else None
     foam.mesh_layout(geometry, settings, reference_case=project.get("reference_case"))
     required = resolved_preset(settings)["memory_gb"]
     if status.get("memory_gb", 0) < required + 0.5:

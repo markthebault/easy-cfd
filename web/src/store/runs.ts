@@ -8,8 +8,10 @@ import { runSimulation } from "../solver/run";
 import { resolvePreset } from "../solver/types";
 import type { VehicleWeight } from "../solver/types";
 import { estimateTyreLoads, weightInputError } from "../solver/tyreLoads";
+import { resolvedAxles } from "../solver/aero";
+import { assessedResult, detectRunAxles } from "./axleAnalysis";
 import { CaseWorker } from "../workers/caseClient";
-import { app, gpuDevice, partsBounds, refreshLists, toast, vizForCar, type LiveState } from "./app";
+import { app, gpuDevice, partsBounds, refreshLists, setSettings, toast, vizForCar, type LiveState } from "./app";
 import { decodeField, decodeSurface, encodeField, encodeSurface } from "./codec";
 import { collectFiles, get, newId, put, remove, sha256 } from "./db";
 import { recordRun } from "./estimate";
@@ -28,6 +30,7 @@ function patchLive(p: Partial<LiveState>) {
 
 /** Save a finished run (either engine) in the browser and show it. */
 export async function saveAndShow(doc: RunDoc, enabled: Part[], field: VizField | null, surface: SurfaceSample[] | null) {
+  doc = detectRunAxles(doc, enabled);
   const keys = enabled.map(partKey);
   try {
     if (field) await put("fields", { id: doc.id, field: encodeField(field), surface: encodeSurface(keys, surface ?? []) });
@@ -47,7 +50,7 @@ export async function assessTyreLoads(patch: Partial<VehicleWeight>) {
   const previous = run.doc.tyreLoadAssessment?.inputs ?? run.doc.settings;
   const inputs = {vehicle_mass_kg: previous.vehicle_mass_kg, front_weight_percent: previous.front_weight_percent, ...patch};
   const doc: RunDoc = {...run.doc, tyreLoadAssessment: {version: "steady-axle-loads-1", assessedAt: Date.now(), inputs,
-    loads: estimateTyreLoads(run.doc.result.balance, inputs)}};
+    loads: estimateTyreLoads(assessedResult(run.doc).balance, inputs)}};
   app.set({run: {...run, doc}});
   try {
     await put("runs", doc);
@@ -59,8 +62,15 @@ export async function assessTyreLoads(patch: Partial<VehicleWeight>) {
 
 export async function startRun() {
   const s = app.get();
-  const design = s.design;
+  let design = s.design;
   if (!design || !s.report || s.report.errors.length || !s.confirmed) return;
+  if (!design.settings.axles || design.settings.axles.source === "wheels") {
+    const axles = resolvedAxles(design.settings.axles,toSolverParts(s.parts, s.groups));
+    if (JSON.stringify(axles) !== JSON.stringify(design.settings.axles)) {
+      setSettings({axles});
+      design = {...design, settings:{...design.settings,axles}};
+    }
+  }
   const weightError = weightInputError(design.settings);
   if (weightError) { toast(weightError, "error"); return; }
   if (design.settings.engine === "openfoam") return startOpenFoamRun();
@@ -191,7 +201,7 @@ async function partsFor(doc: RunDoc): Promise<Part[]> {
 }
 
 export async function loadRun(id: string): Promise<LoadedRun> {
-  const doc = await get("runs", id);
+  let doc = await get("runs", id);
   if (!doc) throw new Error("That run no longer exists.");
   const fdoc = await get("fields", id);
   let parts: Part[] = [];
@@ -200,6 +210,11 @@ export async function loadRun(id: string): Promise<LoadedRun> {
     parts = await partsFor(doc);
   } catch (e) {
     notice = `The car geometry could not be rebuilt: ${e instanceof Error ? e.message : String(e)}`;
+  }
+  const assessed = detectRunAxles(doc, parts);
+  if (assessed !== doc) {
+    doc = assessed;
+    try { await put("runs", doc); } catch { notice ??= "Detected axles could not be saved in this browser."; }
   }
   const field = fdoc ? decodeField(fdoc.field) : null;
   let surface: (SurfaceSample | null)[] | null = fdoc ? decodeSurface(fdoc.surface) : null;
@@ -266,6 +281,8 @@ export function download(blob: Blob, name: string) {
 const safe = (s: string) => s.replace(/[^\w.-]+/g, "_").slice(0, 60) || "run";
 
 export function exportJSON(doc: RunDoc) {
+  const analysis = assessedResult(doc);
+  const inputs = doc.tyreLoadAssessment?.inputs ?? doc.settings;
   const body = {
     app: "EasyCFD Web",
     conventions: "Equivalent aerodynamic axle loads about the road below the front axle; drag at height contributes to pitch. Lift +Z, pitch +Y nose-up; kgf=N/9.80665. Tyre load estimates sum static axle weight and aerodynamic downforce per tyre pair, for level-road constant-speed driving. Negative total demand indicates loss of contact; braking, cornering and suspension dynamics are not modelled.",
@@ -276,13 +293,16 @@ export function exportJSON(doc: RunDoc) {
     importOptions: doc.importOptions,
     result: doc.result,
     tyreLoadAssessment: doc.tyreLoadAssessment,
+    axleLoadAssessment: doc.axleLoadAssessment ? {...doc.axleLoadAssessment, originalMomentOrigin:doc.result.aero?.origin,
+      balance:analysis.balance, history:analysis.history, tyreLoads:estimateTyreLoads(analysis.balance, inputs)} : undefined,
   };
   download(new Blob([JSON.stringify(body, null, 2)], { type: "application/json" }), `${safe(doc.designName)}-${doc.id}.json`);
 }
 
 export function exportCSV(doc: RunDoc) {
-  const loads = estimateTyreLoads(doc.result.balance, doc.tyreLoadAssessment?.inputs ?? doc.settings);
-  const rows = [`${doc.result.engine === "openfoam" ? "iteration" : "pseudo_time_s"},step,cd,cl,cs,pitch_Nm,front_lift_N,rear_lift_N,front_static_N,rear_static_N,front_tyre_total_N,rear_tyre_total_N`, ...doc.result.history.map((h) => {
+  const analysis = assessedResult(doc);
+  const loads = estimateTyreLoads(analysis.balance, doc.tyreLoadAssessment?.inputs ?? doc.settings);
+  const rows = [`${doc.result.engine === "openfoam" ? "iteration" : "pseudo_time_s"},step,cd,cl,cs,pitch_Nm,front_lift_N,rear_lift_N,front_static_N,rear_static_N,front_tyre_total_N,rear_tyre_total_N`, ...analysis.history.map((h) => {
     const front = loads && h.frontLift !== undefined ? loads.front.staticN-h.frontLift : "";
     const rear = loads && h.rearLift !== undefined ? loads.rear.staticN-h.rearLift : "";
     return `${h.time},${h.step},${h.cd},${h.cl},${h.cs},${h.pitch ?? ""},${h.frontLift ?? ""},${h.rearLift ?? ""},${loads?.front.staticN ?? ""},${loads?.rear.staticN ?? ""},${front},${rear}`;

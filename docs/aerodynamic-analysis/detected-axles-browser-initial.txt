@@ -1,0 +1,82 @@
+
+> easy-cfd-web@0.1.0 test:e2e
+> playwright test
+
+[WebServer] (node:8479) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:8498) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 17 tests using 1 worker
+
+(node:8500) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/e2e/aerodynamics.spec.ts:4:1 › wall-integrated balance, physical friction, units, reopen and old-run fallback (16.9s)
+  ✘   2 tests/e2e/app.spec.ts:10:1 › sample car, short run, results, layers, reopen after reload (5.0m)
+(node:11730) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   3 tests/e2e/camera.spec.ts:4:1 › orbit and pan can pass below the road, with an unobstructed underbody preset (2.4s)
+  ✓   4 tests/e2e/driving.spec.ts:4:1 › driving preview follows road, tyre and wind settings without changing imported coordinates (2.8s)
+  ✓   5 tests/e2e/driving.spec.ts:109:1 › reduced motion starts with the driving preview paused (393ms)
+  ✓   6 tests/e2e/groups.spec.ts:4:1 › part groups: import, rename, solo, run (7.9s)
+  ✓   7 tests/e2e/height.spec.ts:4:1 › ground placement, lift and custom height persist while preserving the assembled car (3.9s)
+  ✓   8 tests/e2e/imported-aerodynamics.spec.ts:5:1 › imported MX-5 and thin wing: actual friction and balance screenshots (28.1s)
+  ✓   9 tests/e2e/openfoam-analysis.spec.ts:7:1 › real OpenFOAM patch stress, saved balance, shared scales and reopening (17.4s)
+  ✓  10 tests/e2e/openfoam.spec.ts:34:80 › OpenFOAM motion: road false, wheels false, run and reopen result (9.4s)
+  ✓  11 tests/e2e/openfoam.spec.ts:34:80 › OpenFOAM motion: road false, wheels true, run and reopen result (9.4s)
+  ✓  12 tests/e2e/openfoam.spec.ts:34:80 › OpenFOAM motion: road true, wheels false, run and reopen result (9.4s)
+  ✓  13 tests/e2e/openfoam.spec.ts:34:80 › OpenFOAM motion: road true, wheels true, run and reopen result (8.9s)
+  ✓  14 tests/e2e/openfoam.spec.ts:135:1 › without an OpenFOAM server the engine choice explains how to get one (595ms)
+  ✓  15 tests/e2e/resources.spec.ts:4:1 › M1 preparation/solver cancellation and UI response under a real GPU workload (3.5s)
+  ✓  16 tests/e2e/wall-stress.spec.ts:4:1 › real WGSL wall stress agrees with laminar Couette traction and moving-wall slip (70ms)
+  ✓  17 tests/e2e/wheel-axles.spec.ts:6:1 › actual saved car without confirmed axles recovers wheel positions, moment reference and tyre loads (38.0s)
+
+
+  1) tests/e2e/app.spec.ts:10:1 › sample car, short run, results, layers, reopen after reload ──────
+
+    Test timeout of 300000ms exceeded.
+
+    Error: locator.click: Test timeout of 300000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Close options' })
+        - locator resolved to <button class="icon-btn xs" aria-label="Close options">…</button>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <p class="compare-grid muted small">Same grid for both runs: this controls grid place…</p> from <div class="compare-top glass">…</div> subtree intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <p class="compare-grid muted small">Same grid for both runs: this controls grid place…</p> from <div class="compare-top glass">…</div> subtree intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        516 × waiting for element to be visible, enabled and stable
+            - element is visible, enabled and stable
+            - scrolling into view if needed
+            - done scrolling
+            - <p class="compare-grid muted small">Same grid for both runs: this controls grid place…</p> from <div class="compare-top glass">…</div> subtree intercepts pointer events
+          - retrying click action
+            - waiting 500ms
+
+
+      169 |   for (const a of arrows) expect(a.verticalDirection).toBeCloseTo(Math.sign(a.expectedLift), 5);
+      170 |   await expect(page.getByText("Values below are for run A.", { exact: false })).toBeVisible();
+    > 171 |   await page.getByRole("button", { name: "Close options" }).click();
+          |                                                             ^
+      172 |   await page.screenshot({ path: "test-results/analysis-comparison.png" });
+      173 |   await page.getByRole("button", { name: "Close comparison" }).click();
+      174 |   await page.evaluate(() => (window as any).__easycfd.app.set({ dark: true }));
+        at /Volumes/SSD512/persospace/easy-cfd/web/tests/e2e/app.spec.ts:171:61
+
+    Error Context: test-results/app-sample-car-short-run-results-layers-reopen-after-reload/error-context.md
+
+  Slow test file: tests/e2e/app.spec.ts (5.0m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  1 failed
+    tests/e2e/app.spec.ts:10:1 › sample car, short run, results, layers, reopen after reload ───────
+  16 passed (7.7m)

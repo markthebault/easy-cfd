@@ -275,7 +275,12 @@ def process(case, output, run, metadata):
         if data:
             h.update(data)
     vectors.pop("vector_history", None)
-    balance_checks = balance_diagnostics(values["history"], averaging_times, run["settings"].get("axles"))
+    balance_checks = balance_diagnostics(
+        values["history"],
+        averaging_times,
+        run["settings"].get("axles"),
+        vectors.get("aero", {}).get("origin"),
+    )
     if balance_checks["balance_settled"] is False:
         values["force_settled"] = False
     stress_check = dict(
@@ -391,6 +396,7 @@ def process(case, output, run, metadata):
             * run["settings"]["density"]
             * metadata["freestream"] ** 2
             * run["settings"]["reference_area"],
+            vectors["aero"]["origin"],
         )
         if vectors
         else None

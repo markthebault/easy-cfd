@@ -160,3 +160,38 @@ def test_tyre_loads_require_weight_and_valid_axle_balance():
             Settings(**{field: invalid})
     for percent in [0, 100]:
         assert tyre_loads(balance, {**weight, "front_weight_percent": percent}) is not None
+
+
+def test_detected_wheel_axles_reject_ambiguous_or_inactive_parts():
+    from easycfd.aerodynamics import detected_axles
+
+    parts = [
+        dict(role="wheel", wheel=dict(center=[x, y, 0.3], radius=0.3))
+        for x, y in [(-1, -0.7), (-1, 0.7), (2, -0.7), (2, 0.7)]
+    ]
+    assert detected_axles(parts) == dict(frontX=-1, rearX=2, centrelineY=0, confirmed=True, source="wheels")
+    assert detected_axles(parts[:3]) is None
+    assert detected_axles([*parts, parts[0]]) is None
+    assert detected_axles([{**p, "enabled": False} if i == 0 else p for i, p in enumerate(parts)]) is None
+    assert (
+        detected_axles(
+            [{**p, "wheel": {**p["wheel"], "center": [p["wheel"]["center"][0], 0, 0.3]}} for p in parts]
+        )
+        is None
+    )
+
+
+def test_saved_native_moments_and_history_transfer_to_front_axle():
+    from easycfd.aerodynamics import equivalent_loads, balance_diagnostics
+
+    axles = dict(frontX=-1, rearX=2, centrelineY=0, confirmed=True)
+    force = [80, 12, -90]
+    point, origin = np.array([0.5, 0.2, 1]), np.array([7, -3, 2])
+    stored = np.cross(point - origin, force).tolist()
+    expected = equivalent_loads(force, np.cross(point - [-1, 0, 0], force), axles, 450)
+    actual = equivalent_loads(force, stored, axles, 450, origin)
+    assert actual == expected
+    history = [dict(iteration=t, force=force, moment=stored) for t in range(1, 5)]
+    checks = balance_diagnostics(history, [1, 2, 3, 4], axles, origin)
+    assert checks["balance_settled"] is True
+    assert all(v == 0 for v in checks["balance_bands"].values())

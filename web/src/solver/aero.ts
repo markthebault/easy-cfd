@@ -1,4 +1,4 @@
-import type { AeroBalance, Axles, SolverPart, Vec3 } from "./types";
+import type { AeroBalance, AeroIntegral, Axles, SolverPart, Vec3 } from "./types";
 
 export const LOAD_ZERO_N = 1e-4;
 export const add = (a: Vec3, b: Vec3): Vec3 =>
@@ -67,12 +67,18 @@ export function equivalentLoads(
         : "Both axles must push downward to show a downforce percentage.";
   return result;
 }
+/** Transfer the saved moment to the road below the front axle before resolving loads. */
+export function balanceAtAxles(aero: AeroIntegral, axles: Axles | undefined, qArea: number) {
+  const origin = momentOrigin(axles);
+  const moment = add(aero.moment, momentAt(aero.origin, aero.force, origin));
+  return equivalentLoads(aero.force, moment, axles, qArea);
+}
 /** Require at least two separately marked wheels at each of two clearly separated axles. */
 export function suggestAxles(parts: SolverPart[]): Axles | undefined {
   const wheels = parts
     .filter((p) => p.active !== false && p.role === "wheel" && p.wheel)
     .map((p) => p.wheel!);
-  if (wheels.length < 4) return;
+  if (wheels.length !== 4 || wheels.some(w => !(w.radius > 0) || ![...w.center, w.radius].every(Number.isFinite))) return;
   const sorted = [...wheels].sort((a, b) => a.center[0] - b.center[0]);
   const tolerance = Math.min(...wheels.map((w) => w.radius)) * 0.5;
   const groups: (typeof wheels)[] = [];
@@ -84,7 +90,7 @@ export function suggestAxles(parts: SolverPart[]): Axles | undefined {
   }
   if (
     groups.length !== 2 ||
-    groups.some((g) => g.length < 2) ||
+    groups.some((g) => g.length !== 2 || Math.abs(g[0].center[1] - g[1].center[1]) <= 2*tolerance) ||
     groups[1][0].center[0] - groups[0][0].center[0] < 4 * tolerance
   )
     return;
@@ -97,3 +103,9 @@ export function suggestAxles(parts: SolverPart[]): Axles | undefined {
     confirmed: false,
   };
 }
+export function detectedAxles(parts: SolverPart[]): Axles | undefined {
+  const suggested = suggestAxles(parts);
+  return suggested ? {...suggested, confirmed: true, source: "wheels"} : undefined;
+}
+export const resolvedAxles = (saved: Axles | undefined, parts: SolverPart[]) =>
+  !saved || saved.source === "wheels" ? detectedAxles(parts) : saved;

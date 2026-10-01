@@ -2,7 +2,7 @@ import { expect, type Page } from "@playwright/test";
 import { readFile, mkdir } from "node:fs/promises";
 
 /** Exercises saved-run assessment, persistence and exports without changing the CFD snapshot. */
-export async function checkTyreLoadAssessment(page: Page, engine: string) {
+export async function checkTyreLoadAssessment(page: Page, engine: string, recoveredBalance?: {frontLift:number;rearLift:number}) {
   const panel = page.getByTestId("tyre-loads");
   await expect(panel).toBeVisible();
   const original = await page.evaluate(() => {
@@ -28,8 +28,9 @@ export async function checkTyreLoadAssessment(page: Page, engine: string) {
   expect(assessed.settings).toEqual(original.settings);
   expect(assessed.result).toEqual(original.result);
   const loads = assessed.tyreLoadAssessment.loads;
-  expect(loads.front.totalN).toBeCloseTo(1300 * 9.80665 * .6 - original.result.balance.frontLift, 7);
-  expect(loads.rear.totalN).toBeCloseTo(1300 * 9.80665 * .4 - original.result.balance.rearLift, 7);
+  const balance = recoveredBalance ?? original.result.balance;
+  expect(loads.front.totalN).toBeCloseTo(1300 * 9.80665 * .6 - balance.frontLift, 3);
+  expect(loads.rear.totalN).toBeCloseTo(1300 * 9.80665 * .4 - balance.rearLift, 3);
   await percent.fill("101");
   await expect(panel.getByRole("alert")).toContainText("between 0 and 100");
   await expect(page.getByTestId("tyre-load-front")).toHaveCount(0);

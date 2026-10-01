@@ -1,7 +1,7 @@
 // Drives a simulation to the preset's simulated time and turns GPU force history into results.
 
 import { integrateWalls } from "./wallStress";
-import { add, equivalentLoads } from "./aero";
+import { add, resolvedAxles, equivalentLoads } from "./aero";
 import { estimateTyreLoads } from "./tyreLoads";
 import { FlowSolver, HISTORY_SLOTS } from "./gpu";
 import { prepareCase, type CaseSetup } from "./setup";
@@ -124,6 +124,7 @@ export async function runSimulation(
   settings: Settings,
   opts: RunOptions = {},
 ): Promise<{ result: RunResult; solver: FlowSolver; setup: CaseSetup }> {
+  settings = {...settings, axles:resolvedAxles(settings.axles, parts)};
   opts={...opts,deadline:opts.deadline ?? performance.now()+1000*(settings.max_seconds ?? (settings.quality === "fast"?300:600))};
   if (settings.quality !== "precise") {
     const solved = await runLevel(device, parts, settings, opts);

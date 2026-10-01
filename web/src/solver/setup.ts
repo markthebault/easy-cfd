@@ -1,7 +1,7 @@
 // CPU preprocessing: everything the GPU kernels need, as flat typed arrays.
 
 import { preflight } from "./resources";
-import { momentOrigin } from "./aero";
+import { resolvedAxles, momentOrigin } from "./aero";
 import { automaticDomain, type Axis, type Grid } from "./grid";
 import { detailGrid, detailZones, partShapes, type PartShape } from "./detail";
 import { meshVolumeArea, thinSpacing, voxelize, wallDistance } from "./voxelize";
@@ -587,7 +587,7 @@ export function prepareCase(allParts: SolverPart[], settings: Settings, shapes?:
 
   timings.total = performance.now() - t0;
   return {
-    momentOrigin: momentOrigin(settings.axles),
+    momentOrigin: momentOrigin(resolvedAxles(settings.axles, allParts)),
     grid,
     NX,
     NY,

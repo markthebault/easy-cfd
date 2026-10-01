@@ -975,7 +975,7 @@ def compare(baseline: str, variant: str):
                 aero = level.get("aero")
                 if not loads and aero:
                     loads = results.equivalent_loads(
-                        aero["force"], aero["moment"], record["settings"].get("axles"), 1
+                        aero["force"], aero["moment"], record["settings"].get("axles"), 1, aero["origin"]
                     )
                 if loads and metric in loads:
                     values.append(loads[metric])

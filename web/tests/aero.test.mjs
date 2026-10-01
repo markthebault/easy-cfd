@@ -1,7 +1,7 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { createServer } from "vite";
-let server, aero, codec, tyres;
+let server, aero, codec, tyres, analysis;
 before(async () => {
   server = await createServer({
     root: new URL("..", import.meta.url).pathname,
@@ -13,6 +13,7 @@ before(async () => {
   aero = await server.ssrLoadModule("/src/solver/aero.ts");
   codec = await server.ssrLoadModule("/src/store/codec.ts");
   tyres = await server.ssrLoadModule("/src/solver/tyreLoads.ts");
+  analysis = await server.ssrLoadModule("/src/solver/axleAnalysis.ts");
 });
 after(async () => server?.close());
 const axles = { frontX: -1, rearX: 2, centrelineY: 0, confirmed: true };
@@ -123,6 +124,35 @@ test("invalid and unconfirmed axles are unavailable; ambiguous wheels do not sug
     centrelineY: 0,
     confirmed: false,
   });
+});
+
+test("automatic axles require four valid wheels in two lateral pairs and preserve manual overrides", () => {
+  const parts = [[-1,-.7],[-1,.7],[2,-.7],[2,.7]].map(([x,y],i)=>({id:`w${i}`,role:"wheel",wheel:{center:[x,y,.3],radius:.3}}));
+  assert.deepEqual(aero.detectedAxles(parts), {...axles,source:"wheels"});
+  assert.equal(aero.detectedAxles(parts.slice(0,3)), undefined);
+  assert.equal(aero.detectedAxles(parts.map(p=>({...p,wheel:{...p.wheel,center:[p.wheel.center[0],0,.3]}}))),undefined);
+  assert.equal(aero.detectedAxles([...parts,parts[0]]),undefined);
+  assert.equal(aero.detectedAxles(parts.map((p,i)=>i ? p : {...p,active:false})),undefined);
+  const manual={...axles,frontX:-.9,source:"manual"};
+  assert.equal(aero.resolvedAxles(manual,parts),manual);
+  const stale={...axles,frontX:-10,source:"wheels"};
+  assert.deepEqual(aero.resolvedAxles(stale,parts),{...axles,source:"wheels"});
+});
+test("saved moments transfer from an arbitrary origin to detected axles without altering CFD snapshots", () => {
+  const force=[80,12,-90], origin=[7,-3,2], point=[.5,.2,1];
+  const integral={force,origin,moment:aero.momentAt(point,force,origin)};
+  const expected=aero.equivalentLoads(force,aero.momentAt(point,force,[-1,0,0]),axles,450);
+  const r={aero:integral,dynamicPressure:225,history:[{time:1,step:1,cd:80/450,cl:-90/450,cs:12/450,pitch:integral.moment[1]}]};
+  const snapshot=structuredClone(r);
+  const result=analysis.resultAtAxles(r,axles,2);
+  close(result.balance.frontLift,expected.frontLift);
+  close(result.balance.rearLift,expected.rearLift);
+  close(result.history[0].frontLift,expected.frontLift);
+  close(result.history[0].rearLift,expected.rearLift);
+  close(result.history[0].pitch,expected.pitch);
+  assert.equal(result.balanceBands,undefined);
+  assert.deepEqual(r,snapshot);
+  assert.equal(analysis.resultAtAxles({...r,aero:undefined},axles,2).balance,undefined);
 });
 test("physical stress and validity survive storage without quantization; old samples remain unsupported", () => {
   const s = {

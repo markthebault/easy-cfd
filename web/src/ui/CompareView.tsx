@@ -4,6 +4,7 @@
 import { ArrowDown, ArrowUp, TriangleAlert, X } from "lucide-react";
 import { G, type Settings } from "../solver/types";
 import { estimateTyreLoads } from "../solver/tyreLoads";
+import { assessedAxles, assessedResult } from "../store/axleAnalysis";
 import { useStore } from "../store/store";
 import { app, closeCompare } from "../store/app";
 import type { LoadedRun } from "../store/types";
@@ -111,12 +112,12 @@ export function CompareView() {
   const dark = useStore(app, (s) => s.dark);
   if (!cmp) return null;
   const { a, b } = cmp;
-  const ra = a.doc.result, rb = b.doc.result;
+  const ra = assessedResult(a.doc), rb = assessedResult(b.doc);
   const weightA = a.doc.tyreLoadAssessment?.inputs ?? a.doc.settings;
   const weightB = b.doc.tyreLoadAssessment?.inputs ?? b.doc.settings;
   const tyresA = estimateTyreLoads(ra.balance, weightA), tyresB = estimateTyreLoads(rb.balance, weightB);
   const cond = conditionDiffs(a.doc.settings, b.doc.settings);
-  if(JSON.stringify(a.doc.settings.axles)!==JSON.stringify(b.doc.settings.axles)) cond.push("axle definitions differ");
+  if(JSON.stringify(assessedAxles(a.doc))!==JSON.stringify(assessedAxles(b.doc))) cond.push("axle definitions differ");
   if(JSON.stringify(ra.aero?.origin)!==JSON.stringify(rb.aero?.origin)) cond.push("moment origins differ");
   if(!ra.provenance?.version || !rb.provenance?.version || ra.provenance.version!==rb.provenance.version) cond.push("solver versions differ or are unavailable");
   if(ra.provenance?.pipeline!==rb.provenance?.pipeline) cond.push("solver pipeline identities differ or are unavailable");
@@ -129,13 +130,13 @@ export function CompareView() {
         className="stage-host compare-stage"
         parts={r.parts}
         partsKey={`cmp:${r.doc.id}`}
-        axles={r.doc.settings.axles}
+        axles={assessedAxles(r.doc)}
         surface={r.surface}
         field={r.field}
         ranges={r.ranges}
         viz={viz}
         driving={r.doc.settings}
-        forces={r.doc.result}
+        forces={assessedResult(r.doc)}
         forceScale={Math.max(Math.abs(ra.drag), Math.abs(ra.lift), Math.abs(ra.side), Math.abs(rb.drag), Math.abs(rb.lift), Math.abs(rb.side), 1e-9)}
         forceLength={Math.max(a.doc.geometry.dimensions[0], b.doc.geometry.dimensions[0])}
         dark={dark}
@@ -193,7 +194,7 @@ export function CompareView() {
         <button className="icon-btn compare-close" aria-label="Close comparison" onClick={closeCompare}><X size={18} /></button>
       </div>
       <ViewBar ids={["cmpA", "cmpB"]} />
-      <VizDock friction={!!a.surface?.some(s=>s?.stressValid?.some(v=>v===1)) && !!b.surface?.some(s=>s?.stressValid?.some(v=>v===1))} field={a.field ?? b.field} particles surface={!!a.surface?.some(Boolean) && !!b.surface?.some(Boolean)} forces={a.doc.result} driving={a.doc.settings} stageIds={["cmpA", "cmpB"]} />
+      <VizDock friction={!!a.surface?.some(s=>s?.stressValid?.some(v=>v===1)) && !!b.surface?.some(s=>s?.stressValid?.some(v=>v===1))} field={a.field ?? b.field} particles surface={!!a.surface?.some(Boolean) && !!b.surface?.some(Boolean)} forces={ra} driving={a.doc.settings} stageIds={["cmpA", "cmpB"]} />
       <LegendStack viz={viz} ranges={a.ranges} hasSurface={!!a.surface} hasField={!!a.field} />
     </div>
   );

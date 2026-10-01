@@ -110,6 +110,9 @@ def test_confirmation_and_snapshot(client):
     assert saved["settings"]["speed_kmh"] == 100
     assert saved["settings"]["vehicle_mass_kg"] == 1200
     assert saved["settings"]["front_weight_percent"] == 55
+    assert saved["settings"]["axles"]["source"] == "wheels"
+    assert saved["settings"]["axles"]["confirmed"] is True
+    assert saved["settings"]["axles"]["frontX"] < saved["settings"]["axles"]["rearX"]
     assert (storage.directory("runs", r["id"]) / "geometry/part0.stl").exists()
 
 
@@ -246,10 +249,15 @@ def test_motion_choices_persist_per_run_and_generate_wall_boundaries(client, mov
     response = client.post(f"/api/projects/{p['id']}/runs")
     assert response.status_code == 202
     key = response.json()["id"]
+    queued_settings = response.json()["settings"]
+    assert queued_settings == {
+        **settings,
+        "axles": dict(frontX=-1.35, rearX=1.3, centrelineY=0, confirmed=True, source="wheels"),
+    }
     # Editing the design after queueing cannot alter this run's walls.
     client.put(url, json={**settings, "moving_ground": not moving_ground, "wheels": not wheels})
     saved = client.get(f"/api/runs/{key}").json()
-    assert saved["settings"] == settings
+    assert saved["settings"] == queued_settings
     root = storage.directory("runs", key)
     meta = foam.generate(root / "case", root / "geometry", saved["geometry"], Settings(**saved["settings"]))
     u = (root / "case/0/U").read_text()

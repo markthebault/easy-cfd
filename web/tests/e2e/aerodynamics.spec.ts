@@ -19,10 +19,8 @@ test("wall-integrated balance, physical friction, units, reopen and old-run fall
     .getByText("I checked size, orientation, wheels and clearance.")
     .click();
   await page.getByRole("button", { name: "Continue to conditions" }).click();
-  await page
-    .getByRole("button", { name: "Suggest from marked wheels" })
-    .click();
-  await page.getByRole("checkbox", { name: "Confirm axle positions" }).check();
+  await expect(page.getByTestId("axle-setup")).toContainText("detected automatically");
+  await expect(page.getByRole("checkbox", { name: "Confirm axle positions" })).toBeChecked();
   await expect(page.getByTestId("axle-setup")).toContainText("wheelbase");
   await page.getByRole("spinbutton", {name:"Car mass", exact:true}).fill("1200");
   await page.getByRole("spinbutton", {name:"Front weight", exact:true}).fill("101");
@@ -49,6 +47,7 @@ test("wall-integrated balance, physical friction, units, reopen and old-run fall
       cl: r.doc.result.cl,
       wallIntegration: r.doc.result.wallIntegration,
       tyreLoads: r.doc.result.tyreLoads,
+      axles: r.doc.settings.axles,
       reconciliation: r.doc.result.reconciliation,
       stress: r.surface.map((s: any) => ({
         valid: s?.stressValid?.filter((v: number) => v === 1).length,
@@ -67,6 +66,7 @@ test("wall-integrated balance, physical friction, units, reopen and old-run fall
   expect(metrics.reconciliation.complete).toBe(true);
   expect(metrics.wallIntegration.passed).toBe(true);
   expect(metrics.stress.every((s: any) => s.valid > 0)).toBe(true);
+  expect(metrics.axles.source).toBe("wheels");
   expect(metrics.tyreLoads.front.totalN).toBeCloseTo(1200 * 9.80665 * .55 - metrics.balance.frontLift, 7);
   expect(metrics.tyreLoads.rear.totalN).toBeCloseTo(1200 * 9.80665 * .45 - metrics.balance.rearLift, 7);
   await page.getByRole("button", { name: "Pause animation" }).click();
@@ -103,7 +103,7 @@ test("wall-integrated balance, physical friction, units, reopen and old-run fall
     app.set({ run, viz: { ...s.viz, friction: false, surface: true } });
   });
   await expect(page.getByTestId("aero-balance-unavailable")).toBeVisible();
-  await expect(page.getByTestId("tyre-loads-unavailable")).toContainText("saved axle positions");
+  await expect(page.getByTestId("tyre-loads-unavailable")).toContainText("no saved aerodynamic moments");
   await page.getByRole("button", { name: "Explore airflow" }).click();
   await expect(page.getByTestId("analysis-friction")).toBeDisabled();
   expect(errors).toEqual([]);

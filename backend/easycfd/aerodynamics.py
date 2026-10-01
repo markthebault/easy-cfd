@@ -10,6 +10,37 @@ VERSION = "openfoam-wall-integrals-2"
 GRAVITY = 9.80665
 
 
+def detected_axles(parts):
+    """Only four enabled, marked wheels forming two separated left/right pairs."""
+    wheels = [
+        p["wheel"] for p in parts if p.get("enabled", True) and p.get("role") == "wheel" and p.get("wheel")
+    ]
+    if len(wheels) != 4 or any(
+        w["radius"] <= 0 or not np.isfinite([*w["center"], w["radius"]]).all() for w in wheels
+    ):
+        return None
+    tolerance = min(w["radius"] for w in wheels) * 0.5
+    groups = []
+    for wheel in sorted(wheels, key=lambda w: w["center"][0]):
+        if groups and abs(wheel["center"][0] - groups[-1][0]["center"][0]) <= tolerance:
+            groups[-1].append(wheel)
+        else:
+            groups.append([wheel])
+    if len(groups) != 2 or any(
+        len(g) != 2 or abs(g[0]["center"][1] - g[1]["center"][1]) <= 2 * tolerance for g in groups
+    ):
+        return None
+    if groups[1][0]["center"][0] - groups[0][0]["center"][0] < 4 * tolerance:
+        return None
+    return dict(
+        frontX=float(np.mean([w["center"][0] for w in groups[0]])),
+        rearX=float(np.mean([w["center"][0] for w in groups[1]])),
+        centrelineY=float(np.mean([w["center"][1] for w in wheels])),
+        confirmed=True,
+        source="wheels",
+    )
+
+
 def tyre_loads(balance, settings):
     """Level-road steady support loads per tyre pair; preserve negative equilibrium demands."""
     mass = settings.get("vehicle_mass_kg")
@@ -159,7 +190,7 @@ def integrals(case, run, times):
     )
 
 
-def balance_diagnostics(history, times, axles):
+def balance_diagnostics(history, times, axles, origin=None):
     """Observed spread and drift on the identical force/moment averaging window.
 
     These are settling diagnostics, not estimates of physical prediction error.
@@ -167,7 +198,11 @@ def balance_diagnostics(history, times, axles):
     window = [h for h in history if h["iteration"] in set(times) and "moment" in h]
     if len(window) != len(times) or len(window) < 4:
         return {"balance_settled": None, "balance_bands": {}}
-    quantities = {"pitch": np.array([h["moment"][1] for h in window])}
+    moments = [np.array(h["moment"]) for h in window]
+    if origin is not None and axles and axles.get("confirmed"):
+        offset = np.array(origin) - [axles["frontX"], axles["centrelineY"], 0]
+        moments = [m + np.cross(offset, h["force"]) for m, h in zip(moments, window)]
+    quantities = {"pitch": np.array([m[1] for m in moments])}
     if axles and axles.get("confirmed"):
         length = axles["rearX"] - axles["frontX"]
         quantities["rearLift"] = -quantities["pitch"] / length
@@ -183,10 +218,14 @@ def balance_diagnostics(history, times, axles):
     return {"balance_settled": bool(settled), "balance_bands": bands}
 
 
-def equivalent_loads(force, moment, axles, q_area):
+def equivalent_loads(force, moment, axles, q_area, origin=None):
     """Equivalent aero forces at axles, including the road-plane pitching effect of drag."""
     if not axles or not axles.get("confirmed") or q_area <= 0:
         return None
+    if origin is not None:
+        moment = np.array(moment) + np.cross(
+            np.array(origin) - [axles["frontX"], axles["centrelineY"], 0], force
+        )
     wheelbase = axles["rearX"] - axles["frontX"]
     rear = -moment[1] / wheelbase
     front = force[2] - rear

@@ -358,7 +358,7 @@ function settingsFromServer(s: ServerRun["settings"]): Settings {
     speed_kmh: s.speed_kmh,
     yaw_deg: s.yaw_deg,
     quality: q,
-    axles: s.axles as Settings["axles"],
+    axles: (s.axles ?? undefined) as Settings["axles"],
     vehicle_mass_kg: (s.vehicle_mass_kg ?? undefined) as number | undefined,
     front_weight_percent: (s.front_weight_percent ?? undefined) as number | undefined,
     profile: s.profile as Settings["profile"],
@@ -542,18 +542,7 @@ export async function importServerRun(id: string) {
       serverParts[0].bounds[0],
     );
     if (settings.axles) {
-      const origin = rec.result?.aero?.origin;
-      if (origin)
-        settings.axles = {
-          ...settings.axles,
-          frontX: origin[0] - offset[0],
-          rearX:
-            origin[0] -
-            offset[0] +
-            settings.axles.rearX -
-            settings.axles.frontX,
-          centrelineY: origin[1] - offset[1],
-        };
+      settings.axles = {...settings.axles, frontX:settings.axles.frontX-offset[0], rearX:settings.axles.rearX-offset[0], centrelineY:settings.axles.centrelineY-offset[1]};
       design.settings = settings;
       await put("designs", design);
     }

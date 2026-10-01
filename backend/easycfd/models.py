@@ -23,6 +23,7 @@ class Axles(BaseModel):
     rearX: float
     centrelineY: float = 0
     confirmed: bool = False
+    source: Literal["wheels", "manual"] | None = None
 
     @model_validator(mode="after")
     def ordered(self):

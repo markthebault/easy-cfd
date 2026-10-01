@@ -2,7 +2,7 @@
 // results into the data the viewer uses (RunResult, VizField, per-vertex surface values).
 // Nothing leaves this computer or the tailnet: the backend is the local EasyCFD server.
 
-import { equivalentLoads, momentOrigin } from "../solver/aero";
+import { balanceAtAxles, momentOrigin } from "../solver/aero";
 import { estimateTyreLoads } from "../solver/tyreLoads";
 import type { Part } from "../geometry/model";
 import { writeSTL } from "../geometry/stl";
@@ -178,12 +178,12 @@ export function resultFromRecord(run: ServerRun, carLength: number, offset: Vec3
   const body = role("body"), wheels = role("wheels");
   const seconds = run.started && run.finished ? (Date.parse(run.finished) - Date.parse(run.started)) / 1000 : 0;
   const iterations = Number(r.iteration ?? run.iteration ?? 0);
-  const balance = r.aero ? equivalentLoads(r.aero.force,r.aero.moment,run.settings.axles as Settings["axles"],q*run.settings.reference_area) : undefined;
+  const balance = r.aero ? balanceAtAxles(r.aero,run.settings.axles as Settings["axles"],q*run.settings.reference_area) : undefined;
   const levels: RunResult["levels"] = r.refinement_levels?.map((level:any) => ({
     label: level.preset, cells: level.cells, cd: level.cd, cl: level.cl,
     drag: level.drag, lift: -level.downforce,
     aero: level.aero ? {...level.aero, origin: level.aero.origin.map((v:number,i:number) => v-offset[i])} : undefined,
-    balance: level.aero ? equivalentLoads(level.aero.force, level.aero.moment, run.settings.axles as Settings["axles"], q*run.settings.reference_area) : undefined,
+    balance: level.aero ? balanceAtAxles(level.aero, run.settings.axles as Settings["axles"], q*run.settings.reference_area) : undefined,
   }));
   const spread = (values: (number | undefined)[]) => values.every(v => v !== undefined && Number.isFinite(v))
     ? Math.max(...values as number[]) - Math.min(...values as number[]) : undefined;
@@ -215,8 +215,8 @@ export function resultFromRecord(run: ServerRun, carLength: number, offset: Vec3
       wheelViscous: [wheels.viscous_drag, 0, -wheels.viscous_downforce],
     },
     history: (r.history ?? []).map((h:any)=> {
-      const loads=h.force && h.moment ? equivalentLoads(h.force,h.moment,run.settings.axles as Settings["axles"],q*run.settings.reference_area) : undefined;
-      return {time:h.iteration,step:h.iteration,cd:h.cd,cl:h.cl,cs:h.force ? h.force[1]/(q*run.settings.reference_area):0,...(h.moment ? {pitch:h.moment[1]} : {}),...(loads ? {frontLift:loads.frontLift,rearLift:loads.rearLift} : {})};
+      const loads=h.force && h.moment && r.aero ? balanceAtAxles({force:h.force,moment:h.moment,origin:r.aero.origin} as typeof r.aero,run.settings.axles as Settings["axles"],q*run.settings.reference_area) : undefined;
+      return {time:h.iteration,step:h.iteration,cd:h.cd,cl:h.cl,cs:h.force ? h.force[1]/(q*run.settings.reference_area):0,...(h.moment ? {pitch:loads?.pitch ?? h.moment[1]} : {}),...(loads ? {frontLift:loads.frontLift,rearLift:loads.rearLift} : {})};
     }),
     balanceBands: r.balance_bands,
     settled: !!r.force_settled,

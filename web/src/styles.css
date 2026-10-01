@@ -2477,6 +2477,8 @@ input[type="range"]::-moz-range-thumb {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  max-height: 45vh;
+  overflow-y: auto;
 }
 
 .compare-cards {
@@ -2549,6 +2551,7 @@ input[type="range"]::-moz-range-thumb {
 .view-compare .viz-dock {
   left: var(--gap);
   right: var(--gap);
+  z-index: 11;
 }
 
 .card-note {

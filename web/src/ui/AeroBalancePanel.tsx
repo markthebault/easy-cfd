@@ -1,17 +1,20 @@
 import type { LoadedRun } from "../store/types";
 import { G } from "../solver/types";
 import { fmt } from "./format";
+import { assessedAxles, assessedResult } from "../store/axleAnalysis";
+import { momentOrigin } from "../solver/aero";
 
 export function AeroBalancePanel({ run }: { run: LoadedRun }) {
-  const r = run.doc.result,
+  const r = assessedResult(run.doc),
     b = r.balance;
+  const axles = assessedAxles(run.doc);
   if (!b)
     return (
       <div className="breakdown" data-testid="aero-balance-unavailable">
         <div className="section-title">Aerodynamic balance</div>
         <p className="muted small">
           {r.aero
-            ? "Confirm valid front and rear axle positions before running to calculate equivalent loads."
+            ? "No clear front/rear wheel pairs were found. Set axle positions in Conditions for the next run."
             : "This run has no saved wall moments. Run again with the updated solver to calculate balance."}
         </p>
       </div>
@@ -62,7 +65,7 @@ export function AeroBalancePanel({ run }: { run: LoadedRun }) {
           : `Front share of downforce: ${fmt(b.frontDownforcePercent, 1)}%`}
       </p>
       <p className="muted small">
-        Road-plane reference [{r.aero?.origin.map((v) => fmt(v, 3)).join(", ")}]
+        Road-plane reference [{momentOrigin(axles).map((v) => fmt(v, 3)).join(", ")}]
         m. Includes drag acting above the road. These are aerodynamic forces,
         not actual tyre loads; kgf = N / 9.80665.
       </p>
