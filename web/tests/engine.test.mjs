@@ -34,6 +34,25 @@ test("road and wheel choices reach OpenFOAM independently, including explicit fa
   }
 });
 
+test("weight inputs reach the backend and native tyre loads use the saved axle moment", () => {
+  const weight = {vehicle_mass_kg:1200, front_weight_percent:55};
+  const out = of.serverSettings({...types.DEFAULT_SETTINGS, ...weight});
+  assert.equal(out.vehicle_mass_kg, 1200);
+  assert.equal(out.front_weight_percent, 55);
+  const record = {id:"a".repeat(32), settings:{speed_kmh:100,yaw_deg:0,density:1.225,reference_area:2,...weight,
+    axles:{frontX:4,rearX:7,centrelineY:2,confirmed:true}},
+    result:{cd:.3,cl:-.2,drag:100,downforce:90,
+      aero:{force:[100,0,-90],moment:[0,180,0],origin:[4,2,0]}}};
+  const result = of.resultFromRecord(record,4,[5,2,0],[0,0,0,0,0,0]);
+  assert.deepEqual(result.aero.origin, [-1,0,0]);
+  assert.equal(result.balance.frontLift, -30);
+  assert.equal(result.balance.rearLift, -60);
+  assert.ok(Math.abs(result.tyreLoads.front.totalN - (1200 * 9.80665 * .55 + 30)) < 1e-10);
+  assert.ok(Math.abs(result.tyreLoads.rear.totalN - (1200 * 9.80665 * .45 + 60)) < 1e-10);
+  delete record.settings.vehicle_mass_kg;
+  assert.equal(of.resultFromRecord(record,4,[5,2,0],[0,0,0,0,0,0]).tyreLoads, undefined);
+});
+
 test("frame offset and domain conversion between the UI and the server", () => {
   const uiLow = [-2.1, -0.9, 0.01];
   const serverLow = [-2.05, -0.92, 0.01];
@@ -74,4 +93,32 @@ test("a server run record becomes a UI run result", () => {
   assert.equal(r.openfoam.averagingIterations, 50);
   assert.equal(r.gridId, `openfoam:${rec.id}`);
   assert.ok(Math.abs(r.freestream - 100 / 3.6) < 1e-12);
+});
+
+
+test("advanced profile and confirmed axles map without reinterpreting old presets", () => {
+ const axes={frontX:-1,rearX:2,centrelineY:0,confirmed:true};
+ const s=of.serverSettings({...types.DEFAULT_SETTINGS,engine:"openfoam",profile:"advanced2",max_seconds:90,axles:axes,refine_groups:["g:wing"],refine_underfloor:false});
+ assert.deepEqual(s.axles,axes);assert.equal(s.profile,"advanced2");assert.equal(s.max_seconds,90);
+ assert.deepEqual(s.refine_groups,["g:wing"]);assert.equal(s.refine_underfloor,false);
+ const legacy=of.serverSettings(types.DEFAULT_SETTINGS);assert.equal(legacy.profile,undefined);assert.equal(legacy.axles,undefined);assert.equal(legacy.refine_underfloor,undefined);
+});
+
+
+test("native refinement retains load sensitivity and translated origins for every mesh", () => {
+  const axles = {frontX:-1,rearX:2,centrelineY:0,confirmed:true};
+  const level = (cd, pitch) => ({preset:"mesh",cells:100,cd,cl:-.2,drag:100,downforce:90,
+    aero:{force:[100,0,-90],moment:[0,pitch,0],origin:[4,2,0],pressureMoment:[0,pitch,0],frictionMoment:[0,0,0]}});
+  const record = {id:"a".repeat(32), settings:{speed_kmh:100,yaw_deg:0,density:1.225,reference_area:2,axles},
+    result:{cd:.32,cl:-.2,drag:100,downforce:90,refinement_levels:[level(.3,90),level(.32,120),level(.31,180)]}};
+  const result = of.resultFromRecord(record,4,[5,2,0],[0,0,0,0,0,0]);
+  assert.deepEqual(result.levels.map(l=>l.aero.origin),[[-1,0,0],[-1,0,0],[-1,0,0]]);
+  assert.equal(result.meshSensitivity.frontLift,30);
+  assert.equal(result.meshSensitivity.rearLift,30);
+  assert.equal(result.meshSensitivity.pitch,90);
+  assert.ok(Math.abs(result.meshSensitivity.dCd-.02)<1e-12);
+  delete record.settings.axles;
+  assert.equal(of.resultFromRecord(record,4,[5,2,0],[0,0,0,0,0,0]).meshSensitivity.frontLift,undefined);
+  assert.equal(result.cdBand,undefined);
+  assert.equal(result.clBand,undefined);
 });

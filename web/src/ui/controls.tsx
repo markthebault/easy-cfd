@@ -36,7 +36,7 @@ export function Toggle(props: { checked: boolean; onChange: (v: boolean) => void
         <span>{props.label}</span>
         {props.hint && <small>{props.hint}</small>}
       </span>
-      <input id={id} type="checkbox" role="switch" checked={props.checked} disabled={props.disabled} onChange={(e) => props.onChange(e.target.checked)} />
+      <input id={id} type="checkbox" role="switch" aria-label={typeof props.label === "string" ? props.label : undefined} checked={props.checked} disabled={props.disabled} onChange={(e) => props.onChange(e.target.checked)} />
       <span className="switch" aria-hidden />
     </label>
   );

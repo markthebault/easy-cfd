@@ -90,15 +90,29 @@ def test_step_embedded_units(tmp_path):
 def test_confirmation_and_snapshot(client):
     p = project(client)
     assert client.post(f"/api/projects/{p['id']}/runs").status_code == 400
-    settings = {**p["settings"], "geometry_confirmed": True, "quality": "fast"}
+    settings = {
+        **p["settings"],
+        "geometry_confirmed": True,
+        "quality": "fast",
+        "vehicle_mass_kg": 1200,
+        "front_weight_percent": 55,
+    }
     assert client.put(f"/api/projects/{p['id']}/settings", json=settings).status_code == 200
     r = client.post(f"/api/projects/{p['id']}/runs").json()
     assert r["status"] == "queued"
     client.post(f"/api/projects/{p['id']}/sample?wing=true")
-    client.put(f"/api/projects/{p['id']}/settings", json={**settings, "speed_kmh": 180})
+    client.put(
+        f"/api/projects/{p['id']}/settings",
+        json={**settings, "speed_kmh": 180, "vehicle_mass_kg": 1300, "front_weight_percent": 60},
+    )
     saved = client.get(f"/api/runs/{r['id']}").json()
     assert len(saved["geometry"]["parts"]) == 5
     assert saved["settings"]["speed_kmh"] == 100
+    assert saved["settings"]["vehicle_mass_kg"] == 1200
+    assert saved["settings"]["front_weight_percent"] == 55
+    assert saved["settings"]["axles"]["source"] == "wheels"
+    assert saved["settings"]["axles"]["confirmed"] is True
+    assert saved["settings"]["axles"]["frontX"] < saved["settings"]["axles"]["rearX"]
     assert (storage.directory("runs", r["id"]) / "geometry/part0.stl").exists()
 
 
@@ -221,8 +235,13 @@ def test_road_and_wheel_directions_and_yaw(tmp_path):
 def test_motion_choices_persist_per_run_and_generate_wall_boundaries(client, moving_ground, wheels):
     p = project(client)
     settings = {
-        **p["settings"], "geometry_confirmed": True, "quality": "fast",
-        "speed_kmh": 108, "yaw_deg": 10, "moving_ground": moving_ground, "wheels": wheels,
+        **p["settings"],
+        "geometry_confirmed": True,
+        "quality": "fast",
+        "speed_kmh": 108,
+        "yaw_deg": 10,
+        "moving_ground": moving_ground,
+        "wheels": wheels,
     }
     url = f"/api/projects/{p['id']}/settings"
     assert client.put(url, json=settings).status_code == 200
@@ -230,10 +249,15 @@ def test_motion_choices_persist_per_run_and_generate_wall_boundaries(client, mov
     response = client.post(f"/api/projects/{p['id']}/runs")
     assert response.status_code == 202
     key = response.json()["id"]
+    queued_settings = response.json()["settings"]
+    assert queued_settings == {
+        **settings,
+        "axles": dict(frontX=-1.35, rearX=1.3, centrelineY=0, confirmed=True, source="wheels"),
+    }
     # Editing the design after queueing cannot alter this run's walls.
     client.put(url, json={**settings, "moving_ground": not moving_ground, "wheels": not wheels})
     saved = client.get(f"/api/runs/{key}").json()
-    assert saved["settings"] == settings
+    assert saved["settings"] == queued_settings
     root = storage.directory("runs", key)
     meta = foam.generate(root / "case", root / "geometry", saved["geometry"], Settings(**saved["settings"]))
     u = (root / "case/0/U").read_text()
@@ -373,6 +397,161 @@ def test_precise_compares_two_real_stages_and_preserves_failure(client, monkeypa
     assert result["refinement"]["delta_cd"] == pytest.approx(0.02)
     assert not result["refinement"]["both_converged"]
     assert result["medium_timings"]["simpleFoam"] == 1
+    assert [level["cd"] for level in result["refinement_levels"]] == [0.3, 0.32]
+    assert all("refinement_levels" not in level for level in result["refinement_levels"])
+
+
+@pytest.mark.parametrize("settled, expected_levels", [(True, 3), (False, 1)])
+def test_advanced_study_shares_deadline_and_retains_each_level(client, monkeypatch, settled, expected_levels):
+    p = project(client)
+    client.put(
+        f"/api/projects/{p['id']}/settings",
+        json={**p["settings"], "geometry_confirmed": True, "profile": "advanced2", "max_seconds": 90},
+    )
+    run = client.post(f"/api/projects/{p['id']}/runs").json()
+    calls = []
+
+    def solve(key, tier):
+        calls.append((tier, runner.DEADLINES[key]))
+        output = storage.directory("runs", key) / f"results-{tier}"
+        output.mkdir()
+        (output / "level.txt").write_text(tier)
+        return dict(
+            preset=tier,
+            cells=100 * len(calls),
+            cd=0.3 + 0.01 * len(calls),
+            cl=-0.2,
+            drag=10,
+            downforce=20,
+            force_settled=settled,
+            residual_converged=settled,
+            iteration=1000,
+            timings={"simpleFoam": 1},
+            warnings=[],
+            aero={"force": [10, 0, -20], "moment": [0, len(calls), 0], "origin": [-1, 0, 0]},
+            part_forces=[{"id": "wing", "friction": [1, 0, 0]}],
+            mesh_recipe={"spacing": 0.5 / len(calls)},
+        )
+
+    monkeypatch.setattr(runner, "solve", solve)
+    runner.execute(run["id"])
+    saved = storage.get("runs", run["id"])
+    result = saved["result"]
+    assert saved["status"] == "completed"
+    assert len(calls) == expected_levels
+    assert len({deadline for _, deadline in calls}) == 1
+    assert saved["deadline_seconds"] == 90
+    assert result["refinement_complete"] is settled
+    assert [level["aero"]["moment"][1] for level in result["refinement_levels"]] == list(
+        range(1, expected_levels + 1)
+    )
+    assert all(level["part_forces"][0]["id"] == "wing" for level in result["refinement_levels"])
+    assert (storage.directory("runs", run["id"]) / "results/level.txt").read_text() == calls[-1][0]
+    if not settled:
+        assert any("inconclusive" in warning for warning in result["warnings"])
+
+
+def test_precise_checkpoint_does_not_launch_another_mesh(client, monkeypatch):
+    p = project(client)
+    client.put(
+        f"/api/projects/{p['id']}/settings",
+        json={**p["settings"], "geometry_confirmed": True, "quality": "precise", "max_seconds": 90},
+    )
+    run = client.post(f"/api/projects/{p['id']}/runs").json()
+    calls = []
+
+    def checkpoint(key, tier):
+        calls.append(tier)
+        output = storage.directory("runs", key) / "results-medium"
+        output.mkdir()
+        (output / "checkpoint.txt").write_text("saved field")
+        runner.patch(key, termination_reason="deadline-checkpoint")
+        return dict(
+            cd=0.3,
+            cl=-0.2,
+            force_settled=True,
+            residual_converged=False,
+            iteration=250,
+            timings={"simpleFoam": 1},
+            warnings=[],
+        )
+
+    monkeypatch.setattr(runner, "solve", checkpoint)
+    runner.execute(run["id"])
+    saved = storage.get("runs", run["id"])
+    assert calls == ["medium"]
+    assert saved["status"] == "completed"
+    assert saved["result"]["incomplete"]
+    assert not saved["result"]["force_settled"]
+    assert len(saved["result"]["refinement_levels"]) == 1
+    assert (storage.directory("runs", run["id"]) / "results/checkpoint.txt").read_text() == "saved field"
+
+
+@pytest.mark.parametrize(
+    "profile, seconds", [("basic", 300), ("regular", 600), ("advanced1", 10800), ("advanced2", 43200)]
+)
+def test_profile_deadline_applies_without_client_override(client, monkeypatch, profile, seconds):
+    p = project(client)
+    client.put(
+        f"/api/projects/{p['id']}/settings",
+        json={**p["settings"], "geometry_confirmed": True, "profile": profile},
+    )
+    run = client.post(f"/api/projects/{p['id']}/runs").json()
+
+    def fail(key, tier):
+        assert storage.get("runs", key)["deadline_seconds"] == seconds
+        raise RuntimeError("Test stops before allocating a real mesh")
+
+    monkeypatch.setattr(runner, "solve", fail)
+    runner.execute(run["id"])
+    saved = storage.get("runs", run["id"])
+    assert saved["deadline_seconds"] == seconds
+    assert saved["error"] == "Test stops before allocating a real mesh"
+
+
+def test_native_compare_distinguishes_load_grid_sensitivity_and_missing_variation(client):
+    keys = []
+    for front in [100, 130]:
+        key = storage.identifier()
+        keys.append(key)
+        storage.save(
+            "runs",
+            dict(
+                id=key,
+                created=storage.now(),
+                status="completed",
+                image=foam.IMAGE,
+                settings=Settings().model_dump(),
+                result=dict(
+                    drag=100,
+                    downforce=-200,
+                    cd=0.3,
+                    cl=0.2,
+                    force_settled=True,
+                    residual_converged=True,
+                    wall_target_fraction=0.9,
+                    balance=dict(frontLift=front, rearLift=200 - front, pitch=10),
+                    balance_bands=dict(frontLift=1, rearLift=1, pitch=1),
+                    refinement_levels=[dict(balance=dict(frontLift=100)), dict(balance=dict(frontLift=200))],
+                    ranges={k: [0, 1] for k in ("Pressure", "Speed", "Turbulence")},
+                ),
+            ),
+        )
+    response = client.get(f"/api/compare?baseline={keys[0]}&variant={keys[1]}")
+    assert response.status_code == 200
+    warnings = response.json()["warnings"]
+    assert any(
+        "Front load change is within" in warning and "grid sensitivity" in warning for warning in warnings
+    )
+    assert any("Drag significance is unknown" in warning for warning in warnings)
+    # With no refinement evidence the same 30 N change exceeds the observed 2 N spread.
+    for key in keys:
+        record = storage.get("runs", key)
+        record["result"]["refinement_levels"] = []
+        storage.save("runs", record)
+    response = client.get(f"/api/compare?baseline={keys[0]}&variant={keys[1]}")
+    assert response.status_code == 200
+    assert not any("Front load change is within" in warning for warning in response.json()["warnings"])
 
 
 def test_near_zero_lift_and_unconverged_medium_cannot_imply_confident_ranking(client):
@@ -520,7 +699,9 @@ def test_explicit_tailnet_origin(client, monkeypatch):
     monkeypatch.setenv("EASYCFD_TAILNET_ORIGIN", origin)
     headers = {"host": "example.ts.net:8443", "origin": origin}
     assert client.get("/api/projects", headers=headers).status_code == 200
-    assert client.get("/api/projects", headers={**headers, "origin": "https://other.ts.net"}).status_code == 403
+    assert (
+        client.get("/api/projects", headers={**headers, "origin": "https://other.ts.net"}).status_code == 403
+    )
     assert client.get("/api/projects", headers={**headers, "host": "other.ts.net"}).status_code == 403
 
 
@@ -593,11 +774,12 @@ def test_solve_passes_ranks_and_removes_processor_copies(client, monkeypatch):
         return 1.0
 
     monkeypatch.setattr(runner, "stage", stage)
-    def process(case, output, run, meta):
+
+    def process(key, case, output, run):
         output.mkdir()
         return dict(warnings=[])
 
-    monkeypatch.setattr(results, "process", process)
+    monkeypatch.setattr(runner, "extract_case", process)
     runner.solve(run["id"], "fast")
     solver = next(command for command, _ in calls if command[0] == "mpirun")
     assert solver[solver.index("-np") + 1] == "6"
@@ -705,7 +887,9 @@ def test_added_parts_keep_car_position_and_toggle_out_of_runs(client):
     assert after["fingerprint"] != before["fingerprint"]
     assert not (storage.directory("projects", p["id"]) / p["geometry_dir"]).exists()
 
-    r = client.put(f"/api/projects/{p['id']}/parts-enabled", json=dict(part_ids=[wing_part["id"]], enabled=False))
+    r = client.put(
+        f"/api/projects/{p['id']}/parts-enabled", json=dict(part_ids=[wing_part["id"]], enabled=False)
+    )
     off = r.json()
     assert off["geometry"]["fingerprint"] == before["fingerprint"]
     assert off["geometry"]["frontal_area_estimate"] == pytest.approx(before["frontal_area_estimate"])
@@ -721,8 +905,18 @@ def test_added_parts_keep_car_position_and_toggle_out_of_runs(client):
     assert with_wing["configuration"] == dict(added=["wing v2.stl"], excluded=[])
     for r in (run, with_wing):
         record = storage.get("runs", r["id"])
-        record.update(status="completed", result=dict(drag=1, downforce=0, cd=0.1, cl=0, force_settled=True,
-                      residual_converged=True, ranges={f: [0, 1] for f in ["Pressure", "Speed", "Turbulence"]}))
+        record.update(
+            status="completed",
+            result=dict(
+                drag=1,
+                downforce=0,
+                cd=0.1,
+                cl=0,
+                force_settled=True,
+                residual_converged=True,
+                ranges={f: [0, 1] for f in ["Pressure", "Speed", "Turbulence"]},
+            ),
+        )
         storage.save("runs", record)
     parts = client.get(f"/api/compare?baseline={run['id']}&variant={with_wing['id']}").json()["parts"]
     assert parts == dict(same=False, only_baseline=[], only_variant=["wing v2.stl"])
@@ -748,29 +942,44 @@ def test_added_part_below_road_blocks_and_base_files_cannot_be_removed(client):
     p = imported_car(client)
     splitter = trimesh.creation.box(extents=[1600, 200, 20])
     splitter.apply_translation([0, -2100, -30])
-    data = client.post(f"/api/projects/{p['id']}/parts", files=[("files", ("splitter.stl", stl(splitter)))]).json()
+    data = client.post(
+        f"/api/projects/{p['id']}/parts", files=[("files", ("splitter.stl", stl(splitter)))]
+    ).json()
     assert any("above the road" in e for e in data["geometry"]["errors"])
     part = data["geometry"]["parts"][-1]["id"]
-    off = client.put(f"/api/projects/{p['id']}/parts-enabled", json=dict(part_ids=[part], enabled=False)).json()
+    off = client.put(
+        f"/api/projects/{p['id']}/parts-enabled", json=dict(part_ids=[part], enabled=False)
+    ).json()
     assert not off["geometry"]["errors"]
     base = data["geometry"]["sources"][0]["file"]
     assert client.delete(f"/api/projects/{p['id']}/sources/{base}").status_code == 400
-    removed = client.delete(f"/api/projects/{p['id']}/sources/{data['geometry']['sources'][-1]['file']}").json()
+    removed = client.delete(
+        f"/api/projects/{p['id']}/sources/{data['geometry']['sources'][-1]['file']}"
+    ).json()
     assert len(removed["geometry"]["parts"]) == 2
     sample = project(client)
-    assert client.post(f"/api/projects/{sample['id']}/parts", files=[("files", ("x.stl", stl(splitter)))]).status_code == 400
+    assert (
+        client.post(
+            f"/api/projects/{sample['id']}/parts", files=[("files", ("x.stl", stl(splitter)))]
+        ).status_code
+        == 400
+    )
 
 
 def completed(client, project_id):
     """Queue a run of the project as saved, then mark it completed with placeholder forces."""
     current = client.get(f"/api/projects/{project_id}").json()
-    client.put(f"/api/projects/{project_id}/settings", json={**current["settings"], "geometry_confirmed": True})
+    client.put(
+        f"/api/projects/{project_id}/settings", json={**current["settings"], "geometry_confirmed": True}
+    )
     run = client.post(f"/api/projects/{project_id}/runs").json()
     record = storage.get("runs", run["id"])
     ranges = {f: [0, 1] for f in ["Pressure", "Speed", "Turbulence"]}
     record.update(
         status="completed",
-        result=dict(drag=1, downforce=0, cd=0.1, cl=0, force_settled=True, residual_converged=True, ranges=ranges),
+        result=dict(
+            drag=1, downforce=0, cd=0.1, cl=0, force_settled=True, residual_converged=True, ranges=ranges
+        ),
     )
     storage.save("runs", record)
     return run["id"]
@@ -886,8 +1095,13 @@ def test_plane_endpoint_serves_gzip_and_validates(client):
     bounds = synthetic_volume(storage.directory("runs", key) / "results")
     storage.save(
         "runs",
-        dict(id=key, created=storage.now(), status="completed", settings=Settings().model_dump(),
-             result=dict(slice_bounds=bounds)),
+        dict(
+            id=key,
+            created=storage.now(),
+            status="completed",
+            settings=Settings().model_dump(),
+            result=dict(slice_bounds=bounds),
+        ),
     )
     r = client.get(f"/api/runs/{key}/plane?axis=z&position=25")
     assert r.status_code == 200

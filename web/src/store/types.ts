@@ -2,7 +2,7 @@
 
 import type { ImportOptions, Part } from "../geometry/model";
 import type { SurfaceSample, VizField } from "../solver/extract";
-import type { RunResult, Settings, Vec3 } from "../solver/types";
+import type { Axles, RunResult, Settings, TyreLoads, Vec3, VehicleWeight } from "../solver/types";
 
 export interface FileRef {
   /** SHA-256 of the bytes; key in the `files` store. */
@@ -55,6 +55,10 @@ export interface GeometrySummary {
 }
 
 export interface RunDoc {
+  /** Axles recovered from this run's saved wheel geometry; original CFD snapshot is immutable. */
+  axleLoadAssessment?: {version: "wheel-axles-1"; axles: Axles};
+  /** Editable weight assessment; original CFD settings and results remain unchanged. */
+  tyreLoadAssessment?: { version: "steady-axle-loads-1"; assessedAt: number; inputs: VehicleWeight; loads?: TyreLoads };
   id: string;
   designId: string;
   designName: string;
@@ -96,7 +100,7 @@ export interface FieldDoc {
   id: string;
   field: EncodedField;
   /** One entry per enabled part, in solver order. */
-  surface: { key: string; cp: Quantized; shear: Quantized }[];
+  surface: { key: string; cp: Quantized; shear: Quantized; version?: 2; wallStress?: Float32Array; stressValid?: Uint8Array; snapshot?: SurfaceSample["snapshot"] }[];
 }
 
 export interface FileDoc {
@@ -107,6 +111,8 @@ export interface FileDoc {
 
 /** Colour ranges fixed per result (and merged across a comparison). */
 export interface Ranges {
+  friction?: [number, number];
+  cf?: [number, number];
   speed: [number, number];
   pressure: [number, number];
   cp: [number, number];

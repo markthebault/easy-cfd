@@ -1,0 +1,57 @@
+
+> easy-cfd-web@0.1.0 test
+> node --test tests/*.test.mjs
+
+✔ wall moments give front, rear and middle loads; sums conserve lift and Cl (155.319667ms)
+✔ pure couple, drag at height, mixed loads and zero lift do not fabricate percentages (0.236958ms)
+✔ translation of complete car and OpenFOAM origin preserves equivalent loads (0.156709ms)
+✔ invalid and unconfirmed axles are unavailable; ambiguous wheels do not suggest box ends (0.614833ms)
+✔ physical stress and validity survive storage without quantization; old samples remain unsupported (0.2445ms)
+✔ resource preflight rejects over-budget grids and device buffers before preparation (28.815542ms)
+WebSocket server error: Port 24678 is already in use
+✔ pressure clouds reproduce the analytic Cp plane, including suction (291.3515ms)
+✔ missing or solid samples never create pressure clouds; unreachable thresholds are empty (0.366708ms)
+✔ horizontal presets cover car width, vertical presets cover height, and both stay in the fluid box (0.240958ms)
+WebSocket server error: Port 24678 is already in use
+✔ wind yaw adds a lateral component while longitudinal road speed is unchanged (172.051709ms)
+✔ a rotating tyre travels one circumference per revolution with positive bottom tread velocity (0.189167ms)
+✔ wheel pivot is the volume centroid rather than the bounds midpoint (0.338792ms)
+✔ wheel centroid follows translation and scale and tolerates reversed winding (0.203417ms)
+✔ open, inconsistent and degenerate wheel meshes retain the imported axle center (0.1885ms)
+WebSocket server error: Port 24678 is already in use
+✔ UI settings map to the server's settings; Custom quality becomes Medium (272.001458ms)
+✔ road and wheel choices reach OpenFOAM independently, including explicit false (0.166917ms)
+✔ frame offset and domain conversion between the UI and the server (0.164041ms)
+✔ a server run record becomes a UI run result (0.45025ms)
+✔ advanced profile and confirmed axles map without reinterpreting old presets (0.108958ms)
+✔ native refinement retains load sensitivity and translated origins for every mesh (0.348125ms)
+WebSocket server error: Port 24678 is already in use
+✔ five preview streams clear the body and rise over a taller roof (176.536083ms)
+✔ preview smoke follows crosswind and needs no geometry or solver state (30.080084ms)
+WebSocket server error: Port 24678 is already in use
+✔ grounding anchors to enabled wheel vertices and falls back to model bottom (294.902ms)
+✔ grounding and lifting translate the complete assembly without altering source geometry (1.294208ms)
+✔ simulation gap clears the lowest enabled part even when it hangs below the wheels (0.093083ms)
+WebSocket server error: Port 24678 is already in use
+✔ stretched axis: uniform refined region, exact ends, multigrid-friendly count (288.227666ms)
+✔ sample car geometry matches the OpenFOAM app's sample (1.96725ms)
+✔ voxel volume of the body is within 6 % of the mesh volume (16.97125ms)
+✔ cut-cell fluid fractions reproduce the body volume within 2 % (292.053834ms)
+✔ prepared case: closed wall surface, sensible frontal area, divisible multigrid levels (406.761542ms)
+✔ frontal area of the sample car (15.980125ms)
+✔ road and wheel choices set independent solver wall velocities without changing wind (1626.079375ms)
+✔ STL binary round trip and ASCII parsing (0.918625ms)
+✔ connected components and axis conversion (1.37475ms)
+✔ window statistics and moving average of force history (14.474542ms)
+✔ switching a part off keeps the grid identical (variants run on the same cells) (1655.250417ms)
+✔ overlapping shells in one part stay solid; wheels are never thin walls (14.966666ms)
+✔ detail bands: finer cells inside the band, bounded growth, multigrid-friendly count (0.562292ms)
+✔ detail boxes refine a region inside a larger part (1753.671458ms)
+ℹ tests 39
+ℹ suites 0
+ℹ pass 39
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6325.710417

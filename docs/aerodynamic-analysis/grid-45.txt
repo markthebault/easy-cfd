@@ -1,0 +1,8 @@
+  sample: t=0.676/1.512 steps=883 cd=0.3259 cl=0.3484 10 s
+    Body                   drag 218.0 N  lift 314.3 N
+sample       cd 0.3242 (ref 0.5467 medium, -40.7%)  cl 0.3422 (ref 0.6331, Δ -0.291)  cells 675840 steps 1832 21 s settled=true detail=1 thin=[]
+  sample-wing: t=0.685/1.512 steps=898 cd=0.5716 cl=-0.2305 10 s
+    Body                   drag 286.3 N  lift 55.2 N
+    Rear wing              drag 177.2 N  lift -340.4 N
+sample-wing  cd 0.5693 (ref 0.6778 medium, -16.0%)  cl -0.2322 (ref 0.4159, Δ -0.648)  cells 675840 steps 1811 21 s settled=true detail=1 thin=[Rear wing]
+saved /Volumes/SSD512/persospace/easy-cfd/web/validation/results/validation-custom-2026-10-01T11-48-48-596Z.json

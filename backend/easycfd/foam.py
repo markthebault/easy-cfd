@@ -117,11 +117,24 @@ mergePatchPairs ();
         f"{part['id']}.stl {{type triSurfaceMesh; name {part['id']};}}" for part in geometry["parts"]
     )
     refinement_entries = []
+    local_refinement = {}
+    advanced = settings.profile in ("advanced1","advanced2")
+    selected_groups = settings.refine_groups
+    underfloor_geometry = ""
+    underfloor_region = ""
+    if advanced and settings.refine_underfloor:
+        underfloor_geometry = f"underfloor {{type searchableBox; min {vec([low[0]-.1*length,low[1]-.1*width,.001])}; max {vec([high[0]+.1*length,high[1]+.1*width,min(high[2],max(.2*length/4.2,low[2]+.05*length))])};}}"
+        underfloor_region = f"underfloor {{mode inside; levels ((1e15 {p['surface']+1}));}}"
     for part in geometry["parts"]:
         # Resolve an estimated thin dimension with at least two cells. This estimate
         # cannot detect every small local feature, so results still need mesh review.
         thickness = part.get("minimum_extent", min(b - a for a, b in zip(*part["bounds"])))
         level = max(p["surface"], math.ceil(math.log2(2 * cell / max(thickness, 1e-9))))
+        group = settings.part_labels.get(part["id"],{}).get("group")
+        selected = group in selected_groups if selected_groups is not None else part["role"] == "wheel" or (group is not None and group != "g:body")
+        if advanced and selected:
+            level = max(level,p["surface"]+1)
+        local_refinement[part["id"]] = dict(surface_level=level,nominal_spacing=cell/2**level,selected=selected)
         if level > 7:
             raise ValueError(
                 f"{part['name']} is too thin for this preset's automatic mesh. Simplify the geometry."
@@ -136,6 +149,7 @@ mergePatchPairs ();
 castellatedMesh true; snap true; addLayers {"true" if p["layers"] else "false"};
 geometry {{
 {surfaces}
+{underfloor_geometry}
 wake {{type searchableBox; min {vec([low[0] - 0.3 * length, low[1] - 0.35 * width, 0.001])};
 max {vec([high[0] + 2 * length, high[1] + 0.35 * width, high[2] + 0.4 * length])};}}
 }}
@@ -144,7 +158,7 @@ maxLocalCells {p["max_cells"]}; maxGlobalCells {p["max_cells"]}; minRefinementCe
 maxLoadUnbalance .1; nCellsBetweenLevels 3; features ();
 refinementSurfaces {{{refinements}}}
 resolveFeatureAngle 30;
-refinementRegions {{wake {{mode inside; levels ((1e15 {p["wake"]}));}}}}
+refinementRegions {{wake {{mode inside; levels ((1e15 {p["wake"]}));}} {underfloor_region}}}
 locationInMesh {vec([xmin + 0.314 * min(cell, low[0] - xmin), ymin + 0.271 * min(cell, low[1] - ymin), 0.419 * cell])};
 allowFreeStandingZoneFaces true;
 }}
@@ -182,30 +196,35 @@ mergeTolerance 1e-6;
     # Per-role integrated forces give the body/wheel and pressure/viscous split.
     # The groups always partition every car patch, so their sum must reconcile
     # with the total coefficients; results.py checks that agreement.
+    origin = settings.moment_origin or ((settings.axles.frontX, settings.axles.centrelineY, 0) if settings.axles and settings.axles.confirmed else (0, 0, 0))
+    origin_text = " ".join(str(x) for x in origin)
     role_functions = ""
     for name, group in (
+        ("forcesTotal", patches),
+        *(("forces_" + p["id"], p["id"]) for p in geometry["parts"]),
         ("forcesBody", " ".join(p["id"] for p in geometry["parts"] if p["role"] != "wheel")),
         ("forcesWheels", " ".join(p["id"] for p in geometry["parts"] if p["role"] == "wheel")),
     ):
         if group:
             role_functions += f"""{name} {{type forces; libs (forces); patches ({group});
-p p; U U; rho rhoInf; rhoInf {settings.density}; CofR (0 0 0);
+p p; U U; rho rhoInf; rhoInf {settings.density}; CofR ({origin_text});
 writeControl timeStep; writeInterval 1; log false;}}
 """
     write(
         case / "system/controlDict",
         f"""
 application simpleFoam; startFrom startTime; startTime 0; stopAt endTime;
-endTime {p["iterations"]}; deltaT 1; writeControl timeStep; writeInterval {p["iterations"] if (quality or settings.quality) == "custom" else 100};
+endTime {p["iterations"]}; deltaT 1; writeControl timeStep; writeInterval {250 if settings.profile in ("advanced1","advanced2") else p["iterations"] if (quality or settings.quality) == "custom" else 100};
 purgeWrite 2; writeFormat binary; writePrecision 10; writeCompression off;
-timeFormat general; timePrecision 6; runTimeModifiable false;
+timeFormat general; timePrecision 6; runTimeModifiable true;
 functions {{
 coefficients {{type forceCoeffs; libs (forces); patches ({patches});
 p p; U U; rho rhoInf; rhoInf {settings.density};
-CofR (0 0 0); liftDir (0 0 1); dragDir (1 0 0); pitchAxis (0 1 0);
+CofR ({origin_text}); liftDir (0 0 1); dragDir (1 0 0); pitchAxis (0 1 0);
 magUInf {mag}; lRef {length}; Aref {settings.reference_area};
 writeControl timeStep; writeInterval 1; log true;}}
-{role_functions}yPlus {{type yPlus; libs (fieldFunctionObjects); writeControl writeTime;}}
+{role_functions}wallShearStress {{type wallShearStress; libs (fieldFunctionObjects); patches ({patches}); executeControl timeStep; executeInterval 1; writeControl writeTime;}}
+yPlus {{type yPlus; libs (fieldFunctionObjects); writeControl writeTime;}}
 }}
 """,
     )
@@ -295,6 +314,8 @@ relaxationFactors {fields {p .3;} equations {U .7; k .7; omega .7;}}
         base_cells=math.prod(counts),
         preset=p,
         processes=processes,
+        local_refinement=local_refinement,
+        underfloor_spacing=cell/2**(p["surface"]+1) if advanced and settings.refine_underfloor else None,
         tunnel_cross_section=cross_section,
         blockage_ratio=blockage_ratio,
     )

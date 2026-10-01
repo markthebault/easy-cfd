@@ -50,6 +50,8 @@ export interface FlowFields {
   vel: Float32Array;
   pres: Float32Array;
   turb: Float32Array;
+  wallForces?: Float32Array;
+  step?: number;
 }
 
 export class FlowSolver {
@@ -84,6 +86,7 @@ export class FlowSolver {
 
   private buffer(name: string, data: ArrayBufferView | number, usage = GPUBufferUsage.STORAGE) {
     const size = typeof data === "number" ? data : data.byteLength;
+    if(size>Math.min(this.device.limits.maxBufferSize,this.device.limits.maxStorageBufferBindingSize)) throw new Error(`GPU buffer ${name} exceeds the device limit. Reduce the grid.`);
     const buf = this.device.createBuffer({
       size: Math.max(16, Math.ceil(size / 4) * 4),
       usage: usage | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
@@ -98,7 +101,7 @@ export class FlowSolver {
   private createBuffers(cfl: number) {
     const c = this.c;
     const NC = c.NC;
-    const params = new ArrayBuffer(112);
+    const params = new ArrayBuffer(128);
     const u32 = new Uint32Array(params);
     const f32 = new Float32Array(params);
     u32.set([c.NX, c.NY, c.NZ, NC], 0);
@@ -107,8 +110,9 @@ export class FlowSolver {
     f32.set([cfl, 1.0, 1.25, c.faceCount], 12);
     u32.set([c.sideMode, 1, c.partIsWheel.length, HISTORY_SLOTS], 16);
     u32.set(c.goff, 20);
-    u32.set([c.wallModel === "log" ? 1 : 0, 0, c.limiter, 0], 24);
-    f32[25] = c.mergeBoost;
+    f32.set([...c.momentOrigin, 0], 24);
+    u32.set([c.wallModel === "log" ? 1 : 0, 0, c.limiter, 0], 28);
+    f32[29] = c.mergeBoost;
     this.buffer("params", new Uint8Array(params), GPUBufferUsage.UNIFORM);
     this.buffer("parts", c.parts, GPUBufferUsage.UNIFORM);
     this.buffer("grid", c.gridBuffer);
@@ -116,11 +120,11 @@ export class FlowSolver {
     this.buffer("aper", c.aper);
     this.buffer("wall", c.wall);
     this.buffer("faces", c.faces);
-    this.buffer("partials", this.forceGroups * 12 * 4);
-    this.buffer("faceForce", Math.max(1, c.faceCount) * 6 * 4);
+    this.buffer("partials", this.forceGroups * 24 * 4);
+    this.buffer("faceForce", Math.max(1, c.faceCount) * 12 * 4);
     this.buffer("partRanges", c.partRanges.length ? c.partRanges : new Uint32Array(2));
-    this.buffer("partAcc", Math.max(1, c.partRanges.length / 2) * 6 * 4);
-    this.buffer("history", HISTORY_SLOTS * 16 * 4);
+    this.buffer("partAcc", Math.max(1, c.partRanges.length / 2) * 12 * 4);
+    this.buffer("history", HISTORY_SLOTS * 32 * 4);
     this.buffer("lmax", 16);
     const hmin = c.grid.hmin ?? c.grid.h;
     // [dt, GPU time, step, pace factor of pseudo time (set with local time stepping)]
@@ -418,7 +422,7 @@ export class FlowSolver {
 
   /** Running pseudo-time integrals of the force on each part: pressure (3), shear (3) per part, per unit density. */
   async readPartForces(): Promise<Float32Array> {
-    return new Float32Array(await this.read(this.buffers.partAcc, Math.max(1, this.c.partRanges.length / 2) * 24));
+    return new Float32Array(await this.read(this.buffers.partAcc, Math.max(1, this.c.partRanges.length / 2) * 48));
   }
 
   /** Encode and submit `n` steps. */
@@ -448,14 +452,18 @@ export class FlowSolver {
 
   /** Force history records: [time, dt, step, 0, body p(3), body v(3), wheel p(3), wheel v(3)] per slot. */
   async readHistory(): Promise<Float32Array> {
-    return new Float32Array(await this.read(this.buffers.history, HISTORY_SLOTS * 64));
+    return new Float32Array(await this.read(this.buffers.history, HISTORY_SLOTS * 128));
+  }
+
+  async readWallForces(): Promise<Float32Array> {
+    return new Float32Array(await this.read(this.buffers.faceForce, Math.max(1, this.c.faceCount) * 48));
   }
 
   async readState(): Promise<Float32Array> {
     return new Float32Array(await this.read(this.buffers.state, 16));
   }
 
-  async readFields(): Promise<FlowFields> {
+  async readFields(includeWall = false): Promise<FlowFields> {
     const NC = this.c.NC;
     const turbName = this.stepParity === 0 ? "turbA" : "turbB";
     const [vel, pres, turb] = await Promise.all([
@@ -463,7 +471,7 @@ export class FlowSolver {
       this.read(this.levelBuffers[0].phi, NC * 4),
       this.read(this.buffers[turbName], NC * 20),
     ]);
-    return { vel: new Float32Array(vel), pres: new Float32Array(pres), turb: new Float32Array(turb) };
+    return { vel: new Float32Array(vel), pres: new Float32Array(pres), turb: new Float32Array(turb), ...(includeWall ? { wallForces: await this.readWallForces(), step: this.steps } : {}) };
   }
 
   async readDivergence(): Promise<Float32Array> {

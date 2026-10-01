@@ -16,7 +16,7 @@ from fastapi import BackgroundTasks, FastAPI, File, Form, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ValidationError
-from . import geometry, plane, runner, storage, results, repair, seal, transform, wake, webview
+from . import geometry, plane, runner, storage, results, repair, seal, transform, wake, webview, compute_lease
 from .models import ImportOptions, NewProject, Settings, PRESETS, resolved_preset
 
 
@@ -93,7 +93,13 @@ def estimate(key: str, quality: Literal["fast", "medium", "precise", "custom"] =
         if run["status"] != "completed" or run["settings"]["quality"] != quality:
             continue
         saved = Settings(**run["settings"])
-        if saved.simulation_box != effective.simulation_box or (quality == "custom" and (saved.custom_mesh != effective.custom_mesh or saved.custom_iterations != effective.custom_iterations)):
+        if saved.simulation_box != effective.simulation_box or (
+            quality == "custom"
+            and (
+                saved.custom_mesh != effective.custom_mesh
+                or saved.custom_iterations != effective.custom_iterations
+            )
+        ):
             continue
         if run["geometry"]["fingerprint"] == fingerprint:
             result = run["result"]
@@ -449,7 +455,9 @@ def repair_apply(key: str, body: RepairSelection):
                 shutil.copytree(old / "originals", folder / "originals")
             pieces = []
             for part, mesh in zip(current["geometry"]["parts"], meshes):
-                extra = {k: part[k] for k in ("source", "component", "enabled", "grouped_components") if k in part}
+                extra = {
+                    k: part[k] for k in ("source", "component", "enabled", "grouped_components") if k in part
+                }
                 pieces.append((part["name"], mesh, part["role"], part.get("wheel"), extra))
             data = geometry.persist_parts(folder, pieces)
             for field in ("sources", "import_options"):
@@ -536,6 +544,7 @@ def seal_preview(key: str, body: SealSelection):
         raise ValueError("Another sealing preview is running. Try again when it finishes.")
     try:
         import trimesh
+
         meshes = {p["id"]: trimesh.load_mesh(old / f"{p['id']}.stl") for p in parts}
         combined = trimesh.util.concatenate([meshes[p["id"]] for p in chosen])
         result, report = seal.reconstruct(combined, body.pitch_mm, body.gap_mm)
@@ -552,7 +561,9 @@ def seal_preview(key: str, body: SealSelection):
                         pieces.append(("Merged body", result, "body", None))
                         inserted = True
                     continue
-                extra = {k: part[k] for k in ("source", "component", "enabled", "grouped_components") if k in part}
+                extra = {
+                    k: part[k] for k in ("source", "component", "enabled", "grouped_components") if k in part
+                }
                 pieces.append((part["name"], meshes[part["id"]], part["role"], part.get("wheel"), extra))
             data = geometry.persist_parts(target, pieces)
             data["repaired"] = True
@@ -592,7 +603,9 @@ def seal_apply(key: str, body: SealApply):
         if repair_revision(current) != preview["revision"]:
             raise ValueError("The model changed. Close and reopen Merge & seal.")
         if not preview["report"]["can_apply"]:
-            raise ValueError("The preview is not one watertight body. Adjust the settings or repair manually.")
+            raise ValueError(
+                "The preview is not one watertight body. Adjust the settings or repair manually."
+            )
         root = storage.directory("projects", key)
         old = root / current["geometry_dir"]
         folder_name = "geometry-" + storage.identifier()
@@ -601,9 +614,15 @@ def seal_apply(key: str, body: SealApply):
         try:
             if (old / "originals").exists():
                 shutil.copytree(old / "originals", target / "originals")
-            updated = storage.update("projects", key, geometry=preview["geometry"], geometry_dir=folder_name,
-                                     sample=None, reference_case=None,
-                                     settings={**current["settings"], "geometry_confirmed": False})
+            updated = storage.update(
+                "projects",
+                key,
+                geometry=preview["geometry"],
+                geometry_dir=folder_name,
+                sample=None,
+                reference_case=None,
+                settings={**current["settings"], "geometry_confirmed": False},
+            )
         except Exception:
             shutil.rmtree(target, ignore_errors=True)
             raise
@@ -674,9 +693,15 @@ def apply_transform(key: str, body: SealApply):
             shutil.copytree(folder / "geometry", target)
             if (old / "originals").exists():
                 shutil.copytree(old / "originals", target / "originals")
-            updated = storage.update("projects", key, geometry=preview["geometry"], geometry_dir=folder_name,
-                                     sample=None, reference_case=None,
-                                     settings={**current["settings"], "geometry_confirmed": False})
+            updated = storage.update(
+                "projects",
+                key,
+                geometry=preview["geometry"],
+                geometry_dir=folder_name,
+                sample=None,
+                reference_case=None,
+                settings={**current["settings"], "geometry_confirmed": False},
+            )
         except Exception:
             shutil.rmtree(target, ignore_errors=True)
             raise
@@ -720,10 +745,8 @@ def cancel(key: str):
         if run["status"] not in ("queued", "running"):
             raise ValueError("Only queued or running jobs can be cancelled.")
         if run["status"] == "queued":
-            return storage.update(
-                "runs", key, status="cancelled", stage="Cancelled", finished=storage.now()
-            )
-        return storage.update("runs", key, status="cancelled", stage="Cancelling")
+            return storage.update("runs", key, status="cancelled", stage="Cancelled", finished=storage.now())
+        return storage.update("runs", key, cancel_requested=True, stage="Cancelling")
 
 
 @app.get("/api/runs/{key}/geometry/{part_id}.vtp")
@@ -780,9 +803,7 @@ def plane_asset(key: str, axis: Literal["x", "y", "z"] = "y", position: int = 50
             run["settings"]["speed_kmh"] / 3.6,
         )
     # Stored gzipped; the browser decompresses it transparently.
-    return FileResponse(
-        path, media_type="application/octet-stream", headers={"Content-Encoding": "gzip"}
-    )
+    return FileResponse(path, media_type="application/octet-stream", headers={"Content-Encoding": "gzip"})
 
 
 @app.get("/api/runs/{key}/logs")
@@ -802,7 +823,9 @@ def export(key: str, cleanup: BackgroundTasks):
 
     # Per-rank folders are left out only where they duplicate the reconstructed
     # case; otherwise, as in failed runs, they may hold the only solver output.
-    duplicates = {folder for case in root.glob("case-*") for folder in runner.redundant_processor_copies(case)}
+    duplicates = {
+        folder for case in root.glob("case-*") for folder in runner.redundant_processor_copies(case)
+    }
 
     def included(path):
         if path.name in ("run.zip", "record.tmp"):
@@ -876,6 +899,12 @@ def compare(baseline: str, variant: str):
         mismatch.append("boundary configuration")
     if a["image"] != b["image"]:
         mismatch.append("solver image")
+    if sa.axles != sb.axles:
+        mismatch.append("axle definitions")
+    if (a["result"].get("aero") or {}).get("origin") != (b["result"].get("aero") or {}).get("origin"):
+        mismatch.append("moment origins")
+    if sa.profile != sb.profile:
+        mismatch.append("simulation profile")
     changes = {}
     for metric in ("drag", "downforce", "cd", "cl"):
         old, new = a["result"][metric], b["result"][metric]
@@ -885,13 +914,18 @@ def compare(baseline: str, variant: str):
             delta=new - old,
             percent=(new - old) / abs(old) * 100 if abs(old) > 0.01 else None,
         )
+    for metric in ("frontLift", "rearLift", "pitch", "frontCl", "rearCl"):
+        old = a["result"].get("balance") or {}
+        new = b["result"].get("balance") or {}
+        if metric in old and metric in new:
+            changes[metric] = dict(
+                baseline=old[metric], variant=new[metric], delta=new[metric] - old[metric], percent=None
+            )
     # Attribute the drag change to body/wheels and pressure/viscous when both
     # runs recorded a reconciled breakdown.
-    breakdown_keys = [
-        (group, metric)
-        for group in ("body", "wheels")
-        for metric in ("drag", "downforce")
-    ] + [(None, metric) for metric in ("pressure_drag", "viscous_drag")]
+    breakdown_keys = [(group, metric) for group in ("body", "wheels") for metric in ("drag", "downforce")] + [
+        (None, metric) for metric in ("pressure_drag", "viscous_drag")
+    ]
     for group, metric in breakdown_keys:
         old = a["result"].get("breakdown", {})
         new = b["result"].get("breakdown", {})
@@ -918,6 +952,43 @@ def compare(baseline: str, variant: str):
     warnings = []
     if mismatch:
         warnings.append("Conditions differ: " + ", ".join(mismatch) + ". Rerun with matching settings.")
+    for coefficient, label in [("cd", "Drag"), ("cl", "Lift")]:
+        spans = [r["result"].get(coefficient + "_span") for r in (a, b)]
+        if any(span is None for span in spans):
+            warnings.append(f"{label} significance is unknown: averaging-window variation is unavailable.")
+        elif abs(changes[coefficient]["delta"]) <= sum(spans) / 2:
+            warnings.append(
+                f"{label} change is within observed averaging-window variation; ranking is unresolved."
+            )
+    for metric, label in [("frontLift", "Front load"), ("rearLift", "Rear load"), ("pitch", "Pitch")]:
+        if metric not in changes:
+            continue
+        bands = [r["result"].get("balance_bands", {}).get(metric) for r in (a, b)]
+        if any(band is None for band in bands):
+            warnings.append(f"{label} significance is unknown: averaging-window variation is unavailable.")
+            continue
+        sensitivities = []
+        for record in (a, b):
+            values = []
+            for level in record["result"].get("refinement_levels", []):
+                loads = level.get("balance")
+                aero = level.get("aero")
+                if not loads and aero:
+                    loads = results.equivalent_loads(
+                        aero["force"], aero["moment"], record["settings"].get("axles"), 1, aero["origin"]
+                    )
+                if loads and metric in loads:
+                    values.append(loads[metric])
+            if len(values) >= 2:
+                sensitivities.append(max(values) - min(values))
+        if abs(changes[metric]["delta"]) <= max([sum(bands), *sensitivities]):
+            warnings.append(
+                f"{label} change is within observed variation or measured grid sensitivity; ranking is unresolved."
+            )
+    if any(r["result"].get("reconciliation", {}).get("complete") is False for r in (a, b)):
+        warnings.append(
+            "Component attribution did not reconcile with whole-car forces or moments; treat its differences as provisional."
+        )
     if not all(r["result"]["force_settled"] and r["result"]["residual_converged"] for r in (a, b)):
         warnings.append("At least one run has not settled. Differences may be numerical.")
     if any((r["result"].get("wall_target_fraction") or 0) < 0.8 for r in (a, b)):
@@ -958,6 +1029,7 @@ def compare(baseline: str, variant: str):
 
 
 app.include_router(webview.router)
+app.include_router(compute_lease.router)
 
 # The web UI (web/dist) is the main interface when it is built; the original UI stays at /legacy/
 # (built with that base path by scripts/setup.sh). Without a web build the original UI is at /.

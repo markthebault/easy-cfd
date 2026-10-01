@@ -1,0 +1,32 @@
+import {test,expect} from '@playwright/test';
+import {readFile,writeFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+
+test('imported MX-5 and thin wing: actual friction and balance screenshots',async({page})=>{
+  test.skip(process.env.EASYCFD_REAL_CAR !== '1','Requires the locally retained validation STL inputs.');
+  const catalogue=JSON.parse(await readFile(resolve('validation/models.json'),'utf8'));
+  const model=catalogue.models.find((m:{id:string})=>m.id==='mx5-kit-wing');
+  const files=await Promise.all(model.parts.filter((p:{active?:boolean})=>p.active!==false).map(async(p:{file:string;name:string;role:string})=>({role:p.role,name:p.name+'.stl',mimeType:'model/stl',buffer:await readFile(resolve('../.easycfd/runs',model.geometryRun,'geometry',p.file))})));
+  await page.goto('/');await page.getByTestId('try-sample').click();
+  await expect(page.getByText('536 triangles')).toBeVisible();
+  const base=files.filter(f=>f.role==='wheel' || /body/i.test(f.name));
+  await page.locator('input[type=file]').last().setInputFiles(base);
+  await page.waitForFunction(()=>(window as any).__easycfd.app.get().design?.source.kind==='files' && !(window as any).__easycfd.app.get().busy);
+  await page.locator('input[type=file]').first().setInputFiles(files.filter(f=>!base.includes(f)));
+  await page.waitForFunction(()=>(window as any).__easycfd.app.get().parts.length>=10 && !(window as any).__easycfd.app.get().busy);
+  await page.getByText('I checked size, orientation, wheels and clearance.').click();
+  await page.getByRole('button',{name:'Continue to conditions'}).click();
+  await page.getByRole('button',{name:'Suggest from marked wheels'}).click();
+  await page.getByRole('checkbox',{name:'Confirm axle positions'}).check();
+  await page.getByRole('button',{name:'Continue to run'}).click();
+  await page.getByText('Expert WebGPU settings',{exact:true}).click();await page.getByRole('radio',{name:/Custom/}).click();
+  const sliders=page.locator('.step.open input[type=range]');await sliders.nth(0).fill('45');await sliders.nth(1).fill('2');
+  await page.getByTestId('run').click();await expect(page.getByTestId('aero-balance')).toBeVisible({timeout:240000});
+  await page.getByRole('button',{name:'Pause animation'}).click();await page.getByRole('button',{name:'Explore airflow'}).click();await page.getByTestId('analysis-friction').click();
+  await page.getByRole('button',{name:'Close options'}).click();
+  await expect(page.locator('.legend-title')).toContainText('Pa');
+  await page.screenshot({path:'test-results/aero-imported-mx5.png'});
+  const data=await page.evaluate(()=>{const r=(window as any).__easycfd.app.get().run;return {geometry:r.doc.geometry,result:r.doc.result,stress:r.surface.map((s:any)=>({valid:s?.stressValid?.filter((x:number)=>x===1).length,missing:s?.stressValid?.filter((x:number)=>x!==1).length}))};});
+  expect(data.result.reconciliation.complete).toBe(true);expect(data.result.wallIntegration.passed).toBe(true);
+  await writeFile('test-results/aero-imported-mx5.json',JSON.stringify(data,null,2));
+});

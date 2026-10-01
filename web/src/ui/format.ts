@@ -76,6 +76,9 @@ export interface GroupForce {
   drag: number;
   /** kg, positive pushing the car down. */
   downforceKg: number;
+  side: number;
+  pressure: [number,number,number];
+  friction: [number,number,number];
   parts: string[];
 }
 
@@ -86,9 +89,11 @@ export function groupForces(r: RunResult, g: GeometrySummary): GroupForce[] {
   const rows = new Map<string, GroupForce>();
   for (const f of r.partForces) {
     const id = f.group ?? "g:body";
-    const row = rows.get(id) ?? { id, name: names.get(id) ?? (id === "g:wheels" ? "Wheels" : "Body"), drag: 0, downforceKg: 0, parts: [] };
+    const row = rows.get(id) ?? { id, name: names.get(id) ?? (id === "g:wheels" ? "Wheels" : "Body"), drag: 0, downforceKg: 0, side: 0, pressure: [0,0,0], friction: [0,0,0], parts: [] };
     row.drag += f.pressure[0] + f.friction[0];
     row.downforceKg -= (f.pressure[2] + f.friction[2]) / G;
+    row.side += f.pressure[1] + f.friction[1];
+    for (let i=0;i<3;i++) {row.pressure[i] += f.pressure[i];row.friction[i] += f.friction[i];}
     row.parts.push(f.name);
     rows.set(id, row);
   }

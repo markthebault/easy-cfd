@@ -1,0 +1,31 @@
+{
+  "domain": [
+    -14.700000000000001,
+    27.300000000000004,
+    -9.57,
+    9.57,
+    0,
+    9.99
+  ],
+  "velocity": [
+    27.77777777777778,
+    0.0,
+    0
+  ],
+  "freestream": 27.77777777777778,
+  "base_cells": 31200,
+  "preset": {
+    "cell": 0.65,
+    "surface": 2,
+    "wake": 1,
+    "layers": 0,
+    "max_cells": 350000,
+    "iterations": 300,
+    "residual": 0.001,
+    "label": "Exploratory",
+    "memory_gb": 3
+  },
+  "processes": 4,
+  "tunnel_cross_section": 191.20860000000002,
+  "blockage_ratio": 0.011505758632195414
+}

@@ -98,6 +98,7 @@ for (const moving_ground of [false, true]) for (const wheels of [false, true]) t
   await expect(page.getByRole("checkbox", { name: "Rotating wheels", exact: true })).toBeChecked({ checked: wheels });
   await page.getByRole("button", { name: "Continue to run" }).click();
   await expect(page.getByTestId("run-boundaries")).toHaveText(boundaries);
+  await page.getByText("Legacy engine options",{exact:true}).click();
   await expect(page.getByTestId("engine-openfoam")).toBeEnabled();
   await page.getByTestId("engine-openfoam").click();
   await page.getByRole("radio", { name: /^Fast/ }).click();
@@ -138,6 +139,7 @@ test("without an OpenFOAM server the engine choice explains how to get one", asy
   await page.getByText("I checked size, orientation, wheels and clearance.").click();
   await page.getByRole("button", { name: "Continue to conditions" }).click();
   await page.getByRole("button", { name: "Continue to run" }).click();
+  await page.getByText("Legacy engine options",{exact:true}).click();
   await expect(page.getByTestId("engine-openfoam")).toBeDisabled();
   await expect(page.getByTestId("engine-openfoam")).toContainText("just run-openfoam");
   await expect(page.getByTestId("run")).toHaveText(/Run simulation/);

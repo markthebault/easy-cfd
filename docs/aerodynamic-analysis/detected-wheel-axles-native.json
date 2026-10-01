@@ -1,0 +1,50 @@
+{
+  "run": "171d7b2e26e94840a56d0761378c9fc3",
+  "seconds": 1.8511838749982417,
+  "axles": {
+    "frontX": -1.1535518914461136,
+    "rearX": 1.1764799505472183,
+    "centrelineY": 2.187490463256836e-05,
+    "confirmed": true,
+    "source": "wheels"
+  },
+  "originalMomentOrigin": [
+    0.04898810386657715,
+    0.0,
+    5.699694161087621e-09
+  ],
+  "balance": {
+    "frontLift": -277.8696554612911,
+    "rearLift": 82.15720781113305,
+    "frontCl": -0.07028264989766438,
+    "rearCl": 0.02078034128474279,
+    "pitch": -191.42891024920328,
+    "wheelbase": 2.330031841993332,
+    "percentageReason": "Both axles must push downward to show a downforce percentage."
+  },
+  "tyreLoads": {
+    "version": "steady-axle-loads-1",
+    "massKg": 1100,
+    "frontWeightPercent": 50,
+    "gravity": 9.80665,
+    "front": {
+      "staticN": 5393.657499999998,
+      "aerodynamicN": 277.8696554612911,
+      "totalN": 5671.527155461289
+    },
+    "rear": {
+      "staticN": 5393.6575,
+      "aerodynamicN": -82.15720781113305,
+      "totalN": 5311.500292188867
+    },
+    "contactFeasible": true
+  },
+  "unchangedFields": [
+    "cd",
+    "cl",
+    "drag",
+    "downforce",
+    "aero"
+  ],
+  "originalRecordSHA256": "843d58cdea61574e893a51074cd5c215990aa662d18fecf325cb9246f11e8bfa"
+}

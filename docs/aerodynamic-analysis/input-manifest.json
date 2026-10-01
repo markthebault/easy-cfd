@@ -1,0 +1,4493 @@
+{
+  "models": {
+    "note": "OpenFOAM (simpleFoam, k-omega SST) results produced by the EasyCFD desktop app. Geometry is read from the local .easycfd/runs folder, which is not part of the repository.",
+    "models": [
+      {
+        "id": "sample",
+        "name": "Sample car",
+        "geometryRun": "5c037a8721744c7d8a91e55123f55bda",
+        "parts": [
+          {
+            "file": "part0.stl",
+            "name": "Body",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part1.stl",
+            "name": "Front right wheel",
+            "role": "wheel",
+            "wheel": {
+              "center": [
+                -1.35,
+                -1.05,
+                0.33
+              ],
+              "radius": 0.32
+            }
+          },
+          {
+            "file": "part2.stl",
+            "name": "Front left wheel",
+            "role": "wheel",
+            "wheel": {
+              "center": [
+                -1.35,
+                1.05,
+                0.33
+              ],
+              "radius": 0.32
+            }
+          },
+          {
+            "file": "part3.stl",
+            "name": "Rear right wheel",
+            "role": "wheel",
+            "wheel": {
+              "center": [
+                1.3,
+                -1.05,
+                0.33
+              ],
+              "radius": 0.32
+            }
+          },
+          {
+            "file": "part4.stl",
+            "name": "Rear left wheel",
+            "role": "wheel",
+            "wheel": {
+              "center": [
+                1.3,
+                1.05,
+                0.33
+              ],
+              "radius": 0.32
+            }
+          }
+        ],
+        "dimensions": [
+          4.2,
+          2.34,
+          1.31
+        ],
+        "settings": {
+          "speed_kmh": 100.0,
+          "yaw_deg": 0.0,
+          "reference_area": 2.2,
+          "density": 1.225,
+          "moving_ground": true,
+          "wheels": true
+        },
+        "references": [
+          {
+            "run": "5c037a8721744c7d8a91e55123f55bda",
+            "quality": "medium",
+            "speed_kmh": 100.0,
+            "cd": 0.546712937556,
+            "cl": 0.6330745189992,
+            "cells": 193849,
+            "settled": true,
+            "residual_converged": false
+          },
+          {
+            "run": "59fbf9e6906d4e469270bb50c2dbb70c",
+            "quality": "medium",
+            "speed_kmh": 100.0,
+            "cd": 0.5515396949496,
+            "cl": 0.6280437311592001,
+            "cells": 193849,
+            "settled": false,
+            "residual_converged": false
+          },
+          {
+            "run": "2a274a3a010748dfac761a2f40206491",
+            "quality": "fast",
+            "speed_kmh": 100.0,
+            "cd": 0.5168834067988,
+            "cl": 0.6063587259764001,
+            "cells": 41417,
+            "settled": true,
+            "residual_converged": true
+          }
+        ]
+      },
+      {
+        "id": "sample-yaw10",
+        "name": "Sample car, 10\u00b0 crosswind yaw",
+        "geometryRun": "5c037a8721744c7d8a91e55123f55bda",
+        "parts": [
+          {
+            "file": "part0.stl",
+            "name": "Body",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part1.stl",
+            "name": "Front right wheel",
+            "role": "wheel",
+            "wheel": {
+              "center": [
+                -1.35,
+                -1.05,
+                0.33
+              ],
+              "radius": 0.32
+            }
+          },
+          {
+            "file": "part2.stl",
+            "name": "Front left wheel",
+            "role": "wheel",
+            "wheel": {
+              "center": [
+                -1.35,
+                1.05,
+                0.33
+              ],
+              "radius": 0.32
+            }
+          },
+          {
+            "file": "part3.stl",
+            "name": "Rear right wheel",
+            "role": "wheel",
+            "wheel": {
+              "center": [
+                1.3,
+                -1.05,
+                0.33
+              ],
+              "radius": 0.32
+            }
+          },
+          {
+            "file": "part4.stl",
+            "name": "Rear left wheel",
+            "role": "wheel",
+            "wheel": {
+              "center": [
+                1.3,
+                1.05,
+                0.33
+              ],
+              "radius": 0.32
+            }
+          }
+        ],
+        "dimensions": [
+          4.2,
+          2.34,
+          1.31
+        ],
+        "settings": {
+          "speed_kmh": 100.0,
+          "yaw_deg": 10.0,
+          "reference_area": 2.2,
+          "density": 1.225,
+          "moving_ground": true,
+          "wheels": true
+        },
+        "references": [
+          {
+            "run": "19d8a06b0b63406090c977065add33e3",
+            "quality": "medium",
+            "speed_kmh": 100.0,
+            "cd": 0.6095617804836,
+            "cl": 0.7186922284630002,
+            "cells": 193819,
+            "settled": true,
+            "residual_converged": false,
+            "note": "Generated for the web validation; same geometry as the sample baseline."
+          }
+        ]
+      },
+      {
+        "id": "sample-wing",
+        "name": "Sample car + rear wing",
+        "geometryRun": "b039b9ba826042ffa6fb9cf250e21fbd",
+        "parts": [
+          {
+            "file": "part0.stl",
+            "name": "Body",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part1.stl",
+            "name": "Front right wheel",
+            "role": "wheel",
+            "wheel": {
+              "center": [
+                -1.35,
+                -1.05,
+                0.33
+              ],
+              "radius": 0.32
+            }
+          },
+          {
+            "file": "part2.stl",
+            "name": "Front left wheel",
+            "role": "wheel",
+            "wheel": {
+              "center": [
+                -1.35,
+                1.05,
+                0.33
+              ],
+              "radius": 0.32
+            }
+          },
+          {
+            "file": "part3.stl",
+            "name": "Rear right wheel",
+            "role": "wheel",
+            "wheel": {
+              "center": [
+                1.3,
+                -1.05,
+                0.33
+              ],
+              "radius": 0.32
+            }
+          },
+          {
+            "file": "part4.stl",
+            "name": "Rear left wheel",
+            "role": "wheel",
+            "wheel": {
+              "center": [
+                1.3,
+                1.05,
+                0.33
+              ],
+              "radius": 0.32
+            }
+          },
+          {
+            "file": "part5.stl",
+            "name": "Rear wing",
+            "role": "body",
+            "wheel": null
+          }
+        ],
+        "dimensions": [
+          4.2,
+          2.34,
+          1.58
+        ],
+        "settings": {
+          "speed_kmh": 100.0,
+          "yaw_deg": 0.0,
+          "reference_area": 2.2,
+          "density": 1.225,
+          "moving_ground": true,
+          "wheels": true
+        },
+        "references": [
+          {
+            "run": "b039b9ba826042ffa6fb9cf250e21fbd",
+            "quality": "medium",
+            "speed_kmh": 100.0,
+            "cd": 0.6778444326126,
+            "cl": 0.41586013778040004,
+            "cells": 265766,
+            "settled": false,
+            "residual_converged": false
+          },
+          {
+            "run": "3dce4128027a4351a9307cf79bb41404",
+            "quality": "fast",
+            "speed_kmh": 100.0,
+            "cd": 0.6262144835028,
+            "cl": 0.38871870908,
+            "cells": 141345,
+            "settled": true,
+            "residual_converged": true
+          }
+        ]
+      },
+      {
+        "id": "mx5",
+        "name": "MX-5 NC (smoother exterior v3)",
+        "geometryRun": "48d98cc2294942838eca188efa34787d",
+        "parts": [
+          {
+            "file": "part0.stl",
+            "name": "0-body 1",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part1.stl",
+            "name": "1-wheel--1--1 1",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550154209138,
+              "center": [
+                -1.220278114080429,
+                0.7157635688781738,
+                0.3234550154209138
+              ]
+            }
+          },
+          {
+            "file": "part2.stl",
+            "name": "2-wheel--1-1 1",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.31345501542091353,
+              "center": [
+                1.0762568712234497,
+                0.7157635688781738,
+                0.3234550154209141
+              ]
+            }
+          },
+          {
+            "file": "part3.stl",
+            "name": "3-wheel-1--1 1",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550154209138,
+              "center": [
+                -1.220278114080429,
+                -0.7181464433670044,
+                0.3234550154209138
+              ]
+            }
+          },
+          {
+            "file": "part4.stl",
+            "name": "4-wheel-1-1 1",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.31345501542091353,
+              "center": [
+                1.0762568712234497,
+                -0.7181464433670044,
+                0.3234550154209141
+              ]
+            }
+          }
+        ],
+        "dimensions": [
+          4.001986503601074,
+          1.8947184085845947,
+          1.2206964492797854
+        ],
+        "settings": {
+          "speed_kmh": 100.0,
+          "yaw_deg": 0.0,
+          "reference_area": 2.0,
+          "density": 1.225,
+          "moving_ground": true,
+          "wheels": true
+        },
+        "references": [
+          {
+            "run": "48d98cc2294942838eca188efa34787d",
+            "quality": "medium",
+            "speed_kmh": 100.0,
+            "cd": 0.31910735104719995,
+            "cl": 0.226867841166,
+            "cells": 165934,
+            "settled": true,
+            "residual_converged": false
+          },
+          {
+            "run": "fafc3ed8862146f792054297cf12d95b",
+            "quality": "medium",
+            "speed_kmh": 100.0,
+            "cd": 0.3187580269916,
+            "cl": 0.226340659909,
+            "cells": 165934,
+            "settled": true,
+            "residual_converged": false
+          },
+          {
+            "run": "8bde906a2c5d4ff480802ba3f605e6b9",
+            "quality": "fast",
+            "speed_kmh": 100.0,
+            "cd": 0.3112046640492,
+            "cl": -0.035592672752679994,
+            "cells": 39347,
+            "settled": true,
+            "residual_converged": true
+          }
+        ]
+      },
+      {
+        "id": "z4",
+        "name": "BMW Z4 (higher-res check)",
+        "geometryRun": "6f22f0a5efa04da8906397c0295b34a9",
+        "parts": [
+          {
+            "file": "part0.stl",
+            "name": "body 1",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part1.stl",
+            "name": "rear_wing 1",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part2.stl",
+            "name": "wheel_front_left 1",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.33110004430636764,
+              "center": [
+                -1.22641322016716,
+                -0.8033486008644104,
+                0.35610004430636766
+              ]
+            }
+          },
+          {
+            "file": "part3.stl",
+            "name": "wheel_front_right 1",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.33110004430636764,
+              "center": [
+                -1.22641322016716,
+                0.8030996322631836,
+                0.35610004430636766
+              ]
+            }
+          },
+          {
+            "file": "part4.stl",
+            "name": "wheel_rear_left 1",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.33110004430636764,
+              "center": [
+                1.2714512050151825,
+                -0.8408702611923218,
+                0.35610004430636766
+              ]
+            }
+          },
+          {
+            "file": "part5.stl",
+            "name": "wheel_rear_right 1",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.33110004430636764,
+              "center": [
+                1.2714512050151825,
+                0.840621292591095,
+                0.35610004430636766
+              ]
+            }
+          },
+          {
+            "file": "part6.stl",
+            "name": "wing_endplate_left 1",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part7.stl",
+            "name": "wing_endplate_right 1",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part8.stl",
+            "name": "wing_support_front_left 1",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part9.stl",
+            "name": "wing_support_front_right 1",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part10.stl",
+            "name": "wing_support_rear_left 1",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part11.stl",
+            "name": "wing_support_rear_right 1",
+            "role": "body",
+            "wheel": null
+          }
+        ],
+        "dimensions": [
+          4.332674264907837,
+          1.9733514189720154,
+          1.2282952619716525
+        ],
+        "settings": {
+          "speed_kmh": 100.0,
+          "yaw_deg": 0.0,
+          "reference_area": 2.2,
+          "density": 1.225,
+          "moving_ground": true,
+          "wheels": true
+        },
+        "references": [
+          {
+            "run": "0e2f1e9b63264e848a034f8ac3f7e3b5",
+            "quality": "medium",
+            "speed_kmh": 100.0,
+            "cd": 0.4405646696144,
+            "cl": -0.31017978320460005,
+            "cells": 309721,
+            "settled": true,
+            "residual_converged": true,
+            "note": "Generated for the web validation from the same geometry (fingerprint match)."
+          },
+          {
+            "run": "6f22f0a5efa04da8906397c0295b34a9",
+            "quality": "fast",
+            "speed_kmh": 100.0,
+            "cd": 0.4753524530704,
+            "cl": -0.155158488747,
+            "cells": 159271,
+            "settled": true,
+            "residual_converged": true
+          }
+        ]
+      },
+      {
+        "id": "z4-wing",
+        "name": "BMW Z4 open rear wing",
+        "geometryRun": "5bc81f673eca48f8b12412a78329c13b",
+        "parts": [
+          {
+            "file": "part0.stl",
+            "name": "body 1",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part1.stl",
+            "name": "wheel_front_left 1",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3326136982650496,
+              "center": [
+                -1.2354624271392822,
+                -0.8051268756389618,
+                0.3576137028052472
+              ]
+            }
+          },
+          {
+            "file": "part2.stl",
+            "name": "wheel_front_right 1",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3326137005351484,
+              "center": [
+                -1.2354624271392822,
+                0.8017572462558746,
+                0.3576137005351484
+              ]
+            }
+          },
+          {
+            "file": "part3.stl",
+            "name": "wheel_rear_left 1",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3326136982650496,
+              "center": [
+                1.262402057647705,
+                -0.8426485359668732,
+                0.3576137028052472
+              ]
+            }
+          },
+          {
+            "file": "part4.stl",
+            "name": "wheel_rear_right 1",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3326137005351484,
+              "center": [
+                1.262402057647705,
+                0.839278906583786,
+                0.3576137005351484
+              ]
+            }
+          },
+          {
+            "file": "part5.stl",
+            "name": "rear_wing 1",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part6.stl",
+            "name": "wing_endplate_left 1",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part7.stl",
+            "name": "wing_endplate_right 1",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part8.stl",
+            "name": "wing_support_front_left 1",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part9.stl",
+            "name": "wing_support_front_right 1",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part10.stl",
+            "name": "wing_support_rear_left 1",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part11.stl",
+            "name": "wing_support_rear_right 1",
+            "role": "body",
+            "wheel": null
+          }
+        ],
+        "dimensions": [
+          4.31119179725647,
+          1.969165027141571,
+          1.227543163113296
+        ],
+        "settings": {
+          "speed_kmh": 100.0,
+          "yaw_deg": 0.0,
+          "reference_area": 2.2,
+          "density": 1.225,
+          "moving_ground": true,
+          "wheels": true
+        },
+        "references": [
+          {
+            "run": "7308d8fe881a49a880f6a5d6d3b817b0",
+            "quality": "medium",
+            "speed_kmh": 100.0,
+            "cd": 0.4442281998358,
+            "cl": -0.1539703408694,
+            "cells": 322045,
+            "settled": true,
+            "residual_converged": false,
+            "note": "Generated for the web validation from the same geometry (fingerprint match)."
+          },
+          {
+            "run": "5bc81f673eca48f8b12412a78329c13b",
+            "quality": "fast",
+            "speed_kmh": 100.0,
+            "cd": 0.48899344186060006,
+            "cl": -0.15164373107780002,
+            "cells": 160325,
+            "settled": true,
+            "residual_converged": true
+          }
+        ]
+      },
+      {
+        "id": "simple-car",
+        "name": "Simple Car CFD (one piece)",
+        "geometryRun": "e95687af743d408095560b8cdab346d2",
+        "parts": [
+          {
+            "file": "part0.stl",
+            "name": "Simple Car CFD 1",
+            "role": "body",
+            "wheel": null
+          }
+        ],
+        "dimensions": [
+          4.2991598663330075,
+          1.5990559058189393,
+          1.3466423759460449
+        ],
+        "settings": {
+          "speed_kmh": 100.0,
+          "yaw_deg": 0.0,
+          "reference_area": 2.2,
+          "density": 1.225,
+          "moving_ground": true,
+          "wheels": true
+        },
+        "references": [
+          {
+            "run": "0fc978585cfb4ed7bb1cbf2458e4d747",
+            "quality": "medium",
+            "speed_kmh": 200.0,
+            "cd": 0.3705148213407999,
+            "cl": 0.49258259347919997,
+            "cells": 149197,
+            "settled": true,
+            "residual_converged": false,
+            "note": "Generated for the web validation from the same geometry (fingerprint match)."
+          },
+          {
+            "run": "e95687af743d408095560b8cdab346d2",
+            "quality": "fast",
+            "speed_kmh": 100.0,
+            "cd": 0.45945864570879996,
+            "cl": 0.43855755695899995,
+            "cells": 35005,
+            "settled": true,
+            "residual_converged": true
+          },
+          {
+            "run": "447131a2d24145009934e8d42f8f2337",
+            "quality": "fast",
+            "speed_kmh": 200.0,
+            "cd": 0.45903256813300003,
+            "cl": 0.43919385296400004,
+            "cells": 35005,
+            "settled": true,
+            "residual_converged": true
+          }
+        ]
+      },
+      {
+        "id": "ahmed25",
+        "name": "Ahmed body 25\u00b0",
+        "geometryRun": "fa415a20e52649fc9f55a6b56ed39cce",
+        "parts": [
+          {
+            "file": "part0.stl",
+            "name": "ahmed_25deg_m 1",
+            "role": "body",
+            "wheel": null
+          }
+        ],
+        "dimensions": [
+          1.044,
+          0.389,
+          0.338
+        ],
+        "settings": {
+          "speed_kmh": 144.0,
+          "yaw_deg": 0.0,
+          "reference_area": 0.115032,
+          "density": 1.0,
+          "moving_ground": true,
+          "wheels": false
+        },
+        "references": [
+          {
+            "run": "fa415a20e52649fc9f55a6b56ed39cce",
+            "quality": "medium",
+            "speed_kmh": 144.0,
+            "cd": 0.36470947146239996,
+            "cl": 0.2073057693972,
+            "cells": 159190,
+            "settled": false,
+            "residual_converged": false
+          },
+          {
+            "run": "e9453fcf9a394fd89f167a2ccab7d13f",
+            "quality": "precise",
+            "speed_kmh": 144.0,
+            "cd": 0.358166678568,
+            "cl": 0.4044791614062,
+            "cells": 310851,
+            "settled": true,
+            "residual_converged": true
+          }
+        ]
+      },
+      {
+        "id": "mx5-kit-base",
+        "name": "MX-5 + synthetic kit: kit off",
+        "geometryRun": "4cffc8ba20684ef6b5b7dfbdae478469",
+        "parts": [
+          {
+            "file": "part0.stl",
+            "name": "body",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part1.stl",
+            "name": "wheel_fr",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                -1.1707747876644135,
+                0.7157635688781738,
+                0.32345501076430083
+              ]
+            }
+          },
+          {
+            "file": "part2.stl",
+            "name": "wheel_rr",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                1.1257601976394653,
+                0.7157635688781738,
+                0.32345501076430083
+              ]
+            }
+          },
+          {
+            "file": "part3.stl",
+            "name": "wheel_fl",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                -1.1707747876644135,
+                -0.7181464433670044,
+                0.32345501076430083
+              ]
+            }
+          },
+          {
+            "file": "part4.stl",
+            "name": "wheel_rl",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                1.1257601976394653,
+                -0.7181464433670044,
+                0.32345501076430083
+              ]
+            }
+          },
+          {
+            "file": "part5.stl",
+            "name": "rear_wing",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          },
+          {
+            "file": "part6.stl",
+            "name": "wing_endplate_left",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          },
+          {
+            "file": "part7.stl",
+            "name": "wing_endplate_right",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          },
+          {
+            "file": "part8.stl",
+            "name": "wing_support_left",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          },
+          {
+            "file": "part9.stl",
+            "name": "wing_support_right",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          },
+          {
+            "file": "part10.stl",
+            "name": "front_splitter",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          },
+          {
+            "file": "part11.stl",
+            "name": "canard_left",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          },
+          {
+            "file": "part12.stl",
+            "name": "canard_right",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          }
+        ],
+        "dimensions": [
+          4.1009931564331055,
+          1.8947184085845947,
+          1.2300000097602606
+        ],
+        "settings": {
+          "speed_kmh": 100.0,
+          "yaw_deg": 0.0,
+          "reference_area": 2.0,
+          "density": 1.225,
+          "moving_ground": true,
+          "wheels": true
+        },
+        "references": [
+          {
+            "run": "4cffc8ba20684ef6b5b7dfbdae478469",
+            "quality": "medium",
+            "speed_kmh": 100.0,
+            "cd": 0.32033683903079996,
+            "cl": 0.23144433927279998,
+            "cells": 165835,
+            "settled": null
+          }
+        ],
+        "note": "Synthetic aero kit (validation/aero-kit). All kit parts shape the grid; inactive ones are not simulated."
+      },
+      {
+        "id": "mx5-kit-wing",
+        "name": "MX-5 + synthetic kit: rear wing only",
+        "geometryRun": "4cffc8ba20684ef6b5b7dfbdae478469",
+        "parts": [
+          {
+            "file": "part0.stl",
+            "name": "body",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part1.stl",
+            "name": "wheel_fr",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                -1.1707747876644135,
+                0.7157635688781738,
+                0.32345501076430083
+              ]
+            }
+          },
+          {
+            "file": "part2.stl",
+            "name": "wheel_rr",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                1.1257601976394653,
+                0.7157635688781738,
+                0.32345501076430083
+              ]
+            }
+          },
+          {
+            "file": "part3.stl",
+            "name": "wheel_fl",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                -1.1707747876644135,
+                -0.7181464433670044,
+                0.32345501076430083
+              ]
+            }
+          },
+          {
+            "file": "part4.stl",
+            "name": "wheel_rl",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                1.1257601976394653,
+                -0.7181464433670044,
+                0.32345501076430083
+              ]
+            }
+          },
+          {
+            "file": "part5.stl",
+            "name": "rear_wing",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part6.stl",
+            "name": "wing_endplate_left",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part7.stl",
+            "name": "wing_endplate_right",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part8.stl",
+            "name": "wing_support_left",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part9.stl",
+            "name": "wing_support_right",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part10.stl",
+            "name": "front_splitter",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          },
+          {
+            "file": "part11.stl",
+            "name": "canard_left",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          },
+          {
+            "file": "part12.stl",
+            "name": "canard_right",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          }
+        ],
+        "dimensions": [
+          4.1009931564331055,
+          1.8947184085845947,
+          1.2300000097602606
+        ],
+        "settings": {
+          "speed_kmh": 100.0,
+          "yaw_deg": 0.0,
+          "reference_area": 2.0,
+          "density": 1.225,
+          "moving_ground": true,
+          "wheels": true
+        },
+        "references": [
+          {
+            "run": "3efac4b69b5f428291749d5dff94988a",
+            "quality": "medium",
+            "speed_kmh": 100.0,
+            "cd": 0.3710964729099999,
+            "cl": 0.010104900097381998,
+            "cells": 443916,
+            "settled": null
+          }
+        ],
+        "note": "Synthetic aero kit (validation/aero-kit). All kit parts shape the grid; inactive ones are not simulated."
+      },
+      {
+        "id": "mx5-kit-full",
+        "name": "MX-5 + synthetic kit: full kit",
+        "geometryRun": "4cffc8ba20684ef6b5b7dfbdae478469",
+        "parts": [
+          {
+            "file": "part0.stl",
+            "name": "body",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part1.stl",
+            "name": "wheel_fr",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                -1.1707747876644135,
+                0.7157635688781738,
+                0.32345501076430083
+              ]
+            }
+          },
+          {
+            "file": "part2.stl",
+            "name": "wheel_rr",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                1.1257601976394653,
+                0.7157635688781738,
+                0.32345501076430083
+              ]
+            }
+          },
+          {
+            "file": "part3.stl",
+            "name": "wheel_fl",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                -1.1707747876644135,
+                -0.7181464433670044,
+                0.32345501076430083
+              ]
+            }
+          },
+          {
+            "file": "part4.stl",
+            "name": "wheel_rl",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                1.1257601976394653,
+                -0.7181464433670044,
+                0.32345501076430083
+              ]
+            }
+          },
+          {
+            "file": "part5.stl",
+            "name": "rear_wing",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part6.stl",
+            "name": "wing_endplate_left",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part7.stl",
+            "name": "wing_endplate_right",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part8.stl",
+            "name": "wing_support_left",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part9.stl",
+            "name": "wing_support_right",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part10.stl",
+            "name": "front_splitter",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part11.stl",
+            "name": "canard_left",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part12.stl",
+            "name": "canard_right",
+            "role": "body",
+            "wheel": null
+          }
+        ],
+        "dimensions": [
+          4.1009931564331055,
+          1.8947184085845947,
+          1.2300000097602606
+        ],
+        "settings": {
+          "speed_kmh": 100.0,
+          "yaw_deg": 0.0,
+          "reference_area": 2.0,
+          "density": 1.225,
+          "moving_ground": true,
+          "wheels": true
+        },
+        "references": [],
+        "note": "Synthetic aero kit (validation/aero-kit). All kit parts shape the grid; inactive ones are not simulated."
+      },
+      {
+        "id": "mx5-hw-base",
+        "name": "MX-5 + synthetic raised wing: wing off",
+        "geometryRun": "31d9e1da047e4abd84810ccf81755fd2",
+        "parts": [
+          {
+            "file": "part0.stl",
+            "name": "body",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part1.stl",
+            "name": "wheel_fr",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                -1.220278114080429,
+                0.7157635688781738,
+                0.3234550105407834
+              ]
+            }
+          },
+          {
+            "file": "part2.stl",
+            "name": "wheel_rr",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                1.0762568712234497,
+                0.7157635688781738,
+                0.3234550105407834
+              ]
+            }
+          },
+          {
+            "file": "part3.stl",
+            "name": "wheel_fl",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                -1.220278114080429,
+                -0.7181464433670044,
+                0.3234550105407834
+              ]
+            }
+          },
+          {
+            "file": "part4.stl",
+            "name": "wheel_rl",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                1.0762568712234497,
+                -0.7181464433670044,
+                0.3234550105407834
+              ]
+            }
+          },
+          {
+            "file": "part5.stl",
+            "name": "rear_wing_high",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          },
+          {
+            "file": "part6.stl",
+            "name": "wing_high_endplate_left",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          },
+          {
+            "file": "part7.stl",
+            "name": "wing_high_endplate_right",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          },
+          {
+            "file": "part8.stl",
+            "name": "wing_high_support_left",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          },
+          {
+            "file": "part9.stl",
+            "name": "wing_high_support_right",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          }
+        ],
+        "dimensions": [
+          4.001986503601074,
+          1.8947184085845947,
+          1.4800000097602606
+        ],
+        "settings": {
+          "speed_kmh": 100.0,
+          "yaw_deg": 0.0,
+          "reference_area": 2.0,
+          "density": 1.225,
+          "moving_ground": true,
+          "wheels": true
+        },
+        "references": [
+          {
+            "run": "31d9e1da047e4abd84810ccf81755fd2",
+            "quality": "medium",
+            "speed_kmh": 100.0,
+            "cd": 0.3187952255664,
+            "cl": 0.2253142223032,
+            "cells": 165926,
+            "settled": null
+          }
+        ],
+        "note": "Synthetic raised rear wing (validation/aero-kit, *_high). All parts shape the grid; inactive ones are not simulated."
+      },
+      {
+        "id": "mx5-hw-wing",
+        "name": "MX-5 + synthetic raised wing: wing on",
+        "geometryRun": "31d9e1da047e4abd84810ccf81755fd2",
+        "parts": [
+          {
+            "file": "part0.stl",
+            "name": "body",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part1.stl",
+            "name": "wheel_fr",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                -1.220278114080429,
+                0.7157635688781738,
+                0.3234550105407834
+              ]
+            }
+          },
+          {
+            "file": "part2.stl",
+            "name": "wheel_rr",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                1.0762568712234497,
+                0.7157635688781738,
+                0.3234550105407834
+              ]
+            }
+          },
+          {
+            "file": "part3.stl",
+            "name": "wheel_fl",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                -1.220278114080429,
+                -0.7181464433670044,
+                0.3234550105407834
+              ]
+            }
+          },
+          {
+            "file": "part4.stl",
+            "name": "wheel_rl",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                1.0762568712234497,
+                -0.7181464433670044,
+                0.3234550105407834
+              ]
+            }
+          },
+          {
+            "file": "part5.stl",
+            "name": "rear_wing_high",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part6.stl",
+            "name": "wing_high_endplate_left",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part7.stl",
+            "name": "wing_high_endplate_right",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part8.stl",
+            "name": "wing_high_support_left",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part9.stl",
+            "name": "wing_high_support_right",
+            "role": "body",
+            "wheel": null
+          }
+        ],
+        "dimensions": [
+          4.001986503601074,
+          1.8947184085845947,
+          1.4800000097602606
+        ],
+        "settings": {
+          "speed_kmh": 100.0,
+          "yaw_deg": 0.0,
+          "reference_area": 2.0,
+          "density": 1.225,
+          "moving_ground": true,
+          "wheels": true
+        },
+        "references": [
+          {
+            "run": "605418af25ca42e8994a1cfb3e631d74",
+            "quality": "medium",
+            "speed_kmh": 100.0,
+            "cd": 0.37024647103299996,
+            "cl": -0.1180245628222,
+            "cells": 583385,
+            "settled": null
+          }
+        ],
+        "note": "Synthetic raised rear wing (validation/aero-kit, *_high). All parts shape the grid; inactive ones are not simulated."
+      },
+      {
+        "id": "mx5-kit-splitter",
+        "name": "MX-5 + synthetic kit: splitter only",
+        "geometryRun": "4cffc8ba20684ef6b5b7dfbdae478469",
+        "parts": [
+          {
+            "file": "part0.stl",
+            "name": "body",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part1.stl",
+            "name": "wheel_fr",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                -1.1707747876644135,
+                0.7157635688781738,
+                0.32345501076430083
+              ]
+            }
+          },
+          {
+            "file": "part2.stl",
+            "name": "wheel_rr",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                1.1257601976394653,
+                0.7157635688781738,
+                0.32345501076430083
+              ]
+            }
+          },
+          {
+            "file": "part3.stl",
+            "name": "wheel_fl",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                -1.1707747876644135,
+                -0.7181464433670044,
+                0.32345501076430083
+              ]
+            }
+          },
+          {
+            "file": "part4.stl",
+            "name": "wheel_rl",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                1.1257601976394653,
+                -0.7181464433670044,
+                0.32345501076430083
+              ]
+            }
+          },
+          {
+            "file": "part5.stl",
+            "name": "rear_wing",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          },
+          {
+            "file": "part6.stl",
+            "name": "wing_endplate_left",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          },
+          {
+            "file": "part7.stl",
+            "name": "wing_endplate_right",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          },
+          {
+            "file": "part8.stl",
+            "name": "wing_support_left",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          },
+          {
+            "file": "part9.stl",
+            "name": "wing_support_right",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          },
+          {
+            "file": "part10.stl",
+            "name": "front_splitter",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part11.stl",
+            "name": "canard_left",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          },
+          {
+            "file": "part12.stl",
+            "name": "canard_right",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          }
+        ],
+        "dimensions": [
+          4.1009931564331055,
+          1.8947184085845947,
+          1.2300000097602606
+        ],
+        "settings": {
+          "speed_kmh": 100.0,
+          "yaw_deg": 0.0,
+          "reference_area": 2.0,
+          "density": 1.225,
+          "moving_ground": true,
+          "wheels": true
+        },
+        "references": [],
+        "note": "Synthetic aero kit (validation/aero-kit). All kit parts shape the grid; inactive ones are not simulated."
+      },
+      {
+        "id": "mx5-kit-front",
+        "name": "MX-5 + synthetic kit: splitter and canards",
+        "geometryRun": "4cffc8ba20684ef6b5b7dfbdae478469",
+        "parts": [
+          {
+            "file": "part0.stl",
+            "name": "body",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part1.stl",
+            "name": "wheel_fr",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                -1.1707747876644135,
+                0.7157635688781738,
+                0.32345501076430083
+              ]
+            }
+          },
+          {
+            "file": "part2.stl",
+            "name": "wheel_rr",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                1.1257601976394653,
+                0.7157635688781738,
+                0.32345501076430083
+              ]
+            }
+          },
+          {
+            "file": "part3.stl",
+            "name": "wheel_fl",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                -1.1707747876644135,
+                -0.7181464433670044,
+                0.32345501076430083
+              ]
+            }
+          },
+          {
+            "file": "part4.stl",
+            "name": "wheel_rl",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                1.1257601976394653,
+                -0.7181464433670044,
+                0.32345501076430083
+              ]
+            }
+          },
+          {
+            "file": "part5.stl",
+            "name": "rear_wing",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          },
+          {
+            "file": "part6.stl",
+            "name": "wing_endplate_left",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          },
+          {
+            "file": "part7.stl",
+            "name": "wing_endplate_right",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          },
+          {
+            "file": "part8.stl",
+            "name": "wing_support_left",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          },
+          {
+            "file": "part9.stl",
+            "name": "wing_support_right",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          },
+          {
+            "file": "part10.stl",
+            "name": "front_splitter",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part11.stl",
+            "name": "canard_left",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part12.stl",
+            "name": "canard_right",
+            "role": "body",
+            "wheel": null
+          }
+        ],
+        "dimensions": [
+          4.1009931564331055,
+          1.8947184085845947,
+          1.2300000097602606
+        ],
+        "settings": {
+          "speed_kmh": 100.0,
+          "yaw_deg": 0.0,
+          "reference_area": 2.0,
+          "density": 1.225,
+          "moving_ground": true,
+          "wheels": true
+        },
+        "references": [],
+        "note": "Synthetic aero kit (validation/aero-kit). All kit parts shape the grid; inactive ones are not simulated."
+      },
+      {
+        "id": "wing-alone",
+        "name": "Synthetic raised wing alone (no car), reference area = planform 0.394 m\u00b2",
+        "geometryRun": "31d9e1da047e4abd84810ccf81755fd2",
+        "parts": [
+          {
+            "file": "part5.stl",
+            "name": "rear_wing_high",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part6.stl",
+            "name": "wing_high_endplate_left",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part7.stl",
+            "name": "wing_high_endplate_right",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part8.stl",
+            "name": "wing_high_support_left",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part9.stl",
+            "name": "wing_high_support_right",
+            "role": "body",
+            "wheel": null
+          }
+        ],
+        "dimensions": [
+          0.4,
+          1.42,
+          0.3
+        ],
+        "settings": {
+          "speed_kmh": 100.0,
+          "yaw_deg": 0.0,
+          "reference_area": 0.3937,
+          "density": 1.225,
+          "moving_ground": true,
+          "wheels": true
+        },
+        "references": [],
+        "note": "Numerical check of the wing model; no OpenFOAM reference."
+      },
+      {
+        "id": "mx5-mw-base",
+        "name": "MX-5 + synthetic raised wing 4\u00b0: wing off",
+        "geometryRun": "ffd5128f88d94e1ca4300486329af71c",
+        "parts": [
+          {
+            "file": "part0.stl",
+            "name": "body",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part1.stl",
+            "name": "wheel_fr",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                -1.220278114080429,
+                0.7157635688781738,
+                0.3234550105407834
+              ]
+            }
+          },
+          {
+            "file": "part2.stl",
+            "name": "wheel_rr",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                1.0762568712234497,
+                0.7157635688781738,
+                0.3234550105407834
+              ]
+            }
+          },
+          {
+            "file": "part3.stl",
+            "name": "wheel_fl",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                -1.220278114080429,
+                -0.7181464433670044,
+                0.3234550105407834
+              ]
+            }
+          },
+          {
+            "file": "part4.stl",
+            "name": "wheel_rl",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                1.0762568712234497,
+                -0.7181464433670044,
+                0.3234550105407834
+              ]
+            }
+          },
+          {
+            "file": "part5.stl",
+            "name": "rear_wing_mid",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          },
+          {
+            "file": "part6.stl",
+            "name": "wing_high_endplate_left",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          },
+          {
+            "file": "part7.stl",
+            "name": "wing_high_endplate_right",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          },
+          {
+            "file": "part8.stl",
+            "name": "wing_mid_support_left",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          },
+          {
+            "file": "part9.stl",
+            "name": "wing_mid_support_right",
+            "role": "body",
+            "wheel": null,
+            "active": false
+          }
+        ],
+        "dimensions": [
+          4.001986503601074,
+          1.8947184085845947,
+          1.4800000097602606
+        ],
+        "settings": {
+          "speed_kmh": 100.0,
+          "yaw_deg": 0.0,
+          "reference_area": 2.0,
+          "density": 1.225,
+          "moving_ground": true,
+          "wheels": true
+        },
+        "references": [
+          {
+            "run": "ffd5128f88d94e1ca4300486329af71c",
+            "quality": "medium",
+            "speed_kmh": 100.0,
+            "cd": 0.31874991236419997,
+            "cl": 0.2254939594368,
+            "cells": 165926,
+            "settled": null
+          }
+        ],
+        "note": "Synthetic raised rear wing at 4 degrees (validation/aero-kit, *_mid). All parts shape the grid; inactive ones are not simulated."
+      },
+      {
+        "id": "mx5-mw-wing",
+        "name": "MX-5 + synthetic raised wing 4\u00b0: wing on",
+        "geometryRun": "ffd5128f88d94e1ca4300486329af71c",
+        "parts": [
+          {
+            "file": "part0.stl",
+            "name": "body",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part1.stl",
+            "name": "wheel_fr",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                -1.220278114080429,
+                0.7157635688781738,
+                0.3234550105407834
+              ]
+            }
+          },
+          {
+            "file": "part2.stl",
+            "name": "wheel_rr",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                1.0762568712234497,
+                0.7157635688781738,
+                0.3234550105407834
+              ]
+            }
+          },
+          {
+            "file": "part3.stl",
+            "name": "wheel_fl",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                -1.220278114080429,
+                -0.7181464433670044,
+                0.3234550105407834
+              ]
+            }
+          },
+          {
+            "file": "part4.stl",
+            "name": "wheel_rl",
+            "role": "wheel",
+            "wheel": {
+              "radius": 0.3134550107643008,
+              "center": [
+                1.0762568712234497,
+                -0.7181464433670044,
+                0.3234550105407834
+              ]
+            }
+          },
+          {
+            "file": "part5.stl",
+            "name": "rear_wing_mid",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part6.stl",
+            "name": "wing_high_endplate_left",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part7.stl",
+            "name": "wing_high_endplate_right",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part8.stl",
+            "name": "wing_mid_support_left",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part9.stl",
+            "name": "wing_mid_support_right",
+            "role": "body",
+            "wheel": null
+          }
+        ],
+        "dimensions": [
+          4.001986503601074,
+          1.8947184085845947,
+          1.4800000097602606
+        ],
+        "settings": {
+          "speed_kmh": 100.0,
+          "yaw_deg": 0.0,
+          "reference_area": 2.0,
+          "density": 1.225,
+          "moving_ground": true,
+          "wheels": true
+        },
+        "references": [
+          {
+            "run": "c9fb097720a34fcca6cab7062adc142c",
+            "quality": "medium",
+            "speed_kmh": 100.0,
+            "cd": 0.34204059816960003,
+            "cl": -0.0546980813358,
+            "cells": 602048,
+            "settled": null
+          }
+        ],
+        "note": "Synthetic raised rear wing at 4 degrees (validation/aero-kit, *_mid). All parts shape the grid; inactive ones are not simulated."
+      },
+      {
+        "id": "wing-mid-alone",
+        "name": "Synthetic raised 4\u00b0 wing alone (no car), reference area = planform 0.394 m\u00b2",
+        "geometryRun": "ffd5128f88d94e1ca4300486329af71c",
+        "parts": [
+          {
+            "file": "part5.stl",
+            "name": "rear_wing_mid",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part6.stl",
+            "name": "wing_high_endplate_left",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part7.stl",
+            "name": "wing_high_endplate_right",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part8.stl",
+            "name": "wing_mid_support_left",
+            "role": "body",
+            "wheel": null
+          },
+          {
+            "file": "part9.stl",
+            "name": "wing_mid_support_right",
+            "role": "body",
+            "wheel": null
+          }
+        ],
+        "dimensions": [
+          0.4,
+          1.42,
+          0.3
+        ],
+        "settings": {
+          "speed_kmh": 100.0,
+          "yaw_deg": 0.0,
+          "reference_area": 0.3937,
+          "density": 1.225,
+          "moving_ground": true,
+          "wheels": true
+        },
+        "references": [],
+        "note": "Numerical check of the wing model; no OpenFOAM reference."
+      }
+    ]
+  },
+  "inputs": [
+    {
+      "model": "sample",
+      "path": ".easycfd/runs/5c037a8721744c7d8a91e55123f55bda/geometry/part0.stl",
+      "sha256": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+      "bytes": 1284,
+      "part": {
+        "file": "part0.stl",
+        "name": "Body",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "sample",
+      "path": ".easycfd/runs/5c037a8721744c7d8a91e55123f55bda/geometry/part1.stl",
+      "sha256": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+      "bytes": 6484,
+      "part": {
+        "file": "part1.stl",
+        "name": "Front right wheel",
+        "role": "wheel",
+        "wheel": {
+          "center": [
+            -1.35,
+            -1.05,
+            0.33
+          ],
+          "radius": 0.32
+        }
+      }
+    },
+    {
+      "model": "sample",
+      "path": ".easycfd/runs/5c037a8721744c7d8a91e55123f55bda/geometry/part2.stl",
+      "sha256": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+      "bytes": 6484,
+      "part": {
+        "file": "part2.stl",
+        "name": "Front left wheel",
+        "role": "wheel",
+        "wheel": {
+          "center": [
+            -1.35,
+            1.05,
+            0.33
+          ],
+          "radius": 0.32
+        }
+      }
+    },
+    {
+      "model": "sample",
+      "path": ".easycfd/runs/5c037a8721744c7d8a91e55123f55bda/geometry/part3.stl",
+      "sha256": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+      "bytes": 6484,
+      "part": {
+        "file": "part3.stl",
+        "name": "Rear right wheel",
+        "role": "wheel",
+        "wheel": {
+          "center": [
+            1.3,
+            -1.05,
+            0.33
+          ],
+          "radius": 0.32
+        }
+      }
+    },
+    {
+      "model": "sample",
+      "path": ".easycfd/runs/5c037a8721744c7d8a91e55123f55bda/geometry/part4.stl",
+      "sha256": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7",
+      "bytes": 6484,
+      "part": {
+        "file": "part4.stl",
+        "name": "Rear left wheel",
+        "role": "wheel",
+        "wheel": {
+          "center": [
+            1.3,
+            1.05,
+            0.33
+          ],
+          "radius": 0.32
+        }
+      }
+    },
+    {
+      "model": "sample-yaw10",
+      "path": ".easycfd/runs/5c037a8721744c7d8a91e55123f55bda/geometry/part0.stl",
+      "sha256": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+      "bytes": 1284,
+      "part": {
+        "file": "part0.stl",
+        "name": "Body",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "sample-yaw10",
+      "path": ".easycfd/runs/5c037a8721744c7d8a91e55123f55bda/geometry/part1.stl",
+      "sha256": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+      "bytes": 6484,
+      "part": {
+        "file": "part1.stl",
+        "name": "Front right wheel",
+        "role": "wheel",
+        "wheel": {
+          "center": [
+            -1.35,
+            -1.05,
+            0.33
+          ],
+          "radius": 0.32
+        }
+      }
+    },
+    {
+      "model": "sample-yaw10",
+      "path": ".easycfd/runs/5c037a8721744c7d8a91e55123f55bda/geometry/part2.stl",
+      "sha256": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+      "bytes": 6484,
+      "part": {
+        "file": "part2.stl",
+        "name": "Front left wheel",
+        "role": "wheel",
+        "wheel": {
+          "center": [
+            -1.35,
+            1.05,
+            0.33
+          ],
+          "radius": 0.32
+        }
+      }
+    },
+    {
+      "model": "sample-yaw10",
+      "path": ".easycfd/runs/5c037a8721744c7d8a91e55123f55bda/geometry/part3.stl",
+      "sha256": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+      "bytes": 6484,
+      "part": {
+        "file": "part3.stl",
+        "name": "Rear right wheel",
+        "role": "wheel",
+        "wheel": {
+          "center": [
+            1.3,
+            -1.05,
+            0.33
+          ],
+          "radius": 0.32
+        }
+      }
+    },
+    {
+      "model": "sample-yaw10",
+      "path": ".easycfd/runs/5c037a8721744c7d8a91e55123f55bda/geometry/part4.stl",
+      "sha256": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7",
+      "bytes": 6484,
+      "part": {
+        "file": "part4.stl",
+        "name": "Rear left wheel",
+        "role": "wheel",
+        "wheel": {
+          "center": [
+            1.3,
+            1.05,
+            0.33
+          ],
+          "radius": 0.32
+        }
+      }
+    },
+    {
+      "model": "sample-wing",
+      "path": ".easycfd/runs/b039b9ba826042ffa6fb9cf250e21fbd/geometry/part0.stl",
+      "sha256": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+      "bytes": 1284,
+      "part": {
+        "file": "part0.stl",
+        "name": "Body",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "sample-wing",
+      "path": ".easycfd/runs/b039b9ba826042ffa6fb9cf250e21fbd/geometry/part1.stl",
+      "sha256": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+      "bytes": 6484,
+      "part": {
+        "file": "part1.stl",
+        "name": "Front right wheel",
+        "role": "wheel",
+        "wheel": {
+          "center": [
+            -1.35,
+            -1.05,
+            0.33
+          ],
+          "radius": 0.32
+        }
+      }
+    },
+    {
+      "model": "sample-wing",
+      "path": ".easycfd/runs/b039b9ba826042ffa6fb9cf250e21fbd/geometry/part2.stl",
+      "sha256": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+      "bytes": 6484,
+      "part": {
+        "file": "part2.stl",
+        "name": "Front left wheel",
+        "role": "wheel",
+        "wheel": {
+          "center": [
+            -1.35,
+            1.05,
+            0.33
+          ],
+          "radius": 0.32
+        }
+      }
+    },
+    {
+      "model": "sample-wing",
+      "path": ".easycfd/runs/b039b9ba826042ffa6fb9cf250e21fbd/geometry/part3.stl",
+      "sha256": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+      "bytes": 6484,
+      "part": {
+        "file": "part3.stl",
+        "name": "Rear right wheel",
+        "role": "wheel",
+        "wheel": {
+          "center": [
+            1.3,
+            -1.05,
+            0.33
+          ],
+          "radius": 0.32
+        }
+      }
+    },
+    {
+      "model": "sample-wing",
+      "path": ".easycfd/runs/b039b9ba826042ffa6fb9cf250e21fbd/geometry/part4.stl",
+      "sha256": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7",
+      "bytes": 6484,
+      "part": {
+        "file": "part4.stl",
+        "name": "Rear left wheel",
+        "role": "wheel",
+        "wheel": {
+          "center": [
+            1.3,
+            1.05,
+            0.33
+          ],
+          "radius": 0.32
+        }
+      }
+    },
+    {
+      "model": "sample-wing",
+      "path": ".easycfd/runs/b039b9ba826042ffa6fb9cf250e21fbd/geometry/part5.stl",
+      "sha256": "000a61e757e39c37fc645ca23df26c9300f80945d97fea9e4aaf0945b866e503",
+      "bytes": 684,
+      "part": {
+        "file": "part5.stl",
+        "name": "Rear wing",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5",
+      "path": ".easycfd/runs/48d98cc2294942838eca188efa34787d/geometry/part0.stl",
+      "sha256": "f5f1716838c0c0ee57b3981852c1dee324c1b1c04fb880392bf1577d73e6ebc7",
+      "bytes": 20368984,
+      "part": {
+        "file": "part0.stl",
+        "name": "0-body 1",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5",
+      "path": ".easycfd/runs/48d98cc2294942838eca188efa34787d/geometry/part1.stl",
+      "sha256": "6407bc41a6f79703fd9d2ab9c2fe3dc0c0a248b3cb0cf0ad62d2b98647d8096b",
+      "bytes": 167884,
+      "part": {
+        "file": "part1.stl",
+        "name": "1-wheel--1--1 1",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550154209138,
+          "center": [
+            -1.220278114080429,
+            0.7157635688781738,
+            0.3234550154209138
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5",
+      "path": ".easycfd/runs/48d98cc2294942838eca188efa34787d/geometry/part2.stl",
+      "sha256": "c99a2947be197d50dc738873ed4f4645dd06a399cd2b3b3a4b337c3d15676006",
+      "bytes": 168184,
+      "part": {
+        "file": "part2.stl",
+        "name": "2-wheel--1-1 1",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.31345501542091353,
+          "center": [
+            1.0762568712234497,
+            0.7157635688781738,
+            0.3234550154209141
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5",
+      "path": ".easycfd/runs/48d98cc2294942838eca188efa34787d/geometry/part3.stl",
+      "sha256": "49bbae3da64f042248c1071bb8c90715ed692b730eef4a6d80bfa5935908f44e",
+      "bytes": 167884,
+      "part": {
+        "file": "part3.stl",
+        "name": "3-wheel-1--1 1",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550154209138,
+          "center": [
+            -1.220278114080429,
+            -0.7181464433670044,
+            0.3234550154209138
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5",
+      "path": ".easycfd/runs/48d98cc2294942838eca188efa34787d/geometry/part4.stl",
+      "sha256": "7283179814adfbe2b979b799ee81b4481097e236afe0e8890ab796ae932a945e",
+      "bytes": 168184,
+      "part": {
+        "file": "part4.stl",
+        "name": "4-wheel-1-1 1",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.31345501542091353,
+          "center": [
+            1.0762568712234497,
+            -0.7181464433670044,
+            0.3234550154209141
+          ]
+        }
+      }
+    },
+    {
+      "model": "z4",
+      "path": ".easycfd/runs/6f22f0a5efa04da8906397c0295b34a9/geometry/part0.stl",
+      "sha256": "4dd43ccf265c90f3627158dad7349864cf9b0c490f29dab56c9197313cdbfe99",
+      "bytes": 14000084,
+      "part": {
+        "file": "part0.stl",
+        "name": "body 1",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "z4",
+      "path": ".easycfd/runs/6f22f0a5efa04da8906397c0295b34a9/geometry/part1.stl",
+      "sha256": "6707bf83d222889a9a3bd049ee3244e2f8e33baa8df98fafe11db7b3aa77e563",
+      "bytes": 1884,
+      "part": {
+        "file": "part1.stl",
+        "name": "rear_wing 1",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "z4",
+      "path": ".easycfd/runs/6f22f0a5efa04da8906397c0295b34a9/geometry/part2.stl",
+      "sha256": "57faab6c35548ebda832dbdeb9e85a90b585baa096b883d370be0945311188a0",
+      "bytes": 57684,
+      "part": {
+        "file": "part2.stl",
+        "name": "wheel_front_left 1",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.33110004430636764,
+          "center": [
+            -1.22641322016716,
+            -0.8033486008644104,
+            0.35610004430636766
+          ]
+        }
+      }
+    },
+    {
+      "model": "z4",
+      "path": ".easycfd/runs/6f22f0a5efa04da8906397c0295b34a9/geometry/part3.stl",
+      "sha256": "5e5c0bbe8911855d2239c5b61b7d8ac6a96084bf55c2c4ddef0df11f2004ad3b",
+      "bytes": 57684,
+      "part": {
+        "file": "part3.stl",
+        "name": "wheel_front_right 1",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.33110004430636764,
+          "center": [
+            -1.22641322016716,
+            0.8030996322631836,
+            0.35610004430636766
+          ]
+        }
+      }
+    },
+    {
+      "model": "z4",
+      "path": ".easycfd/runs/6f22f0a5efa04da8906397c0295b34a9/geometry/part4.stl",
+      "sha256": "cdc58cab347c3420f2c03c03658feacd2a01f654a273f79d1050c7ac29a4d427",
+      "bytes": 57684,
+      "part": {
+        "file": "part4.stl",
+        "name": "wheel_rear_left 1",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.33110004430636764,
+          "center": [
+            1.2714512050151825,
+            -0.8408702611923218,
+            0.35610004430636766
+          ]
+        }
+      }
+    },
+    {
+      "model": "z4",
+      "path": ".easycfd/runs/6f22f0a5efa04da8906397c0295b34a9/geometry/part5.stl",
+      "sha256": "7a13cecfa9cd649b4dbc049c3db478fe77a1b02160736c8b1dc2e7c44d7071c0",
+      "bytes": 57684,
+      "part": {
+        "file": "part5.stl",
+        "name": "wheel_rear_right 1",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.33110004430636764,
+          "center": [
+            1.2714512050151825,
+            0.840621292591095,
+            0.35610004430636766
+          ]
+        }
+      }
+    },
+    {
+      "model": "z4",
+      "path": ".easycfd/runs/6f22f0a5efa04da8906397c0295b34a9/geometry/part6.stl",
+      "sha256": "79f1abb17081b17bc2259d425538d07321d38f4e399effdfc225c3a78936577d",
+      "bytes": 3084,
+      "part": {
+        "file": "part6.stl",
+        "name": "wing_endplate_left 1",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "z4",
+      "path": ".easycfd/runs/6f22f0a5efa04da8906397c0295b34a9/geometry/part7.stl",
+      "sha256": "64ea7957b546e0e4dbfa298711131aa103c6fb4ed677f1a63bd5683dce2d4f4f",
+      "bytes": 3084,
+      "part": {
+        "file": "part7.stl",
+        "name": "wing_endplate_right 1",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "z4",
+      "path": ".easycfd/runs/6f22f0a5efa04da8906397c0295b34a9/geometry/part8.stl",
+      "sha256": "a3201152a6a014822dac48e8be9b02faee9e747b74437aee1b21fb9cc482ee32",
+      "bytes": 4884,
+      "part": {
+        "file": "part8.stl",
+        "name": "wing_support_front_left 1",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "z4",
+      "path": ".easycfd/runs/6f22f0a5efa04da8906397c0295b34a9/geometry/part9.stl",
+      "sha256": "439d7f903600eb08c3ab7f8745b1d996dae98c2d372e3605f988058f8c03997b",
+      "bytes": 4884,
+      "part": {
+        "file": "part9.stl",
+        "name": "wing_support_front_right 1",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "z4",
+      "path": ".easycfd/runs/6f22f0a5efa04da8906397c0295b34a9/geometry/part10.stl",
+      "sha256": "cb381b33f2c674bf216be10a2a4d5273a7cf4d44f631a9868d346ee983f9573d",
+      "bytes": 4884,
+      "part": {
+        "file": "part10.stl",
+        "name": "wing_support_rear_left 1",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "z4",
+      "path": ".easycfd/runs/6f22f0a5efa04da8906397c0295b34a9/geometry/part11.stl",
+      "sha256": "c34ed73c84a0991f49027203ea89b8f849b9ee30f02659e4dac18bebcf8c9f7c",
+      "bytes": 4884,
+      "part": {
+        "file": "part11.stl",
+        "name": "wing_support_rear_right 1",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "z4-wing",
+      "path": ".easycfd/runs/5bc81f673eca48f8b12412a78329c13b/geometry/part0.stl",
+      "sha256": "71ecfb5ade5679aa08c15ec7cf87f39ebcaf668e693e6d47996e1bab34e38326",
+      "bytes": 5122384,
+      "part": {
+        "file": "part0.stl",
+        "name": "body 1",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "z4-wing",
+      "path": ".easycfd/runs/5bc81f673eca48f8b12412a78329c13b/geometry/part1.stl",
+      "sha256": "19bc5a238b00bce8e30f7dab80a9118853d0a8111c244ea5304685cae8d1f40d",
+      "bytes": 15784,
+      "part": {
+        "file": "part1.stl",
+        "name": "wheel_front_left 1",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3326136982650496,
+          "center": [
+            -1.2354624271392822,
+            -0.8051268756389618,
+            0.3576137028052472
+          ]
+        }
+      }
+    },
+    {
+      "model": "z4-wing",
+      "path": ".easycfd/runs/5bc81f673eca48f8b12412a78329c13b/geometry/part2.stl",
+      "sha256": "90e85c10ca336313eb698d5c4b904c4d32d037ab73c10bd7a3733f97522b4355",
+      "bytes": 15784,
+      "part": {
+        "file": "part2.stl",
+        "name": "wheel_front_right 1",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3326137005351484,
+          "center": [
+            -1.2354624271392822,
+            0.8017572462558746,
+            0.3576137005351484
+          ]
+        }
+      }
+    },
+    {
+      "model": "z4-wing",
+      "path": ".easycfd/runs/5bc81f673eca48f8b12412a78329c13b/geometry/part3.stl",
+      "sha256": "338c3e781a09943e7b926605d7ac11980990bd866e26ffa33ad3ce95815a9dcc",
+      "bytes": 15784,
+      "part": {
+        "file": "part3.stl",
+        "name": "wheel_rear_left 1",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3326136982650496,
+          "center": [
+            1.262402057647705,
+            -0.8426485359668732,
+            0.3576137028052472
+          ]
+        }
+      }
+    },
+    {
+      "model": "z4-wing",
+      "path": ".easycfd/runs/5bc81f673eca48f8b12412a78329c13b/geometry/part4.stl",
+      "sha256": "d227b600c3689cf7a1674ec2f7634542f7028a3ba5d21ecc7662ba72e807f8b8",
+      "bytes": 15784,
+      "part": {
+        "file": "part4.stl",
+        "name": "wheel_rear_right 1",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3326137005351484,
+          "center": [
+            1.262402057647705,
+            0.839278906583786,
+            0.3576137005351484
+          ]
+        }
+      }
+    },
+    {
+      "model": "z4-wing",
+      "path": ".easycfd/runs/5bc81f673eca48f8b12412a78329c13b/geometry/part5.stl",
+      "sha256": "7fb380c58b909f93301d17bd55e60762476ccf3ff970d043e63c64a39e2d239c",
+      "bytes": 1084,
+      "part": {
+        "file": "part5.stl",
+        "name": "rear_wing 1",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "z4-wing",
+      "path": ".easycfd/runs/5bc81f673eca48f8b12412a78329c13b/geometry/part6.stl",
+      "sha256": "bc64137beec72b2b5fcbc18803dc8b2544c7439e3d13ccf8c375fc33719547e7",
+      "bytes": 3284,
+      "part": {
+        "file": "part6.stl",
+        "name": "wing_endplate_left 1",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "z4-wing",
+      "path": ".easycfd/runs/5bc81f673eca48f8b12412a78329c13b/geometry/part7.stl",
+      "sha256": "affda4b038bae8db76335f025f5157c9863aacee488b514311b6f502870ab3f9",
+      "bytes": 3084,
+      "part": {
+        "file": "part7.stl",
+        "name": "wing_endplate_right 1",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "z4-wing",
+      "path": ".easycfd/runs/5bc81f673eca48f8b12412a78329c13b/geometry/part8.stl",
+      "sha256": "cfbcc0e1acb3b719d207dd2de49f6314f2f8bbd96e21b4d99df8b46133f61ce5",
+      "bytes": 2484,
+      "part": {
+        "file": "part8.stl",
+        "name": "wing_support_front_left 1",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "z4-wing",
+      "path": ".easycfd/runs/5bc81f673eca48f8b12412a78329c13b/geometry/part9.stl",
+      "sha256": "d1ced2d02da674696f4adec0ff9d5b8e6039b3fffaa8519af6a4cb8faeccbdf5",
+      "bytes": 2484,
+      "part": {
+        "file": "part9.stl",
+        "name": "wing_support_front_right 1",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "z4-wing",
+      "path": ".easycfd/runs/5bc81f673eca48f8b12412a78329c13b/geometry/part10.stl",
+      "sha256": "8fb80ca7d06189007980479f52f19f7d9935b6e523a64aa53098a1cddadd15d5",
+      "bytes": 2484,
+      "part": {
+        "file": "part10.stl",
+        "name": "wing_support_rear_left 1",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "z4-wing",
+      "path": ".easycfd/runs/5bc81f673eca48f8b12412a78329c13b/geometry/part11.stl",
+      "sha256": "b6441596d1c174588e1d0f2646c9d0e91532ebb6c3c7b7b9b6102e58041c5ce7",
+      "bytes": 2484,
+      "part": {
+        "file": "part11.stl",
+        "name": "wing_support_rear_right 1",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "simple-car",
+      "path": ".easycfd/runs/e95687af743d408095560b8cdab346d2/geometry/part0.stl",
+      "sha256": "e28e8ab65036b593b0953be4b5b086b51badc063c08c4a7ff600cdfcc1670257",
+      "bytes": 5510684,
+      "part": {
+        "file": "part0.stl",
+        "name": "Simple Car CFD 1",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "ahmed25",
+      "path": ".easycfd/runs/fa415a20e52649fc9f55a6b56ed39cce/geometry/part0.stl",
+      "sha256": "184b9b3666f60fb8f5227434046bf2f0e86d61d90ee88722f8e7f08fa32d0da9",
+      "bytes": 1431384,
+      "part": {
+        "file": "part0.stl",
+        "name": "ahmed_25deg_m 1",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-kit-base",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part0.stl",
+      "sha256": "0f3fdab67669835448a5e8c06f841964f6eaa9a3651b5ea71cac41ae14dbd3bc",
+      "bytes": 20368984,
+      "part": {
+        "file": "part0.stl",
+        "name": "body",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-kit-base",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part1.stl",
+      "sha256": "28fcec3c2512d4b7e830a004ec926090f3372929c576eb310156462a84876070",
+      "bytes": 167884,
+      "part": {
+        "file": "part1.stl",
+        "name": "wheel_fr",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            -1.1707747876644135,
+            0.7157635688781738,
+            0.32345501076430083
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-kit-base",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part2.stl",
+      "sha256": "46f7043f276df117a526d79aa26ee95c93cfca9f550be12eb9464695dced9447",
+      "bytes": 168184,
+      "part": {
+        "file": "part2.stl",
+        "name": "wheel_rr",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            1.1257601976394653,
+            0.7157635688781738,
+            0.32345501076430083
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-kit-base",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part3.stl",
+      "sha256": "b9ddec639ccb7cf1afd16eff0367aad226b2622bdb4bc969c259b1bd85c3e744",
+      "bytes": 167884,
+      "part": {
+        "file": "part3.stl",
+        "name": "wheel_fl",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            -1.1707747876644135,
+            -0.7181464433670044,
+            0.32345501076430083
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-kit-base",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part4.stl",
+      "sha256": "0bf0ae6f009d5b58482095b9f72b2b4f83b1c72fd11e2d739cad7c137982dd09",
+      "bytes": 168184,
+      "part": {
+        "file": "part4.stl",
+        "name": "wheel_rl",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            1.1257601976394653,
+            -0.7181464433670044,
+            0.32345501076430083
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-kit-base",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part5.stl",
+      "sha256": "e0a724c6842b0b1a534e11070c709e1365b9a114d1ca71f852f2ecd207ccfde8",
+      "bytes": 19084,
+      "part": {
+        "file": "part5.stl",
+        "name": "rear_wing",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-kit-base",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part6.stl",
+      "sha256": "3bd26c5c3aa8868c5f5b236db95d901f0cd761cbad82fecfe3423cc975e803d6",
+      "bytes": 684,
+      "part": {
+        "file": "part6.stl",
+        "name": "wing_endplate_left",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-kit-base",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part7.stl",
+      "sha256": "87d93d22c00a4cf74604bd671ac175dbf31b8dc85b56ab40dc3acdc1feb704d6",
+      "bytes": 684,
+      "part": {
+        "file": "part7.stl",
+        "name": "wing_endplate_right",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-kit-base",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part8.stl",
+      "sha256": "207aac45d3a321b2f71c9502866efd2202b2a2a91d8754c633bed04629b55c6a",
+      "bytes": 684,
+      "part": {
+        "file": "part8.stl",
+        "name": "wing_support_left",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-kit-base",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part9.stl",
+      "sha256": "403b846dc337c94fbc9aab6ea932b4abf3aa05978e4bf48981d28b446ea9d899",
+      "bytes": 684,
+      "part": {
+        "file": "part9.stl",
+        "name": "wing_support_right",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-kit-base",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part10.stl",
+      "sha256": "f7b94c6da6f6c3a641a7031c32b8fd69f9321a7ffe5e3e89de1bc20d75ec022f",
+      "bytes": 684,
+      "part": {
+        "file": "part10.stl",
+        "name": "front_splitter",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-kit-base",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part11.stl",
+      "sha256": "f03d429637dc329a067b210f9ee9fd676fea5ea9513e85a0a0ddb4e9892137f4",
+      "bytes": 684,
+      "part": {
+        "file": "part11.stl",
+        "name": "canard_left",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-kit-base",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part12.stl",
+      "sha256": "bd514e4955b04e19ebce5f8c930cf8e5f57ecf8e5af81e47db842f85a9083cd4",
+      "bytes": 684,
+      "part": {
+        "file": "part12.stl",
+        "name": "canard_right",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-kit-wing",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part0.stl",
+      "sha256": "0f3fdab67669835448a5e8c06f841964f6eaa9a3651b5ea71cac41ae14dbd3bc",
+      "bytes": 20368984,
+      "part": {
+        "file": "part0.stl",
+        "name": "body",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-kit-wing",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part1.stl",
+      "sha256": "28fcec3c2512d4b7e830a004ec926090f3372929c576eb310156462a84876070",
+      "bytes": 167884,
+      "part": {
+        "file": "part1.stl",
+        "name": "wheel_fr",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            -1.1707747876644135,
+            0.7157635688781738,
+            0.32345501076430083
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-kit-wing",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part2.stl",
+      "sha256": "46f7043f276df117a526d79aa26ee95c93cfca9f550be12eb9464695dced9447",
+      "bytes": 168184,
+      "part": {
+        "file": "part2.stl",
+        "name": "wheel_rr",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            1.1257601976394653,
+            0.7157635688781738,
+            0.32345501076430083
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-kit-wing",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part3.stl",
+      "sha256": "b9ddec639ccb7cf1afd16eff0367aad226b2622bdb4bc969c259b1bd85c3e744",
+      "bytes": 167884,
+      "part": {
+        "file": "part3.stl",
+        "name": "wheel_fl",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            -1.1707747876644135,
+            -0.7181464433670044,
+            0.32345501076430083
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-kit-wing",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part4.stl",
+      "sha256": "0bf0ae6f009d5b58482095b9f72b2b4f83b1c72fd11e2d739cad7c137982dd09",
+      "bytes": 168184,
+      "part": {
+        "file": "part4.stl",
+        "name": "wheel_rl",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            1.1257601976394653,
+            -0.7181464433670044,
+            0.32345501076430083
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-kit-wing",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part5.stl",
+      "sha256": "e0a724c6842b0b1a534e11070c709e1365b9a114d1ca71f852f2ecd207ccfde8",
+      "bytes": 19084,
+      "part": {
+        "file": "part5.stl",
+        "name": "rear_wing",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-kit-wing",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part6.stl",
+      "sha256": "3bd26c5c3aa8868c5f5b236db95d901f0cd761cbad82fecfe3423cc975e803d6",
+      "bytes": 684,
+      "part": {
+        "file": "part6.stl",
+        "name": "wing_endplate_left",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-kit-wing",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part7.stl",
+      "sha256": "87d93d22c00a4cf74604bd671ac175dbf31b8dc85b56ab40dc3acdc1feb704d6",
+      "bytes": 684,
+      "part": {
+        "file": "part7.stl",
+        "name": "wing_endplate_right",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-kit-wing",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part8.stl",
+      "sha256": "207aac45d3a321b2f71c9502866efd2202b2a2a91d8754c633bed04629b55c6a",
+      "bytes": 684,
+      "part": {
+        "file": "part8.stl",
+        "name": "wing_support_left",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-kit-wing",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part9.stl",
+      "sha256": "403b846dc337c94fbc9aab6ea932b4abf3aa05978e4bf48981d28b446ea9d899",
+      "bytes": 684,
+      "part": {
+        "file": "part9.stl",
+        "name": "wing_support_right",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-kit-wing",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part10.stl",
+      "sha256": "f7b94c6da6f6c3a641a7031c32b8fd69f9321a7ffe5e3e89de1bc20d75ec022f",
+      "bytes": 684,
+      "part": {
+        "file": "part10.stl",
+        "name": "front_splitter",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-kit-wing",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part11.stl",
+      "sha256": "f03d429637dc329a067b210f9ee9fd676fea5ea9513e85a0a0ddb4e9892137f4",
+      "bytes": 684,
+      "part": {
+        "file": "part11.stl",
+        "name": "canard_left",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-kit-wing",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part12.stl",
+      "sha256": "bd514e4955b04e19ebce5f8c930cf8e5f57ecf8e5af81e47db842f85a9083cd4",
+      "bytes": 684,
+      "part": {
+        "file": "part12.stl",
+        "name": "canard_right",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-kit-full",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part0.stl",
+      "sha256": "0f3fdab67669835448a5e8c06f841964f6eaa9a3651b5ea71cac41ae14dbd3bc",
+      "bytes": 20368984,
+      "part": {
+        "file": "part0.stl",
+        "name": "body",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-kit-full",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part1.stl",
+      "sha256": "28fcec3c2512d4b7e830a004ec926090f3372929c576eb310156462a84876070",
+      "bytes": 167884,
+      "part": {
+        "file": "part1.stl",
+        "name": "wheel_fr",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            -1.1707747876644135,
+            0.7157635688781738,
+            0.32345501076430083
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-kit-full",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part2.stl",
+      "sha256": "46f7043f276df117a526d79aa26ee95c93cfca9f550be12eb9464695dced9447",
+      "bytes": 168184,
+      "part": {
+        "file": "part2.stl",
+        "name": "wheel_rr",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            1.1257601976394653,
+            0.7157635688781738,
+            0.32345501076430083
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-kit-full",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part3.stl",
+      "sha256": "b9ddec639ccb7cf1afd16eff0367aad226b2622bdb4bc969c259b1bd85c3e744",
+      "bytes": 167884,
+      "part": {
+        "file": "part3.stl",
+        "name": "wheel_fl",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            -1.1707747876644135,
+            -0.7181464433670044,
+            0.32345501076430083
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-kit-full",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part4.stl",
+      "sha256": "0bf0ae6f009d5b58482095b9f72b2b4f83b1c72fd11e2d739cad7c137982dd09",
+      "bytes": 168184,
+      "part": {
+        "file": "part4.stl",
+        "name": "wheel_rl",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            1.1257601976394653,
+            -0.7181464433670044,
+            0.32345501076430083
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-kit-full",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part5.stl",
+      "sha256": "e0a724c6842b0b1a534e11070c709e1365b9a114d1ca71f852f2ecd207ccfde8",
+      "bytes": 19084,
+      "part": {
+        "file": "part5.stl",
+        "name": "rear_wing",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-kit-full",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part6.stl",
+      "sha256": "3bd26c5c3aa8868c5f5b236db95d901f0cd761cbad82fecfe3423cc975e803d6",
+      "bytes": 684,
+      "part": {
+        "file": "part6.stl",
+        "name": "wing_endplate_left",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-kit-full",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part7.stl",
+      "sha256": "87d93d22c00a4cf74604bd671ac175dbf31b8dc85b56ab40dc3acdc1feb704d6",
+      "bytes": 684,
+      "part": {
+        "file": "part7.stl",
+        "name": "wing_endplate_right",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-kit-full",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part8.stl",
+      "sha256": "207aac45d3a321b2f71c9502866efd2202b2a2a91d8754c633bed04629b55c6a",
+      "bytes": 684,
+      "part": {
+        "file": "part8.stl",
+        "name": "wing_support_left",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-kit-full",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part9.stl",
+      "sha256": "403b846dc337c94fbc9aab6ea932b4abf3aa05978e4bf48981d28b446ea9d899",
+      "bytes": 684,
+      "part": {
+        "file": "part9.stl",
+        "name": "wing_support_right",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-kit-full",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part10.stl",
+      "sha256": "f7b94c6da6f6c3a641a7031c32b8fd69f9321a7ffe5e3e89de1bc20d75ec022f",
+      "bytes": 684,
+      "part": {
+        "file": "part10.stl",
+        "name": "front_splitter",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-kit-full",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part11.stl",
+      "sha256": "f03d429637dc329a067b210f9ee9fd676fea5ea9513e85a0a0ddb4e9892137f4",
+      "bytes": 684,
+      "part": {
+        "file": "part11.stl",
+        "name": "canard_left",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-kit-full",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part12.stl",
+      "sha256": "bd514e4955b04e19ebce5f8c930cf8e5f57ecf8e5af81e47db842f85a9083cd4",
+      "bytes": 684,
+      "part": {
+        "file": "part12.stl",
+        "name": "canard_right",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-hw-base",
+      "path": ".easycfd/runs/31d9e1da047e4abd84810ccf81755fd2/geometry/part0.stl",
+      "sha256": "f4d3341fcd22b5f89d15b3ac1354baf13b4cb313fbed5317f45cb1eea6d4c514",
+      "bytes": 20368984,
+      "part": {
+        "file": "part0.stl",
+        "name": "body",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-hw-base",
+      "path": ".easycfd/runs/31d9e1da047e4abd84810ccf81755fd2/geometry/part1.stl",
+      "sha256": "252fda7bfd3bf2405feab5aea89f5badf928b7afaa22db4221d9610f0d77b6f3",
+      "bytes": 167884,
+      "part": {
+        "file": "part1.stl",
+        "name": "wheel_fr",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            -1.220278114080429,
+            0.7157635688781738,
+            0.3234550105407834
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-hw-base",
+      "path": ".easycfd/runs/31d9e1da047e4abd84810ccf81755fd2/geometry/part2.stl",
+      "sha256": "52732f98ce6679c597e8738f2009e60b1fb8828a521f7afe1a84d8292cd0cf12",
+      "bytes": 168184,
+      "part": {
+        "file": "part2.stl",
+        "name": "wheel_rr",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            1.0762568712234497,
+            0.7157635688781738,
+            0.3234550105407834
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-hw-base",
+      "path": ".easycfd/runs/31d9e1da047e4abd84810ccf81755fd2/geometry/part3.stl",
+      "sha256": "cff334c30f7b0dccac502b3c044e197959dcdb5ffe6ef9e79c35e9d74d4ad8e3",
+      "bytes": 167884,
+      "part": {
+        "file": "part3.stl",
+        "name": "wheel_fl",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            -1.220278114080429,
+            -0.7181464433670044,
+            0.3234550105407834
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-hw-base",
+      "path": ".easycfd/runs/31d9e1da047e4abd84810ccf81755fd2/geometry/part4.stl",
+      "sha256": "0701d16fc6e1a0b9d4d3507d7d622bedc41a99d9f45b573366886d4d2c6fda7c",
+      "bytes": 168184,
+      "part": {
+        "file": "part4.stl",
+        "name": "wheel_rl",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            1.0762568712234497,
+            -0.7181464433670044,
+            0.3234550105407834
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-hw-base",
+      "path": ".easycfd/runs/31d9e1da047e4abd84810ccf81755fd2/geometry/part5.stl",
+      "sha256": "7605a52c60732b9a66d64ee5f2435a29b40ec6e616ec212e0aa1a0aebf9cea31",
+      "bytes": 19084,
+      "part": {
+        "file": "part5.stl",
+        "name": "rear_wing_high",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-hw-base",
+      "path": ".easycfd/runs/31d9e1da047e4abd84810ccf81755fd2/geometry/part6.stl",
+      "sha256": "7193fc7bb5507764908c50b16e1510db668f8528e6289a85f4a14754ec58ec2f",
+      "bytes": 684,
+      "part": {
+        "file": "part6.stl",
+        "name": "wing_high_endplate_left",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-hw-base",
+      "path": ".easycfd/runs/31d9e1da047e4abd84810ccf81755fd2/geometry/part7.stl",
+      "sha256": "a1e4ed69f8c3ca639b155c8b05a0f13c4b00e012325df38fedc4b2e3a87c29d4",
+      "bytes": 684,
+      "part": {
+        "file": "part7.stl",
+        "name": "wing_high_endplate_right",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-hw-base",
+      "path": ".easycfd/runs/31d9e1da047e4abd84810ccf81755fd2/geometry/part8.stl",
+      "sha256": "c61ee4cb33f022b5a76308ae236cef007f9cee980ce0169e164765ad748a14b0",
+      "bytes": 684,
+      "part": {
+        "file": "part8.stl",
+        "name": "wing_high_support_left",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-hw-base",
+      "path": ".easycfd/runs/31d9e1da047e4abd84810ccf81755fd2/geometry/part9.stl",
+      "sha256": "e5ceccc5492fd5e0b5eb92df30ef892aae21b373b5c90294f0eb513a53f5f63d",
+      "bytes": 684,
+      "part": {
+        "file": "part9.stl",
+        "name": "wing_high_support_right",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-hw-wing",
+      "path": ".easycfd/runs/31d9e1da047e4abd84810ccf81755fd2/geometry/part0.stl",
+      "sha256": "f4d3341fcd22b5f89d15b3ac1354baf13b4cb313fbed5317f45cb1eea6d4c514",
+      "bytes": 20368984,
+      "part": {
+        "file": "part0.stl",
+        "name": "body",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-hw-wing",
+      "path": ".easycfd/runs/31d9e1da047e4abd84810ccf81755fd2/geometry/part1.stl",
+      "sha256": "252fda7bfd3bf2405feab5aea89f5badf928b7afaa22db4221d9610f0d77b6f3",
+      "bytes": 167884,
+      "part": {
+        "file": "part1.stl",
+        "name": "wheel_fr",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            -1.220278114080429,
+            0.7157635688781738,
+            0.3234550105407834
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-hw-wing",
+      "path": ".easycfd/runs/31d9e1da047e4abd84810ccf81755fd2/geometry/part2.stl",
+      "sha256": "52732f98ce6679c597e8738f2009e60b1fb8828a521f7afe1a84d8292cd0cf12",
+      "bytes": 168184,
+      "part": {
+        "file": "part2.stl",
+        "name": "wheel_rr",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            1.0762568712234497,
+            0.7157635688781738,
+            0.3234550105407834
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-hw-wing",
+      "path": ".easycfd/runs/31d9e1da047e4abd84810ccf81755fd2/geometry/part3.stl",
+      "sha256": "cff334c30f7b0dccac502b3c044e197959dcdb5ffe6ef9e79c35e9d74d4ad8e3",
+      "bytes": 167884,
+      "part": {
+        "file": "part3.stl",
+        "name": "wheel_fl",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            -1.220278114080429,
+            -0.7181464433670044,
+            0.3234550105407834
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-hw-wing",
+      "path": ".easycfd/runs/31d9e1da047e4abd84810ccf81755fd2/geometry/part4.stl",
+      "sha256": "0701d16fc6e1a0b9d4d3507d7d622bedc41a99d9f45b573366886d4d2c6fda7c",
+      "bytes": 168184,
+      "part": {
+        "file": "part4.stl",
+        "name": "wheel_rl",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            1.0762568712234497,
+            -0.7181464433670044,
+            0.3234550105407834
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-hw-wing",
+      "path": ".easycfd/runs/31d9e1da047e4abd84810ccf81755fd2/geometry/part5.stl",
+      "sha256": "7605a52c60732b9a66d64ee5f2435a29b40ec6e616ec212e0aa1a0aebf9cea31",
+      "bytes": 19084,
+      "part": {
+        "file": "part5.stl",
+        "name": "rear_wing_high",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-hw-wing",
+      "path": ".easycfd/runs/31d9e1da047e4abd84810ccf81755fd2/geometry/part6.stl",
+      "sha256": "7193fc7bb5507764908c50b16e1510db668f8528e6289a85f4a14754ec58ec2f",
+      "bytes": 684,
+      "part": {
+        "file": "part6.stl",
+        "name": "wing_high_endplate_left",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-hw-wing",
+      "path": ".easycfd/runs/31d9e1da047e4abd84810ccf81755fd2/geometry/part7.stl",
+      "sha256": "a1e4ed69f8c3ca639b155c8b05a0f13c4b00e012325df38fedc4b2e3a87c29d4",
+      "bytes": 684,
+      "part": {
+        "file": "part7.stl",
+        "name": "wing_high_endplate_right",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-hw-wing",
+      "path": ".easycfd/runs/31d9e1da047e4abd84810ccf81755fd2/geometry/part8.stl",
+      "sha256": "c61ee4cb33f022b5a76308ae236cef007f9cee980ce0169e164765ad748a14b0",
+      "bytes": 684,
+      "part": {
+        "file": "part8.stl",
+        "name": "wing_high_support_left",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-hw-wing",
+      "path": ".easycfd/runs/31d9e1da047e4abd84810ccf81755fd2/geometry/part9.stl",
+      "sha256": "e5ceccc5492fd5e0b5eb92df30ef892aae21b373b5c90294f0eb513a53f5f63d",
+      "bytes": 684,
+      "part": {
+        "file": "part9.stl",
+        "name": "wing_high_support_right",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-kit-splitter",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part0.stl",
+      "sha256": "0f3fdab67669835448a5e8c06f841964f6eaa9a3651b5ea71cac41ae14dbd3bc",
+      "bytes": 20368984,
+      "part": {
+        "file": "part0.stl",
+        "name": "body",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-kit-splitter",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part1.stl",
+      "sha256": "28fcec3c2512d4b7e830a004ec926090f3372929c576eb310156462a84876070",
+      "bytes": 167884,
+      "part": {
+        "file": "part1.stl",
+        "name": "wheel_fr",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            -1.1707747876644135,
+            0.7157635688781738,
+            0.32345501076430083
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-kit-splitter",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part2.stl",
+      "sha256": "46f7043f276df117a526d79aa26ee95c93cfca9f550be12eb9464695dced9447",
+      "bytes": 168184,
+      "part": {
+        "file": "part2.stl",
+        "name": "wheel_rr",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            1.1257601976394653,
+            0.7157635688781738,
+            0.32345501076430083
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-kit-splitter",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part3.stl",
+      "sha256": "b9ddec639ccb7cf1afd16eff0367aad226b2622bdb4bc969c259b1bd85c3e744",
+      "bytes": 167884,
+      "part": {
+        "file": "part3.stl",
+        "name": "wheel_fl",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            -1.1707747876644135,
+            -0.7181464433670044,
+            0.32345501076430083
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-kit-splitter",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part4.stl",
+      "sha256": "0bf0ae6f009d5b58482095b9f72b2b4f83b1c72fd11e2d739cad7c137982dd09",
+      "bytes": 168184,
+      "part": {
+        "file": "part4.stl",
+        "name": "wheel_rl",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            1.1257601976394653,
+            -0.7181464433670044,
+            0.32345501076430083
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-kit-splitter",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part5.stl",
+      "sha256": "e0a724c6842b0b1a534e11070c709e1365b9a114d1ca71f852f2ecd207ccfde8",
+      "bytes": 19084,
+      "part": {
+        "file": "part5.stl",
+        "name": "rear_wing",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-kit-splitter",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part6.stl",
+      "sha256": "3bd26c5c3aa8868c5f5b236db95d901f0cd761cbad82fecfe3423cc975e803d6",
+      "bytes": 684,
+      "part": {
+        "file": "part6.stl",
+        "name": "wing_endplate_left",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-kit-splitter",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part7.stl",
+      "sha256": "87d93d22c00a4cf74604bd671ac175dbf31b8dc85b56ab40dc3acdc1feb704d6",
+      "bytes": 684,
+      "part": {
+        "file": "part7.stl",
+        "name": "wing_endplate_right",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-kit-splitter",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part8.stl",
+      "sha256": "207aac45d3a321b2f71c9502866efd2202b2a2a91d8754c633bed04629b55c6a",
+      "bytes": 684,
+      "part": {
+        "file": "part8.stl",
+        "name": "wing_support_left",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-kit-splitter",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part9.stl",
+      "sha256": "403b846dc337c94fbc9aab6ea932b4abf3aa05978e4bf48981d28b446ea9d899",
+      "bytes": 684,
+      "part": {
+        "file": "part9.stl",
+        "name": "wing_support_right",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-kit-splitter",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part10.stl",
+      "sha256": "f7b94c6da6f6c3a641a7031c32b8fd69f9321a7ffe5e3e89de1bc20d75ec022f",
+      "bytes": 684,
+      "part": {
+        "file": "part10.stl",
+        "name": "front_splitter",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-kit-splitter",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part11.stl",
+      "sha256": "f03d429637dc329a067b210f9ee9fd676fea5ea9513e85a0a0ddb4e9892137f4",
+      "bytes": 684,
+      "part": {
+        "file": "part11.stl",
+        "name": "canard_left",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-kit-splitter",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part12.stl",
+      "sha256": "bd514e4955b04e19ebce5f8c930cf8e5f57ecf8e5af81e47db842f85a9083cd4",
+      "bytes": 684,
+      "part": {
+        "file": "part12.stl",
+        "name": "canard_right",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-kit-front",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part0.stl",
+      "sha256": "0f3fdab67669835448a5e8c06f841964f6eaa9a3651b5ea71cac41ae14dbd3bc",
+      "bytes": 20368984,
+      "part": {
+        "file": "part0.stl",
+        "name": "body",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-kit-front",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part1.stl",
+      "sha256": "28fcec3c2512d4b7e830a004ec926090f3372929c576eb310156462a84876070",
+      "bytes": 167884,
+      "part": {
+        "file": "part1.stl",
+        "name": "wheel_fr",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            -1.1707747876644135,
+            0.7157635688781738,
+            0.32345501076430083
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-kit-front",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part2.stl",
+      "sha256": "46f7043f276df117a526d79aa26ee95c93cfca9f550be12eb9464695dced9447",
+      "bytes": 168184,
+      "part": {
+        "file": "part2.stl",
+        "name": "wheel_rr",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            1.1257601976394653,
+            0.7157635688781738,
+            0.32345501076430083
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-kit-front",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part3.stl",
+      "sha256": "b9ddec639ccb7cf1afd16eff0367aad226b2622bdb4bc969c259b1bd85c3e744",
+      "bytes": 167884,
+      "part": {
+        "file": "part3.stl",
+        "name": "wheel_fl",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            -1.1707747876644135,
+            -0.7181464433670044,
+            0.32345501076430083
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-kit-front",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part4.stl",
+      "sha256": "0bf0ae6f009d5b58482095b9f72b2b4f83b1c72fd11e2d739cad7c137982dd09",
+      "bytes": 168184,
+      "part": {
+        "file": "part4.stl",
+        "name": "wheel_rl",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            1.1257601976394653,
+            -0.7181464433670044,
+            0.32345501076430083
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-kit-front",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part5.stl",
+      "sha256": "e0a724c6842b0b1a534e11070c709e1365b9a114d1ca71f852f2ecd207ccfde8",
+      "bytes": 19084,
+      "part": {
+        "file": "part5.stl",
+        "name": "rear_wing",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-kit-front",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part6.stl",
+      "sha256": "3bd26c5c3aa8868c5f5b236db95d901f0cd761cbad82fecfe3423cc975e803d6",
+      "bytes": 684,
+      "part": {
+        "file": "part6.stl",
+        "name": "wing_endplate_left",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-kit-front",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part7.stl",
+      "sha256": "87d93d22c00a4cf74604bd671ac175dbf31b8dc85b56ab40dc3acdc1feb704d6",
+      "bytes": 684,
+      "part": {
+        "file": "part7.stl",
+        "name": "wing_endplate_right",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-kit-front",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part8.stl",
+      "sha256": "207aac45d3a321b2f71c9502866efd2202b2a2a91d8754c633bed04629b55c6a",
+      "bytes": 684,
+      "part": {
+        "file": "part8.stl",
+        "name": "wing_support_left",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-kit-front",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part9.stl",
+      "sha256": "403b846dc337c94fbc9aab6ea932b4abf3aa05978e4bf48981d28b446ea9d899",
+      "bytes": 684,
+      "part": {
+        "file": "part9.stl",
+        "name": "wing_support_right",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-kit-front",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part10.stl",
+      "sha256": "f7b94c6da6f6c3a641a7031c32b8fd69f9321a7ffe5e3e89de1bc20d75ec022f",
+      "bytes": 684,
+      "part": {
+        "file": "part10.stl",
+        "name": "front_splitter",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-kit-front",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part11.stl",
+      "sha256": "f03d429637dc329a067b210f9ee9fd676fea5ea9513e85a0a0ddb4e9892137f4",
+      "bytes": 684,
+      "part": {
+        "file": "part11.stl",
+        "name": "canard_left",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-kit-front",
+      "path": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/geometry/part12.stl",
+      "sha256": "bd514e4955b04e19ebce5f8c930cf8e5f57ecf8e5af81e47db842f85a9083cd4",
+      "bytes": 684,
+      "part": {
+        "file": "part12.stl",
+        "name": "canard_right",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "wing-alone",
+      "path": ".easycfd/runs/31d9e1da047e4abd84810ccf81755fd2/geometry/part5.stl",
+      "sha256": "7605a52c60732b9a66d64ee5f2435a29b40ec6e616ec212e0aa1a0aebf9cea31",
+      "bytes": 19084,
+      "part": {
+        "file": "part5.stl",
+        "name": "rear_wing_high",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "wing-alone",
+      "path": ".easycfd/runs/31d9e1da047e4abd84810ccf81755fd2/geometry/part6.stl",
+      "sha256": "7193fc7bb5507764908c50b16e1510db668f8528e6289a85f4a14754ec58ec2f",
+      "bytes": 684,
+      "part": {
+        "file": "part6.stl",
+        "name": "wing_high_endplate_left",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "wing-alone",
+      "path": ".easycfd/runs/31d9e1da047e4abd84810ccf81755fd2/geometry/part7.stl",
+      "sha256": "a1e4ed69f8c3ca639b155c8b05a0f13c4b00e012325df38fedc4b2e3a87c29d4",
+      "bytes": 684,
+      "part": {
+        "file": "part7.stl",
+        "name": "wing_high_endplate_right",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "wing-alone",
+      "path": ".easycfd/runs/31d9e1da047e4abd84810ccf81755fd2/geometry/part8.stl",
+      "sha256": "c61ee4cb33f022b5a76308ae236cef007f9cee980ce0169e164765ad748a14b0",
+      "bytes": 684,
+      "part": {
+        "file": "part8.stl",
+        "name": "wing_high_support_left",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "wing-alone",
+      "path": ".easycfd/runs/31d9e1da047e4abd84810ccf81755fd2/geometry/part9.stl",
+      "sha256": "e5ceccc5492fd5e0b5eb92df30ef892aae21b373b5c90294f0eb513a53f5f63d",
+      "bytes": 684,
+      "part": {
+        "file": "part9.stl",
+        "name": "wing_high_support_right",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-mw-base",
+      "path": ".easycfd/runs/ffd5128f88d94e1ca4300486329af71c/geometry/part0.stl",
+      "sha256": "f4d3341fcd22b5f89d15b3ac1354baf13b4cb313fbed5317f45cb1eea6d4c514",
+      "bytes": 20368984,
+      "part": {
+        "file": "part0.stl",
+        "name": "body",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-mw-base",
+      "path": ".easycfd/runs/ffd5128f88d94e1ca4300486329af71c/geometry/part1.stl",
+      "sha256": "252fda7bfd3bf2405feab5aea89f5badf928b7afaa22db4221d9610f0d77b6f3",
+      "bytes": 167884,
+      "part": {
+        "file": "part1.stl",
+        "name": "wheel_fr",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            -1.220278114080429,
+            0.7157635688781738,
+            0.3234550105407834
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-mw-base",
+      "path": ".easycfd/runs/ffd5128f88d94e1ca4300486329af71c/geometry/part2.stl",
+      "sha256": "52732f98ce6679c597e8738f2009e60b1fb8828a521f7afe1a84d8292cd0cf12",
+      "bytes": 168184,
+      "part": {
+        "file": "part2.stl",
+        "name": "wheel_rr",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            1.0762568712234497,
+            0.7157635688781738,
+            0.3234550105407834
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-mw-base",
+      "path": ".easycfd/runs/ffd5128f88d94e1ca4300486329af71c/geometry/part3.stl",
+      "sha256": "cff334c30f7b0dccac502b3c044e197959dcdb5ffe6ef9e79c35e9d74d4ad8e3",
+      "bytes": 167884,
+      "part": {
+        "file": "part3.stl",
+        "name": "wheel_fl",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            -1.220278114080429,
+            -0.7181464433670044,
+            0.3234550105407834
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-mw-base",
+      "path": ".easycfd/runs/ffd5128f88d94e1ca4300486329af71c/geometry/part4.stl",
+      "sha256": "0701d16fc6e1a0b9d4d3507d7d622bedc41a99d9f45b573366886d4d2c6fda7c",
+      "bytes": 168184,
+      "part": {
+        "file": "part4.stl",
+        "name": "wheel_rl",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            1.0762568712234497,
+            -0.7181464433670044,
+            0.3234550105407834
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-mw-base",
+      "path": ".easycfd/runs/ffd5128f88d94e1ca4300486329af71c/geometry/part5.stl",
+      "sha256": "fffce50a1a11bc4dd302d3dcfdf25b00653a58fdab8a8a949dee02978ff2bd1c",
+      "bytes": 19084,
+      "part": {
+        "file": "part5.stl",
+        "name": "rear_wing_mid",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-mw-base",
+      "path": ".easycfd/runs/ffd5128f88d94e1ca4300486329af71c/geometry/part6.stl",
+      "sha256": "7193fc7bb5507764908c50b16e1510db668f8528e6289a85f4a14754ec58ec2f",
+      "bytes": 684,
+      "part": {
+        "file": "part6.stl",
+        "name": "wing_high_endplate_left",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-mw-base",
+      "path": ".easycfd/runs/ffd5128f88d94e1ca4300486329af71c/geometry/part7.stl",
+      "sha256": "a1e4ed69f8c3ca639b155c8b05a0f13c4b00e012325df38fedc4b2e3a87c29d4",
+      "bytes": 684,
+      "part": {
+        "file": "part7.stl",
+        "name": "wing_high_endplate_right",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-mw-base",
+      "path": ".easycfd/runs/ffd5128f88d94e1ca4300486329af71c/geometry/part8.stl",
+      "sha256": "6324cae431cbc1f9f56af85fcf675f5f77c3688cedbee46ac45348ae30802174",
+      "bytes": 684,
+      "part": {
+        "file": "part8.stl",
+        "name": "wing_mid_support_left",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-mw-base",
+      "path": ".easycfd/runs/ffd5128f88d94e1ca4300486329af71c/geometry/part9.stl",
+      "sha256": "7034f9a83e50151ca651466ffbcb6c7cb81e19c09a0db300e9cd2862d6add70a",
+      "bytes": 684,
+      "part": {
+        "file": "part9.stl",
+        "name": "wing_mid_support_right",
+        "role": "body",
+        "wheel": null,
+        "active": false
+      }
+    },
+    {
+      "model": "mx5-mw-wing",
+      "path": ".easycfd/runs/ffd5128f88d94e1ca4300486329af71c/geometry/part0.stl",
+      "sha256": "f4d3341fcd22b5f89d15b3ac1354baf13b4cb313fbed5317f45cb1eea6d4c514",
+      "bytes": 20368984,
+      "part": {
+        "file": "part0.stl",
+        "name": "body",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-mw-wing",
+      "path": ".easycfd/runs/ffd5128f88d94e1ca4300486329af71c/geometry/part1.stl",
+      "sha256": "252fda7bfd3bf2405feab5aea89f5badf928b7afaa22db4221d9610f0d77b6f3",
+      "bytes": 167884,
+      "part": {
+        "file": "part1.stl",
+        "name": "wheel_fr",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            -1.220278114080429,
+            0.7157635688781738,
+            0.3234550105407834
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-mw-wing",
+      "path": ".easycfd/runs/ffd5128f88d94e1ca4300486329af71c/geometry/part2.stl",
+      "sha256": "52732f98ce6679c597e8738f2009e60b1fb8828a521f7afe1a84d8292cd0cf12",
+      "bytes": 168184,
+      "part": {
+        "file": "part2.stl",
+        "name": "wheel_rr",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            1.0762568712234497,
+            0.7157635688781738,
+            0.3234550105407834
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-mw-wing",
+      "path": ".easycfd/runs/ffd5128f88d94e1ca4300486329af71c/geometry/part3.stl",
+      "sha256": "cff334c30f7b0dccac502b3c044e197959dcdb5ffe6ef9e79c35e9d74d4ad8e3",
+      "bytes": 167884,
+      "part": {
+        "file": "part3.stl",
+        "name": "wheel_fl",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            -1.220278114080429,
+            -0.7181464433670044,
+            0.3234550105407834
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-mw-wing",
+      "path": ".easycfd/runs/ffd5128f88d94e1ca4300486329af71c/geometry/part4.stl",
+      "sha256": "0701d16fc6e1a0b9d4d3507d7d622bedc41a99d9f45b573366886d4d2c6fda7c",
+      "bytes": 168184,
+      "part": {
+        "file": "part4.stl",
+        "name": "wheel_rl",
+        "role": "wheel",
+        "wheel": {
+          "radius": 0.3134550107643008,
+          "center": [
+            1.0762568712234497,
+            -0.7181464433670044,
+            0.3234550105407834
+          ]
+        }
+      }
+    },
+    {
+      "model": "mx5-mw-wing",
+      "path": ".easycfd/runs/ffd5128f88d94e1ca4300486329af71c/geometry/part5.stl",
+      "sha256": "fffce50a1a11bc4dd302d3dcfdf25b00653a58fdab8a8a949dee02978ff2bd1c",
+      "bytes": 19084,
+      "part": {
+        "file": "part5.stl",
+        "name": "rear_wing_mid",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-mw-wing",
+      "path": ".easycfd/runs/ffd5128f88d94e1ca4300486329af71c/geometry/part6.stl",
+      "sha256": "7193fc7bb5507764908c50b16e1510db668f8528e6289a85f4a14754ec58ec2f",
+      "bytes": 684,
+      "part": {
+        "file": "part6.stl",
+        "name": "wing_high_endplate_left",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-mw-wing",
+      "path": ".easycfd/runs/ffd5128f88d94e1ca4300486329af71c/geometry/part7.stl",
+      "sha256": "a1e4ed69f8c3ca639b155c8b05a0f13c4b00e012325df38fedc4b2e3a87c29d4",
+      "bytes": 684,
+      "part": {
+        "file": "part7.stl",
+        "name": "wing_high_endplate_right",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-mw-wing",
+      "path": ".easycfd/runs/ffd5128f88d94e1ca4300486329af71c/geometry/part8.stl",
+      "sha256": "6324cae431cbc1f9f56af85fcf675f5f77c3688cedbee46ac45348ae30802174",
+      "bytes": 684,
+      "part": {
+        "file": "part8.stl",
+        "name": "wing_mid_support_left",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "mx5-mw-wing",
+      "path": ".easycfd/runs/ffd5128f88d94e1ca4300486329af71c/geometry/part9.stl",
+      "sha256": "7034f9a83e50151ca651466ffbcb6c7cb81e19c09a0db300e9cd2862d6add70a",
+      "bytes": 684,
+      "part": {
+        "file": "part9.stl",
+        "name": "wing_mid_support_right",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "wing-mid-alone",
+      "path": ".easycfd/runs/ffd5128f88d94e1ca4300486329af71c/geometry/part5.stl",
+      "sha256": "fffce50a1a11bc4dd302d3dcfdf25b00653a58fdab8a8a949dee02978ff2bd1c",
+      "bytes": 19084,
+      "part": {
+        "file": "part5.stl",
+        "name": "rear_wing_mid",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "wing-mid-alone",
+      "path": ".easycfd/runs/ffd5128f88d94e1ca4300486329af71c/geometry/part6.stl",
+      "sha256": "7193fc7bb5507764908c50b16e1510db668f8528e6289a85f4a14754ec58ec2f",
+      "bytes": 684,
+      "part": {
+        "file": "part6.stl",
+        "name": "wing_high_endplate_left",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "wing-mid-alone",
+      "path": ".easycfd/runs/ffd5128f88d94e1ca4300486329af71c/geometry/part7.stl",
+      "sha256": "a1e4ed69f8c3ca639b155c8b05a0f13c4b00e012325df38fedc4b2e3a87c29d4",
+      "bytes": 684,
+      "part": {
+        "file": "part7.stl",
+        "name": "wing_high_endplate_right",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "wing-mid-alone",
+      "path": ".easycfd/runs/ffd5128f88d94e1ca4300486329af71c/geometry/part8.stl",
+      "sha256": "6324cae431cbc1f9f56af85fcf675f5f77c3688cedbee46ac45348ae30802174",
+      "bytes": 684,
+      "part": {
+        "file": "part8.stl",
+        "name": "wing_mid_support_left",
+        "role": "body",
+        "wheel": null
+      }
+    },
+    {
+      "model": "wing-mid-alone",
+      "path": ".easycfd/runs/ffd5128f88d94e1ca4300486329af71c/geometry/part9.stl",
+      "sha256": "7034f9a83e50151ca651466ffbcb6c7cb81e19c09a0db300e9cd2862d6add70a",
+      "bytes": 684,
+      "part": {
+        "file": "part9.stl",
+        "name": "wing_mid_support_right",
+        "role": "body",
+        "wheel": null
+      }
+    }
+  ]
+}

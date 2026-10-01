@@ -1,5 +1,7 @@
 // CPU preprocessing: everything the GPU kernels need, as flat typed arrays.
 
+import { preflight } from "./resources";
+import { resolvedAxles, momentOrigin } from "./aero";
 import { automaticDomain, type Axis, type Grid } from "./grid";
 import { detailGrid, detailZones, partShapes, type PartShape } from "./detail";
 import { meshVolumeArea, thinSpacing, voxelize, wallDistance } from "./voxelize";
@@ -46,6 +48,7 @@ export interface Level {
 }
 
 export interface CaseSetup {
+  momentOrigin: Vec3;
   /** Set by the preparation worker to pair fields with the grid they belong to. */
   caseKey?: number;
   grid: Grid;
@@ -244,6 +247,7 @@ export function prepareCase(allParts: SolverPart[], settings: Settings, shapes?:
   const timings: Record<string, number> = {};
   // Every part passed in shapes the grid; only active ones are simulated. Switching a group off
   // therefore leaves the grid unchanged, and variants are compared on the same cells.
+  if(allParts.filter(p=>p.active!==false).length>MAX_PARTS) throw new Error(`The solver supports ${MAX_PARTS} active parts; merge parts before running.`);
   const gridParts = allParts;
   const parts = allParts.filter((p) => p.active !== false).slice(0, MAX_PARTS);
   if (!parts.length) throw new Error("Switch at least one part on to run a simulation.");
@@ -266,6 +270,8 @@ export function prepareCase(allParts: SolverPart[], settings: Settings, shapes?:
     detailRatio(settings),
     ext.detailBudget,
   );
+  preflight(grid.cells,(grid.x.n+2)*(grid.y.n+2)*(grid.z.n+2),allParts.reduce((n,p)=>n+p.positions.byteLength,0),settings.gpu_buffer_limit);
+  if(ratio<requested) throw new Error(`Requested ${requested}× detail exceeds the cell budget. Choose ${ratio}× or lower explicitly; quality was not downgraded.`);
   timings.grid = performance.now() - t0;
   const { x, y, z } = grid;
   const nx = x.n, ny = y.n, nz = z.n;
@@ -581,6 +587,7 @@ export function prepareCase(allParts: SolverPart[], settings: Settings, shapes?:
 
   timings.total = performance.now() - t0;
   return {
+    momentOrigin: momentOrigin(resolvedAxles(settings.axles, allParts)),
     grid,
     NX,
     NY,
