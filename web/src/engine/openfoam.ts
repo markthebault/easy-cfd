@@ -3,6 +3,7 @@
 // Nothing leaves this computer or the tailnet: the backend is the local EasyCFD server.
 
 import { equivalentLoads, momentOrigin } from "../solver/aero";
+import { estimateTyreLoads } from "../solver/tyreLoads";
 import type { Part } from "../geometry/model";
 import { writeSTL } from "../geometry/stl";
 import { vizBoxFor, vizGrid, type SurfaceSample, type VizField } from "../solver/extract";
@@ -128,6 +129,8 @@ export function serverSettings(s: Settings): Record<string, unknown> {
     ...(s.refine_underfloor !== undefined ? {refine_underfloor:s.refine_underfloor}:{}),
     ...(s.axles?.confirmed ? { axles: s.axles } : {}),
     ...(s.max_seconds ? { max_seconds: s.max_seconds } : {}),
+    ...(s.vehicle_mass_kg !== undefined ? {vehicle_mass_kg:s.vehicle_mass_kg} : {}),
+    ...(s.front_weight_percent !== undefined ? {front_weight_percent:s.front_weight_percent} : {}),
     speed_kmh: s.speed_kmh,
     yaw_deg: s.yaw_deg,
     quality,
@@ -175,6 +178,7 @@ export function resultFromRecord(run: ServerRun, carLength: number, offset: Vec3
   const body = role("body"), wheels = role("wheels");
   const seconds = run.started && run.finished ? (Date.parse(run.finished) - Date.parse(run.started)) / 1000 : 0;
   const iterations = Number(r.iteration ?? run.iteration ?? 0);
+  const balance = r.aero ? equivalentLoads(r.aero.force,r.aero.moment,run.settings.axles as Settings["axles"],q*run.settings.reference_area) : undefined;
   const levels: RunResult["levels"] = r.refinement_levels?.map((level:any) => ({
     label: level.preset, cells: level.cells, cd: level.cd, cl: level.cl,
     drag: level.drag, lift: -level.downforce,
@@ -187,7 +191,8 @@ export function resultFromRecord(run: ServerRun, carLength: number, offset: Vec3
     cd: r.cd,
     cl: r.cl,
     aero: r.aero ? { ...r.aero, origin: r.aero.origin.map((v:number,i:number)=>v-offset[i]) } : undefined,
-    balance: r.aero ? equivalentLoads(r.aero.force,r.aero.moment,run.settings.axles as Settings["axles"],q*run.settings.reference_area) : undefined,
+    balance,
+    tyreLoads: estimateTyreLoads(balance, {vehicle_mass_kg: (run.settings.vehicle_mass_kg ?? undefined) as number | undefined, front_weight_percent: (run.settings.front_weight_percent ?? undefined) as number | undefined}),
     partForces: r.part_forces,
     levels,
     meshSensitivity: levels && levels.length >= 2 ? {

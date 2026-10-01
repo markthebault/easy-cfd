@@ -8,6 +8,7 @@ import { app, openDesign } from "../store/app";
 import { exportCSV, exportJSON, exportPNG, startCompare } from "../store/runs";
 import type { LoadedRun } from "../store/types";
 import { AeroBalancePanel } from "./AeroBalancePanel";
+import { TyreLoadPanel } from "./TyreLoadPanel";
 import { ForceChart } from "./ForceChart";
 import { StatsTable, defaultWindow } from "./StatsTable";
 import { unitFor } from "./historyUnit";
@@ -150,6 +151,7 @@ export function ResultsPanel() {
       </div>
 
       <Headline run={run} />
+      <TyreLoadPanel key={doc.id} run={run} />
       <AeroBalancePanel run={run} />
       <p className="muted small">Force settling, residual convergence, grid sensitivity and physical accuracy are separate checks. These predictions remain exploratory.</p>
 

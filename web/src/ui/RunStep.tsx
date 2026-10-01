@@ -16,6 +16,7 @@ import { app, setSettings } from "../store/app";
 import { estimate } from "../store/estimate";
 import { toSolverParts } from "../store/geometry";
 import { startRun } from "../store/runs";
+import { weightInputError } from "../solver/tyreLoads";
 import { Slider } from "./controls";
 import { boundaryLine, fmt, fmtCells, fmtDuration } from "./format";
 
@@ -47,6 +48,7 @@ export function RunStep() {
   const parts = useStore(app, (s) => s.parts);
   const groups = useStore(app, (s) => s.groups);
   const s = design.settings;
+  const weightError = weightInputError(s);
   // The grid is shaped by every part whose own switch is on (also those in groups switched off).
   const { shapes, low, high } = useMemo(() => {
     const solver = toSolverParts(parts, groups);
@@ -537,9 +539,10 @@ export function RunStep() {
         </div>
       )}
 
+      {weightError && <p className="inline-error" role="alert">{weightError} Edit the weight inputs in Conditions.</p>}
       <button
         className="btn run block"
-        disabled={blocked || (openfoam ? !serverReady : noGpu)}
+        disabled={blocked || !!weightError || (openfoam ? !serverReady : noGpu)}
         onClick={() => startRun()}
         data-testid="run"
       >

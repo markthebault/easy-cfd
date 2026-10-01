@@ -10,9 +10,21 @@ Surface friction uses the actual fluid-on-car wall traction, in Pa or Cf. The ol
 
 Quick Basic/Regular profiles keep the established solver numerics, with preflight cell/memory/device-buffer limits and paced submissions. Advanced profiles expose a two-CPU mode, selected-group and underfloor refinement, bounded native workers, periodic checkpoints, one job deadline, and sequential mesh studies. Limits are enforced; they are not assurances of convergence. Unsupported/missing diagnostics stay unavailable.
 
+## Total tyre loads
+
+Optional car mass (including driver/fuel) and static front weight percentage now produce steady vertical support loads for each tyre pair in both engines. Front static load is `mass × 9.80665 × front_percentage / 100`; rear carries the remainder. Each pair's total is static load minus its signed aerodynamic lift. Results show kgf, N, static weight and aerodynamic change separately. This assumes level-road, constant-speed equilibrium; braking, cornering, suspension motion and left/right distribution are excluded. A negative equilibrium demand is shown as **Unloaded**, with a loss-of-contact message, rather than a negative physical tyre support load.
+
+Weight inputs start blank. Designs and new native/WebGPU run snapshots preserve entered inputs; the native backend returns `tyre_loads`. Existing results with saved aerodynamic moments/confirmed axles can receive an editable, separately versioned assessment, saved in this browser without changing the original CFD settings, forces or fields. JSON preserves the original run plus the assessment; history CSV uses the active assessment's static loads and each history sample's aerodynamic axle loads. Compare shows the total pair loads and identifies differing static weight inputs. Old results without valid axle balance stay unavailable.
+
+The added checks cover force signs, weight conservation, missing/invalid inputs, loss of contact, native settings snapshots, backend mapping, typing without collapsing the editor, save/reopen and JSON/CSV exports. Invalid entered weights also block the Run button when jumping directly to that step; missing optional inputs leave CFD available. [WebGPU example](tyre-loads-webgpu.json) and [OpenFOAM example](tyre-loads-openfoam.json) retain the original result and later assessment; matching history CSV files are alongside them. These are software checks and provisional aerodynamic examples, not physical tyre-load validation.
+
+[Native extraction](tyre-native-extraction.json) reprocesses the archived real OpenFOAM fields with 1200 kg / 55% front inputs into a temporary output directory. Cd, Cl, drag, lift and whole-car force/moment vectors remain identical; the original record's SHA-256 remains unchanged. Computed support loads are 6331.87 N front and 5021.32 N rear. The UI export examples use a later 1300 kg / 60% assessment.
+
 ## Software and native verification
 
-Final checks: **92 backend tests, 39 browser unit tests and 16 end-to-end tests passed**; the two engine-analysis browser tests also passed after the final comparison changes. Frontend production build and Ruff passed. [Backend](backend-checks.txt), [browser unit](web-unit-checks.txt), [full browser suite](browser-checks.txt), [comparison retest](comparison-checks.txt) and [build](frontend-build.txt) transcripts are retained.
+The original analysis milestone passed **92 backend tests, 39 browser unit tests and 16 end-to-end tests**; the two engine-analysis browser tests also passed after the comparison changes. [Backend](backend-checks.txt), [browser unit](web-unit-checks.txt), [full browser suite](browser-checks.txt), [comparison retest](comparison-checks.txt) and [build](frontend-build.txt) transcripts are retained. The tyre-load extension passes **94 backend tests, 42 browser unit tests and 16 end-to-end tests**; production build and Ruff pass. [Final browser sweep](tyre-browser-checks.txt), [native retest](tyre-native-browser-retest.txt) and [production build](tyre-frontend-build.txt) are retained. An [earlier sweep](tyre-browser-initial.txt) had one road/wheel live-view failure; all four combinations passed on retest and in the final sweep.
+
+The [two engine-analysis tests](tyre-analysis-final.txt) passed again after the final Run-input guard, including the direct-step invalid-weight check. [Tyre-load verification summary](tyre-load-verification.json) records the commands and scope.
 
 - Backend tests cover manufactured loads, stress sign/dimensions/density, component reconciliation, thin-side sampling and zero/missing distinction, profile deadlines, and leases. Browser unit tests cover static force/moment conventions, translation, raw stress persistence and resource preflight.
 - Browser tests exercise real WebGPU, a real OpenFOAM sample plus wing, Pa/Cf legends, saved axle snapshots, component identity, old-run fallback, save/reopen, shared Compare scales and PNG export. Existing pressure/clouds/streamlines/smoke/sections, road/wheels and underbody camera workflows remain regression targets.
@@ -99,3 +111,5 @@ EASYCFD_AERO_BACKEND=http://127.0.0.1:8031 EASYCFD_AERO_RUN=<completed-run-id> n
 ## Screenshots
 
 [Imported MX-5 friction](friction-imported-mx5.png), [WebGPU sample friction](friction-webgpu.png), [saved balance](balance-reopened.png), [OpenFOAM friction](friction-openfoam.png), [OpenFOAM PNG with units](friction-openfoam-export.png), [shared Compare scale](compare-openfoam.png).
+
+[Weight setup on Tailscale](tyre-weight-setup.png), [WebGPU tyre loads](tyre-loads-webgpu.png), [OpenFOAM tyre loads](tyre-loads-openfoam.png).

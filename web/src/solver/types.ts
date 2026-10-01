@@ -13,6 +13,23 @@ export interface AeroIntegral {
   pressureMoment: Vec3; frictionMoment: Vec3;
 }
 
+export interface VehicleWeight {
+  /** Running mass including driver and fuel. Postprocessing only; does not change CFD. */
+  vehicle_mass_kg?: number;
+  /** Static share of weight carried by the front axle, 0–100 %. */
+  front_weight_percent?: number;
+}
+
+export interface TyreLoads {
+  version: "steady-axle-loads-1";
+  massKg: number;
+  frontWeightPercent: number;
+  gravity: number;
+  front: { staticN: number; aerodynamicN: number; totalN: number };
+  rear: { staticN: number; aerodynamicN: number; totalN: number };
+  contactFeasible: boolean;
+}
+
 export interface Wheel {
   center: Vec3;
   radius: number;
@@ -54,7 +71,7 @@ export interface SimulationBox {
   z_max: number;
 }
 
-export interface Settings {
+export interface Settings extends VehicleWeight {
   axles?: Axles;
   refine_groups?: string[];
   refine_underfloor?: boolean;
@@ -183,6 +200,7 @@ export interface PartForce {
 }
 
 export interface RunResult {
+  tyreLoads?: TyreLoads;
   wallIntegration?: { iteration: number; coverage: number; faces: number; forceError: number; momentError: number; frictionError: number; tolerance: number; forceTolerance?: number; momentTolerance?: number; passed: boolean };
   aero?: AeroIntegral;
   balance?: AeroBalance;

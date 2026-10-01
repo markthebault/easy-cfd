@@ -1250,6 +1250,12 @@ input[type="range"]::-moz-range-thumb {
   font-weight: 600;
 }
 
+.tyre-load-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.tyre-load-cards .card-value { font-size: 23px; }
+.tyre-load-cards .card-value small { font-size: 12px; }
+.tyre-loads details { margin-top: 12px; }
+.tyre-loads summary { margin-bottom: 10px; cursor: pointer; }
+.tyre-loads .box-grid .number-field { width: 100%; }
 .box-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

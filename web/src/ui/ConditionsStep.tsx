@@ -11,6 +11,8 @@ import { app, goStep, setSettings } from "../store/app";
 import { gridBounds } from "../store/geometry";
 import { Badge, Checkbox, Field, NumberField, Segmented, Slider } from "./controls";
 import { fmt } from "./format";
+import { VehicleWeightFields } from "./VehicleWeightFields";
+import { weightInputError } from "../solver/tyreLoads";
 
 const MIN = 5, MAX = 300;
 const A0 = -135, A1 = 135;
@@ -293,9 +295,15 @@ export function ConditionsStep() {
         {axleProblem && <p className="field-hint" role="status">{axleProblem}</p>}
         <details className="analysis-availability"><summary>What these loads mean</summary><p>Equivalent aerodynamic loads use the whole-car force and pitching moment about the road below the front axle. Drag acting above the road contributes to pitch. These are forces, not tyre loads or a model of vehicle mass and suspension.</p></details>
       </div>
+      <div className="group" data-testid="vehicle-weight-setup">
+        <div className="group-title"><span>Tyre load estimate</span><Badge kind="neutral">Optional</Badge></div>
+        <p className="field-hint">Add the car’s static weight to the aerodynamic axle loads. Each result is the combined load on the front or rear tyre pair, on a level road at constant speed.</p>
+        <VehicleWeightFields value={s} onChange={setSettings} />
+        <small className="field-hint">You can also enter these values on a saved result without rerunning CFD.</small>
+      </div>
       <DetailBoxes low={low} high={high} />
 
-      <button className="btn primary block" disabled={!!boxError} onClick={() => goStep("run")}>
+      <button className="btn primary block" disabled={!!boxError || !!weightInputError(s)} onClick={() => goStep("run")}>
         Continue to run
       </button>
     </div>

@@ -1,0 +1,14 @@
+
+> easy-cfd-web@0.1.0 build
+> tsc -b && vite build && cp VALIDATION.md dist/
+
+vite v6.4.3 building for production...
+transforming...
+✓ 1663 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                          0.65 kB │ gzip:   0.38 kB
+dist/assets/case.worker-BMXJ29ri.js     31.59 kB
+dist/assets/main-CqUg5w_W.css           45.96 kB │ gzip:   9.52 kB
+dist/assets/main-BkFHsFmf.js         1,271.62 kB │ gzip: 360.54 kB
+✓ built in 2.35s

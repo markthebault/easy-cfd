@@ -2,6 +2,7 @@
 
 import { integrateWalls } from "./wallStress";
 import { add, equivalentLoads } from "./aero";
+import { estimateTyreLoads } from "./tyreLoads";
 import { FlowSolver, HISTORY_SLOTS } from "./gpu";
 import { prepareCase, type CaseSetup } from "./setup";
 import { DETAIL_CELL_BUDGET } from "./detail";
@@ -124,7 +125,11 @@ export async function runSimulation(
   opts: RunOptions = {},
 ): Promise<{ result: RunResult; solver: FlowSolver; setup: CaseSetup }> {
   opts={...opts,deadline:opts.deadline ?? performance.now()+1000*(settings.max_seconds ?? (settings.quality === "fast"?300:600))};
-  if (settings.quality !== "precise") return runLevel(device, parts, settings, opts);
+  if (settings.quality !== "precise") {
+    const solved = await runLevel(device, parts, settings, opts);
+    solved.result.tyreLoads = estimateTyreLoads(solved.result.balance, settings);
+    return solved;
+  }
   const started = performance.now();
   const level = (p: typeof PRESETS.medium): Settings => ({ ...settings, quality: "custom", custom_cells: p.cellsPerLength, custom_passes: p.passes });
   const coarse = level(PRESETS.medium);
@@ -180,6 +185,7 @@ export async function runSimulation(
     warnings: [...new Set([...a.warnings, ...b.warnings])],
   };
   if (result.aero) result.balance = equivalentLoads(result.aero.force,result.aero.moment,settings.axles,result.dynamicPressure*settings.reference_area);
+  result.tyreLoads = estimateTyreLoads(result.balance, settings);
   const rel = Math.abs(b.cd - a.cd) / Math.max(Math.abs(result.cd), 1e-6);
   if (rel > 0.1)
     result.warnings.push(`The two grid levels differ by ${(rel * 100).toFixed(0)} % in drag. The flow around this shape is sensitive to resolution; treat differences between designs smaller than that with caution.`);

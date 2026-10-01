@@ -2,7 +2,7 @@
 
 import type { ImportOptions, Part } from "../geometry/model";
 import type { SurfaceSample, VizField } from "../solver/extract";
-import type { RunResult, Settings, Vec3 } from "../solver/types";
+import type { RunResult, Settings, TyreLoads, Vec3, VehicleWeight } from "../solver/types";
 
 export interface FileRef {
   /** SHA-256 of the bytes; key in the `files` store. */
@@ -55,6 +55,8 @@ export interface GeometrySummary {
 }
 
 export interface RunDoc {
+  /** Editable weight assessment; original CFD settings and results remain unchanged. */
+  tyreLoadAssessment?: { version: "steady-axle-loads-1"; assessedAt: number; inputs: VehicleWeight; loads?: TyreLoads };
   id: string;
   designId: string;
   designName: string;

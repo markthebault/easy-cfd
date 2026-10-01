@@ -115,3 +115,48 @@ def test_equivalent_loads_from_force_and_road_plane_moment():
         assert np.isclose(result["frontCl"] + result["rearCl"], force[2] / 450)
     assert equivalent_loads([0, 0, 0], [0, 90, 0], axles, 450).get("frontDownforcePercent") is None
     assert equivalent_loads([0, 0, -90], [0, 135, 0], axles, 450)["frontDownforcePercent"] == 50
+
+
+def test_tyre_support_loads_add_downforce_and_remove_lift():
+    from easycfd.aerodynamics import tyre_loads
+
+    settings = dict(vehicle_mass_kg=1200, front_weight_percent=55)
+    for front_lift, rear_lift in [(0, 0), (-120, -300), (120, -300)]:
+        loads = tyre_loads(dict(frontLift=front_lift, rearLift=rear_lift), settings)
+        assert loads["front"]["staticN"] == pytest.approx(1200 * 9.80665 * 0.55)
+        assert loads["rear"]["staticN"] == pytest.approx(1200 * 9.80665 * 0.45)
+        assert loads["front"]["aerodynamicN"] == -front_lift
+        assert loads["rear"]["aerodynamicN"] == -rear_lift
+        assert loads["front"]["totalN"] + loads["rear"]["totalN"] == pytest.approx(
+            1200 * 9.80665 - front_lift - rear_lift
+        )
+        assert loads["contactFeasible"] is True
+    loads = tyre_loads(dict(frontLift=7000, rearLift=0), settings)
+    assert loads["front"]["totalN"] < 0
+    assert loads["contactFeasible"] is False
+
+
+def test_tyre_loads_require_weight_and_valid_axle_balance():
+    from easycfd.aerodynamics import tyre_loads
+
+    balance = dict(frontLift=0, rearLift=0)
+    weight = dict(vehicle_mass_kg=1200, front_weight_percent=55)
+    assert tyre_loads(None, weight) is None
+    assert tyre_loads(balance, {}) is None
+    assert tyre_loads(balance, dict(vehicle_mass_kg=1200)) is None
+    assert tyre_loads(balance, dict(front_weight_percent=55)) is None
+    assert tyre_loads(dict(frontLift=float("nan"), rearLift=0), weight) is None
+    for field, invalid in [
+        ("vehicle_mass_kg", 0),
+        ("vehicle_mass_kg", -1),
+        ("vehicle_mass_kg", 10001),
+        ("vehicle_mass_kg", float("inf")),
+        ("front_weight_percent", -1),
+        ("front_weight_percent", 101),
+        ("front_weight_percent", float("nan")),
+    ]:
+        assert tyre_loads(balance, {**weight, field: invalid}) is None
+        with pytest.raises(ValueError):
+            Settings(**{field: invalid})
+    for percent in [0, 100]:
+        assert tyre_loads(balance, {**weight, "front_weight_percent": percent}) is not None

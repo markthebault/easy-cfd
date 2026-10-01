@@ -35,6 +35,9 @@ class Settings(BaseModel):
     model_config = ConfigDict(allow_inf_nan=False, extra="forbid")
     profile: Literal["basic", "regular", "advanced1", "advanced2"] | None = None
     axles: Axles | None = None
+    # Postprocessing inputs, independent of the airflow boundary conditions.
+    vehicle_mass_kg: float | None = Field(default=None, gt=0, le=10000)
+    front_weight_percent: float | None = Field(default=None, ge=0, le=100)
     moment_origin: tuple[float, float, float] | None = None
     part_labels: dict[str, dict[str, str]] = Field(default_factory=dict)
     refine_groups: list[str] | None = None

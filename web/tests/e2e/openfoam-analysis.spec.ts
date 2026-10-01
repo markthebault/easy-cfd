@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { writeFile, mkdir } from "node:fs/promises";
+import { checkTyreLoadAssessment } from "./tyreLoads";
 
 const backend = process.env.EASYCFD_AERO_BACKEND;
 const runId = process.env.EASYCFD_AERO_RUN;
@@ -25,6 +26,13 @@ test("real OpenFOAM patch stress, saved balance, shared scales and reopening", a
     if(u.pathname === '/api/runs' && req.method() === 'GET') {
       const records=await response.json();
       await route.fulfill({contentType:'application/json',body:JSON.stringify(records.filter((r:{id:string})=>r.id === runId))});return;
+    }
+    if(u.pathname === `/api/runs/${runId}` && req.method() === 'GET') {
+      const record = await response.json();
+      // Current Settings serializes unprovided optional weight inputs as null.
+      record.settings.vehicle_mass_kg ??= null;
+      record.settings.front_weight_percent ??= null;
+      await route.fulfill({contentType:'application/json', body:JSON.stringify(record)});return;
     }
     await route.fulfill({ response });
   });
@@ -58,6 +66,8 @@ test("real OpenFOAM patch stress, saved balance, shared scales and reopening", a
   });
   expect(metrics.server).toBe(runId);
   expect(metrics.settings.axles.confirmed).toBe(true);
+  expect(metrics.settings.vehicle_mass_kg).toBeUndefined();
+  expect(metrics.settings.front_weight_percent).toBeUndefined();
   expect(metrics.balance.frontLift + metrics.balance.rearLift).toBeCloseTo(
     metrics.aero.force[2],
     7,
@@ -70,6 +80,7 @@ test("real OpenFOAM patch stress, saved balance, shared scales and reopening", a
   ).toBe(true);
   expect(metrics.reconciliation.complete).toBe(true);
   await page.getByRole("button", { name: "Pause animation" }).click();
+  await checkTyreLoadAssessment(page, "openfoam");
   await page.getByRole("button", { name: "Explore airflow" }).click();
   await page.getByTestId("analysis-friction").click();
   await expect(page.locator(".legend-title")).toContainText("Pa");
@@ -97,6 +108,7 @@ test("real OpenFOAM patch stress, saved balance, shared scales and reopening", a
       viz: { ...s.viz, friction: true, frictionUnit: "Cf", frictionMax: 0.01 },
     });
   });
+  await expect(page.getByTestId("compare-tyre-loads")).toBeVisible();
   await expect(page.locator(".legend-title")).toContainText("Cf");
   await page.screenshot({ path: "test-results/aero-compare-openfoam.png" });
   await mkdir("test-results", { recursive: true });

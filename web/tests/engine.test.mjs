@@ -34,6 +34,25 @@ test("road and wheel choices reach OpenFOAM independently, including explicit fa
   }
 });
 
+test("weight inputs reach the backend and native tyre loads use the saved axle moment", () => {
+  const weight = {vehicle_mass_kg:1200, front_weight_percent:55};
+  const out = of.serverSettings({...types.DEFAULT_SETTINGS, ...weight});
+  assert.equal(out.vehicle_mass_kg, 1200);
+  assert.equal(out.front_weight_percent, 55);
+  const record = {id:"a".repeat(32), settings:{speed_kmh:100,yaw_deg:0,density:1.225,reference_area:2,...weight,
+    axles:{frontX:4,rearX:7,centrelineY:2,confirmed:true}},
+    result:{cd:.3,cl:-.2,drag:100,downforce:90,
+      aero:{force:[100,0,-90],moment:[0,180,0],origin:[4,2,0]}}};
+  const result = of.resultFromRecord(record,4,[5,2,0],[0,0,0,0,0,0]);
+  assert.deepEqual(result.aero.origin, [-1,0,0]);
+  assert.equal(result.balance.frontLift, -30);
+  assert.equal(result.balance.rearLift, -60);
+  assert.ok(Math.abs(result.tyreLoads.front.totalN - (1200 * 9.80665 * .55 + 30)) < 1e-10);
+  assert.ok(Math.abs(result.tyreLoads.rear.totalN - (1200 * 9.80665 * .45 + 60)) < 1e-10);
+  delete record.settings.vehicle_mass_kg;
+  assert.equal(of.resultFromRecord(record,4,[5,2,0],[0,0,0,0,0,0]).tyreLoads, undefined);
+});
+
 test("frame offset and domain conversion between the UI and the server", () => {
   const uiLow = [-2.1, -0.9, 0.01];
   const serverLow = [-2.05, -0.92, 0.01];

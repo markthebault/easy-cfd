@@ -90,15 +90,26 @@ def test_step_embedded_units(tmp_path):
 def test_confirmation_and_snapshot(client):
     p = project(client)
     assert client.post(f"/api/projects/{p['id']}/runs").status_code == 400
-    settings = {**p["settings"], "geometry_confirmed": True, "quality": "fast"}
+    settings = {
+        **p["settings"],
+        "geometry_confirmed": True,
+        "quality": "fast",
+        "vehicle_mass_kg": 1200,
+        "front_weight_percent": 55,
+    }
     assert client.put(f"/api/projects/{p['id']}/settings", json=settings).status_code == 200
     r = client.post(f"/api/projects/{p['id']}/runs").json()
     assert r["status"] == "queued"
     client.post(f"/api/projects/{p['id']}/sample?wing=true")
-    client.put(f"/api/projects/{p['id']}/settings", json={**settings, "speed_kmh": 180})
+    client.put(
+        f"/api/projects/{p['id']}/settings",
+        json={**settings, "speed_kmh": 180, "vehicle_mass_kg": 1300, "front_weight_percent": 60},
+    )
     saved = client.get(f"/api/runs/{r['id']}").json()
     assert len(saved["geometry"]["parts"]) == 5
     assert saved["settings"]["speed_kmh"] == 100
+    assert saved["settings"]["vehicle_mass_kg"] == 1200
+    assert saved["settings"]["front_weight_percent"] == 55
     assert (storage.directory("runs", r["id"]) / "geometry/part0.stl").exists()
 
 

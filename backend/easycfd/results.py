@@ -1,6 +1,6 @@
 """Extract real OpenFOAM fields; never substitute illustrative physics."""
 
-from .aerodynamics import balance_diagnostics, equivalent_loads, integrals, stress_factor
+from .aerodynamics import balance_diagnostics, equivalent_loads, integrals, stress_factor, tyre_loads
 from pathlib import Path
 import math
 import re
@@ -382,10 +382,8 @@ def process(case, output, run, metadata):
             )
     else:
         warnings.append("Near-wall y+ coverage could not be assessed.")
-    return dict(
-        **values,
-        **balance_checks,
-        balance=equivalent_loads(
+    balance = (
+        equivalent_loads(
             vectors["aero"]["force"],
             vectors["aero"]["moment"],
             run["settings"].get("axles"),
@@ -395,7 +393,13 @@ def process(case, output, run, metadata):
             * run["settings"]["reference_area"],
         )
         if vectors
-        else None,
+        else None
+    )
+    return dict(
+        **values,
+        **balance_checks,
+        balance=balance,
+        tyre_loads=tyre_loads(balance, run["settings"]),
         freestream=metadata["freestream"],
         **vectors,
         wall_stress=stress_check,

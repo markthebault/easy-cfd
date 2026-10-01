@@ -7,6 +7,36 @@ import numpy as np
 
 
 VERSION = "openfoam-wall-integrals-2"
+GRAVITY = 9.80665
+
+
+def tyre_loads(balance, settings):
+    """Level-road steady support loads per tyre pair; preserve negative equilibrium demands."""
+    mass = settings.get("vehicle_mass_kg")
+    front_percent = settings.get("front_weight_percent")
+    if not balance or mass is None or front_percent is None:
+        return None
+    if not np.isfinite([mass, front_percent, balance["frontLift"], balance["rearLift"]]).all():
+        return None
+    if not 0 < mass <= 10000 or not 0 <= front_percent <= 100:
+        return None
+    front_static = mass * GRAVITY * front_percent / 100
+    rear_static = mass * GRAVITY - front_static
+    front = dict(
+        staticN=front_static, aerodynamicN=-balance["frontLift"], totalN=front_static - balance["frontLift"]
+    )
+    rear = dict(
+        staticN=rear_static, aerodynamicN=-balance["rearLift"], totalN=rear_static - balance["rearLift"]
+    )
+    return dict(
+        version="steady-axle-loads-1",
+        massKg=mass,
+        frontWeightPercent=front_percent,
+        gravity=GRAVITY,
+        front=front,
+        rear=rear,
+        contactFeasible=bool(front["totalN"] >= 0 and rear["totalN"] >= 0),
+    )
 
 
 def stress_factor(case: Path, iteration: float, density: float) -> float | None:

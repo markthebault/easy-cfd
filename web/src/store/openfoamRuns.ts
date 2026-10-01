@@ -359,6 +359,8 @@ function settingsFromServer(s: ServerRun["settings"]): Settings {
     yaw_deg: s.yaw_deg,
     quality: q,
     axles: s.axles as Settings["axles"],
+    vehicle_mass_kg: (s.vehicle_mass_kg ?? undefined) as number | undefined,
+    front_weight_percent: (s.front_weight_percent ?? undefined) as number | undefined,
     profile: s.profile as Settings["profile"],
     refine_groups: s.refine_groups as Settings["refine_groups"],
     refine_underfloor: s.refine_underfloor as Settings["refine_underfloor"],

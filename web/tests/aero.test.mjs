@@ -1,7 +1,7 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { createServer } from "vite";
-let server, aero, codec;
+let server, aero, codec, tyres;
 before(async () => {
   server = await createServer({
     root: new URL("..", import.meta.url).pathname,
@@ -12,10 +12,38 @@ before(async () => {
   });
   aero = await server.ssrLoadModule("/src/solver/aero.ts");
   codec = await server.ssrLoadModule("/src/store/codec.ts");
+  tyres = await server.ssrLoadModule("/src/solver/tyreLoads.ts");
 });
 after(async () => server?.close());
 const axles = { frontX: -1, rearX: 2, centrelineY: 0, confirmed: true };
 const close = (a, b) => assert.ok(Math.abs(a - b) < 1e-10, `${a} vs ${b}`);
+test("tyre pairs conserve weight plus downforce, with mixed lift and loss of contact", () => {
+  const weight = {vehicle_mass_kg: 1200, front_weight_percent: 55};
+  for (const [frontLift, rearLift] of [[0, 0], [-120, -300], [120, -300]]) {
+    const loads = tyres.estimateTyreLoads({frontLift, rearLift}, weight);
+    close(loads.front.staticN, 1200 * 9.80665 * .55);
+    close(loads.rear.staticN, 1200 * 9.80665 * .45);
+    close(loads.front.aerodynamicN, -frontLift);
+    close(loads.rear.aerodynamicN, -rearLift);
+    close(loads.front.totalN + loads.rear.totalN, 1200 * 9.80665 - frontLift - rearLift);
+    assert.equal(loads.contactFeasible, true);
+  }
+  const unloaded = tyres.estimateTyreLoads({frontLift:7000, rearLift:0}, weight);
+  assert.ok(unloaded.front.totalN < 0);
+  assert.equal(unloaded.contactFeasible, false);
+});
+test("tyre estimates never invent missing weights or unavailable axle data", () => {
+  const balance = {frontLift:0, rearLift:0}, weight = {vehicle_mass_kg:1200, front_weight_percent:55};
+  for (const missing of [{}, {vehicle_mass_kg:1200}, {front_weight_percent:55}])
+    assert.equal(tyres.estimateTyreLoads(balance, missing), undefined);
+  assert.equal(tyres.estimateTyreLoads(undefined, weight), undefined);
+  assert.equal(tyres.estimateTyreLoads({...balance, frontLift:NaN}, weight), undefined);
+  for (const [key, value] of [["vehicle_mass_kg", 0], ["vehicle_mass_kg", -1], ["vehicle_mass_kg", 10001], ["vehicle_mass_kg", Infinity], ["front_weight_percent", -1], ["front_weight_percent", 101], ["front_weight_percent", NaN]]) {
+    const invalid = {...weight, [key]:value};
+    assert.ok(tyres.weightInputError(invalid));
+    assert.equal(tyres.estimateTyreLoads(balance, invalid), undefined);
+  }
+});
 test("wall moments give front, rear and middle loads; sums conserve lift and Cl", () => {
   for (const [x, front, rear] of [
     [-1, -90, 0],

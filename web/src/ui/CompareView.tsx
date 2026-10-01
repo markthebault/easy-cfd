@@ -3,6 +3,7 @@
 
 import { ArrowDown, ArrowUp, TriangleAlert, X } from "lucide-react";
 import { G, type Settings } from "../solver/types";
+import { estimateTyreLoads } from "../solver/tyreLoads";
 import { useStore } from "../store/store";
 import { app, closeCompare } from "../store/app";
 import type { LoadedRun } from "../store/types";
@@ -111,6 +112,9 @@ export function CompareView() {
   if (!cmp) return null;
   const { a, b } = cmp;
   const ra = a.doc.result, rb = b.doc.result;
+  const weightA = a.doc.tyreLoadAssessment?.inputs ?? a.doc.settings;
+  const weightB = b.doc.tyreLoadAssessment?.inputs ?? b.doc.settings;
+  const tyresA = estimateTyreLoads(ra.balance, weightA), tyresB = estimateTyreLoads(rb.balance, weightB);
   const cond = conditionDiffs(a.doc.settings, b.doc.settings);
   if(JSON.stringify(a.doc.settings.axles)!==JSON.stringify(b.doc.settings.axles)) cond.push("axle definitions differ");
   if(JSON.stringify(ra.aero?.origin)!==JSON.stringify(rb.aero?.origin)) cond.push("moment origins differ");
@@ -161,6 +165,16 @@ export function CompareView() {
           <Delta label="Cl" a={ra.cl} b={rb.cl} unit="" digits={4} better={null} />
         </div>
         {ra.balance && rb.balance && <div className="compare-cards"><Delta label="Front lift" a={ra.balance.frontLift} b={rb.balance.frontLift} unit="N" digits={1} better={null}/><Delta label="Rear lift" a={ra.balance.rearLift} b={rb.balance.rearLift} unit="N" digits={1} better={null}/><Delta label="Pitching moment" a={ra.balance.pitch} b={rb.balance.pitch} unit="N m" digits={2} better={null}/></div>}
+        {tyresA && tyresB && <>
+          <div className="compare-cards" data-testid="compare-tyre-loads">
+            <Delta label="Front tyre pair" a={tyresA.front.totalN} b={tyresB.front.totalN} unit="N" digits={0} better={null}/>
+            <Delta label="Rear tyre pair" a={tyresA.rear.totalN} b={tyresB.rear.totalN} unit="N" digits={0} better={null}/>
+          </div>
+          <p className="compare-grid muted small">Steady level-road tyre loads include static weight and aerodynamic load.
+            {(weightA.vehicle_mass_kg !== weightB.vehicle_mass_kg || weightA.front_weight_percent !== weightB.front_weight_percent) && " Weight inputs differ; the load change includes static weight differences."}
+            {(!tyresA.contactFeasible || !tyresB.contactFeasible) && " A negative demand indicates loss of contact; the fixed-pose estimate is no longer physical."}
+          </p>
+        </>}
         <p className="compare-grid muted small">{ra.cdBand === undefined || rb.cdBand === undefined ? "Significance unknown: averaging-window variation is unavailable." : Math.abs(rb.cd-ra.cd)<=Math.max(ra.cdBand+rb.cdBand,Math.abs(ra.meshSensitivity?.dCd ?? 0),Math.abs(rb.meshSensitivity?.dCd ?? 0)) ? "Drag change is smaller than observed variation or measured grid sensitivity; the ranking is unresolved." : "Drag change exceeds recorded variation. Physical prediction uncertainty remains unknown."}</p>
         <p className="compare-grid muted small">{ra.clBand === undefined || rb.clBand === undefined ? "Lift significance unknown: averaging-window variation is unavailable." : Math.abs(rb.cl-ra.cl) <= Math.max(ra.clBand+rb.clBand,Math.abs(ra.meshSensitivity?.dCl ?? 0),Math.abs(rb.meshSensitivity?.dCl ?? 0)) ? "Lift change is smaller than observed variation or measured grid sensitivity; the ranking is unresolved." : "Lift change exceeds recorded variation; physical uncertainty remains unknown."}</p>
         {ra.balance && rb.balance && <p className="compare-grid muted small">{(["frontLift","rearLift","pitch"] as const).map(k=>{const x=ra.balanceBands?.[k],y=rb.balanceBands?.[k];const threshold=Math.max((x??0)+(y??0),Math.abs(ra.meshSensitivity?.[k]??0),Math.abs(rb.meshSensitivity?.[k]??0));return `${k === "pitch" ? "Pitch" : k === "frontLift" ? "Front load" : "Rear load"}: ${x === undefined || y === undefined ? "significance unknown" : Math.abs(rb.balance![k]-ra.balance![k]) <= threshold ? "change within observed variation or grid sensitivity" : "change exceeds recorded variation"}`;}).join(" · ")}. A change in balance is not automatically an improvement; physical uncertainty remains unknown.</p>}
