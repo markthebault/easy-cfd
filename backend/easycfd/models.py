@@ -17,8 +17,29 @@ class SimulationBox(BaseModel):
         return self
 
 
+class Axles(BaseModel):
+    model_config = ConfigDict(allow_inf_nan=False, extra="forbid")
+    frontX: float
+    rearX: float
+    centrelineY: float = 0
+    confirmed: bool = False
+
+    @model_validator(mode="after")
+    def ordered(self):
+        if self.rearX <= self.frontX:
+            raise ValueError("Front axle X must be smaller than rear axle X.")
+        return self
+
+
 class Settings(BaseModel):
     model_config = ConfigDict(allow_inf_nan=False, extra="forbid")
+    profile: Literal["basic", "regular", "advanced1", "advanced2"] | None = None
+    axles: Axles | None = None
+    moment_origin: tuple[float, float, float] | None = None
+    part_labels: dict[str, dict[str, str]] = Field(default_factory=dict)
+    refine_groups: list[str] | None = None
+    refine_underfloor: bool = True
+    max_seconds: int | None = Field(default=None, ge=30, le=43200)
     speed_kmh: float = Field(default=100, ge=5, le=300)
     yaw_deg: float = Field(default=0, ge=-20, le=20)
     quality: Literal["fast", "medium", "precise", "custom"] = "medium"
@@ -30,6 +51,13 @@ class Settings(BaseModel):
     moving_ground: bool = True
     wheels: bool = True
     geometry_confirmed: bool = False
+
+    @model_validator(mode="after")
+    def profile_deadline(self):
+        ceiling = {"basic": 300, "regular": 600, "advanced1": 10800, "advanced2": 43200}.get(self.profile)
+        if ceiling and self.max_seconds and self.max_seconds > ceiling:
+            raise ValueError(f"This profile permits at most {ceiling} seconds for the whole job.")
+        return self
 
 
 class NewProject(BaseModel):
@@ -90,7 +118,62 @@ PRESETS = {
 }
 
 
+ADVANCED = {
+    "advanced1": dict(
+        cell=0.4,
+        surface=3,
+        wake=2,
+        layers=8,
+        max_cells=1_000_000,
+        iterations=6000,
+        residual=1e-5,
+        label="Advanced level 1",
+        memory_gb=5,
+    ),
+    "advanced2_1": dict(
+        cell=0.63,
+        surface=3,
+        wake=2,
+        layers=8,
+        max_cells=500_000,
+        iterations=10000,
+        residual=1e-5,
+        label="Advanced 2 · coarse",
+        memory_gb=6,
+    ),
+    "advanced2_2": dict(
+        cell=0.5,
+        surface=3,
+        wake=2,
+        layers=8,
+        max_cells=1_000_000,
+        iterations=10000,
+        residual=1e-5,
+        label="Advanced 2 · medium",
+        memory_gb=6,
+    ),
+    "advanced2_3": dict(
+        cell=0.4,
+        surface=3,
+        wake=2,
+        layers=8,
+        max_cells=2_000_000,
+        iterations=10000,
+        residual=1e-5,
+        label="Advanced 2 · fine",
+        memory_gb=6,
+    ),
+}
+
+
 def resolved_preset(settings: Settings, quality=None):
+    if quality in ADVANCED:
+        return dict(ADVANCED[quality])
+    if settings.profile == "advanced1":
+        return dict(ADVANCED["advanced1"])
+    if settings.profile == "advanced2":
+        return dict(ADVANCED["advanced2_3"])
+
     tier = quality or settings.quality
     if tier == "custom":
         return {**PRESETS[settings.custom_mesh], "iterations": settings.custom_iterations}

@@ -8,14 +8,20 @@ results.py so the pipeline hash that decides whether saved runs are comparable d
 """
 
 from pathlib import Path
-import gzip
+import asyncio
+import subprocess
+import sys
+import tempfile
+import threading
+import time
+import psutil
 import hashlib
 import json
 import numpy as np
 import vtk
 from fastapi import APIRouter, Request
 from fastapi.responses import FileResponse, Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from scipy.spatial import cKDTree
 from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 
@@ -24,9 +30,57 @@ from . import storage
 router = APIRouter()
 
 # Bump when sampling or encoding changes, so cached fields are rebuilt.
-VERSION = 1
+VERSION = 2
 MAX_POINTS = 2_500_000
 MAX_VERTICES = 6_000_000
+SAMPLING_LOCK = threading.Lock()
+
+
+async def bounded_sample(request: Request, args, body=None):
+    """Serialize native sampling outside the API, with disconnect, time and RSS guards."""
+    start = time.monotonic()
+    while not SAMPLING_LOCK.acquire(blocking=False):
+        if await request.is_disconnected() or time.monotonic() - start > 120:
+            raise ValueError("Field sampling was cancelled or its queue exceeded two minutes.")
+        await asyncio.sleep(0.1)
+    try:
+        with tempfile.TemporaryDirectory(prefix="easycfd-sample-") as temp:
+            folder = Path(temp)
+            (folder / "request.json").write_text(json.dumps(args))
+            if body is not None:
+                (folder / "positions.bin").write_bytes(body)
+            with (folder / "log.txt").open("w") as log:
+                process = subprocess.Popen(
+                    [sys.executable, "-m", "easycfd.sample_worker", temp],
+                    stdout=log,
+                    stderr=subprocess.STDOUT,
+                )
+                try:
+                    while process.poll() is None:
+                        if await request.is_disconnected():
+                            raise ValueError("Field sampling cancelled because the viewer disconnected.")
+                        if time.monotonic() - start > 120:
+                            raise ValueError(
+                                "Field sampling exceeded its two-minute limit. Request fewer points."
+                            )
+                        try:
+                            rss = psutil.Process(process.pid).memory_info().rss
+                        except psutil.NoSuchProcess:
+                            continue
+                        if rss > 3 * 1024**3 or rss + psutil.Process().memory_info().rss > 8 * 1024**3:
+                            raise ValueError(
+                                "Field sampling exceeded its memory ceiling. Request fewer points."
+                            )
+                        await asyncio.sleep(0.1)
+                    if process.returncode:
+                        raise ValueError("Field sampling failed: " + (folder / "log.txt").read_text()[-2000:])
+                    return (folder / "response.bin.gz").read_bytes()
+                finally:
+                    if process.poll() is None:
+                        process.kill()
+                        process.wait(timeout=5)
+    finally:
+        SAMPLING_LOCK.release()
 
 
 def coefficient_rows(case: Path):
@@ -77,6 +131,7 @@ def live(key: str, every: int = 1):
 
 
 class FieldRequest(BaseModel):
+    model_config = ConfigDict(allow_inf_nan=False, extra="forbid")
     origin: tuple[float, float, float]
     spacing: tuple[float, float, float] = Field(description="Positive grid spacing per axis (m)")
     dims: tuple[int, int, int]
@@ -119,7 +174,7 @@ def sample_field(results: Path, request: FieldRequest) -> bytes:
 
 
 @router.post("/api/runs/{key}/viz-field")
-def viz_field(key: str, request: FieldRequest):
+async def viz_field(key: str, request: FieldRequest, connection: Request):
     """The finished flow on a uniform grid given in the run's geometry frame (gzipped binary)."""
     run = storage.get("runs", key)
     if run["status"] != "completed":
@@ -131,10 +186,11 @@ def viz_field(key: str, request: FieldRequest):
     tag = hashlib.sha256(json.dumps([VERSION, request.model_dump()]).encode()).hexdigest()[:16]
     path = results / f"vizfield-{tag}.bin.gz"
     if not path.exists():
-        with storage.LOCK:
-            payload = sample_field(results, request)
+        payload = await bounded_sample(
+            connection, {"kind": "field", "results": str(results), "grid": request.model_dump()}
+        )
         temp = path.with_suffix(".tmp")
-        temp.write_bytes(gzip.compress(payload, compresslevel=1))
+        temp.write_bytes(payload)
         temp.replace(path)
     return FileResponse(path, media_type="application/octet-stream", headers={"Content-Encoding": "gzip"})
 
@@ -184,24 +240,105 @@ def sample_surface(results: Path, positions: np.ndarray, freestream: float) -> b
     return cp.tobytes() + tangential.astype(np.float32).tobytes()
 
 
+def sample_stress(results: Path, positions: np.ndarray, part_id: str):
+    """Nearest native wall cell on this part and this side; never across a thin wing."""
+    n = len(positions) // 3
+    stress = np.full((n, 3), np.nan, dtype="<f4")
+    valid = np.zeros(n, dtype=np.uint8)
+    file = results / f"{part_id}.vtp"
+    if not file.exists():
+        return stress, valid
+    reader = vtk.vtkXMLPolyDataReader()
+    reader.SetFileName(str(file))
+    reader.Update()
+    poly = reader.GetOutput()
+    tau = poly.GetCellData().GetArray("WallStressPa")
+    if tau is None:
+        return stress, valid
+    normals_filter = vtk.vtkPolyDataNormals()
+    normals_filter.SetInputData(poly)
+    normals_filter.ComputeCellNormalsOn()
+    normals_filter.ComputePointNormalsOff()
+    normals_filter.SplittingOff()
+    normals_filter.ConsistencyOff()
+    normals_filter.AutoOrientNormalsOff()
+    normals_filter.Update()
+    normals = vtk_to_numpy(normals_filter.GetOutput().GetCellData().GetNormals())
+    centres = vtk.vtkCellCenters()
+    centres.SetInputData(poly)
+    centres.Update()
+    points = vtk_to_numpy(centres.GetOutput().GetPoints().GetData())
+    sizes = vtk.vtkCellSizeFilter()
+    sizes.SetInputData(poly)
+    sizes.ComputeAreaOn()
+    sizes.Update()
+    area = vtk_to_numpy(sizes.GetOutput().GetCellData().GetArray("Area"))
+    values = vtk_to_numpy(tau)
+    tri = positions.reshape(-1, 3, 3)
+    outward = np.cross(tri[:, 1] - tri[:, 0], tri[:, 2] - tri[:, 0])
+    magnitude = np.linalg.norm(outward, axis=1)
+    degenerate = np.repeat(magnitude <= 1e-30, 3)
+    outward /= np.maximum(magnitude[:, None], 1e-30)
+    outward = np.repeat(outward, 3, axis=0)
+    # VTK boundary polygons preserve the fluid's outward normal (toward the solid).
+    tree = cKDTree(points)
+    distance, index = tree.query(positions.reshape(-1, 3), k=min(32, len(points)))
+    distance = np.asarray(distance).reshape(n, -1)
+    index = np.asarray(index).reshape(n, -1)
+    aligned = np.sum(normals[index] * outward[:, None, :], axis=2) < -0.25
+    nearby = distance <= 2 * np.sqrt(np.maximum(area[index], 1e-30))
+    matches = aligned & nearby
+    valid.fill(2)
+    good = matches.any(axis=1)
+    chosen = index[np.arange(n), matches.argmax(axis=1)]
+    stress[good] = values[chosen[good]]
+    valid[good] = np.where(np.isfinite(stress[good]).all(axis=1), 1, 3)
+    valid[degenerate] = 3
+    return stress, valid
+
+
 @router.post("/api/runs/{key}/surface-samples")
-async def surface_samples(key: str, request: Request):
+async def surface_samples(key: str, request: Request, version: int = 1, part_id: str | None = None):
     """Body: float32 triangle soup (x, y, z per vertex) in the run's frame. Returns float32 cp per
     vertex followed by float32 tangential velocity (3 per vertex)."""
     run = storage.get("runs", key)
     if run["status"] != "completed":
         raise ValueError("Results are not available yet.")
-    body = await request.body()
+    body = bytearray()
+    async for chunk in request.stream():
+        if len(body) + len(chunk) > MAX_VERTICES * 12:
+            raise ValueError("Too many surface points; request fewer parts or vertices.")
+        body.extend(chunk)
     if len(body) % 36 or not body:
         raise ValueError("Surface samples need whole triangles of float32 coordinates.")
-    positions = np.frombuffer(body, dtype="<f4").astype(np.float64)
+    positions = np.frombuffer(body, dtype="<f4")
     if len(positions) // 3 > MAX_VERTICES or not np.isfinite(positions).all():
         raise ValueError("Too many or invalid surface points.")
     results = storage.directory("runs", key) / "results"
-    freestream = run["settings"]["speed_kmh"] / 3.6
-    with storage.LOCK:
-        payload = sample_surface(results, positions, freestream)
-    return Response(gzip.compress(payload, compresslevel=1), media_type="application/octet-stream", headers={"Content-Encoding": "gzip"})
+    if version not in (1, 2):
+        raise ValueError("Unsupported surface sample format.")
+    if version == 2 and part_id not in {p["id"] for p in run["geometry"]["parts"]}:
+        raise ValueError("Version 2 requires a part ID from this saved run.")
+    freestream = run.get("result", {}).get("freestream") or run["settings"]["speed_kmh"] / 3.6 / np.cos(
+        np.deg2rad(run["settings"].get("yaw_deg", 0))
+    )
+    payload = await bounded_sample(
+        request,
+        {
+            "kind": "surface",
+            "results": str(results),
+            "freestream": float(freestream),
+            "version": version,
+            "part_id": part_id,
+            "iteration": int(run.get("result", {}).get("iteration", 0)),
+        },
+        body,
+    )
+    return Response(
+        payload,
+        media_type="application/octet-stream",
+        headers={"Content-Encoding": "gzip"},
+    )
 
 
 @router.get("/api/runs/{key}/geometry/{part_id}.stl")
@@ -210,4 +347,6 @@ def run_geometry_stl(key: str, part_id: str):
     run = storage.get("runs", key)
     if part_id not in {p["id"] for p in run["geometry"]["parts"]}:
         raise FileNotFoundError()
-    return FileResponse(storage.directory("runs", key) / "geometry" / f"{part_id}.stl", media_type="model/stl")
+    return FileResponse(
+        storage.directory("runs", key) / "geometry" / f"{part_id}.stl", media_type="model/stl"
+    )

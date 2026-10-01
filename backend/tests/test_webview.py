@@ -1,6 +1,5 @@
 """Endpoints used by the web UI's OpenFOAM engine: live coefficients, resampled flow, surface values."""
 
-import gzip
 import numpy as np
 import pytest
 import vtk
@@ -124,3 +123,51 @@ def test_run_geometry_is_served_as_stl(client, tmp_path):
     key = saved_run(tmp_path)
     assert client.get(f"/api/runs/{key}/geometry/part0.stl").status_code == 200
     assert client.get(f"/api/runs/{key}/geometry/part9.stl").status_code == 404
+
+
+def test_native_stress_keeps_thin_sides_and_zero_distinct_from_missing(client, tmp_path):
+    from easycfd.webview import sample_stress
+    key = saved_run(tmp_path)
+    results = tmp_path / 'runs' / key / 'results'
+    surfaces = vtk.vtkAppendPolyData()
+    for z, normal, tau in [(1.0,-1,[3,4,0]),(.99,1,[0,0,0])]:
+        plane = vtk.vtkPlaneSource()
+        plane.SetOrigin(-1,-1,z)
+        plane.SetPoint1(1,-1,z)
+        plane.SetPoint2(-1,1,z)
+        plane.SetResolution(2,2)
+        plane.Update()
+        poly = vtk.vtkPolyData()
+        poly.DeepCopy(plane.GetOutput())
+        if normal < 0:
+            reverse = vtk.vtkReverseSense()
+            reverse.SetInputData(poly)
+            reverse.ReverseCellsOn()
+            reverse.Update()
+            poly.DeepCopy(reverse.GetOutput())
+        add(poly.GetCellData(),'WallStressPa',np.tile(tau,(poly.GetNumberOfCells(),1)).astype(float))
+        surfaces.AddInputData(poly)
+    surfaces.Update()
+    writer = vtk.vtkXMLPolyDataWriter()
+    writer.SetFileName(str(results / 'part0.vtp'))
+    writer.SetInputData(surfaces.GetOutput())
+    writer.Write()
+    top = np.array([[0,0,1],[.1,0,1],[0,.1,1]],dtype='<f4')
+    bottom = np.array([[0,0,.99],[0,.1,.99],[.1,0,.99]],dtype='<f4')
+    stress, valid = sample_stress(results,np.concatenate([top,bottom]).ravel(),'part0')
+    assert np.all(valid == 1)
+    assert np.allclose(stress[:3],[3,4,0])
+    assert np.allclose(stress[3:],0)
+    far = top.copy()
+    far[:,0] += 100
+    missing, mask = sample_stress(results,far.ravel(),'part0')
+    assert np.all(mask == 2) and np.isnan(missing).all()
+    unsupported, mask = sample_stress(results,top.ravel(),'part9')
+    assert np.all(mask == 0) and np.isnan(unsupported).all()
+    response = client.post(f'/api/runs/{key}/surface-samples?version=2&part_id=part0',content=top.tobytes())
+    assert response.status_code == 200
+    header = np.frombuffer(response.content[:16],dtype='<u4')
+    assert header.tolist() == [0x53464345,2,3,0]
+    assert np.allclose(np.frombuffer(response.content[64:100],dtype='<f4').reshape(3,3),[3,4,0])
+    assert response.content[100:] == bytes([1,1,1])
+    assert client.post(f'/api/runs/{key}/surface-samples?version=2&part_id=missing',content=top.tobytes()).status_code == 400

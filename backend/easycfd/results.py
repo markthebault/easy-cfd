@@ -1,5 +1,6 @@
 """Extract real OpenFOAM fields; never substitute illustrative physics."""
 
+from .aerodynamics import balance_diagnostics, equivalent_loads, integrals, stress_factor
 from pathlib import Path
 import math
 import re
@@ -189,6 +190,13 @@ def process(case, output, run, metadata):
         raise RuntimeError("No solved fields found.")
     reader.UpdateTimeStep(last)
     reader.Update()
+    stress_scale = stress_factor(case, last, run["settings"]["density"])
+    native_stress_force = np.zeros(3)
+    native_stress_moment = np.zeros(3)
+    stress_force_magnitudes = 0.0
+    stress_moment_magnitudes = 0.0
+    stress_faces, total_faces = 0, 0
+    origin = np.array(run["settings"].get("moment_origin") or [0, 0, 0])
     volume, surfaces = None, vtk.vtkAppendPolyData()
     for name, block in named_blocks(reader.GetOutput()):
         if name == "internalMesh":
@@ -197,7 +205,34 @@ def process(case, output, run, metadata):
             surface = vtk.vtkGeometryFilter()
             surface.SetInputData(add_fields(block, run["settings"]["density"]))
             surface.Update()
-            surfaces.AddInputData(surface.GetOutput())
+            poly = surface.GetOutput()
+            stress = poly.GetCellData().GetArray("wallShearStress")
+            total_faces += poly.GetNumberOfCells()
+            if stress is not None and stress_scale is not None:
+                tau = vtk_to_numpy(stress).astype(np.float64) * stress_scale
+                if not np.isfinite(tau).all():
+                    raise RuntimeError("Wall stress contains non-finite values.")
+                array = numpy_to_vtk(tau, deep=True)
+                array.SetName("WallStressPa")
+                poly.GetCellData().AddArray(array)
+                sizes = vtk.vtkCellSizeFilter()
+                sizes.SetInputData(poly)
+                sizes.ComputeAreaOn()
+                sizes.Update()
+                areas = vtk_to_numpy(sizes.GetOutput().GetCellData().GetArray("Area"))
+                centres = vtk.vtkCellCenters()
+                centres.SetInputData(poly)
+                centres.Update()
+                positions = vtk_to_numpy(centres.GetOutput().GetPoints().GetData())
+                face_forces = tau * areas[:, None]
+                face_moments = np.cross(positions - origin, face_forces)
+                native_stress_force += np.sum(face_forces, axis=0)
+                native_stress_moment += np.sum(face_moments, axis=0)
+                stress_force_magnitudes += float(np.linalg.norm(face_forces, axis=1).sum())
+                stress_moment_magnitudes += float(np.linalg.norm(face_moments, axis=1).sum())
+                stress_faces += len(tau)
+            write_poly(poly, output / f"{name}.vtp")
+            surfaces.AddInputData(poly)
     if volume is None or surfaces.GetNumberOfInputConnections(0) == 0:
         raise RuntimeError("Missing volume or car surface results.")
     surfaces.Update()
@@ -233,14 +268,53 @@ def process(case, output, run, metadata):
     tracer.Update()
     write_poly(tracer.GetOutput(), output / "streamlines.vtp")
     values = coefficients(case, run["settings"], metadata["freestream"])
+    averaging_times = [h["iteration"] for h in values["history"][-values["averaging_iterations"] :]]
+    vectors = integrals(case, run, averaging_times)
+    for h in values["history"]:
+        data = vectors.get("vector_history", {}).get(h["iteration"])
+        if data:
+            h.update(data)
+    vectors.pop("vector_history", None)
+    balance_checks = balance_diagnostics(values["history"], averaging_times, run["settings"].get("axles"))
+    if balance_checks["balance_settled"] is False:
+        values["force_settled"] = False
+    stress_check = dict(
+        coverage=stress_faces / max(total_faces, 1),
+        faces=total_faces,
+        validFaces=stress_faces,
+        iteration=last,
+        unit="Pa",
+    )
+    if vectors and stress_faces:
+        from .aerodynamics import output_rows
+
+        instantaneous = output_rows(case, "forcesTotal", "force").get(last)
+        if instantaneous is not None:
+            stress_check.update(
+                force=native_stress_force.tolist(),
+                forceError=float(np.linalg.norm(native_stress_force - instantaneous[7:10])),
+                tolerance=max(1e-4, 0.005 * stress_force_magnitudes),
+            )
+            stress_check["passed"] = (
+                stress_check["coverage"] == 1 and stress_check["forceError"] <= stress_check["tolerance"]
+            )
+        instantaneous_moment = output_rows(case, "forcesTotal", "moment").get(last)
+        if instantaneous_moment is not None:
+            stress_check.update(
+                moment=native_stress_moment.tolist(),
+                momentError=float(np.linalg.norm(native_stress_moment - instantaneous_moment[7:10])),
+                momentTolerance=max(1e-4, 0.005 * stress_moment_magnitudes),
+            )
+            stress_check["momentPassed"] = (
+                stress_check["coverage"] == 1
+                and stress_check["momentError"] <= stress_check["momentTolerance"]
+            )
     breakdown_roles = role_forces(case, run["settings"], metadata["freestream"])
     pressure_drag = sum(g["pressure_drag"] for g in breakdown_roles.values())
     viscous_drag = sum(g["viscous_drag"] for g in breakdown_roles.values())
     # The role groups partition every car patch, so their summed drag must
     # reconcile with the total coefficient drag. If not, the split is unusable.
-    consistent = abs(pressure_drag + viscous_drag - values["drag"]) <= 0.05 * max(
-        abs(values["drag"]), 1.0
-    )
+    consistent = abs(pressure_drag + viscous_drag - values["drag"]) <= 0.05 * max(abs(values["drag"]), 1.0)
     breakdown = {
         **breakdown_roles,
         "pressure_drag": pressure_drag,
@@ -263,7 +337,9 @@ def process(case, output, run, metadata):
     if not converged:
         warnings.append("Residuals have not reached this preset's target. Forces are provisional.")
     if not values["force_settled"]:
-        warnings.append("Drag or lift is still changing. Do not rank designs from this run.")
+        warnings.append(
+            "Forces or pitching/axle balance are still changing. Do not rank designs from this run."
+        )
     if metadata["preset"]["layers"] == 0:
         warnings.append(
             "This run uses a coarse mesh without prism layers. Use it for setup and flow exploration."
@@ -308,6 +384,21 @@ def process(case, output, run, metadata):
         warnings.append("Near-wall y+ coverage could not be assessed.")
     return dict(
         **values,
+        **balance_checks,
+        balance=equivalent_loads(
+            vectors["aero"]["force"],
+            vectors["aero"]["moment"],
+            run["settings"].get("axles"),
+            0.5
+            * run["settings"]["density"]
+            * metadata["freestream"] ** 2
+            * run["settings"]["reference_area"],
+        )
+        if vectors
+        else None,
+        freestream=metadata["freestream"],
+        **vectors,
+        wall_stress=stress_check,
         breakdown=breakdown,
         blockage_ratio=blockage,
         wall_target_fraction=wall_fraction,
