@@ -7,7 +7,7 @@ test("part groups: import, rename, solo, run", async ({ page }) => {
   const dir = "demo/groups/";
   await page.goto("/");
   await page.locator('input[type="file"]').first().setInputFiles(["body.stl", "wheel_front_left.stl", "wheel_front_right.stl", "wheel_rear_left.stl", "wheel_rear_right.stl"].map((f) => dir + f));
-  await expect(page.getByLabel("Road clearance")).toBeVisible();
+  await expect(page.getByLabel("Height above road")).toBeVisible();
   await page.locator('input[type="file"]').first().setInputFiles(["rear_wing_A_12deg.stl", "rear_wing_B_flat_high.stl"].map((f) => dir + f));
   await expect(page.getByTestId("group-Body")).toBeVisible();
   await expect(page.getByTestId("group-Wheels")).toContainText("4 parts");

@@ -17,10 +17,11 @@ just run-openfoam   # WebGPU and OpenFOAM: http://127.0.0.1:8000 (original UI at
 
 ## Using it
 
-1. **Car.** Drop STL, OBJ, GLB or glTF files anywhere on the page, or open the sample car. Set units, which way the nose points, which way is up, and road clearance. Check the wheels and confirm the checklist.
-2. **Conditions.** Road speed (5–300 km/h), crosswind yaw (±20°), reference area (with an exact frontal-area estimate), air density, moving road, rotating wheels, and an automatic or custom tunnel box.
+1. **Car.** Drop STL, OBJ, GLB or glTF files anywhere on the page, or open the sample car. Set units and orientation. **Place wheels on ground** positions it at road level with the 5 mm gap needed for a run; **Lift car** raises it to 150 mm, or enter a height up to 2 m. Enter 0 mm for exact contact in the preview. All parts move together. Check the wheels and confirm the checklist.
+2. **Conditions.** Wind speed (5–300 km/h), crosswind yaw (±20°), reference area (with an exact frontal-area estimate), air density, independent **Moving road** and **Rotating wheels** checkboxes, and an automatic or custom tunnel box. Five soft smoke streams bend around the body in the driving preview, animated with the rolling road and tyres. This is a lightweight shape illustration, not computed CFD. Pause, slow playback, or expand the view to inspect the setup; simulation results use computed smoke and streamlines.
+   Uncheck both motion boxes for a static wind tunnel with fixed road and wheels. Wind still flows at the selected speed. Both engines use these choices as wall boundary conditions, and each saved run keeps its own settings. Preview pause and playback controls only change the animation.
 3. **Run.** Fast (about 1 minute on an Apple M1), Medium (1–2 minutes), Precise (two grid levels, 3–5 minutes) or Custom. The flow develops live on screen while the forces converge. Cd and Cl are shown as a moving average over the last 1–10 flow passes (you choose), with the min, median and max over that window.
-4. **Results.** Lift or downforce in kg and N, drag, Cd and Cl with a ± band, where the drag comes from, force history and warnings. Visualise surface pressure, smoke, streamlines, a section plane and the wake volume.
+4. **Results.** Lift or downforce in kg and N, drag, Cd and Cl with a ± band, where the drag comes from, force history and warnings. **Explore airflow** opens guided views of surface pressure, 3D pressure clouds, vertical and horizontal streamlines, surface flow, wake losses, turbulence and force arrows. Each view positions the camera and offers controls and colour legends. Smoke and section planes can also be layered manually.
 5. **Compare.** Two runs side by side with synchronised cameras, shared colour scales, force deltas and the parts or groups that differ.
 
 Designs and runs are saved in the browser (IndexedDB). Runs can be exported as JSON with a CSV of the force history, and views as PNG.

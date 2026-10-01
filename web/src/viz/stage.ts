@@ -8,12 +8,16 @@ import type { VizField } from "../solver/extract";
 import type { Ranges } from "../store/types";
 import { applyPressureColors, carGeometry, clayMaterial, pressureMaterial } from "./car";
 import { createFieldGPU, disposeFieldGPU, fieldBox, type FieldGPU } from "./field";
-import { detailBoxes, flowArrow, labelSprite, OrientationCube, road, tunnelBox, type ViewName } from "./helpers";
+import { detailBoxes, labelSprite, OrientationCube, road, tunnelBox, type ViewName } from "./helpers";
 import { oilFlowGeometry, oilFlowMaterial } from "./oilflow";
 import { Particles } from "./particles";
 import { Slice, type SliceField } from "./slice";
 import { streamlineMaterial, traceStreamlines, tubeGeometry } from "./streamlines";
 import { totalPressureCoefficient, wakeGeometry, wakeMaterial, type WakeColor } from "./wake";
+import { pressureCloudGeometry, pressureCloudMaterial, pressureCoefficients } from "./pressureCloud";
+import { drivingVelocity, MOTION_TIME_SCALE, rollingAngle, type DrivingConditions } from "./driving";
+import { ShapeSmokePreview } from "./previewSmoke";
+import { wheelCenterOfMass } from "../geometry/centroid";
 
 THREE.Object3D.DEFAULT_UP.set(0, 0, 1);
 
@@ -24,6 +28,7 @@ export interface StagePart {
   positions: Float32Array;
   cp?: Float32Array | null;
   shear?: Float32Array | null;
+  wheel?: { center: [number, number, number]; radius: number } | null;
 }
 
 export interface VizSettings {
@@ -33,6 +38,13 @@ export interface VizSettings {
   streamlines: boolean;
   slice: boolean;
   wake: boolean;
+  pressureCloud: boolean;
+  cloudLevel: number;
+  cloudOpacity: number;
+  cloudSign: "both" | "positive" | "negative";
+  forces: boolean;
+  motion: boolean;
+  windDirection: boolean;
   playing: boolean;
   flowSpeed: number;
   smokeDensity: number;
@@ -47,6 +59,8 @@ export interface VizSettings {
   wakeLevel: number;
   wakeColor: WakeColor;
 }
+
+export interface ForceValues { drag: number; lift: number; side: number }
 
 export type HandleName = "rake" | "stream" | "slice";
 
@@ -82,6 +96,11 @@ export class Stage {
   private helperGroup = new THREE.Group();
   private handleGroup = new THREE.Group();
   private road = road();
+  private wind = new ShapeSmokePreview();
+  private driving: DrivingConditions | null = null;
+  private roadDistance = 0;
+  private windDistance = 0;
+  private wheelMotion: { id: string; radius: number; center: THREE.Vector3; mesh: THREE.Mesh; distance: number; spinGeometry: boolean }[] = [];
   private shadowCatcher: THREE.Mesh;
   private sun = new THREE.DirectionalLight(0xffffff, 1.2);
   private box: THREE.Group | null = null;
@@ -103,6 +122,14 @@ export class Stage {
   private wakeMat = wakeMaterial();
   private wakeKey = "";
   private cp0: Float32Array | null = null;
+  private pressureCp: Float32Array | null = null;
+  private clouds = new THREE.Group();
+  private cloudKey = "";
+  private forceGroup = new THREE.Group();
+  private forceValues: ForceValues | null = null;
+  private forceScale: number | undefined;
+  private forceLength: number | undefined;
+  private forceKey = "";
   private oilMesh: THREE.Mesh<THREE.InstancedBufferGeometry, THREE.ShaderMaterial> | null = null;
   private oilMat = oilFlowMaterial();
   private oilKey = "";
@@ -123,7 +150,7 @@ export class Stage {
   private syncing = false;
   gizmoInset = { right: 16, bottom: 16, size: 104 };
   /** Screen area covered by panels (CSS px); the camera centre shifts to the free area. */
-  private insets = { left: 0, bottom: 0 };
+  private insets = { left: 0, bottom: 0, top: 0 };
 
   constructor(container: HTMLElement) {
     this.container = container;
@@ -155,7 +182,7 @@ export class Stage {
     this.shadowCatcher.receiveShadow = true;
     this.shadowCatcher.position.z = 0.001;
     this.shadowCatcher.renderOrder = 0;
-    this.scene.add(this.road, this.shadowCatcher, this.carGroup, this.helperGroup, this.handleGroup, this.slice.mesh);
+    this.scene.add(this.road, this.shadowCatcher, this.carGroup, this.helperGroup, this.handleGroup, this.slice.mesh, this.clouds, this.forceGroup, this.wind.group);
 
     // Our pointer handler is registered before OrbitControls so a handle grab can disable orbiting.
     const el = this.renderer.domElement;
@@ -166,7 +193,7 @@ export class Stage {
     this.controls = new OrbitControls(this.camera, el);
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.09;
-    this.controls.maxPolarAngle = Math.PI * 0.495;
+    this.controls.maxPolarAngle = Math.PI;
     this.controls.minDistance = 0.5;
     this.controls.maxDistance = 400;
     this.controls.addEventListener("change", () => {
@@ -195,6 +222,10 @@ export class Stage {
 
   get particlesAvailable() {
     return this.particleError === null;
+  }
+
+  carBounds(): { low: number[]; high: number[] } {
+    return { low: this.bounds.min.toArray(), high: this.bounds.max.toArray() };
   }
 
   // -------------------------------------------------------------------------------------------
@@ -246,29 +277,28 @@ export class Stage {
   private resize() {
     const w = Math.max(1, this.container.clientWidth), h = Math.max(1, this.container.clientHeight);
     // Screen-sized labels collide on narrow screens; the road arrow alone shows the airflow there.
-    const airLabel = this.helperGroup?.getObjectByName("airLabel");
-    if (airLabel) airLabel.visible = w >= 600;
     this.renderer.setSize(w, h, false);
     const ratio = this.renderer.getPixelRatio();
     if (this.smoke) this.smoke.uniforms.uWidth.value = 1.5 * ratio;
     if (this.tracers) this.tracers.uniforms.uWidth.value = 1.1 * ratio;
-    const { left, bottom } = this.insets;
+    const { left, bottom, top } = this.insets;
     // Render a window of a larger virtual image so the car centres in the uncovered area.
-    this.camera.aspect = (w + left) / (h + bottom);
-    if (left || bottom) this.camera.setViewOffset(w + left, h + bottom, 0, bottom, w, h);
+    this.camera.aspect = (w + left) / (h + bottom + top);
+    if (left || bottom || top) this.camera.setViewOffset(w + left, h + bottom + top, 0, bottom, w, h);
     else this.camera.clearViewOffset();
     this.camera.updateProjectionMatrix();
     this.dirty = true;
     // Keep the framing after a viewport change (rotation, window resize, panel height) unless the
     // user has moved the camera since the last automatic fit.
     if (this.lastFit && !this.tween && this.sameCamera(this.lastFit.state)) {
-      const { view, fitBox, flow } = this.lastFit;
-      this.applyCamera(this.viewState(view, fitBox, flow));
+      const { view, fitBox, flow, forces } = this.lastFit;
+      this.applyCamera(this.viewState(view, fitBox, flow, forces));
       this.lastFit.state = this.cameraState();
     }
+    this.resizeForceLabels();
   }
 
-  private lastFit: { view: ViewName; fitBox: boolean; flow: boolean; state: CameraState } | null = null;
+  private lastFit: { view: ViewName; fitBox: boolean; flow: boolean; forces: boolean; state: CameraState } | null = null;
 
   private sameCamera(s: CameraState) {
     const c = this.cameraState();
@@ -277,9 +307,9 @@ export class Stage {
     return d(c.position, s.position) < 1e-3 * scale && d(c.target, s.target) < 1e-3 * scale;
   }
 
-  setInsets(left: number, bottom: number) {
-    if (left === this.insets.left && bottom === this.insets.bottom) return;
-    this.insets = { left, bottom };
+  setInsets(left: number, bottom: number, top = 0) {
+    if (left === this.insets.left && bottom === this.insets.bottom && top === this.insets.top) return;
+    this.insets = { left, bottom, top };
     this.resize();
   }
 
@@ -300,7 +330,23 @@ export class Stage {
     const moved = this.controls.update();
     let animate = false;
     const v = this.viz;
-    const scale = this.field ? (0.3 * this.field.length) / this.field.freestream : 0.05;
+    const scale = MOTION_TIME_SCALE;
+    if (v?.playing && this.driving && (v.motion || v.windDirection)) {
+      const distance = dt * scale * v.flowSpeed * drivingVelocity(this.driving)[0];
+      if (v.windDirection && this.wind.group.visible) {
+        this.windDistance += distance;
+        this.wind.material.uniforms.uDistance.value = this.windDistance;
+        animate = true;
+      }
+      if (v.motion && this.driving.moving_ground) {
+        this.roadDistance += distance;
+        this.road.material.uniforms.uDistance.value = this.roadDistance;
+        animate = true;
+      }
+      if (v.motion && this.driving.wheels) {
+        for (const w of this.wheelMotion) if (w.spinGeometry) { w.distance += distance; this.rotateWheel(w); animate = true; }
+      }
+    }
     if (this.smoke?.mesh.visible && v) {
       this.smoke.playing = v.playing;
       this.smoke.timeScale = scale * v.flowSpeed;
@@ -348,6 +394,13 @@ export class Stage {
 
   private render() {
     const r = this.renderer;
+    this.wind.material.uniforms.uViewportHeight.value = r.domElement.height;
+    // Clear the road from below so underbody and diffuser inspection stays unobstructed.
+    const roadFade = THREE.MathUtils.smoothstep(this.camera.position.z, 0, Math.max(0.05, this.bounds.getSize(new THREE.Vector3()).z * 0.12));
+    this.road.material.uniforms.uVisibility.value = roadFade;
+    this.road.visible = roadFade > 0;
+    this.shadowCatcher.visible = roadFade > 0;
+    (this.shadowCatcher.material as THREE.ShadowMaterial).opacity = (this.dark ? 0.5 : 0.22) * roadFade;
     r.setScissorTest(false);
     r.autoClear = true;
     const size = r.getSize(new THREE.Vector2());
@@ -391,7 +444,7 @@ export class Stage {
     this.dirty = true;
   }
 
-  private viewState(view: ViewName, fitBox = false, flow = false): CameraState {
+  private viewState(view: ViewName, fitBox = false, flow = false, forces = false): CameraState {
     let b = fitBox && this.box ? new THREE.Box3().setFromObject(this.box) : this.bounds;
     if (flow) {
       // Car plus the near wake, for section planes.
@@ -401,14 +454,22 @@ export class Stage {
       b.max.x += 1.1 * L;
       b.max.z += 0.2 * L;
     }
+    if (forces) {
+      const s = this.bounds.getSize(new THREE.Vector3());
+      b = this.bounds.clone();
+      b.min.x -= s.x * 0.1;
+      b.max.x += s.x * 0.15;
+      b.min.y -= s.y * 0.6;
+      b.max.z = Math.max(b.max.z, (this.forceLength ?? s.x) * 0.7);
+    }
     const c = b.getCenter(new THREE.Vector3());
     const radius = Math.max(0.3, b.getSize(new THREE.Vector3()).length() / 2);
     // Fit into the uncovered part of the screen; the virtual image is (w + left) × (h + bottom).
     const w = Math.max(1, this.container.clientWidth), h = Math.max(1, this.container.clientHeight);
-    const { left, bottom } = this.insets;
+    const { left, bottom, top } = this.insets;
     const tanV = Math.tan((this.camera.fov * Math.PI) / 360);
-    const visV = 2 * Math.atan((tanV * (h - bottom)) / (h + bottom));
-    const visH = 2 * Math.atan((tanV * (w - left)) / (h + bottom));
+    const visV = 2 * Math.atan((tanV * Math.max(1, h - bottom - top)) / (h + bottom + top));
+    const visH = 2 * Math.atan((tanV * Math.max(1, w - left)) / (h + bottom + top));
     const D = (radius * 1.08) / Math.sin(Math.min(visV, visH) / 2);
     const target: [number, number, number] = [c.x, c.y, fitBox ? c.z * 0.5 : c.z * 0.75];
     const dir: Record<ViewName, [number, number, number]> = {
@@ -416,15 +477,16 @@ export class Stage {
       rear: [1, 0, 0.14],
       side: [0, -1, 0.08],
       top: [0, -0.02, 1],
+      bottom: [1, -1, -0.85],
       iso: [-1, -1.25, 0.55],
     };
     const d = new THREE.Vector3(...dir[view]).normalize().multiplyScalar(D);
     return { position: [target[0] + d.x, target[1] + d.y, target[2] + d.z], target };
   }
 
-  setView(view: ViewName, animate = true, fitBox = false, flow = false) {
-    const to = this.viewState(view, fitBox, flow);
-    this.lastFit = { view, fitBox, flow, state: to };
+  setView(view: ViewName, animate = true, fitBox = false, flow = false, forces = false) {
+    const to = this.viewState(view, fitBox, flow, forces);
+    this.lastFit = { view, fitBox, flow, forces, state: to };
     if (!animate) {
       this.applyCamera(to);
       this.onCamera?.(this.cameraState());
@@ -445,6 +507,7 @@ export class Stage {
     this.cpRange = cpRange;
     if (rebuild) {
       this.partsKey = key;
+      this.wheelMotion = [];
       for (const m of this.carGroup.children as THREE.Mesh[]) {
         m.geometry.dispose();
         (m.material as THREE.Material).dispose();
@@ -463,6 +526,10 @@ export class Stage {
         mesh.castShadow = true;
         mesh.userData.partId = p.id;
         this.carGroup.add(mesh);
+        if (p.role === "wheel" && p.wheel && p.wheel.radius > 0) {
+          const center = new THREE.Vector3(...wheelCenterOfMass(p.positions, p.wheel.center));
+          this.wheelMotion.push({ id: p.id, radius: p.wheel.radius, center, mesh, distance: 0, spinGeometry: true });
+        }
       }
       const enabled = parts.filter((p) => p.enabled && p.positions.length >= 9);
       if (enabled.length) {
@@ -471,9 +538,12 @@ export class Stage {
           if (enabled.some((p) => p.id === m.userData.partId)) this.bounds.union(m.geometry.boundingBox!);
       }
       this.fitShadow();
+
       this.rebuildHelpers();
     }
+    this.wind.setGeometry(parts.filter(p => p.enabled && p.role === "body").map(p => p.positions));
     this.updateCarLook();
+    this.applyDriving();
   }
 
   private fitShadow() {
@@ -492,6 +562,9 @@ export class Stage {
     this.sun.position.copy(c).add(new THREE.Vector3(-0.15 * r, -0.2 * r, 12));
     this.road.material.uniforms.uFade.value = Math.max(8, s.x * 4.5);
     this.road.material.uniforms.uCell.value = s.x > 1.5 ? 0.5 : 0.1;
+    this.road.material.uniforms.uRoadCenter.value = c.y;
+    this.road.material.uniforms.uRoadWidth.value = Math.max(s.y * 1.55, 0.2);
+    this.road.material.uniforms.uCarLength.value = Math.max(s.x, 0.1);
   }
 
   private updateCarLook() {
@@ -559,18 +632,9 @@ export class Stage {
     const b = this.bounds;
     const s = b.getSize(new THREE.Vector3());
     const L = Math.max(s.x, 0.3);
-    const accent = this.dark ? 0x3f9bff : 0x2a78d6;
-    // Airflow arrow on the road beside the car, visible from the front, side and top views.
-    const side = b.max.y + Math.max(0.25 * s.y, 0.1 * L);
-    const arrow = flowArrow(L * 0.9, Math.max(0.12 * L, 0.2), accent);
-    arrow.position.set(b.min.x, side, 0.003);
-    const air = labelSprite("AIRFLOW  →", "#ffffff", this.dark ? "rgba(40,120,230,0.92)" : "rgba(42,120,214,0.95)", 0.018);
-    air.position.set(b.min.x + 0.6 * L, side, 0.05);
-    air.name = "airLabel";
-    air.visible = this.container.clientWidth >= 600;
     const front = labelSprite("FRONT", this.dark ? "#0b0d11" : "#ffffff", this.dark ? "rgba(255,255,255,0.92)" : "rgba(20,24,30,0.9)", 0.018);
     front.position.set(b.min.x - 0.02 * L, (b.min.y + b.max.y) / 2, b.max.z * 0.75);
-    this.helperGroup.add(arrow, air, front);
+    this.helperGroup.add(front);
     this.helperGroup.visible = this.showHelpers;
   }
 
@@ -621,6 +685,8 @@ export class Stage {
       this.field = field;
       this.fieldGPU = field ? createFieldGPU(field) : null;
       this.cp0 = null;
+      this.pressureCp = null;
+      this.cloudKey = "";
       this.streamKey = "";
       this.wakeKey = "";
       if (field) {
@@ -676,10 +742,45 @@ export class Stage {
     }
     this.updateStreamlines();
     this.updateWake();
+    this.updatePressureCloud();
+    this.updateForces();
     this.updateOilFlow();
     this.updateHandles();
     this.updateCarLook();
+    this.applyDriving();
     this.dirty = true;
+  }
+
+  setDriving(conditions: DrivingConditions | null) {
+    this.driving = conditions;
+    this.applyDriving();
+    this.dirty = true;
+  }
+
+  private rotateWheel(w: typeof this.wheelMotion[number]) {
+    const angle = rollingAngle(w.distance, w.radius) % (Math.PI * 2);
+    w.mesh.rotation.y = w.spinGeometry ? angle : 0;
+    if (w.spinGeometry) w.mesh.position.copy(w.center).sub(w.center.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), angle));
+    else w.mesh.position.set(0, 0, 0);
+  }
+
+  private applyDriving() {
+    const v = this.viz, d = this.driving;
+    this.wind.group.visible = !!v?.windDirection && !!d && !this.field && this.parts.some(p => p.enabled && p.role === "body");
+    this.road.material.uniforms.uDriving.value = !!v?.motion && !!d;
+    this.wind.setYaw(d ? d.yaw_deg * Math.PI / 180 : 0);
+    this.wind.material.uniforms.uColor.value.set(this.dark ? 0xd4e7ef : 0x476579);
+    this.wind.material.uniforms.uOpacity.value = this.dark ? 0.10 : 0.08;
+    for (const w of this.wheelMotion) {
+      const p = this.parts.find(p => p.id === w.id);
+      const coloured = !!v?.surface && !!p?.cp;
+      const keepFieldAligned = coloured || !!v?.surfaceFlow || !!v?.slice;
+      w.spinGeometry = !!v?.motion && !!d && !!p?.enabled && !keepFieldAligned;
+      w.radius = p?.wheel?.radius ?? w.radius;
+      // Saved surface samples describe a fixed pose. Restore that pose in surface analyses.
+      if (w.spinGeometry) this.rotateWheel(w);
+      else { w.mesh.rotation.set(0, 0, 0); w.mesh.position.set(0, 0, 0); }
+    }
   }
 
   private updateStreamlines() {
@@ -764,6 +865,89 @@ export class Stage {
       }
     }
     this.wakeMesh!.visible = true;
+  }
+
+  private clearGroup(group: THREE.Group) {
+    group.traverse((o) => {
+      const m = o as THREE.Mesh;
+      m.geometry?.dispose();
+      const materials = Array.isArray(m.material) ? m.material : [m.material];
+      for (const mat of materials) {
+        (mat as THREE.SpriteMaterial)?.map?.dispose();
+        mat?.dispose();
+      }
+    });
+    group.clear();
+  }
+
+  private updatePressureCloud() {
+    const v = this.viz, f = this.field;
+    this.clouds.visible = !!v?.pressureCloud && !!f;
+    if (!this.clouds.visible || !v || !f) return;
+    const key = `${v.cloudLevel}`;
+    if (this.cloudKey !== key) {
+      this.clearGroup(this.clouds);
+      this.pressureCp ??= pressureCoefficients(f);
+      for (const sign of [-1, 1]) {
+        const mesh = new THREE.Mesh(pressureCloudGeometry(f, this.pressureCp, sign * v.cloudLevel), pressureCloudMaterial(sign > 0));
+        mesh.userData.sign = sign;
+        mesh.renderOrder = 7;
+        this.clouds.add(mesh);
+      }
+      this.cloudKey = key;
+    }
+    for (const mesh of this.clouds.children as THREE.Mesh<THREE.BufferGeometry, THREE.MeshPhongMaterial>[]) {
+      mesh.visible = v.cloudSign === "both" || (v.cloudSign === "positive" ? mesh.userData.sign > 0 : mesh.userData.sign < 0);
+      mesh.material.opacity = v.cloudOpacity;
+    }
+  }
+
+  setForces(values: ForceValues | null, scale?: number, length?: number) {
+    this.forceValues = values;
+    this.forceScale = scale;
+    this.forceLength = length;
+    this.updateForces();
+    this.dirty = true;
+  }
+
+  private updateForces() {
+    const f = this.forceValues;
+    this.forceGroup.visible = !!this.viz?.forces && !!f;
+    if (!this.forceGroup.visible || !f) return;
+    const key = `${this.partsKey}:${f.drag}:${f.lift}:${f.side}:${this.forceScale}:${this.forceLength}`;
+    if (key === this.forceKey) return;
+    this.forceKey = key;
+    this.clearGroup(this.forceGroup);
+    const size = this.bounds.getSize(new THREE.Vector3());
+    const L = this.forceLength ?? size.x;
+    const anchor = this.bounds.getCenter(new THREE.Vector3());
+    anchor.y = this.bounds.min.y - size.y * 0.35;
+    anchor.z = Math.max(this.bounds.max.z * 0.55, size.x * 0.3);
+    const max = this.forceScale ?? Math.max(...[f.drag, f.lift, f.side].filter(Number.isFinite).map(Math.abs), 1e-9);
+    const components = [
+      { value: f.drag, axis: new THREE.Vector3(1, 0, 0), color: 0xffaa63, label: "Drag" },
+      { value: f.lift, axis: new THREE.Vector3(0, 0, 1), color: 0x64d8ca, label: f.lift < 0 ? "Downforce" : "Lift" },
+      { value: f.side, axis: new THREE.Vector3(0, 1, 0), color: 0xc6a2ff, label: "Side force" },
+    ];
+    for (const c of components) {
+      if (!Number.isFinite(c.value) || Math.abs(c.value) < 0.05) continue;
+      const length = L * 0.28 * Math.abs(c.value) / max;
+      const direction = c.axis.multiplyScalar(Math.sign(c.value));
+      const arrow = new THREE.ArrowHelper(direction, anchor, length, c.color, Math.min(length * 0.25, L * 0.08), Math.min(length * 0.12, L * 0.04));
+      // ArrowHelper shares its base geometry; own copies let this group dispose safely.
+      arrow.line.geometry = arrow.line.geometry.clone();
+      arrow.cone.geometry = arrow.cone.geometry.clone();
+      const label = labelSprite(`${c.label} ${Math.abs(c.value).toFixed(1)} N`, "#ffffff", "rgba(20,27,38,0.9)");
+      label.position.copy(anchor).addScaledVector(direction, length + L * 0.08);
+      this.forceGroup.add(arrow, label);
+    }
+    this.resizeForceLabels();
+  }
+
+  private resizeForceLabels() {
+    const h = Math.max(1, this.container.clientHeight + this.insets.bottom + this.insets.top);
+    const height = 22 * 2 * Math.tan(this.camera.fov * Math.PI / 360) / h;
+    for (const o of this.forceGroup.children) if (o instanceof THREE.Sprite) o.scale.multiplyScalar(height / o.scale.y);
   }
 
   // -------------------------------------------------------------------------------------------
@@ -934,6 +1118,9 @@ export class Stage {
     this.streamMesh?.geometry.dispose();
     this.wakeMesh?.geometry.dispose();
     this.oilMesh?.geometry.dispose();
+    this.clearGroup(this.clouds);
+    this.clearGroup(this.forceGroup);
+    this.wind.dispose();
     this.renderer.dispose();
     this.renderer.forceContextLoss();
     this.renderer.domElement.remove();

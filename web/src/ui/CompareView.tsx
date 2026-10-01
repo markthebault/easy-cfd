@@ -123,6 +123,10 @@ export function CompareView() {
         field={r.field}
         ranges={r.ranges}
         viz={viz}
+        driving={r.doc.settings}
+        forces={r.doc.result}
+        forceScale={Math.max(Math.abs(ra.drag), Math.abs(ra.lift), Math.abs(ra.side), Math.abs(rb.drag), Math.abs(rb.lift), Math.abs(rb.side), 1e-9)}
+        forceLength={Math.max(a.doc.geometry.dimensions[0], b.doc.geometry.dimensions[0])}
         dark={dark}
         box={null}
         helpers={false}
@@ -163,7 +167,7 @@ export function CompareView() {
         <button className="icon-btn compare-close" aria-label="Close comparison" onClick={closeCompare}><X size={18} /></button>
       </div>
       <ViewBar ids={["cmpA", "cmpB"]} />
-      <VizDock field={a.field ?? b.field} particles surface={!!a.surface || !!b.surface} stageIds={["cmpA", "cmpB"]} />
+      <VizDock field={a.field ?? b.field} particles surface={!!a.surface?.some(Boolean) && !!b.surface?.some(Boolean)} forces={a.doc.result} driving={a.doc.settings} stageIds={["cmpA", "cmpB"]} />
       <LegendStack viz={viz} ranges={a.ranges} hasSurface={!!a.surface} hasField={!!a.field} />
     </div>
   );

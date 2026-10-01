@@ -1,17 +1,20 @@
 // Visualisation layers: toggle chips plus the options of the layer in focus.
 
-import { useState } from "react";
-import { Car, ChevronUp, Cloud, Layers, Pause, Play, Spline, Wind, X } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
+import { Car, ChevronUp, CircleGauge, Cloud, Grid2X2, Layers, Maximize2, PanelLeftOpen, Pause, Play, Spline, Wind, X } from "lucide-react";
 import type { VizField } from "../solver/extract";
 import { useStore } from "../store/store";
 import { app, setViz } from "../store/app";
 import { fieldBox } from "../viz/field";
-import type { VizSettings } from "../viz/stage";
+import type { ForceValues, VizSettings } from "../viz/stage";
+import { activeAnalysis, analysisPreset, ANALYSES, type AnalysisLayer, type AnalysisMode } from "../viz/analysis";
 import type { SliceField } from "../viz/slice";
 import { Segmented, Slider, Toggle } from "./controls";
 import { stages } from "./StageView";
+import { AnalysisPicker } from "./AnalysisPicker";
+import type { DrivingConditions } from "../viz/driving";
 
-type Layer = "surface" | "smoke" | "streamlines" | "slice" | "wake";
+type Layer = AnalysisLayer | "motion" | "windDirection";
 
 const sliceView = (axis: 0 | 1 | 2) => (axis === 1 ? "side" : axis === 2 ? "top" : "rear");
 
@@ -21,13 +24,31 @@ const LAYERS: { key: Layer; label: string; icon: typeof Car; needsField: boolean
   { key: "streamlines", label: "Streamlines", icon: Spline, needsField: true },
   { key: "slice", label: "Slice", icon: Layers, needsField: true },
   { key: "wake", label: "Wake", icon: Cloud, needsField: true },
+  { key: "motion", label: "Road & tyres", icon: CircleGauge, needsField: false },
 ];
 
-function Options({ layer, viz, field, particles, stageIds }: { layer: Layer; viz: VizSettings; field: VizField | null; particles: boolean; stageIds?: string[] }) {
+function Options({ layer, viz, field, particles, stageIds, forces, driving }: { layer: Layer; viz: VizSettings; field: VizField | null; particles: boolean; stageIds?: string[]; forces?: ForceValues | null; driving?: DrivingConditions | null }) {
+  if (layer === "motion") return <><p className="muted small">The road and imported wheels follow this run’s saved boundary settings at {Math.round(driving?.speed_kmh ?? 0)} km/h. Playback is slowed so you can see the motion.</p><p className="tip">Road {driving?.moving_ground ? "moving" : "fixed"} · Wheels {driving?.wheels ? "rotating" : "fixed"}. Wheel rotation pauses in surface and slice analyses to keep the saved data aligned.</p></>;
+  if (layer === "pressureCloud") return <>
+    <p className="muted small">Blue encloses suction; coral encloses positive pressure. These surfaces mark equal static pressure in the computed air field.</p>
+    <Segmented<VizSettings["cloudSign"]> size="sm" label="Pressure regions" value={viz.cloudSign} options={[{ value: "both", label: "Both" }, { value: "negative", label: "Suction" }, { value: "positive", label: "Positive" }]} onChange={cloudSign => setViz({ cloudSign })} />
+    <Slider label="Pressure threshold" min={0.02} max={1} step={0.01} value={viz.cloudLevel} display={`±${viz.cloudLevel.toFixed(2)} Cp`} onChange={cloudLevel => setViz({ cloudLevel })} />
+    <Slider label="Cloud opacity" min={0.1} max={0.7} step={0.02} value={viz.cloudOpacity} display={`${Math.round(viz.cloudOpacity * 100)}%`} onChange={cloudOpacity => setViz({ cloudOpacity })} />
+    <p className="tip">Lower the threshold to reveal weaker pressure regions. If a region never reaches the threshold, its cloud is empty.</p>
+    <Toggle checked={viz.pressureCloud} onChange={pressureCloud => setViz({ pressureCloud })} label="Show pressure clouds" />
+  </>;
+  if (layer === "forces") return <>
+    <p className="muted small">Time-averaged forces on the whole car. Arrow lengths share one scale; their position is illustrative, not the centre of pressure.</p>
+    {stageIds && stageIds.length > 1 && <p className="tip">Values below are for run A. Each view shows its own forces on a shared scale.</p>}
+    {forces && <div className="force-readouts"><div><i className="force-dot drag" />Drag<b>{forces.drag.toFixed(1)} <small>N</small></b></div><div><i className="force-dot vertical" />{forces.lift < 0 ? "Downforce" : "Lift"}<b>{Math.abs(forces.lift).toFixed(1)} <small>N</small></b></div><div><i className="force-dot side" />Side force<b>{(Math.abs(forces.side) < 0.05 ? 0 : forces.side).toFixed(1)} <small>N</small></b></div></div>}
+    <p className="tip">Drag points along the car’s X axis. The vertical arrow shows whether air lifts the car or pushes it onto the road.</p>
+    <Toggle checked={viz.forces} onChange={forces => setViz({ forces })} label="Show force arrows" />
+  </>;
   if (layer === "surface")
     return (
       <>
-        <p className="muted small">Pressure coefficient on the car. Blue is suction, red is stagnation. Grey marks surface points without fluid nearby.</p>
+        <p className="muted small">{viz.surface ? "Pressure coefficient on the car. Blue is suction, red is positive pressure. Grey marks surface points without fluid nearby." : "Oil-flow streaks follow the tangential air direction sampled near the wall. Look for changes in direction around the body."}</p>
+        <Toggle checked={viz.surface} onChange={surface => setViz({ surface })} label="Pressure colours" />
         <Toggle checked={viz.surfaceFlow} onChange={(v) => setViz({ surfaceFlow: v })} label="Surface flow lines" hint="Oil-flow streaks along the air direction next to the wall." />
       </>
     );
@@ -101,6 +122,7 @@ function Options({ layer, viz, field, particles, stageIds }: { layer: Layer; viz
           onChange={(f) => setViz({ sliceField: f })}
         />
         {particles && <Toggle checked={viz.sliceTracers} onChange={(v) => setViz({ sliceTracers: v })} label="Flow tracers" hint="In-plane motion of the air." />}
+        {viz.sliceField === "k" && <p className="muted small">Modelled turbulent kinetic energy. Brighter regions contain more turbulent energy; this is not a noise level.</p>}
         <p className="tip">Drag the white knob to slide the plane.</p>
       </>
     );
@@ -120,10 +142,24 @@ function Options({ layer, viz, field, particles, stageIds }: { layer: Layer; viz
   );
 }
 
-export function VizDock(props: { field: VizField | null; particles: boolean; surface: boolean; stageIds?: string[] }) {
+export function VizDock(props: { field: VizField | null; particles: boolean; surface: boolean; forces?: ForceValues | null; stageIds?: string[]; driving?: DrivingConditions | null; focused?: boolean; onFocus?: () => void }) {
   const { field, particles, surface } = props;
   const viz = useStore(app, (s) => s.viz);
   const [focus, setFocus] = useState<Layer | null>(null);
+  const [picker, setPicker] = useState(false);
+  const launcher = useRef<HTMLButtonElement>(null);
+  const closePicker = useCallback(() => { setPicker(false); launcher.current?.focus(); }, []);
+  const pick = (mode: AnalysisMode) => {
+    if (!field) return;
+    const ids = props.stageIds ?? ["main"];
+    const stage = stages[ids[0]];
+    if (!stage) return;
+    const a = ANALYSES.find(a => a.id === mode)!;
+    setViz(analysisPreset(mode, viz, field, stage.carBounds()));
+    for (const id of ids) stages[id]?.setView(a.view, viz.playing, false, a.layer === "slice", a.layer === "forces");
+    setFocus(window.innerWidth <= 760 ? null : a.layer);
+    closePicker();
+  };
   const toggle = (l: Layer) => {
     const on = !viz[l];
     // A section plane reads best on its own: smoke off, camera facing the plane.
@@ -131,22 +167,27 @@ export function VizDock(props: { field: VizField | null; particles: boolean; sur
     if (l === "slice" && on) for (const id of props.stageIds ?? ["main"]) stages[id]?.setView(sliceView(viz.sliceAxis), true, false, true);
     setFocus(on ? l : focus === l ? null : focus);
   };
-  const shownFocus = focus && (focus === "surface" || viz[focus]) ? focus : null;
-  const animated = viz.smoke || (viz.slice && viz.sliceTracers) || (viz.streamlines && viz.stream.animate);
+  const shownFocus = focus && (focus === "surface" || focus === "forces" || focus === "pressureCloud" || viz[focus]) ? focus : null;
+  const animated = viz.motion || viz.windDirection || viz.smoke || viz.surfaceFlow || (viz.slice && viz.sliceTracers) || (viz.streamlines && viz.stream.animate);
+  const active = activeAnalysis(viz);
+  const current = ANALYSES.find(a => a.id === active);
+  const focusTitle = current?.layer === shownFocus ? current.title : LAYERS.find(l => l.key === shownFocus)?.label ?? (shownFocus === "pressureCloud" ? "3D pressure clouds" : "Forces");
   return (
     <div className="viz-dock">
-      {shownFocus && (
+      {picker && <AnalysisPicker active={active} surface={surface} forces={!!props.forces} onPick={pick} onClose={closePicker} />}
+      {!picker && shownFocus && (
         <div className="viz-options glass" role="region" aria-label={`${shownFocus} options`}>
           <div className="viz-options-head">
-            <b>{LAYERS.find((l) => l.key === shownFocus)!.label}</b>
+            <b>{focusTitle}</b>
             <button className="icon-btn xs" aria-label="Close options" onClick={() => setFocus(null)}><X size={14} /></button>
           </div>
-          <Options layer={shownFocus} viz={viz} field={field} particles={particles} stageIds={props.stageIds} />
+          <Options layer={shownFocus} viz={viz} field={field} particles={particles} stageIds={props.stageIds} forces={props.forces} driving={props.driving} />
         </div>
       )}
+      <div className="analysis-launcher glass"><button ref={launcher} className={`analysis-open ${picker ? "on" : ""}`} aria-expanded={picker} aria-controls="analysis-picker" onClick={() => picker ? closePicker() : setPicker(true)}><Grid2X2 size={17} /><span>Explore airflow</span><ChevronUp size={14} /></button><span className="analysis-current">{current?.title ?? "Custom layers"}</span>{current && !picker && <button className="btn ghost sm" aria-label="View settings" onClick={() => setFocus(shownFocus ? null : current.layer)}>Settings</button>}</div>
       <div className="viz-bar glass" role="toolbar" aria-label="Visualisation layers">
         {LAYERS.map(({ key, label, icon: Icon, needsField }) => {
-          const disabled = needsField ? !field : !surface;
+          const disabled = key === "motion" || key === "windDirection" ? !props.driving : needsField ? !field : !surface;
           const on = viz[key] && !disabled;
           return (
             <div key={key} className={`layer-chip ${on ? "on" : ""} ${shownFocus === key ? "focus" : ""}`}>
@@ -166,6 +207,7 @@ export function VizDock(props: { field: VizField | null; particles: boolean; sur
           {viz.playing ? <Pause size={16} /> : <Play size={16} />}
         </button>
         <Slider label="Playback" min={0.25} max={2} step={0.05} value={viz.flowSpeed} display={`${viz.flowSpeed.toFixed(2)}×`} onChange={(v) => setViz({ flowSpeed: v })} />
+        {props.onFocus && <button className="icon-btn" aria-label={props.focused ? "Show panel" : "Expand view"} title={props.focused ? "Show panel" : "Expand view"} onClick={props.onFocus}>{props.focused ? <PanelLeftOpen size={16} /> : <Maximize2 size={16} />}</button>}
       </div>
     </div>
   );

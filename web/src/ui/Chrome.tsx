@@ -73,6 +73,7 @@ const VIEWS: { v: ViewName; label: string }[] = [
   { v: "front", label: "Front" },
   { v: "side", label: "Side" },
   { v: "top", label: "Top" },
+  { v: "bottom", label: "Underbody" },
   { v: "iso", label: "3D" },
 ];
 

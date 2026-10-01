@@ -26,6 +26,14 @@ test("UI settings map to the server's settings; Custom quality becomes Medium", 
   assert.deepEqual(Object.keys(out).sort(), ["custom_iterations", "custom_mesh", "density", "geometry_confirmed", "moving_ground", "quality", "reference_area", "simulation_box", "speed_kmh", "wheels", "yaw_deg"]);
 });
 
+test("road and wheel choices reach OpenFOAM independently, including explicit false", () => {
+  for (const moving_ground of [false, true]) for (const wheels of [false, true]) {
+    const out = of.serverSettings({ ...types.DEFAULT_SETTINGS, moving_ground, wheels });
+    assert.equal(out.moving_ground, moving_ground);
+    assert.equal(out.wheels, wheels);
+  }
+});
+
 test("frame offset and domain conversion between the UI and the server", () => {
   const uiLow = [-2.1, -0.9, 0.01];
   const serverLow = [-2.05, -0.92, 0.01];

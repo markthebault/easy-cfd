@@ -39,6 +39,7 @@ function sequential(lo: number, hi: number, digits = 1): Tick[] {
 export function LegendStack({ viz, ranges, hasSurface, hasField }: { viz: VizSettings; ranges: Ranges | null; hasSurface: boolean; hasField: boolean }) {
   if (!ranges) return null;
   const out: ReactElement[] = [];
+  if (hasField && viz.pressureCloud) out.push(<div className="legend cloud-legend" key="clouds"><div className="legend-title">Pressure clouds <span className="muted">Cp · Pa</span></div>{viz.cloudSign !== "positive" && <div><i className="cloud-dot negative" /><span>Suction</span><b>−{viz.cloudLevel.toFixed(2)}<small>−{n(viz.cloudLevel * ranges.q, 0)} Pa</small></b></div>}{viz.cloudSign !== "negative" && <div><i className="cloud-dot positive" /><span>Positive</span><b>+{viz.cloudLevel.toFixed(2)}<small>+{n(viz.cloudLevel * ranges.q, 0)} Pa</small></b></div>}</div>);
   const speedShown = hasField && (viz.smoke || viz.streamlines || (viz.wake && viz.wakeColor === "speed") || (viz.slice && viz.sliceField === "speed"));
   const cpShown = (viz.surface && hasSurface) || (hasField && viz.wake && viz.wakeColor === "cp");
   if (cpShown) {

@@ -18,6 +18,7 @@ import { ResultsPanel } from "./ui/ResultsPanel";
 import { SetupPanel } from "./ui/SetupPanel";
 import { StageView, stages } from "./ui/StageView";
 import { VizDock } from "./ui/VizDock";
+import { DrivingDock } from "./ui/DrivingDock";
 
 const NONE: never[] = [];
 
@@ -45,7 +46,9 @@ export function App() {
   const step = useStore(app, (s) => s.step);
   const busy = useStore(app, (s) => s.busy);
   const [particles, setParticles] = useState(true);
+  const [sceneFocus, setSceneFocus] = useState(false);
   const vp = useViewport();
+  useEffect(() => setSceneFocus(false), [view, design?.id]);
 
   useEffect(() => {
     init();
@@ -81,17 +84,19 @@ export function App() {
         ? { parts: run.parts, key: `run:${run.doc.id}`, surface: run.surface, field: run.field, ranges: run.ranges, helpers: false }
         : { parts: design ? parts : NONE, key: `setup:${partsVersion}`, surface: null, field: null, ranges: null, helpers: !!design };
 
-  const showPanel = view === "live" || view === "results" || (view === "setup" && !!design);
+  const driving = view === "live" ? live?.settings : view === "results" ? run?.doc.settings : design?.settings;
+  const hasPanel = view === "live" || view === "results" || (view === "setup" && !!design);
+  const showPanel = hasPanel && !sceneFocus;
   // Keep the car centred in the part of the screen the panels leave free.
   const narrow = vp.w <= 760;
   const insets = useMemo(
-    () => (!showPanel ? { left: 0, bottom: 0 } : narrow ? { left: 0, bottom: Math.round(vp.h * 0.5) } : { left: 408, bottom: 0 }),
-    [showPanel, narrow, vp.h],
+    () => (!showPanel ? { left: 0, bottom: narrow ? content.field ? 0 : 175 : 0, top: narrow ? content.field ? 156 : 64 : 0 } : narrow ? { left: 0, bottom: Math.round(vp.h * 0.5), top: content.field ? 156 : 64 } : { left: 408, bottom: 0, top: 0 }),
+    [showPanel, narrow, vp.h, !!content.field],
   );
   const gizmo = useMemo(() => (narrow ? { right: 8, bottom: insets.bottom + 8, size: 76 } : { right: 16, bottom: 16, size: 104 }), [narrow, insets.bottom]);
 
   return (
-    <div className={`app view-${view}`}>
+    <div className={`app view-${view} ${sceneFocus ? "scene-focus" : ""}`}>
       {view !== "compare" && (
         <StageView
           id="main"
@@ -101,11 +106,13 @@ export function App() {
           field={content.field}
           ranges={content.ranges}
           viz={viz}
+          driving={driving}
+          forces={view === "results" ? run?.doc.result : null}
           dark={dark}
           box={box}
           fitBox={!!box && showBox}
           detailBoxes={detailOutlines}
-          helpers={content.helpers && !box}
+          helpers={content.helpers && !box && step === "car"}
           insets={insets}
           gizmo={gizmo}
         />
@@ -121,8 +128,9 @@ export function App() {
               {view === "setup" ? <SetupPanel /> : view === "live" ? <LivePanel /> : <ResultsPanel />}
             </aside>
           )}
-          {showPanel && <ViewBar />}
-          {content.field && <VizDock field={content.field} particles={particles} surface={!!content.surface} />}
+          {hasPanel && <ViewBar />}
+          {hasPanel && driving && !content.field && <DrivingDock conditions={driving} focused={sceneFocus} onFocus={() => setSceneFocus(v => !v)} />}
+          {content.field && <VizDock field={content.field} particles={particles} surface={!!content.surface?.some(Boolean)} forces={view === "results" ? run?.doc.result : null} driving={driving} focused={sceneFocus} onFocus={() => setSceneFocus(v => !v)} />}
           {content.field && (
             <LegendStack viz={viz} ranges={content.ranges} hasSurface={!!content.surface?.some(Boolean)} hasField={!!content.field} />
           )}

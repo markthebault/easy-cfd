@@ -11,7 +11,7 @@ import { ForceChart } from "./ForceChart";
 import { StatsTable, defaultWindow } from "./StatsTable";
 import { unitFor } from "./historyUnit";
 import { stages } from "./StageView";
-import { conditionsLine, fmt, fmtCells, fmtDate, fmtDuration, fmtInt, groupForces, groupsLine, pct, verticalLoad } from "./format";
+import { boundaryLine, conditionsLine, fmt, fmtCells, fmtDate, fmtDuration, fmtInt, groupForces, groupsLine, pct, verticalLoad } from "./format";
 
 // Indicative spread over the averaging window, shown only when it is meaningful.
 function bandText(b: number | undefined) {
@@ -142,6 +142,7 @@ export function ResultsPanel() {
         </div>
         <h2 title={doc.designName}>{doc.designName}</h2>
         <p className="muted small">{conditionsLine(doc.settings)}</p>
+        <p className="muted small" data-testid="run-boundaries">{boundaryLine(doc.settings)}</p>
         {groupsLine(doc.geometry) && <p className="small groups-line" data-testid="run-groups">Groups: {groupsLine(doc.geometry)}</p>}
       </div>
 

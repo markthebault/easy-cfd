@@ -1,12 +1,13 @@
 // Step 1: the car. Source files, units and axes, clearance, parts and roles, geometry checks.
 
 import { useRef, useState } from "react";
-import { AlertTriangle, ArrowLeftRight, CircleAlert, FlipVertical2, Lightbulb, Plus, RotateCw, Upload, X } from "lucide-react";
+import { AlertTriangle, ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, CircleAlert, FlipVertical2, Lightbulb, Plus, RotateCw, Upload, X } from "lucide-react";
 import type { AxisName, Units } from "../geometry/model";
 import { useStore } from "../store/store";
 import {
-  app, applyHint, goStep, importFiles, loadSample, removeFile, setConfirmed, setImport,
+  app, applyHint, goStep, importFiles, loadSample, removeFile, setConfirmed, setImport, setRoadHeight,
 } from "../store/app";
+import { ROAD_CONTACT_ERROR, roadPosition } from "../geometry/roadPosition";
 import { fixAxes, flipUpsideDown, swapNoseTail, turn90 } from "../store/geometry";
 import { Field, NumberField, Segmented, Toggle } from "./controls";
 import { GroupsPanel } from "./GroupsPanel";
@@ -22,6 +23,8 @@ export function CarStep() {
   const design = useStore(app, (s) => s.design)!;
   const report = useStore(app, (s) => s.report);
   const confirmed = useStore(app, (s) => s.confirmed);
+  const parts = useStore(app, (s) => s.parts);
+  const busy = useStore(app, (s) => s.busy);
   const addInput = useRef<HTMLInputElement>(null);
   const [allFiles, setAllFiles] = useState(false);
   const replaceInput = useRef<HTMLInputElement>(null);
@@ -29,6 +32,10 @@ export function CarStep() {
   const sample = design.source.kind === "sample";
   const dims = report?.dimensions ?? [0, 0, 0];
   const canContinue = !!report && report.errors.length === 0 && confirmed;
+  const position = roadPosition(parts);
+  const height = position.height ?? 0;
+  const geometryErrors = report?.errors.filter(e => e !== ROAD_CONTACT_ERROR) ?? [];
+  const needsGap = report?.errors.includes(ROAD_CONTACT_ERROR) ?? false;
 
   return (
     <div className="step-body">
@@ -90,9 +97,9 @@ export function CarStep() {
         <span>Frontal area {fmt(report?.frontalArea ?? 0, 2)} m²</span>
       </div>
 
-      {report && (report.errors.length > 0 || report.warnings.length > 0 || report.hints.length > 0) && (
+      {report && (geometryErrors.length > 0 || report.warnings.length > 0 || report.hints.length > 0) && (
         <ul className="issues">
-          {report.errors.map((e) => (
+          {geometryErrors.map((e) => (
             <li key={e} className="issue error"><CircleAlert size={15} /> <span>{e}</span></li>
           ))}
           {report.hints.map((h) => (
@@ -136,8 +143,21 @@ export function CarStep() {
           <button className="btn ghost sm" onClick={() => setImport(swapNoseTail(o))}><ArrowLeftRight size={15} /> Nose ↔ tail</button>
           <button className="btn ghost sm" onClick={() => setImport(flipUpsideDown(o))}><FlipVertical2 size={15} /> Flip</button>
         </div>
-        <Field label="Road clearance" hint="Gap between the lowest point and the road.">
-          <NumberField value={+(o.clearance * 1000).toFixed(1)} min={5} max={500} step={1} unit="mm" label="Road clearance" onChange={(v) => setImport({ clearance: v / 1000 })} width={120} />
+      </div>
+
+      <div className="group road-position">
+        <div className="road-position-heading"><div className="group-title">Position above road</div><span className={`height-status ${height >= -1e-6 && height <= 0.005 + 1e-6 ? "grounded" : ""}`}>{height < -1e-6 ? "Below road" : height < 1e-6 ? "Exact contact" : height <= 0.005 + 1e-6 ? "On ground" : "Raised"}</span></div>
+        <p className="muted small">{position.wheels ? "Height is measured under the lowest enabled wheel. Every part moves together." : "No wheels marked. Height is measured under the model’s lowest enabled part."}</p>
+        <div className="height-actions">
+          <button className="btn ghost sm" disabled={!!busy || position.height === null} onClick={() => setRoadHeight(0.005, true)} title="Place the car at road level with the 5 mm gap required for simulation"><ArrowDownToLine size={15} />{position.wheels ? "Place wheels on ground" : "Place model on ground"}</button>
+          <button className="btn ghost sm" disabled={!!busy || position.height === null} onClick={() => setRoadHeight(0.15)}><ArrowUpFromLine size={15} />Lift car</button>
+        </div>
+        {needsGap && <div className="road-contact-note" role="status">Ground contact is set. Before running, use <b>Simulation gap</b> below to leave the required 5 mm clearance.</div>}
+        <Field label="Height above road" hint="Ground placement leaves a 5 mm simulation gap. Enter 0 mm for exact contact in the preview.">
+          <div className="row gap-s">
+            <NumberField value={+(height * 1000).toFixed(1)} min={0} max={2000} step={1} unit="mm" label="Height above road" onChange={(v) => setRoadHeight(v / 1000)} width={110} />
+            <button className="btn ghost sm" disabled={!!busy || position.height === null} onClick={() => setRoadHeight(0.005, true)}>Simulation gap <span className="muted">5 mm</span></button>
+          </div>
         </Field>
       </div>
 
