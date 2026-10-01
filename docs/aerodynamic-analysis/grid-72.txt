@@ -1,0 +1,17 @@
+  sample: t=0.063/1.512 steps=358 cd=0.4944 cl=0.8589 10 s
+  sample: t=0.335/1.512 steps=903 cd=0.5007 cl=0.8186 26 s
+  sample: t=0.648/1.512 steps=1448 cd=0.5202 cl=0.8754 41 s
+  sample: t=0.951/1.512 steps=1970 cd=0.5024 cl=0.8151 56 s
+  sample: t=1.269/1.512 steps=2519 cd=0.5023 cl=0.8374 71 s
+  sample: t=1.589/1.890 steps=3071 cd=0.5029 cl=0.8204 86 s
+    Body                   drag 373.8 N  lift 774.2 N
+sample       cd 0.5127 (ref 0.5467 medium, -6.2%)  cl 0.8469 (ref 0.6331, Δ 0.214)  cells 1720320 steps 3594 102 s settled=true detail=1 thin=[]
+  sample-wing: t=0.059/1.512 steps=362 cd=0.7347 cl=0.6387 10 s
+  sample-wing: t=0.313/1.512 steps=907 cd=0.6819 cl=0.5325 25 s
+  sample-wing: t=0.636/1.512 steps=1452 cd=0.6401 cl=0.5411 40 s
+  sample-wing: t=0.966/1.512 steps=2003 cd=0.6351 cl=0.5234 56 s
+  sample-wing: t=1.293/1.512 steps=2548 cd=0.6477 cl=0.5334 71 s
+    Body                   drag 421.9 N  lift 589.5 N
+    Rear wing              drag 81.5 N  lift -140.4 N
+sample-wing  cd 0.6436 (ref 0.6778 medium, -5.0%)  cl 0.5322 (ref 0.4159, Δ 0.116)  cells 1720320 steps 2917 82 s settled=true detail=1 thin=[Rear wing]
+saved /Volumes/SSD512/persospace/easy-cfd/web/validation/results/validation-custom-2026-10-01T11-53-18-511Z.json

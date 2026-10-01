@@ -1,0 +1,21 @@
+[page] Failed to load resource: the server responded with a status of 404 (Not Found)
+  sample-wing: t=0.058/1.512 steps=354 cd=0.7673 cl=0.6371 10 s
+  sample-wing: t=0.291/1.512 steps=884 cd=0.6774 cl=0.6712 25 s
+  sample-wing: t=0.606/1.512 steps=1423 cd=0.6142 cl=0.5542 40 s
+  sample-wing: t=0.935/1.512 steps=1974 cd=0.6269 cl=0.5920 56 s
+  sample-wing: t=1.258/1.512 steps=2516 cd=0.6100 cl=0.5824 71 s
+    Body                   drag 403.7 N  lift 562.1 N
+    Rear wing              drag 72.2 N  lift -54.5 N
+sample-wing  cd 0.6173 (ref 0.6778 medium, -8.9%)  cl 0.5883 (ref 0.4159, Δ 0.172)  cells 1720320 steps 2944 83 s settled=true detail=1 thin=[Rear wing]
+[page] Failed to load resource: the server responded with a status of 404 (Not Found)
+  mx5-kit-wing: t=0.074/1.476 steps=420 cd=0.4994 cl=-0.5662 10 s
+  mx5-kit-wing: t=0.444/1.476 steps=1050 cd=0.4109 cl=-0.3920 25 s
+  mx5-kit-wing: t=0.844/1.476 steps=1685 cd=0.4056 cl=-0.4080 40 s
+  mx5-kit-wing: t=1.252/1.476 steps=2330 cd=0.3929 cl=-0.3576 55 s
+    rear_wing              drag 49.8 N  lift -82.1 N
+    wing_endplate_left     drag 6.5 N  lift -4.5 N
+    wing_endplate_right    drag 6.0 N  lift -4.2 N
+    wing_support_left      drag 3.1 N  lift -0.7 N
+    wing_support_right     drag 2.8 N  lift -0.8 N
+mx5-kit-wing cd 0.3949 (ref 0.3711 medium, 6.4%)  cl -0.3641 (ref 0.0101, Δ -0.374)  cells 1474560 steps 2685 67 s settled=true detail=1 thin=[rear_wing,wing_endplate_left,wing_endplate_right,wing_support_left,wing_support_right]
+saved /Volumes/SSD512/persospace/easy-cfd/web/validation/results/validation-custom-2026-10-01T12-00-36-407Z.json

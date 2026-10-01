@@ -2,6 +2,12 @@
 
 The browser solver was compared with the EasyCFD OpenFOAM app (OpenFOAM v2412, `simpleFoam`, k-ω SST, snappyHexMesh) on the same geometry and conditions. The target in the brief was drag within ±10 % of OpenFOAM. **That target is met for 5 of 8 models on each preset, not for all of them.** The numbers below are the measured ones, including misses.
 
+## 1 October 2026 aerodynamic-analysis follow-up
+
+New wall moments, axle loads and physical friction fields have software and native-integration evidence. **Solver qualification remains open.** The unchanged `51f00b4` baseline and updated eight-model/synthetic-kit suite still show material lift and wing discrepancies: five of eight raw drag checks pass and one of eight raw lift checks passes. The reference audit leaves comparisons pending because force/residual/wall-resolution evidence is inadequate. Neither separately tested wall-model nor thin-wall candidate consistently resolves these gates, so default numerics remain unchanged.
+
+The three-grid sample/wing study shows substantial moment/axle sensitivity and a wing-case lift sign change between coarse and finer grids. Native stress units, signs and final-state wall integration pass; that establishes extraction consistency, not physical accuracy. Full Advanced qualification and a matched independent physical lift benchmark are pending. [Complete evidence and raw results](../docs/aerodynamic-analysis/README.md) include the baseline, candidates, held-out raised wing, native fields, runtime guards and screenshots.
+
 ## What was compared
 
 - **Geometry:** the exact STL files each OpenFOAM run used, read from its run folder (`.easycfd/runs/<id>/geometry`). They are the same triangles, placement and wheel definitions.

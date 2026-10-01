@@ -1,0 +1,13 @@
+{
+  "source": "https://tmbwg.github.io/turbmodels/NACA0012_validation/CLCD_Ladson_expdata.dat",
+  "source_page": "https://tmbwg.github.io/turbmodels/naca0012_val.html",
+  "sha256": "78cd2f6aa4968e80f44cbf6c96f699bd9c6e45681d958ec528a10cf72ed23357",
+  "status": "pending: matching two-dimensional free-air boundaries and complete independent benchmark execution are not implemented",
+  "conditions": {
+    "Reynolds": 6000000,
+    "Mach": 0.15,
+    "airfoil": "modified closed-trailing-edge NACA 0012",
+    "flow": "fully turbulent / tripped experimental reference; select matching conditions before assessing"
+  },
+  "qualification": "Published physical data retained as a future target; no claim of experimental validation from the current car-suite or shader verification."
+}

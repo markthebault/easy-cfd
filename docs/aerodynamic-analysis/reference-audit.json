@@ -1,0 +1,1247 @@
+[
+  {
+    "model": "sample",
+    "reference": {
+      "run": "5c037a8721744c7d8a91e55123f55bda",
+      "quality": "medium",
+      "speed_kmh": 100.0,
+      "cd": 0.546712937556,
+      "cl": 0.6330745189992,
+      "cells": 193849,
+      "settled": true,
+      "residual_converged": false
+    },
+    "record": ".easycfd/runs/5c037a8721744c7d8a91e55123f55bda/record.json",
+    "status": "pending",
+    "mesh_ok": true,
+    "wall_target_fraction": 0.7405341943058409,
+    "layer_coverage": 0.9743589743589743,
+    "residuals": {
+      "Ux": 5.253192886e-05,
+      "Uy": 0.000473938264,
+      "Uz": 0.0002535519066,
+      "p": 0.001367343499,
+      "omega": 6.351021867e-06,
+      "k": 8.342733198e-05
+    },
+    "force_settled": true,
+    "residual_converged": false,
+    "warning": [
+      "Residuals have not reached this preset's target. Forces are provisional.",
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+      "Only 74% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+    ],
+    "pipeline": "779fccfd3963bbed3560ab79cc2f7180d23cfac3f62725a316600e3ef9d1d932",
+    "settings": {
+      "speed_kmh": 100.0,
+      "yaw_deg": 0.0,
+      "quality": "medium",
+      "reference_area": 2.2,
+      "density": 1.225,
+      "moving_ground": true,
+      "wheels": true,
+      "geometry_confirmed": true
+    },
+    "sha256": "dd5e318db89dea332d47ff4a2d8dab8783a426167396244005afd06a7b1baa9a",
+    "qualification": "pending",
+    "qualificationReasons": [
+      "residual target not met or diagnostic unavailable",
+      "y+ coverage below 80 percent or unavailable"
+    ]
+  },
+  {
+    "model": "sample",
+    "reference": {
+      "run": "59fbf9e6906d4e469270bb50c2dbb70c",
+      "quality": "medium",
+      "speed_kmh": 100.0,
+      "cd": 0.5515396949496,
+      "cl": 0.6280437311592001,
+      "cells": 193849,
+      "settled": false,
+      "residual_converged": false
+    },
+    "record": ".easycfd/runs/59fbf9e6906d4e469270bb50c2dbb70c/record.json",
+    "status": "pending",
+    "mesh_ok": true,
+    "wall_target_fraction": 0.7374523040798356,
+    "layer_coverage": 0.9743589743589743,
+    "residuals": {
+      "Ux": 9.209143948e-05,
+      "Uy": 0.0008925429075,
+      "Uz": 0.0004176694828,
+      "p": 0.001652361097,
+      "omega": 1.35733443e-05,
+      "k": 0.0001563449098
+    },
+    "force_settled": false,
+    "residual_converged": false,
+    "warning": [
+      "Residuals have not reached this preset's target. Forces are provisional.",
+      "Drag or lift is still changing. Do not rank designs from this run.",
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+      "Only 74% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+    ],
+    "pipeline": "779fccfd3963bbed3560ab79cc2f7180d23cfac3f62725a316600e3ef9d1d932",
+    "settings": {
+      "speed_kmh": 100.0,
+      "yaw_deg": 0.0,
+      "quality": "medium",
+      "reference_area": 2.2,
+      "density": 1.225,
+      "moving_ground": true,
+      "wheels": true,
+      "geometry_confirmed": true
+    },
+    "sha256": "11cf6481c1efefe5c6b626809ef70015f4d7148525d41ff7791b4867598e8ed4",
+    "qualification": "pending",
+    "qualificationReasons": [
+      "forces unsettled or diagnostic unavailable",
+      "residual target not met or diagnostic unavailable",
+      "y+ coverage below 80 percent or unavailable"
+    ]
+  },
+  {
+    "model": "sample",
+    "reference": {
+      "run": "2a274a3a010748dfac761a2f40206491",
+      "quality": "fast",
+      "speed_kmh": 100.0,
+      "cd": 0.5168834067988,
+      "cl": 0.6063587259764001,
+      "cells": 41417,
+      "settled": true,
+      "residual_converged": true
+    },
+    "record": ".easycfd/runs/2a274a3a010748dfac761a2f40206491/record.json",
+    "status": "candidate",
+    "mesh_ok": true,
+    "wall_target_fraction": 0.00506842372022301,
+    "layer_coverage": null,
+    "residuals": {
+      "Ux": 1.110941931e-05,
+      "Uy": 1.48415415e-05,
+      "Uz": 3.205805558e-05,
+      "p": 8.498602834e-05,
+      "omega": 1.494296313e-06,
+      "k": 2.575581845e-06
+    },
+    "force_settled": true,
+    "residual_converged": true,
+    "warning": [
+      "Fast uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+      "Only 1% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+    ],
+    "pipeline": "44862dac36b43cd99a579581ba9265a9ce9a923a621c44382f8ae20fd4b0a377",
+    "settings": {
+      "speed_kmh": 100.0,
+      "yaw_deg": 0.0,
+      "quality": "fast",
+      "reference_area": 2.2,
+      "density": 1.225,
+      "moving_ground": true,
+      "wheels": true,
+      "geometry_confirmed": true
+    },
+    "sha256": "b5351367a1af06ccaa86339d9f9e4c072e1df7bf9711bd245cc2551a92d3bdcc",
+    "qualification": "pending",
+    "qualificationReasons": [
+      "prism-layer coverage below 80 percent or unavailable",
+      "y+ coverage below 80 percent or unavailable"
+    ]
+  },
+  {
+    "model": "sample-yaw10",
+    "reference": {
+      "run": "19d8a06b0b63406090c977065add33e3",
+      "quality": "medium",
+      "speed_kmh": 100.0,
+      "cd": 0.6095617804836,
+      "cl": 0.7186922284630002,
+      "cells": 193819,
+      "settled": true,
+      "residual_converged": false,
+      "note": "Generated for the web validation; same geometry as the sample baseline."
+    },
+    "record": ".easycfd/runs/19d8a06b0b63406090c977065add33e3/record.json",
+    "status": "pending",
+    "mesh_ok": true,
+    "wall_target_fraction": 0.746257704725565,
+    "layer_coverage": 0.969886702444842,
+    "residuals": {
+      "Ux": 1.234389737e-05,
+      "Uy": 3.325117862e-05,
+      "Uz": 3.767382267e-05,
+      "p": 0.0002680496613,
+      "omega": 2.46132298e-06,
+      "k": 1.45620443e-05
+    },
+    "force_settled": true,
+    "residual_converged": false,
+    "warning": [
+      "Residuals have not reached this preset's target. Forces are provisional.",
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+      "Only 75% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+    ],
+    "pipeline": "b5904314bd6a10b5a1856f6e639768be8021c7241dc27015e17b69e518c450f9",
+    "settings": {
+      "speed_kmh": 100.0,
+      "yaw_deg": 10.0,
+      "quality": "medium",
+      "simulation_box": null,
+      "custom_mesh": "medium",
+      "custom_iterations": 1000,
+      "reference_area": 2.2,
+      "density": 1.225,
+      "moving_ground": true,
+      "wheels": true,
+      "geometry_confirmed": true
+    },
+    "sha256": "fd7a0b284d767923b51e2aaeedd10187066fcaf19c4bdcac7591c76cba399ed5",
+    "qualification": "pending",
+    "qualificationReasons": [
+      "residual target not met or diagnostic unavailable",
+      "y+ coverage below 80 percent or unavailable"
+    ]
+  },
+  {
+    "model": "sample-wing",
+    "reference": {
+      "run": "b039b9ba826042ffa6fb9cf250e21fbd",
+      "quality": "medium",
+      "speed_kmh": 100.0,
+      "cd": 0.6778444326126,
+      "cl": 0.41586013778040004,
+      "cells": 265766,
+      "settled": false,
+      "residual_converged": false
+    },
+    "record": ".easycfd/runs/b039b9ba826042ffa6fb9cf250e21fbd/record.json",
+    "status": "pending",
+    "mesh_ok": true,
+    "wall_target_fraction": 0.8117028731604765,
+    "layer_coverage": 0.9361672080214659,
+    "residuals": {
+      "Ux": 0.0002991087259,
+      "Uy": 0.005137287345,
+      "Uz": 0.003304603305,
+      "p": 0.004374175598,
+      "omega": 3.433332354e-05,
+      "k": 0.0006285312245
+    },
+    "force_settled": false,
+    "residual_converged": false,
+    "warning": [
+      "Residuals have not reached this preset's target. Forces are provisional.",
+      "Drag or lift is still changing. Do not rank designs from this run.",
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed."
+    ],
+    "pipeline": "44862dac36b43cd99a579581ba9265a9ce9a923a621c44382f8ae20fd4b0a377",
+    "settings": {
+      "speed_kmh": 100.0,
+      "yaw_deg": 0.0,
+      "quality": "medium",
+      "reference_area": 2.2,
+      "density": 1.225,
+      "moving_ground": true,
+      "wheels": true,
+      "geometry_confirmed": true
+    },
+    "sha256": "b4b6545002fff1dd7d78d2f444f9dde3e12e35df27abb9515d05b2c8540fa9be",
+    "qualification": "pending",
+    "qualificationReasons": [
+      "forces unsettled or diagnostic unavailable",
+      "residual target not met or diagnostic unavailable"
+    ]
+  },
+  {
+    "model": "sample-wing",
+    "reference": {
+      "run": "3dce4128027a4351a9307cf79bb41404",
+      "quality": "fast",
+      "speed_kmh": 100.0,
+      "cd": 0.6262144835028,
+      "cl": 0.38871870908,
+      "cells": 141345,
+      "settled": true,
+      "residual_converged": true
+    },
+    "record": ".easycfd/runs/3dce4128027a4351a9307cf79bb41404/record.json",
+    "status": "candidate",
+    "mesh_ok": true,
+    "wall_target_fraction": 0.783266024645335,
+    "layer_coverage": null,
+    "residuals": {
+      "Ux": 1.632654929e-05,
+      "Uy": 0.0004875507738,
+      "Uz": 0.0006152255292,
+      "p": 0.0002320716826,
+      "omega": 2.096190884e-06,
+      "k": 2.099303176e-05
+    },
+    "force_settled": true,
+    "residual_converged": true,
+    "warning": [
+      "Fast uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+      "Only 78% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+    ],
+    "pipeline": "44862dac36b43cd99a579581ba9265a9ce9a923a621c44382f8ae20fd4b0a377",
+    "settings": {
+      "speed_kmh": 100.0,
+      "yaw_deg": 0.0,
+      "quality": "fast",
+      "reference_area": 2.2,
+      "density": 1.225,
+      "moving_ground": true,
+      "wheels": true,
+      "geometry_confirmed": true
+    },
+    "sha256": "c68e7a39307df9e1196ba38dc1cb639be97cbc0dec490007a3459140bdc18092",
+    "qualification": "pending",
+    "qualificationReasons": [
+      "prism-layer coverage below 80 percent or unavailable",
+      "y+ coverage below 80 percent or unavailable"
+    ]
+  },
+  {
+    "model": "mx5",
+    "reference": {
+      "run": "48d98cc2294942838eca188efa34787d",
+      "quality": "medium",
+      "speed_kmh": 100.0,
+      "cd": 0.31910735104719995,
+      "cl": 0.226867841166,
+      "cells": 165934,
+      "settled": true,
+      "residual_converged": false
+    },
+    "record": ".easycfd/runs/48d98cc2294942838eca188efa34787d/record.json",
+    "status": "pending",
+    "mesh_ok": true,
+    "wall_target_fraction": 0.4654361831795229,
+    "layer_coverage": 0.785935085007728,
+    "residuals": {
+      "Ux": 1.642219566e-05,
+      "Uy": 0.0001177359036,
+      "Uz": 7.450294869e-05,
+      "p": 0.0003825068772,
+      "omega": 3.82413703e-06,
+      "k": 2.428978768e-05
+    },
+    "force_settled": true,
+    "residual_converged": false,
+    "warning": [
+      "Residuals have not reached this preset's target. Forces are provisional.",
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+      "Only 47% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review.",
+      "Boundary layers cover 79% of requested surface faces. Inspect near-wall resolution before comparing forces."
+    ],
+    "pipeline": "44862dac36b43cd99a579581ba9265a9ce9a923a621c44382f8ae20fd4b0a377",
+    "settings": {
+      "speed_kmh": 100.0,
+      "yaw_deg": 0.0,
+      "quality": "medium",
+      "reference_area": 2.0,
+      "density": 1.225,
+      "moving_ground": true,
+      "wheels": true,
+      "geometry_confirmed": true
+    },
+    "sha256": "9a63829468d851300768e16e67aff82493d2b6ea5f8a834d6c2be88e3e3eafbc",
+    "qualification": "pending",
+    "qualificationReasons": [
+      "residual target not met or diagnostic unavailable",
+      "prism-layer coverage below 80 percent or unavailable",
+      "y+ coverage below 80 percent or unavailable"
+    ]
+  },
+  {
+    "model": "mx5",
+    "reference": {
+      "run": "fafc3ed8862146f792054297cf12d95b",
+      "quality": "medium",
+      "speed_kmh": 100.0,
+      "cd": 0.3187580269916,
+      "cl": 0.226340659909,
+      "cells": 165934,
+      "settled": true,
+      "residual_converged": false
+    },
+    "record": ".easycfd/runs/fafc3ed8862146f792054297cf12d95b/record.json",
+    "status": "pending",
+    "mesh_ok": true,
+    "wall_target_fraction": 0.4645655580706948,
+    "layer_coverage": 0.785935085007728,
+    "residuals": {
+      "Ux": 3.02998381e-05,
+      "Uy": 0.0002039527205,
+      "Uz": 0.0001296803177,
+      "p": 0.0006442483386,
+      "omega": 5.515984065e-06,
+      "k": 4.184181193e-05
+    },
+    "force_settled": true,
+    "residual_converged": false,
+    "warning": [
+      "Residuals have not reached this preset's target. Forces are provisional.",
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+      "Only 46% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review.",
+      "Boundary layers cover 79% of requested surface faces. Inspect near-wall resolution before comparing forces.",
+      "Smoother NC approximation: reconstructed underbody and wheel housings, simplified tires, 15 mm surface filtering. Small aerodynamic features are not faithfully preserved; this is not engineering CAD."
+    ],
+    "pipeline": "44862dac36b43cd99a579581ba9265a9ce9a923a621c44382f8ae20fd4b0a377",
+    "settings": {
+      "speed_kmh": 100.0,
+      "yaw_deg": 0.0,
+      "quality": "medium",
+      "reference_area": 2.0,
+      "density": 1.225,
+      "moving_ground": true,
+      "wheels": true,
+      "geometry_confirmed": true
+    },
+    "sha256": "f83e9c4daa5dff26436bdf7469f70fb5fd704315a2153d7537e629a8b9ad759c",
+    "qualification": "pending",
+    "qualificationReasons": [
+      "residual target not met or diagnostic unavailable",
+      "prism-layer coverage below 80 percent or unavailable",
+      "y+ coverage below 80 percent or unavailable"
+    ]
+  },
+  {
+    "model": "mx5",
+    "reference": {
+      "run": "8bde906a2c5d4ff480802ba3f605e6b9",
+      "quality": "fast",
+      "speed_kmh": 100.0,
+      "cd": 0.3112046640492,
+      "cl": -0.035592672752679994,
+      "cells": 39347,
+      "settled": true,
+      "residual_converged": true
+    },
+    "record": ".easycfd/runs/8bde906a2c5d4ff480802ba3f605e6b9/record.json",
+    "status": "candidate",
+    "mesh_ok": true,
+    "wall_target_fraction": 0.016150152771715408,
+    "layer_coverage": null,
+    "residuals": {
+      "Ux": 1.330543656e-08,
+      "Uy": 6.11005485e-08,
+      "Uz": 2.883882739e-08,
+      "p": 1.405474464e-07,
+      "omega": 8.737466771e-09,
+      "k": 1.826304694e-08
+    },
+    "force_settled": true,
+    "residual_converged": true,
+    "warning": [
+      "Fast uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+      "Only 2% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+    ],
+    "pipeline": "44862dac36b43cd99a579581ba9265a9ce9a923a621c44382f8ae20fd4b0a377",
+    "settings": {
+      "speed_kmh": 100.0,
+      "yaw_deg": 0.0,
+      "quality": "fast",
+      "reference_area": 2.0,
+      "density": 1.225,
+      "moving_ground": true,
+      "wheels": true,
+      "geometry_confirmed": true
+    },
+    "sha256": "8367d515ee0b138b16a1660d2a1a6d0d00a3022d77f0848e1c1fc198437425d8",
+    "qualification": "pending",
+    "qualificationReasons": [
+      "prism-layer coverage below 80 percent or unavailable",
+      "y+ coverage below 80 percent or unavailable"
+    ]
+  },
+  {
+    "model": "z4",
+    "reference": {
+      "run": "0e2f1e9b63264e848a034f8ac3f7e3b5",
+      "quality": "medium",
+      "speed_kmh": 100.0,
+      "cd": 0.4405646696144,
+      "cl": -0.31017978320460005,
+      "cells": 309721,
+      "settled": true,
+      "residual_converged": true,
+      "note": "Generated for the web validation from the same geometry (fingerprint match)."
+    },
+    "record": ".easycfd/runs/0e2f1e9b63264e848a034f8ac3f7e3b5/record.json",
+    "status": "candidate",
+    "mesh_ok": true,
+    "wall_target_fraction": 0.8453393896743651,
+    "layer_coverage": 0.6977677963794746,
+    "residuals": {
+      "Ux": 4.008277556e-06,
+      "Uy": 3.449389696e-05,
+      "Uz": 2.161549122e-05,
+      "p": 4.575099415e-05,
+      "omega": 1.170630632e-07,
+      "k": 1.962373855e-06
+    },
+    "force_settled": true,
+    "residual_converged": true,
+    "warning": [
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+      "Boundary layers cover 70% of requested surface faces. Inspect near-wall resolution before comparing forces."
+    ],
+    "pipeline": "b5904314bd6a10b5a1856f6e639768be8021c7241dc27015e17b69e518c450f9",
+    "settings": {
+      "speed_kmh": 100.0,
+      "yaw_deg": 0.0,
+      "quality": "medium",
+      "simulation_box": null,
+      "custom_mesh": "medium",
+      "custom_iterations": 1000,
+      "reference_area": 2.2,
+      "density": 1.225,
+      "moving_ground": true,
+      "wheels": true,
+      "geometry_confirmed": true
+    },
+    "sha256": "026c82d762d02f6e32aa78605ad15099420812a9395cb68ab855c396b7c77c6f",
+    "qualification": "pending",
+    "qualificationReasons": [
+      "prism-layer coverage below 80 percent or unavailable"
+    ]
+  },
+  {
+    "model": "z4",
+    "reference": {
+      "run": "6f22f0a5efa04da8906397c0295b34a9",
+      "quality": "fast",
+      "speed_kmh": 100.0,
+      "cd": 0.4753524530704,
+      "cl": -0.155158488747,
+      "cells": 159271,
+      "settled": true,
+      "residual_converged": true
+    },
+    "record": ".easycfd/runs/6f22f0a5efa04da8906397c0295b34a9/record.json",
+    "status": "candidate",
+    "mesh_ok": true,
+    "wall_target_fraction": 0.8561453562579773,
+    "layer_coverage": null,
+    "residuals": {
+      "Ux": 1.666613791e-06,
+      "Uy": 4.666795108e-05,
+      "Uz": 1.661170797e-05,
+      "p": 3.680230434e-05,
+      "omega": 4.722252851e-08,
+      "k": 1.870109097e-06
+    },
+    "force_settled": true,
+    "residual_converged": true,
+    "warning": [
+      "Fast uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed."
+    ],
+    "pipeline": "d9d5149eebb9251ed3e8b42d20435c623f5cd30b0ba4fb03f5804c1a02c6c121",
+    "settings": {
+      "speed_kmh": 100.0,
+      "yaw_deg": 0.0,
+      "quality": "fast",
+      "reference_area": 2.2,
+      "density": 1.225,
+      "moving_ground": true,
+      "wheels": true,
+      "geometry_confirmed": true
+    },
+    "sha256": "4c057f5d7d1cf3a34afbf9be3e6eef68cf61bb0ec30be35b1b9cd9dba49bc636",
+    "qualification": "pending",
+    "qualificationReasons": [
+      "prism-layer coverage below 80 percent or unavailable"
+    ]
+  },
+  {
+    "model": "z4-wing",
+    "reference": {
+      "run": "7308d8fe881a49a880f6a5d6d3b817b0",
+      "quality": "medium",
+      "speed_kmh": 100.0,
+      "cd": 0.4442281998358,
+      "cl": -0.1539703408694,
+      "cells": 322045,
+      "settled": true,
+      "residual_converged": false,
+      "note": "Generated for the web validation from the same geometry (fingerprint match)."
+    },
+    "record": ".easycfd/runs/7308d8fe881a49a880f6a5d6d3b817b0/record.json",
+    "status": "pending",
+    "mesh_ok": true,
+    "wall_target_fraction": 0.8432508612590041,
+    "layer_coverage": 0.7169221560868553,
+    "residuals": {
+      "Ux": 6.787178295e-06,
+      "Uy": 0.0001319915541,
+      "Uz": 3.46040455e-05,
+      "p": 0.0001087220722,
+      "omega": 1.577353494e-06,
+      "k": 1.745008181e-05
+    },
+    "force_settled": true,
+    "residual_converged": false,
+    "warning": [
+      "Residuals have not reached this preset's target. Forces are provisional.",
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+      "Boundary layers cover 72% of requested surface faces. Inspect near-wall resolution before comparing forces."
+    ],
+    "pipeline": "b5904314bd6a10b5a1856f6e639768be8021c7241dc27015e17b69e518c450f9",
+    "settings": {
+      "speed_kmh": 100.0,
+      "yaw_deg": 0.0,
+      "quality": "medium",
+      "simulation_box": null,
+      "custom_mesh": "medium",
+      "custom_iterations": 1000,
+      "reference_area": 2.2,
+      "density": 1.225,
+      "moving_ground": true,
+      "wheels": true,
+      "geometry_confirmed": true
+    },
+    "sha256": "3dda2327173bb8f8c60da3921348daffca2219f7af25a5d569cfb7cd08e0066a",
+    "qualification": "pending",
+    "qualificationReasons": [
+      "residual target not met or diagnostic unavailable",
+      "prism-layer coverage below 80 percent or unavailable"
+    ]
+  },
+  {
+    "model": "z4-wing",
+    "reference": {
+      "run": "5bc81f673eca48f8b12412a78329c13b",
+      "quality": "fast",
+      "speed_kmh": 100.0,
+      "cd": 0.48899344186060006,
+      "cl": -0.15164373107780002,
+      "cells": 160325,
+      "settled": true,
+      "residual_converged": true
+    },
+    "record": ".easycfd/runs/5bc81f673eca48f8b12412a78329c13b/record.json",
+    "status": "candidate",
+    "mesh_ok": true,
+    "wall_target_fraction": 0.7939074840165475,
+    "layer_coverage": null,
+    "residuals": {
+      "Ux": 3.446375468e-06,
+      "Uy": 0.0001405860621,
+      "Uz": 2.545302463e-05,
+      "p": 0.0001262942752,
+      "omega": 1.666422476e-06,
+      "k": 1.033557291e-05
+    },
+    "force_settled": true,
+    "residual_converged": true,
+    "warning": [
+      "Fast uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+      "Only 79% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+    ],
+    "pipeline": "d9d5149eebb9251ed3e8b42d20435c623f5cd30b0ba4fb03f5804c1a02c6c121",
+    "settings": {
+      "speed_kmh": 100.0,
+      "yaw_deg": 0.0,
+      "quality": "fast",
+      "reference_area": 2.2,
+      "density": 1.225,
+      "moving_ground": true,
+      "wheels": true,
+      "geometry_confirmed": true
+    },
+    "sha256": "4a3f4101b2e559cadb70e30cae9f2dd6cfac7017824cb4eb6866ff6a10b4c02e",
+    "qualification": "pending",
+    "qualificationReasons": [
+      "prism-layer coverage below 80 percent or unavailable",
+      "y+ coverage below 80 percent or unavailable"
+    ]
+  },
+  {
+    "model": "simple-car",
+    "reference": {
+      "run": "0fc978585cfb4ed7bb1cbf2458e4d747",
+      "quality": "medium",
+      "speed_kmh": 200.0,
+      "cd": 0.3705148213407999,
+      "cl": 0.49258259347919997,
+      "cells": 149197,
+      "settled": true,
+      "residual_converged": false,
+      "note": "Generated for the web validation from the same geometry (fingerprint match)."
+    },
+    "record": ".easycfd/runs/0fc978585cfb4ed7bb1cbf2458e4d747/record.json",
+    "status": "pending",
+    "mesh_ok": true,
+    "wall_target_fraction": 0.5561000337952011,
+    "layer_coverage": 0.8335064035998615,
+    "residuals": {
+      "Ux": 7.039509297e-05,
+      "Uy": 0.0006543791262,
+      "Uz": 0.0004228890234,
+      "p": 0.001289227856,
+      "omega": 2.170881549e-06,
+      "k": 8.037028605e-05
+    },
+    "force_settled": true,
+    "residual_converged": false,
+    "warning": [
+      "Residuals have not reached this preset's target. Forces are provisional.",
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+      "Only 56% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+    ],
+    "pipeline": "b5904314bd6a10b5a1856f6e639768be8021c7241dc27015e17b69e518c450f9",
+    "settings": {
+      "speed_kmh": 200.0,
+      "yaw_deg": 0.0,
+      "quality": "medium",
+      "simulation_box": null,
+      "custom_mesh": "medium",
+      "custom_iterations": 1000,
+      "reference_area": 2.2,
+      "density": 1.225,
+      "moving_ground": true,
+      "wheels": true,
+      "geometry_confirmed": true
+    },
+    "sha256": "c326b4b44e16b5e5425ded7d692e8081379f42e2ab5d29cf9e821bfca138f329",
+    "qualification": "pending",
+    "qualificationReasons": [
+      "residual target not met or diagnostic unavailable",
+      "y+ coverage below 80 percent or unavailable"
+    ]
+  },
+  {
+    "model": "simple-car",
+    "reference": {
+      "run": "e95687af743d408095560b8cdab346d2",
+      "quality": "fast",
+      "speed_kmh": 100.0,
+      "cd": 0.45945864570879996,
+      "cl": 0.43855755695899995,
+      "cells": 35005,
+      "settled": true,
+      "residual_converged": true
+    },
+    "record": ".easycfd/runs/e95687af743d408095560b8cdab346d2/record.json",
+    "status": "candidate",
+    "mesh_ok": true,
+    "wall_target_fraction": 0.0,
+    "layer_coverage": null,
+    "residuals": {
+      "Ux": 3.237141321e-05,
+      "Uy": 9.49898925e-05,
+      "Uz": 8.174684957e-05,
+      "p": 0.0003347292735,
+      "omega": 5.16389392e-06,
+      "k": 2.853702761e-05
+    },
+    "force_settled": true,
+    "residual_converged": true,
+    "warning": [
+      "Fast uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+      "Only 0% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+    ],
+    "pipeline": "62c0cb6a734944066028f37fa2909efa11757c7917784464806c7ef7957a7134",
+    "settings": {
+      "speed_kmh": 100.0,
+      "yaw_deg": 0.0,
+      "quality": "fast",
+      "reference_area": 2.2,
+      "density": 1.225,
+      "moving_ground": true,
+      "wheels": true,
+      "geometry_confirmed": true
+    },
+    "sha256": "501c8c39bd9ceefc5ae570e83e9477ad8a491f33a7f6b9e86140a7d4df4764ac",
+    "qualification": "pending",
+    "qualificationReasons": [
+      "prism-layer coverage below 80 percent or unavailable",
+      "y+ coverage below 80 percent or unavailable"
+    ]
+  },
+  {
+    "model": "simple-car",
+    "reference": {
+      "run": "447131a2d24145009934e8d42f8f2337",
+      "quality": "fast",
+      "speed_kmh": 200.0,
+      "cd": 0.45903256813300003,
+      "cl": 0.43919385296400004,
+      "cells": 35005,
+      "settled": true,
+      "residual_converged": true
+    },
+    "record": ".easycfd/runs/447131a2d24145009934e8d42f8f2337/record.json",
+    "status": "candidate",
+    "mesh_ok": true,
+    "wall_target_fraction": 0.0,
+    "layer_coverage": null,
+    "residuals": {
+      "Ux": 3.730008758e-05,
+      "Uy": 0.0001091693426,
+      "Uz": 9.595435593e-05,
+      "p": 0.0003689206522,
+      "omega": 5.890077037e-06,
+      "k": 3.101844241e-05
+    },
+    "force_settled": true,
+    "residual_converged": true,
+    "warning": [
+      "Fast uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+      "Only 0% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+    ],
+    "pipeline": "62c0cb6a734944066028f37fa2909efa11757c7917784464806c7ef7957a7134",
+    "settings": {
+      "speed_kmh": 200.0,
+      "yaw_deg": 0.0,
+      "quality": "fast",
+      "reference_area": 2.2,
+      "density": 1.225,
+      "moving_ground": true,
+      "wheels": true,
+      "geometry_confirmed": true
+    },
+    "sha256": "c09623ed0f50aceef9eed8392cac26a28166cab09e335810993bf256c35a50c2",
+    "qualification": "pending",
+    "qualificationReasons": [
+      "prism-layer coverage below 80 percent or unavailable",
+      "y+ coverage below 80 percent or unavailable"
+    ]
+  },
+  {
+    "model": "ahmed25",
+    "reference": {
+      "run": "fa415a20e52649fc9f55a6b56ed39cce",
+      "quality": "medium",
+      "speed_kmh": 144.0,
+      "cd": 0.36470947146239996,
+      "cl": 0.2073057693972,
+      "cells": 159190,
+      "settled": false,
+      "residual_converged": false
+    },
+    "record": ".easycfd/runs/fa415a20e52649fc9f55a6b56ed39cce/record.json",
+    "status": "pending",
+    "mesh_ok": true,
+    "wall_target_fraction": 0.8626058041112454,
+    "layer_coverage": 0.9618946409594656,
+    "residuals": {
+      "Ux": 0.0006313293844,
+      "Uy": 0.004556259013,
+      "Uz": 0.003859177272,
+      "p": 0.00516629416,
+      "omega": 4.892005852e-05,
+      "k": 0.0009778733386
+    },
+    "force_settled": false,
+    "residual_converged": false,
+    "warning": [
+      "Residuals have not reached this preset's target. Forces are provisional.",
+      "Drag or lift is still changing. Do not rank designs from this run.",
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed."
+    ],
+    "pipeline": "62c0cb6a734944066028f37fa2909efa11757c7917784464806c7ef7957a7134",
+    "settings": {
+      "speed_kmh": 144.0,
+      "yaw_deg": 0.0,
+      "quality": "medium",
+      "reference_area": 0.115032,
+      "density": 1.0,
+      "moving_ground": true,
+      "wheels": false,
+      "geometry_confirmed": true
+    },
+    "sha256": "3a42757d08ed860e5c7771063f7c220c7b771ea2196129a53d3ba91e385505cd",
+    "qualification": "pending",
+    "qualificationReasons": [
+      "forces unsettled or diagnostic unavailable",
+      "residual target not met or diagnostic unavailable"
+    ]
+  },
+  {
+    "model": "ahmed25",
+    "reference": {
+      "run": "e9453fcf9a394fd89f167a2ccab7d13f",
+      "quality": "precise",
+      "speed_kmh": 144.0,
+      "cd": 0.358166678568,
+      "cl": 0.4044791614062,
+      "cells": 310851,
+      "settled": true,
+      "residual_converged": true
+    },
+    "record": ".easycfd/runs/e9453fcf9a394fd89f167a2ccab7d13f/record.json",
+    "status": "candidate",
+    "mesh_ok": true,
+    "wall_target_fraction": 0.7817440588644725,
+    "layer_coverage": 0.982331802755041,
+    "residuals": {
+      "Ux": 1.108826431e-08,
+      "Uy": 2.265595229e-08,
+      "Uz": 1.478789801e-08,
+      "p": 1.092912946e-07,
+      "omega": 8.599748089e-09,
+      "k": 7.927553791e-09
+    },
+    "force_settled": true,
+    "residual_converged": true,
+    "warning": [
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+      "Only 78% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review.",
+      "Two mesh levels measure sensitivity, not a formal numerical uncertainty bound.",
+      "At least one mesh level did not settle or reach its residual target. The refinement comparison is inconclusive."
+    ],
+    "pipeline": "62c0cb6a734944066028f37fa2909efa11757c7917784464806c7ef7957a7134",
+    "settings": {
+      "speed_kmh": 144.0,
+      "yaw_deg": 0.0,
+      "quality": "precise",
+      "reference_area": 0.115032,
+      "density": 1.0,
+      "moving_ground": true,
+      "wheels": false,
+      "geometry_confirmed": true
+    },
+    "sha256": "c947768acdcc70c09d9fc04f169f1cec8a8a4cd1f99e62432242e4b4f5ec66e6",
+    "qualification": "pending",
+    "qualificationReasons": [
+      "y+ coverage below 80 percent or unavailable"
+    ]
+  },
+  {
+    "model": "mx5-kit-base",
+    "reference": {
+      "run": "4cffc8ba20684ef6b5b7dfbdae478469",
+      "quality": "medium",
+      "speed_kmh": 100.0,
+      "cd": 0.32033683903079996,
+      "cl": 0.23144433927279998,
+      "cells": 165835,
+      "settled": null
+    },
+    "record": ".easycfd/runs/4cffc8ba20684ef6b5b7dfbdae478469/record.json",
+    "status": "pending",
+    "mesh_ok": true,
+    "wall_target_fraction": 0.4608150470219436,
+    "layer_coverage": 0.7841545893719807,
+    "residuals": {
+      "Ux": 1.721789753e-05,
+      "Uy": 0.0001158045574,
+      "Uz": 7.719298492e-05,
+      "p": 0.0003890429681,
+      "omega": 3.543826381e-06,
+      "k": 2.180181353e-05
+    },
+    "force_settled": true,
+    "residual_converged": false,
+    "warning": [
+      "Residuals have not reached this preset's target. Forces are provisional.",
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+      "Only 46% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review.",
+      "Boundary layers cover 78% of requested surface faces. Inspect near-wall resolution before comparing forces."
+    ],
+    "pipeline": "b5904314bd6a10b5a1856f6e639768be8021c7241dc27015e17b69e518c450f9",
+    "settings": {
+      "speed_kmh": 100.0,
+      "yaw_deg": 0.0,
+      "quality": "medium",
+      "simulation_box": null,
+      "custom_mesh": "medium",
+      "custom_iterations": 1000,
+      "reference_area": 2.0,
+      "density": 1.225,
+      "moving_ground": true,
+      "wheels": true,
+      "geometry_confirmed": true
+    },
+    "sha256": "9a34fac68bb68ba66afe89838c1e32582f0cb076114e1d92e8a141135cf13b3b",
+    "qualification": "pending",
+    "qualificationReasons": [
+      "residual target not met or diagnostic unavailable",
+      "prism-layer coverage below 80 percent or unavailable",
+      "y+ coverage below 80 percent or unavailable"
+    ]
+  },
+  {
+    "model": "mx5-kit-wing",
+    "reference": {
+      "run": "3efac4b69b5f428291749d5dff94988a",
+      "quality": "medium",
+      "speed_kmh": 100.0,
+      "cd": 0.3710964729099999,
+      "cl": 0.010104900097381998,
+      "cells": 443916,
+      "settled": null
+    },
+    "record": ".easycfd/runs/3efac4b69b5f428291749d5dff94988a/record.json",
+    "status": "pending",
+    "mesh_ok": true,
+    "wall_target_fraction": 0.9239150074079427,
+    "layer_coverage": 0.6301755703689794,
+    "residuals": {
+      "Ux": 5.510713422e-05,
+      "Uy": 0.0006266732998,
+      "Uz": 9.172540994e-05,
+      "p": 0.0004724433314,
+      "omega": 1.482298425e-06,
+      "k": 6.096743746e-05
+    },
+    "force_settled": false,
+    "residual_converged": false,
+    "warning": [
+      "Residuals have not reached this preset's target. Forces are provisional.",
+      "Drag or lift is still changing. Do not rank designs from this run.",
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+      "Boundary layers cover 63% of requested surface faces. Inspect near-wall resolution before comparing forces."
+    ],
+    "pipeline": "b5904314bd6a10b5a1856f6e639768be8021c7241dc27015e17b69e518c450f9",
+    "settings": {
+      "speed_kmh": 100.0,
+      "yaw_deg": 0.0,
+      "quality": "medium",
+      "simulation_box": null,
+      "custom_mesh": "medium",
+      "custom_iterations": 1000,
+      "reference_area": 2.0,
+      "density": 1.225,
+      "moving_ground": true,
+      "wheels": true,
+      "geometry_confirmed": true
+    },
+    "sha256": "174adff82b67248ea2757ff37c9cfbba881314f9fbe8d40af97ca2e67b9e449c",
+    "qualification": "pending",
+    "qualificationReasons": [
+      "forces unsettled or diagnostic unavailable",
+      "residual target not met or diagnostic unavailable",
+      "prism-layer coverage below 80 percent or unavailable"
+    ]
+  },
+  {
+    "model": "mx5-hw-base",
+    "reference": {
+      "run": "31d9e1da047e4abd84810ccf81755fd2",
+      "quality": "medium",
+      "speed_kmh": 100.0,
+      "cd": 0.3187952255664,
+      "cl": 0.2253142223032,
+      "cells": 165926,
+      "settled": null
+    },
+    "record": ".easycfd/runs/31d9e1da047e4abd84810ccf81755fd2/record.json",
+    "status": "pending",
+    "mesh_ok": true,
+    "wall_target_fraction": 0.4662138627655869,
+    "layer_coverage": 0.7853140096618357,
+    "residuals": {
+      "Ux": 8.749455368e-05,
+      "Uy": 0.0006713358578,
+      "Uz": 0.000379817608,
+      "p": 0.00157669727,
+      "omega": 1.394567124e-05,
+      "k": 0.0001917723958
+    },
+    "force_settled": false,
+    "residual_converged": false,
+    "warning": [
+      "Residuals have not reached this preset's target. Forces are provisional.",
+      "Drag or lift is still changing. Do not rank designs from this run.",
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+      "Only 47% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review.",
+      "Boundary layers cover 79% of requested surface faces. Inspect near-wall resolution before comparing forces."
+    ],
+    "pipeline": "b5904314bd6a10b5a1856f6e639768be8021c7241dc27015e17b69e518c450f9",
+    "settings": {
+      "speed_kmh": 100.0,
+      "yaw_deg": 0.0,
+      "quality": "medium",
+      "simulation_box": null,
+      "custom_mesh": "medium",
+      "custom_iterations": 1000,
+      "reference_area": 2.0,
+      "density": 1.225,
+      "moving_ground": true,
+      "wheels": true,
+      "geometry_confirmed": true
+    },
+    "sha256": "5ccf770d60e7bd42b1d1db9145f6dab9dc20e17e19dff9ca16a49ab0f09d5615",
+    "qualification": "pending",
+    "qualificationReasons": [
+      "forces unsettled or diagnostic unavailable",
+      "residual target not met or diagnostic unavailable",
+      "prism-layer coverage below 80 percent or unavailable",
+      "y+ coverage below 80 percent or unavailable"
+    ]
+  },
+  {
+    "model": "mx5-hw-wing",
+    "reference": {
+      "run": "605418af25ca42e8994a1cfb3e631d74",
+      "quality": "medium",
+      "speed_kmh": 100.0,
+      "cd": 0.37024647103299996,
+      "cl": -0.1180245628222,
+      "cells": 583385,
+      "settled": null
+    },
+    "record": ".easycfd/runs/605418af25ca42e8994a1cfb3e631d74/record.json",
+    "status": "pending",
+    "mesh_ok": true,
+    "wall_target_fraction": 0.9353196656236865,
+    "layer_coverage": 0.759322415623693,
+    "residuals": {
+      "Ux": 4.973668605e-05,
+      "Uy": 0.0003736677554,
+      "Uz": 4.913622993e-05,
+      "p": 0.0001633101764,
+      "omega": 1.230944352e-06,
+      "k": 4.798231531e-05
+    },
+    "force_settled": false,
+    "residual_converged": false,
+    "warning": [
+      "Residuals have not reached this preset's target. Forces are provisional.",
+      "Drag or lift is still changing. Do not rank designs from this run.",
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+      "Boundary layers cover 76% of requested surface faces. Inspect near-wall resolution before comparing forces."
+    ],
+    "pipeline": "b5904314bd6a10b5a1856f6e639768be8021c7241dc27015e17b69e518c450f9",
+    "settings": {
+      "speed_kmh": 100.0,
+      "yaw_deg": 0.0,
+      "quality": "medium",
+      "simulation_box": null,
+      "custom_mesh": "medium",
+      "custom_iterations": 1000,
+      "reference_area": 2.0,
+      "density": 1.225,
+      "moving_ground": true,
+      "wheels": true,
+      "geometry_confirmed": true
+    },
+    "sha256": "6fb2eba2a5708d76fc380851c47b62c7eaac69d200c634cb1fb1decf63e9e5d4",
+    "qualification": "pending",
+    "qualificationReasons": [
+      "forces unsettled or diagnostic unavailable",
+      "residual target not met or diagnostic unavailable",
+      "prism-layer coverage below 80 percent or unavailable"
+    ]
+  },
+  {
+    "model": "mx5-mw-base",
+    "reference": {
+      "run": "ffd5128f88d94e1ca4300486329af71c",
+      "quality": "medium",
+      "speed_kmh": 100.0,
+      "cd": 0.31874991236419997,
+      "cl": 0.2254939594368,
+      "cells": 165926,
+      "settled": null
+    },
+    "record": ".easycfd/runs/ffd5128f88d94e1ca4300486329af71c/record.json",
+    "status": "pending",
+    "mesh_ok": true,
+    "wall_target_fraction": 0.4662138627655869,
+    "layer_coverage": 0.7853140096618357,
+    "residuals": {
+      "Ux": 8.843260819e-05,
+      "Uy": 0.0006912206117,
+      "Uz": 0.0003849883207,
+      "p": 0.001627378246,
+      "omega": 1.419218737e-05,
+      "k": 0.000193442472
+    },
+    "force_settled": false,
+    "residual_converged": false,
+    "warning": [
+      "Residuals have not reached this preset's target. Forces are provisional.",
+      "Drag or lift is still changing. Do not rank designs from this run.",
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+      "Only 47% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review.",
+      "Boundary layers cover 79% of requested surface faces. Inspect near-wall resolution before comparing forces."
+    ],
+    "pipeline": "b5904314bd6a10b5a1856f6e639768be8021c7241dc27015e17b69e518c450f9",
+    "settings": {
+      "speed_kmh": 100.0,
+      "yaw_deg": 0.0,
+      "quality": "medium",
+      "simulation_box": null,
+      "custom_mesh": "medium",
+      "custom_iterations": 1000,
+      "reference_area": 2.0,
+      "density": 1.225,
+      "moving_ground": true,
+      "wheels": true,
+      "geometry_confirmed": true
+    },
+    "sha256": "5a9fb3c93a21dd9941c0de3f622b74cee1bd0a7569bc5cf997a22f7be6080f0c",
+    "qualification": "pending",
+    "qualificationReasons": [
+      "forces unsettled or diagnostic unavailable",
+      "residual target not met or diagnostic unavailable",
+      "prism-layer coverage below 80 percent or unavailable",
+      "y+ coverage below 80 percent or unavailable"
+    ]
+  },
+  {
+    "model": "mx5-mw-wing",
+    "reference": {
+      "run": "c9fb097720a34fcca6cab7062adc142c",
+      "quality": "medium",
+      "speed_kmh": 100.0,
+      "cd": 0.34204059816960003,
+      "cl": -0.0546980813358,
+      "cells": 602048,
+      "settled": null
+    },
+    "record": ".easycfd/runs/c9fb097720a34fcca6cab7062adc142c/record.json",
+    "status": "pending",
+    "mesh_ok": true,
+    "wall_target_fraction": 0.931627972953804,
+    "layer_coverage": 0.8356917471780358,
+    "residuals": {
+      "Ux": 0.0001149612648,
+      "Uy": 0.0008283564112,
+      "Uz": 8.951141815e-05,
+      "p": 0.0003928464093,
+      "omega": 3.467631678e-06,
+      "k": 9.075514832e-05
+    },
+    "force_settled": false,
+    "residual_converged": false,
+    "warning": [
+      "Residuals have not reached this preset's target. Forces are provisional.",
+      "Drag or lift is still changing. Do not rank designs from this run.",
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed."
+    ],
+    "pipeline": "b5904314bd6a10b5a1856f6e639768be8021c7241dc27015e17b69e518c450f9",
+    "settings": {
+      "speed_kmh": 100.0,
+      "yaw_deg": 0.0,
+      "quality": "medium",
+      "simulation_box": null,
+      "custom_mesh": "medium",
+      "custom_iterations": 1000,
+      "reference_area": 2.0,
+      "density": 1.225,
+      "moving_ground": true,
+      "wheels": true,
+      "geometry_confirmed": true
+    },
+    "sha256": "ea59dfcc91b460143ddde37225235455eb43c894a94ee41f08d59f1299f2351f",
+    "qualification": "pending",
+    "qualificationReasons": [
+      "forces unsettled or diagnostic unavailable",
+      "residual target not met or diagnostic unavailable"
+    ]
+  }
+]

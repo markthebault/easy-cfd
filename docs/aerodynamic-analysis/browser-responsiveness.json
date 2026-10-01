@@ -1,0 +1,28 @@
+{
+  "scope": "Browser input to next animation frame; does not measure other applications",
+  "measurements": [
+    {
+      "phase": "preparing",
+      "stopMilliseconds": 66,
+      "inputToFrameMilliseconds": []
+    },
+    {
+      "phase": "solving",
+      "stopMilliseconds": 230,
+      "inputToFrameMilliseconds": [
+        2.1000003814697266,
+        15.900000095367432,
+        15.699999809265137,
+        14.299999713897705,
+        19.299999713897705,
+        11.5,
+        16.800000190734863,
+        15.399999618530273,
+        16.800000190734863,
+        15.699999809265137,
+        16.40000009536743,
+        15.700000286102295
+      ]
+    }
+  ]
+}

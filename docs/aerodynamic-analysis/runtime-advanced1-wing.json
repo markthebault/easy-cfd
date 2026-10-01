@@ -1,0 +1,305 @@
+{
+  "mode": "advanced1",
+  "elapsed_seconds": 90.86569862486795,
+  "cancellation_seconds": null,
+  "qualification": "Resource/termination check only; no aerodynamic accuracy claim.",
+  "run": {
+    "id": "ddcc04c5fd364914aadab83e7ac640ca",
+    "project_id": "d60a117c142c4184b5b06f4cac142a1b",
+    "name": "Aerodynamic integration verification",
+    "created": "2026-10-01T12:13:26.158093+00:00",
+    "status": "failed",
+    "stage": "Failed",
+    "settings": {
+      "profile": "advanced1",
+      "axles": {
+        "frontX": -1.4,
+        "rearX": 1.4,
+        "centrelineY": 0.0,
+        "confirmed": true
+      },
+      "moment_origin": [
+        -1.4,
+        0.0,
+        0.0
+      ],
+      "part_labels": {
+        "part0": {
+          "id": "part0",
+          "name": "Body",
+          "group": "g:body",
+          "groupName": "Body"
+        },
+        "part1": {
+          "id": "part1",
+          "name": "Front right wheel",
+          "group": "g:wheels",
+          "groupName": "Wheels"
+        },
+        "part2": {
+          "id": "part2",
+          "name": "Front left wheel",
+          "group": "g:wheels",
+          "groupName": "Wheels"
+        },
+        "part3": {
+          "id": "part3",
+          "name": "Rear right wheel",
+          "group": "g:wheels",
+          "groupName": "Wheels"
+        },
+        "part4": {
+          "id": "part4",
+          "name": "Rear left wheel",
+          "group": "g:wheels",
+          "groupName": "Wheels"
+        },
+        "part5": {
+          "id": "part5",
+          "name": "Rear wing",
+          "group": "g:wing",
+          "groupName": "Rear wing"
+        }
+      },
+      "refine_groups": null,
+      "refine_underfloor": true,
+      "max_seconds": 90,
+      "speed_kmh": 100.0,
+      "yaw_deg": 0.0,
+      "quality": "medium",
+      "simulation_box": null,
+      "custom_mesh": "medium",
+      "custom_iterations": 1000,
+      "reference_area": 2.2,
+      "density": 1.225,
+      "moving_ground": false,
+      "wheels": false,
+      "geometry_confirmed": true
+    },
+    "geometry": {
+      "parts": [
+        {
+          "id": "part0",
+          "name": "Body",
+          "role": "body",
+          "wheel": null,
+          "triangles": 24,
+          "minimum_extent": 1.0,
+          "bounds": [
+            [
+              -2.1,
+              -0.81,
+              0.32
+            ],
+            [
+              2.1,
+              0.81,
+              1.32
+            ]
+          ],
+          "issues": [],
+          "enabled": true
+        },
+        {
+          "id": "part1",
+          "name": "Front right wheel",
+          "role": "wheel",
+          "wheel": {
+            "center": [
+              -1.35,
+              -1.05,
+              0.33
+            ],
+            "radius": 0.32
+          },
+          "triangles": 128,
+          "minimum_extent": 0.23999999999999977,
+          "bounds": [
+            [
+              -1.6700000000000002,
+              -1.17,
+              0.010000000000000002
+            ],
+            [
+              -1.03,
+              -0.93,
+              0.65
+            ]
+          ],
+          "issues": [],
+          "enabled": true
+        },
+        {
+          "id": "part2",
+          "name": "Front left wheel",
+          "role": "wheel",
+          "wheel": {
+            "center": [
+              -1.35,
+              1.05,
+              0.33
+            ],
+            "radius": 0.32
+          },
+          "triangles": 128,
+          "minimum_extent": 0.23999999999999988,
+          "bounds": [
+            [
+              -1.6700000000000002,
+              0.93,
+              0.010000000000000002
+            ],
+            [
+              -1.03,
+              1.17,
+              0.65
+            ]
+          ],
+          "issues": [],
+          "enabled": true
+        },
+        {
+          "id": "part3",
+          "name": "Rear right wheel",
+          "role": "wheel",
+          "wheel": {
+            "center": [
+              1.3,
+              -1.05,
+              0.33
+            ],
+            "radius": 0.32
+          },
+          "triangles": 128,
+          "minimum_extent": 0.23999999999999977,
+          "bounds": [
+            [
+              0.98,
+              -1.17,
+              0.010000000000000002
+            ],
+            [
+              1.62,
+              -0.93,
+              0.65
+            ]
+          ],
+          "issues": [],
+          "enabled": true
+        },
+        {
+          "id": "part4",
+          "name": "Rear left wheel",
+          "role": "wheel",
+          "wheel": {
+            "center": [
+              1.3,
+              1.05,
+              0.33
+            ],
+            "radius": 0.32
+          },
+          "triangles": 128,
+          "minimum_extent": 0.23999999999999977,
+          "bounds": [
+            [
+              0.98,
+              0.93,
+              0.010000000000000002
+            ],
+            [
+              1.62,
+              1.17,
+              0.65
+            ]
+          ],
+          "issues": [],
+          "enabled": true
+        },
+        {
+          "id": "part5",
+          "name": "Rear wing",
+          "role": "body",
+          "wheel": null,
+          "triangles": 12,
+          "minimum_extent": 0.0370168056757878,
+          "bounds": [
+            [
+              1.48,
+              -0.975,
+              1.48
+            ],
+            [
+              1.9,
+              0.975,
+              1.59
+            ]
+          ],
+          "issues": [],
+          "enabled": true
+        }
+      ],
+      "bounds": [
+        [
+          -2.1,
+          -1.17,
+          0.010000000000000002
+        ],
+        [
+          2.1,
+          1.17,
+          1.59
+        ]
+      ],
+      "dimensions": [
+        4.2,
+        2.34,
+        1.58
+      ],
+      "triangles": 548,
+      "errors": [],
+      "fingerprint": "70030e5215d16f54bea749019d4d0d6dcc289905ad8d57f11863667215466498",
+      "frontal_area_estimate": 2.4489,
+      "warnings": [
+        "Automatic checks do not establish that surfaces are free of intersections. Review the model and mesh.",
+        "Small wheel-to-ground gaps avoid degenerate contact cells; ground clearance affects forces."
+      ]
+    },
+    "domain": [
+      -14.700000000000001,
+      27.300000000000004,
+      -9.57,
+      9.57,
+      0,
+      9.99
+    ],
+    "image": "opencfd/openfoam-default@sha256:1ba02114b1c025c370f2e269a07677c16c9bea8d990fcd75ac8378aff9d41b50",
+    "pipeline_hash": "e7142dac1912ffc60ee97be834dcd1ff693b95bba8f0a5e5cf67261abe946712",
+    "processes": 2,
+    "cpus": 2,
+    "reference_case": null,
+    "iteration": 0,
+    "assumptions": {
+      "inlet_turbulence_percent": 1,
+      "kinematic_viscosity": 1.5e-05,
+      "drag_axis": "+X",
+      "lift_axis": "+Z",
+      "downforce": "negative lift"
+    },
+    "configuration": {
+      "added": [],
+      "excluded": []
+    },
+    "started": "2026-10-01T12:13:26.164544+00:00",
+    "deadline_seconds": 90,
+    "deadline_at": "2026-10-01T12:14:56.164551+00:00",
+    "container_peak_bytes": 1129576398.848,
+    "host_available_bytes": 6136954880,
+    "error": "Whole-job elapsed-time limit reached. Completed mesh-level results remain saved; the qualification is incomplete.",
+    "finished": "2026-10-01T12:14:56.610822+00:00"
+  },
+  "logs": {
+    "case-advanced1/log.snappyHexMesh": "es with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\ndisplacementMedialAxis : Iteration 5\ndisplacementMedialAxis : Displacement scaling for error reduction set to 0.\nMoving mesh using displacement scaling : min:0.31640625  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 0\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\ndisplacementMedialAxis : Successfully moved mesh\ndisplacementMedialAxis : Finished moving mesh ...\ntruncateDisplacement : Unextruded 0 faces due to non-consecutive vertices being extruded.\ntruncateDisplacement : Unextruded 0 faces due to stringed edges with inconsistent extrusion.\n\nSetting up information for layer truncation ...\nDetected 0 baffles across faceZones of type internal\n\n\nChecking mesh with layer ...\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 2\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 2\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\nDetected 4 illegal faces (concave, zero area or negative cell pyramid volume)\nExtruding 26288 out of 27054 faces (97.16862571%). Removed extrusion at 4 faces.\nAdded 87582 out of 216432 cells (40.46628964%).\n\n\nLayer addition iteration 4\n--------------------------\n\nDetermining displacement for added points according to pointNormal ...\nDetected 0 points with point normal pointing through faces.\nReset displacement at 0 points to average of surrounding points.\n\ndisplacementMedialAxis : Smoothing using Medial Axis ...\ndisplacementMedialAxis : Reducing layer thickness at 2675 nodes where thickness to medial axis distance is large \ndisplacementMedialAxis : Removing isolated regions ...\n- if partially extruded faces make angle < 30\n- if exclusively surrounded by non-extruded faces\ndisplacementMedialAxis : Number of isolated points extrusion stopped : 0\nfieldSmoother : Smoothing field ...\n    Iteration 0   residual 0.0006871191723\ndisplacementMedialAxis : Moving mesh ...\ndisplacementMedialAxis : Iteration 0\nMoving mesh using displacement scaling : min:1  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 1241\n    faces with face pyramid volume < 1e-13                 : 152\n    faces with face-decomposition tet quality < 1e-15      : 226\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 148\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\ndisplacementMedialAxis : Iteration 1\nMoving mesh using displacement scaling : min:0.75  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 732\n    faces with face pyramid volume < 1e-13                 : 22\n    faces with face-decomposition tet quality < 1e-15      : 306\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 148\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\ndisplacementMedialAxis : Iteration 2\nMoving mesh using displacement scaling : min:0.5625  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 270\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 0\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\ndisplacementMedialAxis : Iteration 3\nMoving mesh using displacement scaling : min:0.421875  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 116\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 0\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\ndisplacementMedialAxis : Iteration 4\nMoving mesh using displacement scaling : min:0.31640625  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 116\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 0\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\ndisplacementMedialAxis : Iteration 5\ndisplacementMedialAxis : Displacement scaling for error reduction set to 0.\nMoving mesh using displacement scaling : min:0.31640625  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 0\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\ndisplacementMedialAxis : Successfully moved mesh\ndisplacementMedialAxis : Finished moving mesh ...\ntruncateDisplacement : Unextruded 0 faces due to non-consecutive vertices being extruded.\ntruncateDisplacement : Unextruded 0 faces due to stringed edges with inconsistent extrusion.\n\nSetting up information for layer truncation ...\nDetected 0 baffles across faceZones of type internal\n\n\nChecking mesh with layer ...\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 2\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 2\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\nDetected 4 illegal faces (concave, zero area or negative cell pyramid volume)\nExtruding 26284 out of 27054 faces (97.15384047%). Removed extrusion at 4 faces.\nAdded 87550 out of 216432 cells (40.4515044%).\n\n\nLayer addition iteration 5\n--------------------------\n\nDetermining displacement for added points according to pointNormal ...\nDetected 0 points with point normal pointing through faces.\nReset displacement at 0 points to average of surrounding points.\n\ndisplacementMedialAxis : Smoothing using Medial Axis ...\ndisplacementMedialAxis : Reducing layer thickness at 2675 nodes where thickness to medial axis distance is large \ndisplacementMedialAxis : Removing isolated regions ...\n- if partially extruded faces make angle < 30\n- if exclusively surrounded by non-extruded faces\ndisplacementMedialAxis : Number of isolated points extrusion stopped : 0\nfieldSmoother : Smoothing field ...\n    Iteration 0   residual 0.0006870203978\ndisplacementMedialAxis : Moving mesh ...\ndisplacementMedialAxis : Iteration 0\nMoving mesh using displacement scaling : min:1  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 1239\n    faces with face pyramid volume < 1e-13                 : 152\n    faces with face-decomposition tet quality < 1e-15      : 226\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 148\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\ndisplacementMedialAxis : Iteration 1\nMoving mesh using displacement scaling : min:0.75  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 732\n    faces with face pyramid volume < 1e-13                 : 22\n    faces with face-decomposition tet quality < 1e-15      : 306\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 148\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\ndisplacementMedialAxis : Iteration 2\nMoving mesh using displacement scaling : min:0.5625  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 270\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 0\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\ndisplacementMedialAxis : Iteration 3\nMoving mesh using displacement scaling : min:0.421875  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 116\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 0\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\ndisplacementMedialAxis : Iteration 4\nMoving mesh using displacement scaling : min:0.31640625  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 116\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 0\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\ndisplacementMedialAxis : Iteration 5\ndisplacementMedialAxis : Displacement scaling for error reduction set to 0.\nMoving mesh using displacement scaling : min:0.31640625  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 0\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\ndisplacementMedialAxis : Successfully moved mesh\ndisplacementMedialAxis : Finished moving mesh ...\ntruncateDisplacement : Unextruded 0 faces due to non-consecutive vertices being extruded.\ntruncateDisplacement : Unextruded 0 faces due to stringed edges with inconsistent extrusion.\n\nSetting up information for layer truncation ...\nDetected 0 baffles across faceZones of type internal\n\n\nChecking mesh with layer ...\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 2\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 2\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\nDetected 4 illegal faces (concave, zero area or negative cell pyramid volume)\nExtruding 26280 out of 27054 faces (97.13905522%). Removed extrusion at 4 faces.\nAdded 87518 out of 216432 cells (40.43671915%).\n\n\nLayer addition iteration 6\n--------------------------\n\nDetermining displacement for added points according to pointNormal ...\nDetected 0 points with point normal pointing through faces.\nReset displacement at 0 points to average of surrounding points.\n\ndisplacementMedialAxis : Smoothing using Medial Axis ...\ndisplacementMedialAxis : Reducing layer thickness at 2675 nodes where thickness to medial axis distance is large \ndisplacementMedialAxis : Removing isolated regions ...\n- if partially extruded faces make angle < 30\n- if exclusively surrounded by non-extruded faces\ndisplacementMedialAxis : Number of isolated points extrusion stopped : 0\nfieldSmoother : Smoothing field ...\n    Iteration 0   residual 0.000686920845\ndisplacementMedialAxis : Moving mesh ...\ndisplacementMedialAxis : Iteration 0\nMoving mesh using displacement scaling : min:1  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 1239\n    faces with face pyramid volume < 1e-13                 : 152\n    faces with face-decomposition tet quality < 1e-15      : 228\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 148\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\ndisplacementMedialAxis : Iteration 1\nMoving mesh using displacement scaling : min:0.75  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 732\n    faces with face pyramid volume < 1e-13                 : 22\n    faces with face-decomposition tet quality < 1e-15      : 308\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 148\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\ndisplacementMedialAxis : Iteration 2\nMoving mesh using displacement scaling : min:0.5625  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 278\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 0\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\ndisplacementMedialAxis : Iteration 3\nMoving mesh using displacement scaling : min:0.421875  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 116\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 0\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\ndisplacementMedialAxis : Iteration 4\nMoving mesh using displacement scaling : min:0.31640625  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 116\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 0\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\ndisplacementMedialAxis : Iteration 5\ndisplacementMedialAxis : Displacement scaling for error reduction set to 0.\nMoving mesh using displacement scaling : min:0.31640625  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 0\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\ndisplacementMedialAxis : Successfully moved mesh\ndisplacementMedialAxis : Finished moving mesh ...\ntruncateDisplacement : Unextruded 0 faces due to non-consecutive vertices being extruded.\ntruncateDisplacement : Unextruded 0 faces due to stringed edges with inconsistent extrusion.\n\nSetting up information for layer truncation ...\n",
+    "case-advanced1/log.blockMesh": "/*---------------------------------------------------------------------------*\\\n| =========                 |                                                 |\n| \\\\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |\n|  \\\\    /   O peration     | Version:  2412                                  |\n|   \\\\  /    A nd           | Website:  www.openfoam.com                      |\n|    \\\\/     M anipulation  |                                                 |\n\\*---------------------------------------------------------------------------*/\nBuild  : _45e7c4a0-20241224 OPENFOAM=2412 version=2412\nArch   : \"LSB;label=32;scalar=64\"\nExec   : blockMesh\nDate   : Oct 01 2026\nTime   : 12:13:26\nHost   : 86d6a3cbe273\nPID    : 1\nI/O    : uncollated\nCase   : /case\nnProcs : 1\ntrapFpe: Floating point exception trapping enabled (FOAM_SIGFPE).\nfileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 5, maxFileModificationPolls 20)\nallowSystemOperations : Allowing user-supplied system call operations\n\n// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\nCreate time\n\nCreating block mesh from \"system/blockMeshDict\"\nCreating block edges\nNo non-planar block faces defined\nCreating topology blocks\n\nCreating topology patches - from boundary section\n\nCreating block mesh topology\n\nCheck topology\n\n\tBasic statistics\n\t\tNumber of internal faces : 0\n\t\tNumber of boundary faces : 6\n\t\tNumber of defined boundary faces : 6\n\t\tNumber of undefined boundary faces : 0\n\tChecking patch -> block consistency\n\nCreating block offsets\nCreating merge list (topological search)...\n\nCreating polyMesh from blockMesh\nCreating points with scale (1 1 1)\n    Block 0 cell size :\n        i : 0.3962264151 .. 0.3962264151\n        j : 0.39875 .. 0.39875\n        k : 0.3996 .. 0.3996\n\nCreating cells\nCreating patches\nNo patch pairs to merge\n\nWriting polyMesh with 0 cellZones\n----------------\nMesh Information\n----------------\n  boundingBox: (-14.7 -9.57 0) (27.3 9.57 9.99)\n  nPoints: 136318\n  nCells: 127200\n  nFaces: 390538\n  nInternalFaces: 372662\n----------------\nPatches\n----------------\n  patch 0 (start: 372662 size: 1200) name: inlet\n  patch 1 (start: 373862 size: 1200) name: outlet\n  patch 2 (start: 375062 size: 5300) name: sides\n  patch 3 (start: 380362 size: 5088) name: top\n  patch 4 (start: 385450 size: 5088) name: ground\n\nEnd\n\n"
+  }
+}

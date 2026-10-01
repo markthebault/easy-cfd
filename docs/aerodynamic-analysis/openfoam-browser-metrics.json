@@ -1,0 +1,257 @@
+{
+  "server": "3267330c618a4812b3b1f5ef22186b55",
+  "settings": {
+    "speed_kmh": 100,
+    "yaw_deg": 0,
+    "quality": "fast",
+    "reference_area": 2.2,
+    "density": 1.225,
+    "moving_ground": false,
+    "wheels": false,
+    "simulation_box": null,
+    "custom_cells": 72,
+    "custom_passes": 10,
+    "axles": {
+      "frontX": -1.3999999046325682,
+      "rearX": 1.4000000953674316,
+      "centrelineY": -2.38418573772492e-9,
+      "confirmed": true
+    },
+    "profile": null,
+    "max_seconds": 600,
+    "engine": "openfoam"
+  },
+  "balance": {
+    "frontLift": 140.51851190910844,
+    "rearLift": 274.2660268857565,
+    "frontCl": 0.1351480455912464,
+    "rearCl": 0.2637838744667461,
+    "wheelbase": 2.8,
+    "pitch": -767.9448752801181,
+    "percentageReason": "Both axles must push downward to show a downforce percentage."
+  },
+  "aero": {
+    "force": [
+      678.5446221686801,
+      0.13256600211171998,
+      414.78453879486494
+    ],
+    "moment": [
+      0.8156664373098002,
+      -767.9448752801181,
+      0.12500310130459202
+    ],
+    "origin": [
+      -1.3999999046325682,
+      -2.38418573772492e-9,
+      -7.152557379708213e-9
+    ],
+    "pressureMoment": [
+      0.8035033544478002,
+      -777.8119683522001,
+      0.10911633378906002
+    ],
+    "frictionMoment": [
+      0.012163082861999998,
+      9.867093072082001,
+      0.015886767515532
+    ]
+  },
+  "reconciliation": {
+    "forceError": 1.196616291658936e-9,
+    "momentError": 4.695145295201847e-9,
+    "forceTolerance": 5.047894823272555,
+    "momentTolerance": 11.354216101597462,
+    "complete": true
+  },
+  "parts": [
+    {
+      "key": "part0-Body.stl::part0-Body",
+      "group": "g:body",
+      "valid": 72
+    },
+    {
+      "key": "part1-Front_right_wheel.stl::part1-Front_right_wheel",
+      "group": "g:wheels",
+      "valid": 384
+    },
+    {
+      "key": "part2-Front_left_wheel.stl::part2-Front_left_wheel",
+      "group": "g:wheels",
+      "valid": 384
+    },
+    {
+      "key": "part3-Rear_right_wheel.stl::part3-Rear_right_wheel",
+      "group": "g:wheels",
+      "valid": 384
+    },
+    {
+      "key": "part4-Rear_left_wheel.stl::part4-Rear_left_wheel",
+      "group": "g:wheels",
+      "valid": 384
+    },
+    {
+      "key": "part5-Rear_wing.stl::part5-Rear_wing",
+      "group": "g:wing",
+      "valid": 36
+    }
+  ],
+  "partForces": [
+    {
+      "id": "part0-Body.stl::part0-Body",
+      "name": "part0-Body",
+      "group": "g:body",
+      "patch": "part0",
+      "pressure": [
+        364.3297540016,
+        -0.30492458518599996,
+        406.95232155639997
+      ],
+      "friction": [
+        11.2877898442,
+        -0.007523750637059999,
+        0.3744417557952001
+      ],
+      "pressureMoment": [
+        0.6690702022179997,
+        -1257.724771454,
+        -0.7525666541303998
+      ],
+      "frictionMoment": [
+        0.006027236575447998,
+        8.137950739716,
+        0.034171351662800005
+      ]
+    },
+    {
+      "id": "part1-Front_right_wheel.stl::part1-Front_right_wheel",
+      "name": "part1-Front_right_wheel",
+      "group": "g:wheels",
+      "patch": "part1",
+      "pressure": [
+        66.64403083763999,
+        6.303537956606,
+        47.900575062959994
+      ],
+      "friction": [
+        0.5688799958172001,
+        -0.01386530634416,
+        0.07951334718693998
+      ],
+      "pressureMoment": [
+        -52.28320608972,
+        19.043400923800007,
+        71.62257496382
+      ],
+      "frictionMoment": [
+        -0.07644867687076001,
+        0.20870768123359995,
+        0.5861224953726001
+      ]
+    },
+    {
+      "id": "part2-Front_left_wheel.stl::part2-Front_left_wheel",
+      "name": "part2-Front_left_wheel",
+      "group": "g:wheels",
+      "patch": "part2",
+      "pressure": [
+        66.61322725264,
+        -6.211302618791999,
+        48.0529378024
+      ],
+      "friction": [
+        0.5956657144218002,
+        0.009446966970908,
+        0.08283984129876001
+      ],
+      "pressureMoment": [
+        52.416178537939984,
+        19.02342422142,
+        -71.59366277084
+      ],
+      "frictionMoment": [
+        0.08229417585383998,
+        0.22547119822899994,
+        -0.6109217270830001
+      ]
+    },
+    {
+      "id": "part3-Rear_right_wheel.stl::part3-Rear_right_wheel",
+      "name": "part3-Rear_right_wheel",
+      "group": "g:wheels",
+      "patch": "part3",
+      "pressure": [
+        39.568203630220005,
+        13.050016330120002,
+        34.499448963140004
+      ],
+      "friction": [
+        0.7455084900812001,
+        0.018247050112899996,
+        0.007718136210986
+      ],
+      "pressureMoment": [
+        -40.10962500512001,
+        -80.38405008365997,
+        75.82397124662002
+      ],
+      "frictionMoment": [
+        -0.019174243619740003,
+        0.25654326488819995,
+        0.8245234666649999
+      ]
+    },
+    {
+      "id": "part4-Rear_left_wheel.stl::part4-Rear_left_wheel",
+      "name": "part4-Rear_left_wheel",
+      "group": "g:wheels",
+      "patch": "part4",
+      "pressure": [
+        39.694318208999995,
+        -12.689154397619998,
+        34.51350660496
+      ],
+      "friction": [
+        0.7410036611059999,
+        -0.018361683199239996,
+        0.009081612385308002
+      ],
+      "pressureMoment": [
+        40.049583827700005,
+        -80.38406094825997,
+        -74.98481970452
+      ],
+      "frictionMoment": [
+        0.02050327705622,
+        0.25130146657880004,
+        -0.8202494073382002
+      ]
+    },
+    {
+      "id": "part5-Rear_wing.stl::part5-Rear_wing",
+      "name": "part5-Rear_wing",
+      "group": "g:wing",
+      "patch": "part5",
+      "pressure": [
+        86.95653749495999,
+        -0.004209577459328001,
+        -157.8379199522
+      ],
+      "friction": [
+        0.7997030373582001,
+        0.0006596175363360002,
+        0.15007406318799998
+      ],
+      "pressureMoment": [
+        0.061501881449939975,
+        602.6140889932001,
+        -0.006380747261974002
+      ],
+      "frictionMoment": [
+        -0.0010386861331894003,
+        0.7871187214301999,
+        0.002240588236707999
+      ]
+    }
+  ]
+}
