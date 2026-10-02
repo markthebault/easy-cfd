@@ -68,6 +68,32 @@ async function run(spec: BenchSpec) {
     },
   });
   const fields = await solver.readFields();
+  const sstMatrix = await solver.readSstMatrix();
+  const transportResiduals: Record<string,{relativeResidual:number;reduction:number}> = {};
+  if (sstMatrix) {
+    const n=setup.NC;
+    for (const component of [0,1]) {
+      let final2=0,initial2=0,rhs2=0;
+      const old = (q:number) => sstMatrix[8*(component*n+q)+6] > 0 ? sstMatrix[16*n+4*q+(component === 0 ? 3 : 0)] : fields.turb[component*n+q];
+      for (let q=0;q<n;q++) {
+        const m=8*(component*n+q); let diagonal=sstMatrix[m+6], rhs=sstMatrix[m+7];
+        if (!(diagonal > 0)) continue;
+        if (component === 0) {
+          const change=sstMatrix[16*n+4*q+1]*(fields.turb[n+q]-sstMatrix[16*n+4*q]);
+          diagonal+=change; rhs+=.3*change*sstMatrix[16*n+4*q+3];
+        }
+        let final=diagonal*fields.turb[component*n+q]-rhs, initial=diagonal*old(q)-rhs;
+        const offsets=[-1,1,-setup.NX,setup.NX,-setup.NX*setup.NY,setup.NX*setup.NY];
+        for (let side=0;side<6;side++) {
+          const coefficient=sstMatrix[m+side]; if (!coefficient) continue;
+          final-=coefficient*fields.turb[component*n+q+offsets[side]];
+          initial-=coefficient*old(q+offsets[side]);
+        }
+        final2+=final*final; initial2+=initial*initial; rhs2+=rhs*rhs;
+      }
+      transportResiduals[component === 0 ? "k" : "omega"]={relativeResidual:Math.sqrt(final2/Math.max(rhs2,1e-30)),reduction:Math.sqrt(final2/Math.max(initial2,1e-30))};
+    }
+  }
   let divergence2 = 0, flux2 = 0, maximumDivergence = 0, fluidCount = 0, nonFinite = 0, clipped = 0;
   const { NX, NY, NZ, NC, aper, flags } = setup;
   const dx = setup.grid.x.widths, dy = setup.grid.y.widths, dz = setup.grid.z.widths;
@@ -103,6 +129,7 @@ async function run(spec: BenchSpec) {
     initialization: "freestream followed by divergence-free projection",
     initializedFromReference: false,
     turbulenceTransport: setup.numericalFlags & 2048 ? "implicit-omega-then-k" : "explicit",
+    transportResiduals,
     diagnostics,
     probes,
     prepSeconds,
@@ -145,6 +172,65 @@ async function compile(spec: BenchSpec) {
   return {adapter:adapterName,cells:setup.grid.cells,fluidSteps:0};
 }
 (window as unknown as { cfdBench: {compile: typeof compile} }).cfdBench.compile=compile;
+
+// Independent operator check: affine manufactured solutions of two coupled scalar systems.
+// It allocates no velocity, pressure or flow clock and executes no CFD simulation step.
+async function validateSst() {
+  devicePromise ??= requestDevice();
+  const {device,adapterName}=await devicePromise;
+  const {solveSstWGSL}=await import("./solver/kernels/turbulence");
+  const nx=14,ny=10,nz=8,n=nx*ny*nz;
+  const initial=new Float32Array(5*n), matrix=new Float32Array(20*n);
+  const expectedK=new Float32Array(n),expectedOmega=new Float32Array(n);
+  const offsets=[-1,1,-nx,nx,-nx*ny,nx*ny];
+  for(let z=0;z<nz;z++) for(let y=0;y<ny;y++) for(let x=0;x<nx;x++) {
+    const q=x+nx*(y+ny*z), interior=x>0 && y>0 && z>0 && x<nx-1 && y<ny-1 && z<nz-1;
+    expectedK[q]=1+.005*x-.002*y+.001*z;
+    expectedOmega[q]=3+.01*x+.005*y+.002*z;
+    initial[q]=interior?.1:expectedK[q]; initial[n+q]=interior?1:expectedOmega[q];
+    initial[3*n+q]=1; initial[4*n+q]=1;
+    if(!interior)continue;
+    const omegaChange=.1*(expectedOmega[q]-1);
+    for(let side=0;side<6;side++) {matrix[8*q+side]=1;matrix[8*(n+q)+side]=1;}
+    matrix[8*q+6]=8;
+    matrix[8*q+7]=(2+omegaChange)*expectedK[q]-.3*omegaChange*.1;
+    matrix[8*(n+q)+6]=8; matrix[8*(n+q)+7]=2*expectedOmega[q];
+    matrix[16*n+4*q]=1;matrix[16*n+4*q+1]=.1;matrix[16*n+4*q+3]=.1;
+  }
+  const owned:GPUBuffer[]=[];
+  const buffer=(data:ArrayBufferView,usage=GPUBufferUsage.STORAGE)=>{
+    const b=device.createBuffer({size:Math.max(16,data.byteLength),usage:usage|GPUBufferUsage.COPY_SRC|GPUBufferUsage.COPY_DST});
+    device.queue.writeBuffer(b,0,data.buffer as ArrayBuffer,data.byteOffset,data.byteLength);owned.push(b);return b;
+  };
+  device.pushErrorScope("validation");
+  try {
+    const params=new Uint32Array(32);params.set([nx,ny,nz,n]);
+    const p=buffer(params,GPUBufferUsage.UNIFORM),parts=buffer(new Uint8Array(1024),GPUBufferUsage.UNIFORM);
+    const grid=buffer(new Float32Array(4)),flags=buffer(new Uint32Array(n));
+    const a=buffer(initial),b=buffer(initial),coef=buffer(matrix);
+    const module=device.createShaderModule({code:solveSstWGSL});
+    const layout=device.createBindGroupLayout({entries:["uniform","uniform","read-only-storage","read-only-storage","read-only-storage","storage","read-only-storage"].map((type,binding)=>({binding,visibility:GPUShaderStage.COMPUTE,buffer:{type:type as GPUBufferBindingType}}))});
+    const pipelines=[0,1].map(COMPONENT=>device.createComputePipeline({layout:device.createPipelineLayout({bindGroupLayouts:[layout]}),compute:{module,entryPoint:"main",constants:{COMPONENT}}}));
+    const groups=[[a,b],[b,a]].map(([input,output])=>device.createBindGroup({layout,entries:[p,parts,grid,flags,input,output,coef].map((buffer,binding)=>({binding,resource:{buffer}}))}));
+    const encoder=device.createCommandEncoder(), pass=encoder.beginComputePass();
+    for(const component of [1,0]) for(let sweep=0;sweep<80;sweep++) {pass.setPipeline(pipelines[component]);pass.setBindGroup(0,groups[sweep%2]);pass.dispatchWorkgroups(Math.ceil(n/128));}
+    pass.end();device.queue.submit([encoder.finish()]);
+    const staging=device.createBuffer({size:2*n*4,usage:GPUBufferUsage.MAP_READ|GPUBufferUsage.COPY_DST});owned.push(staging);
+    const copy=device.createCommandEncoder();copy.copyBufferToBuffer(a,0,staging,0,2*n*4);device.queue.submit([copy.finish()]);
+    await staging.mapAsync(GPUMapMode.READ);const result=new Float32Array(staging.getMappedRange().slice(0));staging.unmap();
+    const error=await device.popErrorScope();if(error)throw new Error(error.message);
+    let kError=0,omegaError=0,residual=0;
+    for(let z=1;z<nz-1;z++) for(let y=1;y<ny-1;y++) for(let x=1;x<nx-1;x++) {
+      const q=x+nx*(y+ny*z);kError=Math.max(kError,Math.abs(result[q]-expectedK[q]));omegaError=Math.max(omegaError,Math.abs(result[n+q]-expectedOmega[q]));
+      const change=.1*(result[n+q]-1);
+      const r=(8+change)*result[q]-matrix[8*q+7]-.3*change*.1-offsets.reduce((sum,s)=>sum+result[q+s],0);
+      residual=Math.max(residual,Math.abs(r));
+    }
+    if(kError>2e-5 || omegaError>2e-5 || residual>2e-5)throw new Error(`SST operator check failed: ${JSON.stringify({kError,omegaError,residual})}`);
+    return {adapter:adapterName,kMaximumError:kError,omegaMaximumError:omegaError,maximumResidual:residual,scalarSweeps:160,fluidSteps:0,reference:"manufactured affine scalar solutions with new-omega k destruction"};
+  } finally {for(const buffer of owned)buffer.destroy();}
+}
+(window as unknown as {cfdBench:{validateSst:typeof validateSst}}).cfdBench.validateSst=validateSst;
 
 // Step-by-step diagnostics: field extrema and divergence after each step.
 async function debug(spec: BenchSpec, steps: number, opts: { vcycles?: number; probe?: number[][] } = {}) {

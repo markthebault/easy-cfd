@@ -138,6 +138,10 @@ export interface ExperimentalSettings {
   limitedSstGradient?: boolean;
   /** Solve bounded upwind SST transport implicitly: omega, then k, then viscosity. */
   implicitSst?: boolean;
+  /** Lower wall-distance bound as a fraction of the local cell width; implicit experiments. */
+  wallDistanceFloor?: number;
+  /** Match rotatingWallVelocity's tangential projection in the SST wall gradient. */
+  projectRotatingWall?: boolean;
   farGrowth?: number;
   farCellSize?: number;
   finePadding?: number;

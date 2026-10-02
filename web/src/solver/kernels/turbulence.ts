@@ -112,7 +112,11 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
   var diffK = 0.0; var diffW = 0.0;
   var gk = vec3<f32>(0.0); var gw = vec3<f32>(0.0);
   let pos = vec3<f32>(cc(0u, e.x), cc(1u, e.y), cc(2u, e.z));
-  let uwCell = wallVelocity(partOf(idx), pos);
+  var uwCell = wallVelocity(partOf(idx), pos);
+  if ((P.opts.w & 4096u) != 0u) {
+    let area = length(wall[id].xyz);
+    if (area > 0.0) { let normal = wall[id].xyz/area; uwCell -= dot(uwCell,normal)*normal; }
+  }
   let sourceAligned = (P.opts.w & 32u) != 0u;
   var blendHere = 0.0;
   if (sourceAligned) { blendHere = blendF1(idx); }

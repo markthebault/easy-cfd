@@ -333,6 +333,8 @@ export function prepareCase(allParts: SolverPart[], settings: Settings, shapes?:
 
   const theta = fr.theta, ax = fr.ax, ay = fr.ay, az = fr.az;
   const thetaMin = ext.thetaMin ?? THETA_MIN;
+  const wallDistanceFloor = ext.wallDistanceFloor ?? 0.1;
+  if (!(wallDistanceFloor >= .001 && wallDistanceFloor <= .5)) throw new Error("Wall-distance floor must be between 0.001 and 0.5 local cell widths");
   // Thin parts become zero-thickness walls of closed faces instead of solid cell layers.
   if (thinMode === "wall") for (const p of thin) closeThinFaces(grid, parts[p].positions, p, ax, ay, az, fr.part);
   if (ext.debugStaircase) {
@@ -502,7 +504,7 @@ export function prepareCase(allParts: SolverPart[], settings: Settings, shapes?:
           const vol = x.widths[i] * y.widths[j] * z.widths[k];
           const hloc = Math.min(x.widths[i], y.widths[j], z.widths[k]);
           const geometricY = fr.centroidWallDistance?.[c];
-          const yw = Math.min(Math.max(geometricY && geometricY > 0 ? geometricY : (0.5 * theta[c] * vol) / area, 0.1 * hloc), 1.0 * hloc);
+          const yw = Math.min(Math.max(geometricY && geometricY > 0 ? geometricY : (0.5 * theta[c] * vol) / area, wallDistanceFloor * hloc), 1.0 * hloc);
           wall.set([wx, wy, wz, yw], 4 * g);
           wallList.push(g, part | ((partIsWheel[part] ? 1 : 0) << 16));
         }
@@ -597,7 +599,7 @@ export function prepareCase(allParts: SolverPart[], settings: Settings, shapes?:
 
   timings.total = performance.now() - t0;
   return {
-    numericalFlags: (ext.fullStress ? 1 : 0) | (ext.noEddyFloor ? 2 : 0) | (ext.cutGradient ? 4 : 0) | (ext.stepwiseOmega ? 8 : 0) | ((ext.scalePressure ?? SCALE_PRESSURE) ? 16 : 0) | (ext.sstTransport ? 32 : 0) | (ext.simpleMomentum ? 64 : 0) | (ext.pseudoTransientMomentum ? 128 : 0) | (ext.freestreamPressure ? 256 : 0) | (ext.consistentMomentum ? 512 : 0) | (ext.limitedSstGradient ? 1024 : 0) | (ext.implicitSst ? 2048 : 0),
+    numericalFlags: (ext.fullStress ? 1 : 0) | (ext.noEddyFloor ? 2 : 0) | (ext.cutGradient ? 4 : 0) | (ext.stepwiseOmega ? 8 : 0) | ((ext.scalePressure ?? SCALE_PRESSURE) ? 16 : 0) | (ext.sstTransport ? 32 : 0) | (ext.simpleMomentum ? 64 : 0) | (ext.pseudoTransientMomentum ? 128 : 0) | (ext.freestreamPressure ? 256 : 0) | (ext.consistentMomentum ? 512 : 0) | (ext.limitedSstGradient ? 1024 : 0) | (ext.implicitSst ? 2048 : 0) | (ext.projectRotatingWall ? 4096 : 0),
     momentOrigin: momentOrigin(resolvedAxles(settings.axles, allParts)),
     grid,
     NX,

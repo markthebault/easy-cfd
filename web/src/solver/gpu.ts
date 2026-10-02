@@ -489,6 +489,12 @@ export class FlowSolver {
     return new Float32Array(await this.read(this.buffers.partAcc, Math.max(1, this.c.partRanges.length / 2) * 48));
   }
 
+  /** Benchmark diagnostics for the last assembled SST systems; no extra flow step. */
+  async readSstMatrix(): Promise<Float32Array | undefined> {
+    if (!(this.c.numericalFlags & 2048)) return undefined;
+    return new Float32Array(await this.read(this.buffers.sstMatrix,this.c.NC*80));
+  }
+
   /** Encode and submit `n` steps. */
   run(n: number) {
     const enc = this.device.createCommandEncoder();

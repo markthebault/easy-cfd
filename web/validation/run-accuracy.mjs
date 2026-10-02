@@ -60,7 +60,9 @@ try {
       validations.push({key:trial.key,settings:spec.settings,...validation});
       console.log(`Validated kernels: ${trial.key}, ${validation.adapter}, no fluid steps`);
     }
-    atomic(join(evidence,"kernel-validation.json"),{sourceRevision,validated:new Date().toISOString(),validations,fluidSteps:0});
+    const scalarOperator = await page.evaluate(()=>window.cfdBench.validateSst());
+    console.log("SST manufactured-solution check:",JSON.stringify(scalarOperator));
+    atomic(join(evidence,"kernel-validation.json"),{sourceRevision,validated:new Date().toISOString(),validations,scalarOperator,fluidSteps:0});
   } else {
   let records = readdirSync(join(evidence,"iterations")).filter(p=>/^\d{3}\.json$/.test(p)).sort().map(p=>JSON.parse(readFileSync(join(evidence,"iterations",p),"utf8")));
   const seen = new Set(records.map(r=>r.key));
