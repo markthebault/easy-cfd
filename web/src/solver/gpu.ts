@@ -5,7 +5,7 @@
 import { WG } from "./kernels/common";
 import { bcVelocityWGSL, correctWGSL, divergenceWGSL, dtFinalizeWGSL, dtReduceWGSL, momentumWGSL } from "./kernels/flow";
 import { forcesSumWGSL, forcesWGSL, partForcesWGSL, prolongWGSL, restrictWGSL, smoothWGSL } from "./kernels/pressure";
-import { bcTurbWGSL, turbulenceWGSL } from "./kernels/turbulence";
+import { bcTurbWGSL, turbulenceWGSL, solveSstWGSL, finishSstWGSL } from "./kernels/turbulence";
 import { assembleMomentumWGSL, solveMomentumWGSL, momentumPressureWGSL, coarsenMomentumPressureWGSL } from "./kernels/simple";
 import { scaledLevels, type CaseSetup } from "./setup";
 import { NU } from "./types";
@@ -74,6 +74,7 @@ export class FlowSolver {
   lts = false;
   splitMomentum = true;
   momentumSweeps = 4;
+  sstSweeps = 4;
   private momentumRelaxation: number;
   private forceGroups: number;
 
@@ -165,6 +166,8 @@ export class FlowSolver {
     turb.fill(1, 4 * NC, 5 * NC);
     this.buffer("turbA", turb);
     this.buffer("turbB", turb);
+    this.buffer("sstMatrix", c.numericalFlags & 2048 ? NC*5*16 : 16);
+    if (c.numericalFlags & 2048) this.buffer("sstScratch", turb);
 
     c.levels.forEach((lvl, l) => {
       const coarse = c.levels[l + 1];
@@ -219,7 +222,11 @@ export class FlowSolver {
       this.kernel("momentumPressure", momentumPressureWGSL, [...base, "read", "read", "rw", "read", "read", "read"]);
       this.kernel("coarsenMomentumPressure", coarsenMomentumPressureWGSL, ["uniform", "read", "rw"]);
     }
-    this.kernel("turbulence", turbulenceWGSL, [...base, "read", "read", "rw", "read", "read", "read"]);
+    this.kernel("turbulence", turbulenceWGSL, [...base, "read", "read", "rw", "read", "read", "read", "rw"], {IMPLICIT: (this.c.numericalFlags & 2048) ? 1 : 0});
+    if (this.c.numericalFlags & 2048) {
+      for (const component of [0,1]) this.kernel(`solveSst${component}`, solveSstWGSL, [...base,"read","rw","read"], {COMPONENT:component});
+      this.kernel("finishSst", finishSstWGSL, [...base,"rw","read"]);
+    }
     this.kernel("dtReduce", dtReduceWGSL, [...base, "read", "read", "rw", "read"]);
     this.kernel("dtFinalize", dtFinalizeWGSL, [...base, "rw", "rw"]);
     this.kernel("forces", forcesWGSL, [...base, "read", "read", "read", "read", "rw", "read", "rw"]);
@@ -255,7 +262,14 @@ export class FlowSolver {
       const t = b[`turb${cur}`];
       const tn = b[`turb${next}`];
       this.group(`momentum:${cur}`, "momentum", [...base, b.vel, b.velStar, t, b.aper, b.state, b.wall]);
-      this.group(`turbulence:${cur}`, "turbulence", [...base, b.vel, t, tn, b.state, b.aper, b.wall]);
+      this.group(`turbulence:${cur}`, "turbulence", [...base, b.vel, t, tn, b.state, b.aper, b.wall,b.sstMatrix]);
+      if (this.c.numericalFlags & 2048) {
+        for (const component of [0,1]) {
+          this.group(`solveSst${component}:${next}:out`, `solveSst${component}`, [...base,tn,b.sstScratch,b.sstMatrix]);
+          this.group(`solveSst${component}:${next}:back`, `solveSst${component}`, [...base,b.sstScratch,tn,b.sstMatrix]);
+        }
+        this.group(`finishSst:${next}`, "finishSst", [...base,tn,b.sstMatrix]);
+      }
       this.group(`dtReduce:${cur}`, "dtReduce", [...base, b.vel, t, b.lmax, b.aper]);
       this.group(`forces:${cur}`, "forces", [...base, b.vel, t, this.levelBuffers[0].phi, b.faces, b.partials, b.wall, b.faceForce]);
       if (this.c.numericalFlags & 64) this.group(`assembleMomentum:${cur}`, "assembleMomentum", [...base, b.vel, t, b.aper, b.wall, b.momentumMatrix, b.mobility, b.state]);
@@ -352,6 +366,10 @@ export class FlowSolver {
     this.dispatch(pass, "turbulence", `turbulence:${cur}`, NC);
     this.stepParity ^= 1;
     const next = this.stepParity === 0 ? "A" : "B";
+    if (c.numericalFlags & 2048) {
+      for (const component of [1,0]) for (let s = 0; s < this.sstSweeps; s++) this.dispatch(pass,`solveSst${component}`,`solveSst${component}:${next}:${s % 2 ? "back" : "out"}`,NC);
+      this.dispatch(pass,"finishSst",`finishSst:${next}`,NC);
+    }
     this.dispatch(pass, "forces", `forces:${next}`, c.faceCount);
     this.dispatch(pass, "forcesSum", "forcesSum", WG);
     this.dispatch(pass, "partForces", "partForces", Math.max(1, this.c.partRanges.length / 2) * WG);

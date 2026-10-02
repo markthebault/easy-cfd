@@ -11,6 +11,9 @@ export const turbulenceWGSL = common + /* wgsl */ `
 @group(0) @binding(7) var<storage, read> state: array<f32>;
 @group(0) @binding(8) var<storage, read> aper: array<vec4<f32>>;
 @group(0) @binding(9) var<storage, read> wall: array<vec4<f32>>;
+@group(0) @binding(10) var<storage, read_write> transportMatrix: array<vec4<f32>>;
+override IMPLICIT: bool = false;
+const TRANSPORT_RELAX: f32 = 0.7;
 
 const THETA_EFF: f32 = ${THETA_EFF};
 
@@ -74,6 +77,11 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
   let e = decode(id);
   let idx = i32(id);
   if (!interior(e) || solid(idx)) {
+    if (IMPLICIT) {
+      transportMatrix[2u*id] = vec4<f32>(0.0); transportMatrix[2u*id+1u] = vec4<f32>(0.0);
+      transportMatrix[2u*(n+id)] = vec4<f32>(0.0); transportMatrix[2u*(n+id)+1u] = vec4<f32>(0.0);
+      transportMatrix[4u*n+id] = vec4<f32>(0.0);
+    }
     turbOut[3u * n + id] = turb[3u * n + id];
     turbOut[id] = turb[id];
     turbOut[n + id] = turb[n + id];
@@ -96,6 +104,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
 
   var grad: mat3x3<f32>;             // grad[a] = d(U)/dx_a
   var fluxDivergence = 0.0;
+  var linksK: array<f32,6>; var linksW: array<f32,6>;
+  var diagonalK = 0.0; var diagonalW = 0.0;
+  var boundaryK = 0.0; var boundaryW = 0.0;
   var convK = 0.0; var convW = 0.0;
   var lapK = 0.0; var lapW = 0.0;
   var diffK = 0.0; var diffW = 0.0;
@@ -159,6 +170,29 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
         } else {
           diffK += alpha * nutF * ar * (kN - k) / d;
           diffW += alpha * nutF * ar * (wN - w) / d;
+        }
+        if (IMPLICIT) {
+          let akP = mix(ALPHA_K2,ALPHA_K1,blendHere); let awP = mix(ALPHA_W2,ALPHA_W1,blendHere);
+          let blendNeighbour = blendF1(nIdx);
+          let akN = mix(ALPHA_K2,ALPHA_K1,blendNeighbour); let awN = mix(ALPHA_W2,ALPHA_W1,blendNeighbour);
+          var effectiveK = nu+(wN2*akP*nutOld+wP*akN*nutN)/(wP+wN2);
+          var effectiveW = nu+(wN2*awP*nutOld+wP*awN*nutN)/(wP+wN2);
+          var distance = d;
+          var fixed = false;
+          if (!inside) {
+            fixed = (a == 0u && side == 0) || F < 0.0;
+            effectiveK = nu+akP*nutOld; effectiveW = nu+awP*nutOld;
+            distance = 0.5*width[a];
+          }
+          let coefficientK = max(-F,0.0)+alpha*effectiveK*ar/distance;
+          let coefficientW = max(-F,0.0)+alpha*effectiveW*ar/distance;
+          if (inside) {
+            linksK[2u*a+u32(side)] = coefficientK; linksW[2u*a+u32(side)] = coefficientW;
+            diagonalK += coefficientK; diagonalW += coefficientW;
+          } else if (fixed) {
+            diagonalK += coefficientK; diagonalW += coefficientW;
+            boundaryK += coefficientK*P.turb.x; boundaryW += coefficientW*P.turb.y;
+          }
         }
         gk[a] += 0.5 * f32(sgn) * (kN - k) / d;
         gw[a] += 0.5 * f32(sgn) * (wN - w) / d;
@@ -291,6 +325,31 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
   }
   let Pk = min(G, C1 * BETA_STAR * k * w);
   let expansionK = select(0.0,(2.0/3.0)*divergence,sourceAligned);
+  if (IMPLICIT) {
+    let volume = width.x*width.y*width.z*theta;
+    let damping = vol/dt;
+    let omegaUsed = select(w,wNew,wallY < 1e29);
+    let productionK = min(G,C1*BETA_STAR*k*omegaUsed);
+    let dk = diagonalK+damping+volume*(BETA_STAR*omegaUsed+max(expansionK,0.0));
+    let sk = boundaryK+damping*k+volume*(productionK+max(-expansionK,0.0)*k)+(1.0/TRANSPORT_RELAX-1.0)*dk*k;
+    transportMatrix[2u*id] = vec4<f32>(linksK[0],linksK[1],linksK[2],linksK[3]);
+    transportMatrix[2u*id+1u] = vec4<f32>(linksK[4],linksK[5],dk/TRANSPORT_RELAX,sk);
+    if (wallY < 1e29) {
+      transportMatrix[2u*(n+id)] = vec4<f32>(0.0);
+      transportMatrix[2u*(n+id)+1u] = vec4<f32>(0.0,0.0,1.0,wNew);
+    } else {
+      let cross = (1.0-F1)*CDkw;
+      let expansionW = (2.0/3.0)*gamma*divergence;
+      let byNu = min(production,(C1/A1)*BETA_STAR*w*max(A1*w,B1*F2*sS));
+      let dw = diagonalW+damping+volume*(beta*w+max(-cross,0.0)/w+max(expansionW,0.0));
+      let sw = boundaryW+damping*w+volume*(gamma*byNu+max(cross,0.0)+max(-expansionW,0.0)*w)+(1.0/TRANSPORT_RELAX-1.0)*dw*w;
+      transportMatrix[2u*(n+id)] = vec4<f32>(linksW[0],linksW[1],linksW[2],linksW[3]);
+      transportMatrix[2u*(n+id)+1u] = vec4<f32>(linksW[4],linksW[5],dw/TRANSPORT_RELAX,sw);
+    }
+    transportMatrix[4u*n+id] = vec4<f32>(omegaUsed,volume*BETA_STAR/TRANSPORT_RELAX,S2,k);
+    turbOut[id] = k; turbOut[n+id] = omegaUsed; turbOut[2u*n+id] = nutOld;
+    return;
+  }
   let kNew = (k + dt * ((laminarPart * lapK + kDiffScale * diffK - convK) / vol + srcScale * (Pk+max(-expansionK,0.0)*k))) / (1.0 + dt * srcScale * (BETA_STAR * wNew+max(expansionK,0.0)));
   let kB = max(kNew, 1e-10);
   let wB = max(wNew, 1e-6);
@@ -300,6 +359,46 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
   turbOut[id] = kB;
   turbOut[n + id] = wB;
   turbOut[2u * n + id] = A1 * kB / max(A1 * wB, B1 * F2n * sS);
+}
+`;
+
+// omega is solved first. The k diagonal/source are updated with the newly solved omega before
+// the k sweeps, reproducing the destruction term's ordering in kOmegaSSTBase::correct().
+export const solveSstWGSL = common + /* wgsl */ `
+@group(0) @binding(4) var<storage, read> input: array<f32>;
+@group(0) @binding(5) var<storage, read_write> output: array<f32>;
+@group(0) @binding(6) var<storage, read> coefficients: array<vec4<f32>>;
+override COMPONENT: u32 = 1u;
+@compute @workgroup_size(${WG})
+fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {
+  let id = gidx(gid,nwg); let n = NC(); if (id >= n) { return; }
+  for (var plane = 0u; plane < 5u; plane++) { output[plane*n+id] = input[plane*n+id]; }
+  let m = 2u*(COMPONENT*n+id); let c0 = coefficients[m]; let c1 = coefficients[m+1u];
+  if (c1.z <= 0.0) { return; }
+  let q = i32(id); let offset = COMPONENT*n;
+  let sum = c0.x*input[offset+u32(q-1)]+c0.y*input[offset+u32(q+1)]
+    +c0.z*input[offset+u32(q-NX())]+c0.w*input[offset+u32(q+NX())]
+    +c1.x*input[offset+u32(q-NX()*NY())]+c1.y*input[offset+u32(q+NX()*NY())];
+  var diagonal = c1.z; var rhs = c1.w;
+  if (COMPONENT == 0u) {
+    let aux = coefficients[4u*n+id];
+    let change = aux.y*(input[n+id]-aux.x);
+    diagonal += change; rhs += 0.3*change*aux.w;
+  }
+  output[offset+id] = max((sum+rhs)/max(diagonal,1e-20),select(1e-10,1e-6,COMPONENT == 1u));
+}
+`;
+
+export const finishSstWGSL = common + /* wgsl */ `
+@group(0) @binding(4) var<storage, read_write> fields: array<f32>;
+@group(0) @binding(5) var<storage, read> aux: array<vec4<f32>>;
+@compute @workgroup_size(${WG})
+fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {
+  let id = gidx(gid,nwg); let n = NC(); if (id >= n || !interior(decode(id)) || solid(i32(id))) { return; }
+  let k = max(fields[id],1e-10); let w = max(fields[n+id],1e-6); let y = max(fields[3u*n+id],1e-6);
+  let argument = min(max(2.0*sqrt(k)/(0.09*w*y),500.0*P.turb.z/(y*y*w)),100.0);
+  let f2 = tanh(min(argument*argument,15.0));
+  fields[2u*n+id] = 0.31*k/max(0.31*w,f2*sqrt(max(aux[4u*n+id].z,0.0)));
 }
 `;
 

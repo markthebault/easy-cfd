@@ -136,6 +136,8 @@ export interface ExperimentalSettings {
   consistentMomentum?: boolean;
   /** Limit the Gauss velocity gradient against neighbouring cell and wall velocities for SST. */
   limitedSstGradient?: boolean;
+  /** Solve bounded upwind SST transport implicitly: omega, then k, then viscosity. */
+  implicitSst?: boolean;
   farGrowth?: number;
   farCellSize?: number;
   finePadding?: number;

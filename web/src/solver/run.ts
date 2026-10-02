@@ -37,7 +37,7 @@ export interface RunOptions {
   /** Longest run as a multiple of the requested passes when forces keep drifting (default 2). */
   maxExtension?: number;
   /** Numerical overrides for experiments. */
-  solver?: { vcycles?: number; cfl?: number; preSmooth?: number; postSmooth?: number; coarseSweeps?: number; momentumSweeps?: number; momentumRelaxation?: number };
+  solver?: { vcycles?: number; cfl?: number; preSmooth?: number; postSmooth?: number; coarseSweeps?: number; momentumSweeps?: number; momentumRelaxation?: number; sstSweeps?: number };
 }
 
 export const LTS_CFL = 0.35;
@@ -212,6 +212,10 @@ async function runLevel(
   if (o.preSmooth !== undefined) solver.preSmooth = o.preSmooth;
   if (o.postSmooth !== undefined) solver.postSmooth = o.postSmooth;
   if (o.coarseSweeps !== undefined) solver.coarseSweeps = o.coarseSweeps;
+  if (o.sstSweeps !== undefined) {
+    if (!Number.isInteger(o.sstSweeps) || o.sstSweeps < 2 || o.sstSweeps % 2) throw new Error("SST sweeps must be a positive even integer");
+    solver.sstSweeps = o.sstSweeps;
+  }
   if (o.momentumSweeps !== undefined) {
     if (!Number.isInteger(o.momentumSweeps) || o.momentumSweeps < 1) throw new Error("Momentum sweeps must be a positive integer");
     solver.momentumSweeps = o.momentumSweeps;

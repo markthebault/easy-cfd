@@ -22,7 +22,7 @@ interface BenchSpec {
   targetPasses?: number;
   lts?: boolean;
   ltsMaxFactor?: number;
-  solver?: { vcycles?: number; cfl?: number; preSmooth?: number; postSmooth?: number; coarseSweeps?: number; momentumSweeps?: number; momentumRelaxation?: number };
+  solver?: { vcycles?: number; cfl?: number; preSmooth?: number; postSmooth?: number; coarseSweeps?: number; momentumSweeps?: number; momentumRelaxation?: number; sstSweeps?: number };
   maxExtension?: number;
   probeWake?: boolean;
 }
@@ -102,6 +102,7 @@ async function run(spec: BenchSpec) {
     algorithm: setup.numericalFlags & 64 ? (setup.numericalFlags & 512 ? "staggered-SIMPLEC" : "staggered-SIMPLE") : "explicit-projection",
     initialization: "freestream followed by divergence-free projection",
     initializedFromReference: false,
+    turbulenceTransport: setup.numericalFlags & 2048 ? "implicit-omega-then-k" : "explicit",
     diagnostics,
     probes,
     prepSeconds,
@@ -122,6 +123,28 @@ async function run(spec: BenchSpec) {
 }
 
 (window as unknown as { cfdBench: unknown }).cfdBench = { run, ready: true };
+
+// Compiles and binds kernels without running an initial projection or any flow step.
+// Kept separate from model solves so numerical attempt budgets cannot be consumed by a
+// deterministic interface error repeated across a queued plan.
+async function compile(spec: BenchSpec) {
+  devicePromise ??= requestDevice();
+  const {device,adapterName}=await devicePromise;
+  const {FlowSolver}=await import("./solver/gpu");
+  const parts: SolverPart[]=[];
+  for (const p of spec.parts) {
+    const buf=await (await fetch(p.url)).arrayBuffer();
+    parts.push({id:p.name,name:p.name,role:p.role,wheel:p.wheel ?? null,positions:parseSTL(buf),active:p.active,detail:p.detail});
+  }
+  const setup=prepareCase(parts,{...DEFAULT_SETTINGS,...spec.settings});
+  device.pushErrorScope("validation");
+  const solver=new FlowSolver(device,setup,{momentumRelaxation:spec.solver?.momentumRelaxation});
+  const error=await device.popErrorScope();
+  solver.destroy();
+  if(error) throw new Error(error.message);
+  return {adapter:adapterName,cells:setup.grid.cells,fluidSteps:0};
+}
+(window as unknown as { cfdBench: {compile: typeof compile} }).cfdBench.compile=compile;
 
 // Step-by-step diagnostics: field extrema and divergence after each step.
 async function debug(spec: BenchSpec, steps: number, opts: { vcycles?: number; probe?: number[][] } = {}) {

@@ -4,6 +4,7 @@ import { chromium } from "@playwright/test";
 import { createServer } from "vite";
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, openSync, closeSync, unlinkSync, renameSync } from "node:fs";
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { dirname, resolve, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { comparison, LIMIT, TOLERANCE } from "./accuracy-metrics.mjs";
@@ -24,8 +25,9 @@ const lock = openSync(lockPath,"wx");
 writeFileSync(lock,String(process.pid));
 let server, browser;
 const atomic = (file,value) => {writeFileSync(file+".tmp",JSON.stringify(value,null,2)+"\n");renameSync(file+".tmp",file);};
-const sourceFiles = () => [join(root,"src/bench.ts"),...readdirSync(join(root,"src/solver"),{recursive:true}).filter(p=>p.endsWith(".ts")).sort().map(p=>join(root,"src/solver",p))];
-let frozenSources = new Map();
+const sourceRevision = execFileSync("git",["rev-parse","--verify",args.revision ?? "HEAD"],{cwd:repository,encoding:"utf8"}).trim();
+const sourcePaths = execFileSync("git",["ls-tree","-r","--name-only",sourceRevision,"web/src"],{cwd:repository,encoding:"utf8"}).trim().split("\n").filter(file=>/\.tsx?$/.test(file));
+const frozenSources = new Map(sourcePaths.map(file=>[join(repository,file),execFileSync("git",["show",`${sourceRevision}:${file}`],{cwd:repository,encoding:"utf8"})]));
 try {
   const manifestFile = join(evidence,"campaign.json");
   try {
@@ -46,6 +48,20 @@ try {
     if (!file.startsWith(geometryRoot+"/")) throw new Error("Geometry path escapes run directory");
     return route.fulfill({body:readFileSync(file),contentType:"application/octet-stream"});
   });
+  if (args["validate-only"] === "true") {
+    const validations=[];
+    for (const trial of plan) {
+      const model=modelSpec.models.find(m=>m.id===trial.model);
+      const spec={parts:model.parts.map(p=>({...p,url:`/geom/${model.geometryRun}/geometry/${p.file}`})),settings:{...model.settings,quality:"custom",custom_cells:36,...trial.settings},solver:trial.solver};
+      server.moduleGraph.invalidateAll();
+      await page.goto(`http://127.0.0.1:${args.port ?? 5201}/bench.html`);
+      await page.waitForFunction(()=>window.cfdBench?.ready,null,{timeout:60000});
+      const validation=await page.evaluate(body=>window.cfdBench.compile(body),spec);
+      validations.push({key:trial.key,settings:spec.settings,...validation});
+      console.log(`Validated kernels: ${trial.key}, ${validation.adapter}, no fluid steps`);
+    }
+    atomic(join(evidence,"kernel-validation.json"),{sourceRevision,validated:new Date().toISOString(),validations,fluidSteps:0});
+  } else {
   let records = readdirSync(join(evidence,"iterations")).filter(p=>/^\d{3}\.json$/.test(p)).sort().map(p=>JSON.parse(readFileSync(join(evidence,"iterations",p),"utf8")));
   const seen = new Set(records.map(r=>r.key));
   for (const trial of plan) {
@@ -57,11 +73,10 @@ try {
     const referenceFile=join(evidence,"references.json");
     let references={};try {references=JSON.parse(readFileSync(referenceFile,"utf8"));}catch(e){if(e.code!=="ENOENT")throw e;}
     const reference=references[model.id] ?? null;
-    frozenSources = new Map(sourceFiles().map(file=>[file,readFileSync(file,"utf8")]));
     const source=createHash("sha256");for(const [file,contents] of frozenSources)source.update(file.replace(root,"")),source.update(contents);
     const spec={parts:model.parts.map(p=>({...p,url:`/geom/${model.geometryRun}/geometry/${p.file}`})),settings,lts:trial.lts,ltsMaxFactor:trial.ltsMaxFactor,solver:trial.solver,maxExtension:trial.maxExtension,probeWake:true};
     const iteration=records.length+1, file=join(evidence,"iterations",String(iteration).padStart(3,"0")+".json");
-    const record={iteration,key:trial.key,model:model.id,hypothesis:trial.hypothesis,source:source.digest("hex"),sourceSnapshot:true,started:new Date().toISOString(),status:"running",settings,reference,inputs:model.parts.map(p=>({file:`${model.geometryRun}/geometry/${p.file}`,sha256:createHash("sha256").update(readFileSync(join(geometryRoot,model.geometryRun,"geometry",p.file))).digest("hex")})),spec};
+    const record={iteration,key:trial.key,model:model.id,hypothesis:trial.hypothesis,source:source.digest("hex"),sourceSnapshot:true,sourceRevision,started:new Date().toISOString(),status:"running",settings,reference,inputs:model.parts.map(p=>({file:`${model.geometryRun}/geometry/${p.file}`,sha256:createHash("sha256").update(readFileSync(join(geometryRoot,model.geometryRun,"geometry",p.file))).digest("hex")})),spec};
     atomic(file,record);records.push(record);seen.add(trial.key);
     console.log(`Iteration ${iteration}/${limit}: ${trial.key}`);
     let progress;
@@ -77,6 +92,8 @@ try {
       console.log(`  ${record.result.cells} cells, Cd ${record.result.cd.toFixed(5)}, Cl ${record.result.cl.toFixed(5)}, ${record.result.wallSeconds.toFixed(1)} s; errors ${((record.comparison.cdError??Infinity)*100).toFixed(1)}%, ${((record.comparison.clError??Infinity)*100).toFixed(1)}%`);
     } catch(e) {record.status="failed";record.error=String(e.stack??e);console.log(`  FAILED: ${e.message}`);}
     finally {clearInterval(progress);record.finished=new Date().toISOString();atomic(file,record);atomic(join(evidence,"summary.json"),{limit,tolerance,attempts:records.length,complete:records.filter(r=>r.status==="completed").length,records:records.map(r=>({iteration:r.iteration,key:r.key,model:r.model,status:r.status,cells:r.result?.cells,cd:r.result?.cd,cl:r.result?.cl,comparison:r.comparison,error:r.error}))});}
+    if(record.status==="failed" && /GPU solver initialization|Binding doesn't exist|shader/i.test(record.error ?? "")) {console.log("Stopped after kernel initialization failure; fix and validate before resuming.");break;}
     if(record.comparison?.qualified && plan.every(t=>seen.has(t.key))) console.log("Plan completed; suite-wide qualification still requires the report gates.");
+  }
   }
 } finally {await browser?.close();await server?.close();closeSync(lock);unlinkSync(lockPath);}

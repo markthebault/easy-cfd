@@ -597,7 +597,7 @@ export function prepareCase(allParts: SolverPart[], settings: Settings, shapes?:
 
   timings.total = performance.now() - t0;
   return {
-    numericalFlags: (ext.fullStress ? 1 : 0) | (ext.noEddyFloor ? 2 : 0) | (ext.cutGradient ? 4 : 0) | (ext.stepwiseOmega ? 8 : 0) | ((ext.scalePressure ?? SCALE_PRESSURE) ? 16 : 0) | (ext.sstTransport ? 32 : 0) | (ext.simpleMomentum ? 64 : 0) | (ext.pseudoTransientMomentum ? 128 : 0) | (ext.freestreamPressure ? 256 : 0) | (ext.consistentMomentum ? 512 : 0) | (ext.limitedSstGradient ? 1024 : 0),
+    numericalFlags: (ext.fullStress ? 1 : 0) | (ext.noEddyFloor ? 2 : 0) | (ext.cutGradient ? 4 : 0) | (ext.stepwiseOmega ? 8 : 0) | ((ext.scalePressure ?? SCALE_PRESSURE) ? 16 : 0) | (ext.sstTransport ? 32 : 0) | (ext.simpleMomentum ? 64 : 0) | (ext.pseudoTransientMomentum ? 128 : 0) | (ext.freestreamPressure ? 256 : 0) | (ext.consistentMomentum ? 512 : 0) | (ext.limitedSstGradient ? 1024 : 0) | (ext.implicitSst ? 2048 : 0),
     momentOrigin: momentOrigin(resolvedAxles(settings.axles, allParts)),
     grid,
     NX,
