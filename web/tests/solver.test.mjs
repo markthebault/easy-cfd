@@ -36,6 +36,52 @@ test("stretched axis: uniform refined region, exact ends, multigrid-friendly cou
   }
 });
 
+test("exact 500,000-cell mesh keeps the tunnel boundaries and positive widths", () => {
+  const parts = car(), { low, high } = setup.boundsOf(parts);
+  const domain = grid.automaticDomain(low, high);
+  const g = grid.buildGrid({domain,low,high,cellsPerLength:36,levels:5,targetCells:500000});
+  assert.equal(g.cells,500000);
+  for (const [index,axis] of [g.x,g.y,g.z].entries()) {
+    assert.equal(axis.faces[0],domain[2*index]);
+    assert.equal(axis.faces[axis.n],domain[2*index+1]);
+    assert.ok([...axis.widths].every(w=>Number.isFinite(w) && w>0));
+  }
+  assert.throws(()=>grid.countsForCells(500003,[160,64,48]),/cannot form/);
+});
+
+test("odd-sized multigrid preserves operator energy, including the partial boundary aggregate", () => {
+  const c = setup.prepareCase(car(),{...types.DEFAULT_SETTINGS,quality:"custom",custom_cells:36,targetCells:125000});
+  assert.ok(c.levels.some(l=>l.nx%2 || l.ny%2 || l.nz%2));
+  const energy = (l,v) => {
+    let sum=0;
+    for(let k=1;k<=l.nz;k++) for(let j=1;j<=l.ny;j++) for(let i=1;i<=l.nx;i++) {
+      const q=i+l.NX*(j+l.NY*k), g=l.coef;
+      sum+=g[4*q+3]*v[q]**2;
+      for(const [a,offset,inside] of [[0,1,i<l.nx],[1,l.NX,j<l.ny],[2,l.NX*l.NY,k<l.nz]]) if(inside) sum+=g[4*q+a]*(v[q+offset]-v[q])**2;
+    }
+    return sum;
+  };
+  for(let n=0;n<c.levels.length-1;n++) {
+    const fine=c.levels[n],coarse=c.levels[n+1];
+    const u=new Float64Array(coarse.NC),v=new Float64Array(fine.NC);
+    for(let k=1;k<=coarse.nz;k++) for(let j=1;j<=coarse.ny;j++) for(let i=1;i<=coarse.nx;i++) u[i+coarse.NX*(j+coarse.NY*k)]=Math.sin(i*.71+j*.39+k*.23);
+    for(let k=1;k<=fine.nz;k++) for(let j=1;j<=fine.ny;j++) for(let i=1;i<=fine.nx;i++) v[i+fine.NX*(j+fine.NY*k)]=u[Math.ceil(i/2)+coarse.NX*(Math.ceil(j/2)+coarse.NY*Math.ceil(k/2))];
+    const a=energy(fine,v),b=energy(coarse,u);
+    assert.ok(Math.abs(a-b)/Math.max(a,1e-30)<1e-6,`level ${n}: ${a} versus ${b}`);
+  }
+});
+
+test("cut-cell fluid centroid reproduces an oblique planar wall distance", () => {
+  const axis = {n:1,faces:Float64Array.from([0,1]),centers:Float64Array.from([.5]),widths:Float64Array.from([1])};
+  const g = {x:axis,y:axis,z:axis,h:1,cells:1};
+  const sdf = Float32Array.from([0,1,1,2,0,1,1,2].map(v=>(v-.9)/Math.SQRT2));
+  const f = cut.fractions(g,sdf,new Uint8Array(8),true);
+  // Integrating the triangle x+y<.9 out of the unit square gives this centroid analytically.
+  const volume=1-.9**2/2, centroid=(.5-(.9**2/2)*(.9/3))/volume;
+  const expected=(2*centroid-.9)/Math.SQRT2;
+  assert.ok(Math.abs(f.centroidWallDistance[0]-expected)<.015);
+});
+
 test("sample car geometry matches the OpenFOAM app's sample", () => {
   const parts = car();
   assert.equal(parts.length, 5);

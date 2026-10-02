@@ -1,0 +1,146 @@
+[
+  {
+    "key": "final-baseline-sample",
+    "model": "sample",
+    "hypothesis": "Final comparison uses one global configuration from the smaller worst-case force error in the long eight-model suites; exact 500,000 cells and 100 flow passes",
+    "settings": {
+      "targetCells": 500000,
+      "custom_cells": 36,
+      "custom_passes": 100,
+      "max_seconds": 2400
+    },
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "final-baseline-sample-yaw10",
+    "model": "sample-yaw10",
+    "hypothesis": "Final comparison uses one global configuration from the smaller worst-case force error in the long eight-model suites; exact 500,000 cells and 100 flow passes",
+    "settings": {
+      "targetCells": 500000,
+      "custom_cells": 36,
+      "custom_passes": 100,
+      "max_seconds": 2400
+    },
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "final-baseline-sample-wing",
+    "model": "sample-wing",
+    "hypothesis": "Final comparison uses one global configuration from the smaller worst-case force error in the long eight-model suites; exact 500,000 cells and 100 flow passes",
+    "settings": {
+      "targetCells": 500000,
+      "custom_cells": 36,
+      "custom_passes": 100,
+      "max_seconds": 2400
+    },
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "final-baseline-mx5",
+    "model": "mx5",
+    "hypothesis": "Final comparison uses one global configuration from the smaller worst-case force error in the long eight-model suites; exact 500,000 cells and 100 flow passes",
+    "settings": {
+      "targetCells": 500000,
+      "custom_cells": 36,
+      "custom_passes": 100,
+      "max_seconds": 2400
+    },
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "final-baseline-z4",
+    "model": "z4",
+    "hypothesis": "Final comparison uses one global configuration from the smaller worst-case force error in the long eight-model suites; exact 500,000 cells and 100 flow passes",
+    "settings": {
+      "targetCells": 500000,
+      "custom_cells": 36,
+      "custom_passes": 100,
+      "max_seconds": 2400
+    },
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "final-baseline-z4-wing",
+    "model": "z4-wing",
+    "hypothesis": "Final comparison uses one global configuration from the smaller worst-case force error in the long eight-model suites; exact 500,000 cells and 100 flow passes",
+    "settings": {
+      "targetCells": 500000,
+      "custom_cells": 36,
+      "custom_passes": 100,
+      "max_seconds": 2400
+    },
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "final-baseline-simple-car",
+    "model": "simple-car",
+    "hypothesis": "Final comparison uses one global configuration from the smaller worst-case force error in the long eight-model suites; exact 500,000 cells and 100 flow passes",
+    "settings": {
+      "targetCells": 500000,
+      "custom_cells": 36,
+      "custom_passes": 100,
+      "max_seconds": 2400
+    },
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "final-baseline-ahmed25",
+    "model": "ahmed25",
+    "hypothesis": "Final comparison uses one global configuration from the smaller worst-case force error in the long eight-model suites; exact 500,000 cells and 100 flow passes",
+    "settings": {
+      "targetCells": 500000,
+      "custom_cells": 36,
+      "custom_passes": 100,
+      "max_seconds": 2400
+    },
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "final-baseline-sample-repeat",
+    "model": "sample",
+    "hypothesis": "Repeat the same final sample setup on a fresh device to measure numerical reproducibility",
+    "settings": {
+      "targetCells": 500000,
+      "custom_cells": 36,
+      "custom_passes": 100,
+      "max_seconds": 2400
+    },
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24
+    },
+    "maxExtension": 1
+  }
+]

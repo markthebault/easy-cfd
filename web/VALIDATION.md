@@ -1,5 +1,11 @@
 # Validation against the OpenFOAM app
 
+## 2 October 2026: 3% accuracy study
+
+The [bounded WebGPU accuracy study](../docs/webgpu-accuracy/README.md) stopped after 100 completed trials. It tested exact cell budgets from 125,000 through two million cells, then ended with eight models at exactly 500,000 cells and 100 flow passes plus a repeat run. **None of the eight final models met 3% agreement for both drag and signed lift.** Drag disagreement ranged from 3.1% to 41.6%; lift disagreement ranged from 44.2% to 299.3%. Numerical candidates remain experimental and the production defaults are unchanged. The report retains the native-reference convergence limits, field diagnostics, measured improvements and misses.
+
+The study also found that the historical Simple Car comparison used a 100 km/h browser input against a 200 km/h native reference. The validation input now matches the reference; the historical tables below retain their original measurements.
+
 The browser solver was compared with the EasyCFD OpenFOAM app (OpenFOAM v2412, `simpleFoam`, k-ω SST, snappyHexMesh) on the same geometry and conditions. The target in the brief was drag within ±10 % of OpenFOAM. **That target is met for 5 of 8 models on each preset, not for all of them.** The numbers below are the measured ones, including misses.
 
 ## 1 October 2026 aerodynamic-analysis follow-up

@@ -117,6 +117,8 @@ export function nodeDistance(ng: Grid, parts: { positions: Float32Array }[], ban
 }
 
 export interface Fractions {
+  /** Signed-distance interpolation at the fluid-volume centroid, when requested. */
+  centroidWallDistance?: Float32Array;
   /** Fluid volume fraction per interior cell. */
   theta: Float32Array;
   /** Open area fraction of the +x, +y, +z face of each interior cell. */
@@ -131,13 +133,14 @@ const FACE_SAMPLES = 16;
 const CELL_SAMPLES = 8;
 
 /** Fractions from signed node distances (negative inside). */
-export function fractions(g: Grid, sdf: Float32Array, nodePart: Uint8Array): Fractions {
+export function fractions(g: Grid, sdf: Float32Array, nodePart: Uint8Array, centroids = false): Fractions {
   const nx = g.x.n, ny = g.y.n, nz = g.z.n;
   const Nx = nx + 1, Nxy = (nx + 1) * (ny + 1);
   const cells = nx * ny * nz;
   const theta = new Float32Array(cells);
   const ax = new Float32Array(cells), ay = new Float32Array(cells), az = new Float32Array(cells);
   const part = new Uint8Array(cells).fill(255);
+  const centroidWallDistance = centroids ? new Float32Array(cells) : undefined;
   const node = (i: number, j: number, k: number) => sdf[i + Nx * j + Nxy * k];
   // Fraction of a bilinear patch (corner values a,b,c,d at (0,0),(1,0),(0,1),(1,1)) above zero.
   const faceFrac = (a: number, b: number, c: number, d: number) => {
@@ -166,6 +169,7 @@ export function fractions(g: Grid, sdf: Float32Array, nodePart: Uint8Array): Fra
         else if (pos === 0) theta[c] = 0;
         else {
           let n = 0;
+          let sx = 0, sy = 0, sz = 0;
           for (let a = 0; a < CELL_SAMPLES; a++) {
             const w = (a + 0.5) / CELL_SAMPLES;
             for (let b = 0; b < CELL_SAMPLES; b++) {
@@ -175,11 +179,15 @@ export function fractions(g: Grid, sdf: Float32Array, nodePart: Uint8Array): Fra
                 const f =
                   (1 - w) * ((1 - v) * ((1 - u) * s000 + u * s100) + v * ((1 - u) * s010 + u * s110)) +
                   w * ((1 - v) * ((1 - u) * s001 + u * s101) + v * ((1 - u) * s011 + u * s111));
-                if (f > 0) n++;
+                if (f > 0) { n++; if (centroids) { sx += u; sy += v; sz += w; } }
               }
             }
           }
           theta[c] = n / CELL_SAMPLES ** 3;
+          if (centroidWallDistance && n) {
+            const u = sx/n, v = sy/n, w = sz/n;
+            centroidWallDistance[c] = (1-w)*((1-v)*((1-u)*s000+u*s100)+v*((1-u)*s010+u*s110)) + w*((1-v)*((1-u)*s001+u*s101)+v*((1-u)*s011+u*s111));
+          }
         }
         // +x face: nodes (i+1, j..j+1, k..k+1); +y: (i..i+1, j+1, k..); +z: (i.., j.., k+1)
         ax[c] = faceFrac(s100, s110, s101, s111);
@@ -201,7 +209,7 @@ export function fractions(g: Grid, sdf: Float32Array, nodePart: Uint8Array): Fra
           }
         }
       }
-  return { theta, ax, ay, az, part };
+  return { theta, ax, ay, az, part, centroidWallDistance };
 }
 
 function segmentHitsTriangle(

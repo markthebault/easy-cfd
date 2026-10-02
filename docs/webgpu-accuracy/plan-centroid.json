@@ -1,0 +1,161 @@
+[
+  {
+    "key": "250k-centroid-sample",
+    "model": "sample",
+    "hypothesis": "centroid tests the measured cut-cell centroid instead of a volume/area wall-distance approximation",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30,
+      "centroidWallDistance": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "250k-centroid-mx5",
+    "model": "mx5",
+    "hypothesis": "centroid tests the measured cut-cell centroid instead of a volume/area wall-distance approximation",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30,
+      "centroidWallDistance": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "250k-centroid-ahmed25",
+    "model": "ahmed25",
+    "hypothesis": "centroid tests the measured cut-cell centroid instead of a volume/area wall-distance approximation",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30,
+      "centroidWallDistance": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "250k-centroid-stress-sample",
+    "model": "sample",
+    "hypothesis": "centroid-stress tests the measured cut-cell centroid instead of a volume/area wall-distance approximation",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30,
+      "centroidWallDistance": true,
+      "fullStress": true,
+      "stepwiseOmega": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "250k-centroid-stress-mx5",
+    "model": "mx5",
+    "hypothesis": "centroid-stress tests the measured cut-cell centroid instead of a volume/area wall-distance approximation",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30,
+      "centroidWallDistance": true,
+      "fullStress": true,
+      "stepwiseOmega": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "250k-centroid-stress-ahmed25",
+    "model": "ahmed25",
+    "hypothesis": "centroid-stress tests the measured cut-cell centroid instead of a volume/area wall-distance approximation",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30,
+      "centroidWallDistance": true,
+      "fullStress": true,
+      "stepwiseOmega": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "250k-centroid-sst-sample",
+    "model": "sample",
+    "hypothesis": "centroid-sst tests the measured cut-cell centroid instead of a volume/area wall-distance approximation",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30,
+      "centroidWallDistance": true,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "noEddyFloor": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "250k-centroid-sst-mx5",
+    "model": "mx5",
+    "hypothesis": "centroid-sst tests the measured cut-cell centroid instead of a volume/area wall-distance approximation",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30,
+      "centroidWallDistance": true,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "noEddyFloor": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "250k-centroid-sst-ahmed25",
+    "model": "ahmed25",
+    "hypothesis": "centroid-sst tests the measured cut-cell centroid instead of a volume/area wall-distance approximation",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30,
+      "centroidWallDistance": true,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "noEddyFloor": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "250k-centroid-conservative-sample",
+    "model": "sample",
+    "hypothesis": "centroid-conservative tests the measured cut-cell centroid instead of a volume/area wall-distance approximation",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30,
+      "centroidWallDistance": true,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "cutGradient": true,
+      "scalePressure": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "250k-centroid-conservative-mx5",
+    "model": "mx5",
+    "hypothesis": "centroid-conservative tests the measured cut-cell centroid instead of a volume/area wall-distance approximation",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30,
+      "centroidWallDistance": true,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "cutGradient": true,
+      "scalePressure": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "250k-centroid-conservative-ahmed25",
+    "model": "ahmed25",
+    "hypothesis": "centroid-conservative tests the measured cut-cell centroid instead of a volume/area wall-distance approximation",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30,
+      "centroidWallDistance": true,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "cutGradient": true,
+      "scalePressure": true
+    },
+    "maxExtension": 1
+  }
+]

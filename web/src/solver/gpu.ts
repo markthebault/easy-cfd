@@ -111,7 +111,7 @@ export class FlowSolver {
     u32.set([c.sideMode, 1, c.partIsWheel.length, HISTORY_SLOTS], 16);
     u32.set(c.goff, 20);
     f32.set([...c.momentOrigin, 0], 24);
-    u32.set([c.wallModel === "log" ? 1 : 0, 0, c.limiter, 0], 28);
+    u32.set([c.wallModel === "log" ? 1 : 0, 0, c.limiter, c.numericalFlags], 28);
     f32[29] = c.mergeBoost;
     this.buffer("params", new Uint8Array(params), GPUBufferUsage.UNIFORM);
     this.buffer("parts", c.parts, GPUBufferUsage.UNIFORM);

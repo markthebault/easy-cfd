@@ -126,6 +126,10 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
       faceU[side] = fv;
     }
     grad[a] = (faceU[1] - faceU[0]) / width[a];
+    if ((P.opts.w & 4u) != 0u) {
+      let lowOpen = aper[idx - s][a];
+      grad[a] = (apC[a] * faceU[1] - lowOpen * faceU[0] + (lowOpen - apC[a]) * uwCell) / (width[a] * max(theta, 0.05));
+    }
   }
 
   // Wall contact: cut or stepped car surface, and the road. wallDU is the tangential slip speed.
@@ -180,6 +184,11 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
     let wVis = 6.0 * nu / (BETA1 * wallY * wallY);
     let wLog = sk / (CMU25 * KAPPA * wallY);
     wNew = sqrt(wVis * wVis + wLog * wLog);
+    if ((P.opts.w & 8u) != 0u) {
+      let yp = CMU25 * sk * wallY / nu;
+      wNew = select(wVis, wLog, yp > YPLUS_LAM);
+      if (yp <= YPLUS_LAM) { G = 0.0; }
+    }
   } else if (wallY < 1e29) {
     // Equilibrium wall model: k, omega and nut take their log-layer values for the friction
     // velocity implied by the local slip (νt = κ uτ y), with the viscous omega blended in.

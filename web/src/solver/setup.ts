@@ -48,6 +48,7 @@ export interface Level {
 }
 
 export interface CaseSetup {
+  numericalFlags: number;
   momentOrigin: Vec3;
   /** Set by the preparation worker to pair fields with the grid they belong to. */
   caseKey?: number;
@@ -192,7 +193,7 @@ function levelCoef(
 }
 
 function galerkin(f: Level): Level {
-  const nx = f.nx / 2, ny = f.ny / 2, nz = f.nz / 2;
+  const nx = Math.ceil(f.nx / 2), ny = Math.ceil(f.ny / 2), nz = Math.ceil(f.nz / 2);
   const NX = nx + 2, NY = ny + 2, NZ = nz + 2, NC = NX * NY * NZ;
   const coef = new Float32Array(NC * 4);
   for (let K = 1; K <= nz; K++)
@@ -204,6 +205,7 @@ function galerkin(f: Level): Level {
           for (let dj = 0; dj < 2; dj++)
             for (let di = 0; di < 2; di++) {
               const i = 2 * I - 1 + di, j = 2 * J - 1 + dj, k = 2 * K - 1 + dk;
+              if (i > f.nx || j > f.ny || k > f.nz) continue;
               const g = 4 * (i + f.NX * (j + f.NY * k));
               if (di === 1 && I < nx) gx += f.coef[g];
               if (dj === 1 && J < ny) gy += f.coef[g + 1];
@@ -265,7 +267,7 @@ export function prepareCase(allParts: SolverPart[], settings: Settings, shapes?:
   const h0 = length / preset.cellsPerLength;
   const zones = detailZones(shapes ?? partShapes(gridParts), h0, settings.detail_boxes ?? []);
   const { grid, ratio, requested } = detailGrid(
-    { domain, low, high, cellsPerLength: preset.cellsPerLength, levels: MG_LEVELS, wakeLength: ext.wakeLength, wakeGrowth: ext.wakeGrowth, phase: ext.phase, clearanceBand },
+    { domain, low, high, cellsPerLength: preset.cellsPerLength, levels: MG_LEVELS, wakeLength: ext.wakeLength, wakeGrowth: ext.wakeGrowth, phase: ext.phase, clearanceBand, targetCells: ext.targetCells, farGrowth: ext.farGrowth, farCellSize: ext.farCellSize, finePadding: ext.finePadding, roofPadding: ext.roofPadding },
     zones,
     detailRatio(settings),
     ext.detailBudget,
@@ -325,7 +327,7 @@ export function prepareCase(allParts: SolverPart[], settings: Settings, shapes?:
     }
   }
   // Distances were computed against all parts; a node inside a cut part is negative regardless.
-  const fr = fractions(grid, sdf, nd.part);
+  const fr = fractions(grid, sdf, nd.part, ext.centroidWallDistance);
   void cutIndex;
   timings.voxelize = performance.now() - t0 - timings.grid;
 
@@ -492,7 +494,8 @@ export function prepareCase(allParts: SolverPart[], settings: Settings, shapes?:
         if (area > 1e-3 * face) {
           const vol = x.widths[i] * y.widths[j] * z.widths[k];
           const hloc = Math.min(x.widths[i], y.widths[j], z.widths[k]);
-          const yw = Math.min(Math.max((0.5 * theta[c] * vol) / area, 0.1 * hloc), 1.0 * hloc);
+          const geometricY = fr.centroidWallDistance?.[c];
+          const yw = Math.min(Math.max(geometricY && geometricY > 0 ? geometricY : (0.5 * theta[c] * vol) / area, 0.1 * hloc), 1.0 * hloc);
           wall.set([wx, wy, wz, yw], 4 * g);
           wallList.push(g, part | ((partIsWheel[part] ? 1 : 0) << 16));
         }
@@ -534,7 +537,7 @@ export function prepareCase(allParts: SolverPart[], settings: Settings, shapes?:
   const openX = new Float32Array(cells), openY = new Float32Array(cells), openZ = new Float32Array(cells);
   const beta = (t0c: number, w0: number, t1c: number, w1: number) => {
     const tf = (t0c * w0 + t1c * w1) / (w0 + w1);
-    return SCALE_PRESSURE ? tf / Math.max(tf, THETA_EFF) : 1;
+    return (ext.scalePressure ?? SCALE_PRESSURE) ? tf / Math.max(tf, THETA_EFF) : 1;
   };
   for (let k = 0; k < nz; k++)
     for (let j = 0; j < ny; j++)
@@ -587,6 +590,7 @@ export function prepareCase(allParts: SolverPart[], settings: Settings, shapes?:
 
   timings.total = performance.now() - t0;
   return {
+    numericalFlags: (ext.fullStress ? 1 : 0) | (ext.noEddyFloor ? 2 : 0) | (ext.cutGradient ? 4 : 0) | (ext.stepwiseOmega ? 8 : 0) | ((ext.scalePressure ?? SCALE_PRESSURE) ? 16 : 0),
     momentOrigin: momentOrigin(resolvedAxles(settings.axles, allParts)),
     grid,
     NX,

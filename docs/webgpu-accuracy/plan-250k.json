@@ -1,0 +1,230 @@
+[
+  {
+    "key": "250k-baseline-sample",
+    "model": "sample",
+    "hypothesis": "baseline at double the screening mesh and longer convergence time",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "250k-baseline-mx5",
+    "model": "mx5",
+    "hypothesis": "baseline at double the screening mesh and longer convergence time",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "250k-baseline-ahmed25",
+    "model": "ahmed25",
+    "hypothesis": "baseline at double the screening mesh and longer convergence time",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "250k-stress-omega-sample",
+    "model": "sample",
+    "hypothesis": "stress-omega at double the screening mesh and longer convergence time",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30,
+      "fullStress": true,
+      "stepwiseOmega": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "250k-stress-omega-mx5",
+    "model": "mx5",
+    "hypothesis": "stress-omega at double the screening mesh and longer convergence time",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30,
+      "fullStress": true,
+      "stepwiseOmega": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "250k-stress-omega-ahmed25",
+    "model": "ahmed25",
+    "hypothesis": "stress-omega at double the screening mesh and longer convergence time",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30,
+      "fullStress": true,
+      "stepwiseOmega": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "250k-stress-gradient-sample",
+    "model": "sample",
+    "hypothesis": "stress-gradient at double the screening mesh and longer convergence time",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "cutGradient": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "250k-stress-gradient-mx5",
+    "model": "mx5",
+    "hypothesis": "stress-gradient at double the screening mesh and longer convergence time",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "cutGradient": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "250k-stress-gradient-ahmed25",
+    "model": "ahmed25",
+    "hypothesis": "stress-gradient at double the screening mesh and longer convergence time",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "cutGradient": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "250k-sst-consistent-sample",
+    "model": "sample",
+    "hypothesis": "sst-consistent at double the screening mesh and longer convergence time",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "cutGradient": true,
+      "noEddyFloor": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "250k-sst-consistent-mx5",
+    "model": "mx5",
+    "hypothesis": "sst-consistent at double the screening mesh and longer convergence time",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "cutGradient": true,
+      "noEddyFloor": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "250k-sst-consistent-ahmed25",
+    "model": "ahmed25",
+    "hypothesis": "sst-consistent at double the screening mesh and longer convergence time",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "cutGradient": true,
+      "noEddyFloor": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "250k-volume-consistent-sample",
+    "model": "sample",
+    "hypothesis": "volume-consistent at double the screening mesh and longer convergence time",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "cutGradient": true,
+      "scalePressure": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "250k-volume-consistent-mx5",
+    "model": "mx5",
+    "hypothesis": "volume-consistent at double the screening mesh and longer convergence time",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "cutGradient": true,
+      "scalePressure": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "250k-volume-consistent-ahmed25",
+    "model": "ahmed25",
+    "hypothesis": "volume-consistent at double the screening mesh and longer convergence time",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "cutGradient": true,
+      "scalePressure": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "250k-clearance-sample",
+    "model": "sample",
+    "hypothesis": "clearance at double the screening mesh and longer convergence time",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "clearanceBand": 0.564
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "250k-clearance-mx5",
+    "model": "mx5",
+    "hypothesis": "clearance at double the screening mesh and longer convergence time",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "clearanceBand": 0.564
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "250k-clearance-ahmed25",
+    "model": "ahmed25",
+    "hypothesis": "clearance at double the screening mesh and longer convergence time",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 30,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "clearanceBand": 0.564
+    },
+    "maxExtension": 1
+  }
+]

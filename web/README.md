@@ -55,6 +55,8 @@ Presets on a 4.2 m car: Fast and Medium use a ≈ 1.7 M-cell grid (72 cells alon
 
 Accuracy against the OpenFOAM app, model by model, is recorded in [VALIDATION.md](VALIDATION.md), including the models that miss the ±10 % target.
 
+The [3% accuracy study](../docs/webgpu-accuracy/README.md) records exact cell budgets, experimental stress and wall-function corrections, refinement runs, native-reference convergence and final 500,000-cell comparisons. These experiments do not establish 3% accuracy for the browser solver.
+
 ## Development
 
 ```sh

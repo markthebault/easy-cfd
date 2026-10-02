@@ -105,9 +105,27 @@ export interface Settings extends VehicleWeight {
 
 /**
  * Numerical switches used by the validation study (validation/run-validation.mjs --settings).
- * The app never sets them; defaults are the validated configuration.
+ * The app never sets them; production runs use the default numerical path.
  */
 export interface ExperimentalSettings {
+  /** Controlled total Cartesian cell budget, including solid cells, excluding ghosts. */
+  targetCells?: number;
+  /** Include the transpose velocity-gradient term in turbulent stress. */
+  fullStress?: boolean;
+  /** Use SST viscosity without the additional log-layer floor. */
+  noEddyFloor?: boolean;
+  /** Aperture-weighted velocity gradients on the actual fluid control volume. */
+  cutGradient?: boolean;
+  /** Match OpenFOAM's default stepwise omega wall function. */
+  stepwiseOmega?: boolean;
+  /** Consistent cut-cell pressure and momentum volume scaling. */
+  scalePressure?: boolean;
+  /** Use the interpolated surface distance at the fluid-volume centroid in cut cells. */
+  centroidWallDistance?: boolean;
+  farGrowth?: number;
+  farCellSize?: number;
+  finePadding?: number;
+  roofPadding?: number;
   wallModel?: "k" | "log";
   limiter?: number;
   thinMode?: "wall" | "dilate";

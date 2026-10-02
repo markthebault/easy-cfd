@@ -90,10 +90,14 @@ fn tangential(a: u32, t: u32, idx: i32, e: vec3<i32>, uP: f32, dA: f32, dA1: f32
     var nuF = nuL + 0.25 * (nut(idx) + nut(idx + sa) + nut(nIdx) + nut(nIdx + sa));
     // Face leading away from a wall: carry the log-layer eddy viscosity κ uτ y that a resolved
     // boundary layer would have there (the SST strain limiter underestimates it on coarse cells).
-    if (wy > 0.0 && f32(sgn) * wall4[t] < -0.3) {
+    if ((P.opts.w & 2u) == 0u && wy > 0.0 && f32(sgn) * wall4[t] < -0.3) {
       nuF = max(nuF, nuL + KAPPA * wall4.w * (wy + 0.5 * cw(t, et)));
     }
     diff += acv * nuF * area * (uN - uP) / dist;
+    if ((P.opts.w & 1u) != 0u) {
+      // Symmetric Newtonian/Reynolds stress: nu_eff * d(U_t)/dx_a.
+      diff += f32(sgn) * acv * nuF * area * (U(t, fIdx + sa) - U(t, fIdx)) / delta;
+    }
     var uf: f32;
     if (F * f32(sgn) >= 0.0) {
       if (side == 1) {
@@ -153,6 +157,7 @@ fn predict(a: u32, idx: i32, e: vec3<i32>) {
   let fw = select(vanLeer(uE, uP, uW), vanLeer(uWW, uW, uP), Fw >= 0.0);
   var conv = Fe * (fe - uP) - Fw * (fw - uP);
   var diff = aE * (nuL + nut(idx + sa)) * areaA * (uE - uP) / dA1 - aW * (nuL + nut(idx)) * areaA * (uP - uW) / dA;
+  if ((P.opts.w & 1u) != 0u) { diff *= 2.0; }
   // Wall shear on the wall area inside this control volume (half of each adjacent cell's).
   let w0 = wall[u32(idx)];
   let w1 = wall[u32(idx + sa)];
@@ -352,7 +357,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
           let dA = cw(a, ea);
           let dA1 = cw(a, ea + 1);
           let tf = (ap.w * dA + aper[idx + sa].w * dA1) / (dA + dA1);
-          var beta = select(1.0, tf / max(tf, THETA_EFF), ${SCALE_PRESSURE});
+          var beta = select(1.0, tf / max(tf, THETA_EFF), ${SCALE_PRESSURE} || (P.opts.w & 16u) != 0u);
           // merged sliver: the link face carries a boosted correction (same factor as in the Poisson matrix)
           let lP = (flags[id] >> 16u) & 7u;
           let lE = (flags[u32(idx + sa)] >> 16u) & 7u;

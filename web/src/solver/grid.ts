@@ -183,6 +183,46 @@ export interface GridRequest {
   clearanceBand?: number;
   /** Detail refinement bands per axis (x, y, z). */
   bands?: [Band[], Band[], Band[]];
+  /** Exact total Cartesian cell count for controlled resolution studies. */
+  targetCells?: number;
+  /** Far-field stretching and near-car extents for controlled mesh-allocation studies. */
+  farGrowth?: number;
+  farCellSize?: number;
+  finePadding?: number;
+  roofPadding?: number;
+}
+
+/** Factor a cell budget while preserving the original grid's aspect ratio. */
+export function countsForCells(cells: number, shape: number[]): [number, number, number] {
+  if (!Number.isSafeInteger(cells) || cells < 512) throw new Error("The cell count must be an integer of at least 512.");
+  const scale = Math.cbrt(cells / (shape[0] * shape[1] * shape[2]));
+  const wanted = shape.map(n => n * scale);
+  let best: [number, number, number] | undefined, score = Infinity;
+  for (let x = 8; x <= cells / 64; x++) {
+    if (cells % x) continue;
+    const yz = cells / x;
+    for (let y = 8; y <= yz / 8; y++) {
+      if (yz % y) continue;
+      const z = yz / y;
+      const error = Math.log(x / wanted[0]) ** 2 + Math.log(y / wanted[1]) ** 2 + Math.log(z / wanted[2]) ** 2;
+      if (error < score) { score = error; best = [x, y, z]; }
+    }
+  }
+  if (!best) throw new Error("The cell count cannot form a grid with at least eight cells on each axis.");
+  return best;
+}
+
+/** Resample the stretched face coordinates, keeping both tunnel boundaries exact. */
+function resizeAxis(a: Axis, n: number): Axis {
+  if (n === a.n) return a;
+  const faces = new Float64Array(n + 1), centers = new Float64Array(n), widths = new Float64Array(n);
+  for (let i = 0; i <= n; i++) {
+    const at = i * a.n / n, lo = Math.min(Math.floor(at), a.n - 1);
+    faces[i] = a.faces[lo] + (at - lo) * (a.faces[lo + 1] - a.faces[lo]);
+  }
+  faces[n] = a.faces[a.n];
+  for (let i = 0; i < n; i++) { centers[i] = (faces[i] + faces[i + 1]) / 2; widths[i] = faces[i + 1] - faces[i]; }
+  return { n, faces, centers, widths };
 }
 
 export function buildGrid(req: GridRequest): Grid {
@@ -192,30 +232,37 @@ export function buildGrid(req: GridRequest): Grid {
   const W = high[1] - low[1];
   const H = high[2];
   const h = L / req.cellsPerLength;
-  const hmax = Math.max(L / 6, 4 * h);
+  const hmax = Math.max((req.farCellSize ?? 1/6) * L, 4 * h);
   const multiple = 2 ** (req.levels - 1);
   const ph = req.phase ?? [0, 0, 0];
-  const x = buildAxis(
-    { lo: x0, hi: x1, fineLo: low[0] - 0.25 * L - ph[0] * h, fineHi: high[0] + (req.wakeLength ?? 0.8) * L - ph[0] * h, h, growthLo: 1.15, growthHi: req.wakeGrowth ?? 1.08, hmax },
+  let x = buildAxis(
+    { lo: x0, hi: x1, fineLo: low[0] - (req.finePadding ?? 0.25) * L - ph[0] * h, fineHi: high[0] + (req.wakeLength ?? 0.8) * L - ph[0] * h, h, growthLo: req.farGrowth ?? 1.15, growthHi: req.wakeGrowth ?? req.farGrowth ?? 1.08, hmax },
     multiple,
     undefined,
     req.bands?.[0],
   );
-  const pad = 0.15 * Math.max(W, 0.3 * L);
-  const y = buildAxis(
-    { lo: y0, hi: y1, fineLo: low[1] - pad - ph[1] * h, fineHi: high[1] + pad - ph[1] * h, h, growthLo: 1.15, growthHi: 1.15, hmax },
+  const pad = req.finePadding !== undefined ? req.finePadding * L : 0.15 * Math.max(W, 0.3 * L);
+  let y = buildAxis(
+    { lo: y0, hi: y1, fineLo: low[1] - pad - ph[1] * h, fineHi: high[1] + pad - ph[1] * h, h, growthLo: req.farGrowth ?? 1.15, growthHi: req.farGrowth ?? 1.15, hmax },
     multiple,
     undefined,
     req.bands?.[1],
   );
-  const z = buildAxis(
-    { lo: 0, hi: z1, fineLo: 0, fineHi: H + 0.25 * Math.max(H, 0.2 * L) + ph[2] * h, h, growthLo: 1.15, growthHi: 1.15, hmax },
+  let z = buildAxis(
+    { lo: 0, hi: z1, fineLo: 0, fineHi: H + (req.roofPadding !== undefined ? req.roofPadding*L : 0.25 * Math.max(H, 0.2 * L)) + ph[2] * h, h, growthLo: req.farGrowth ?? 1.15, growthHi: req.farGrowth ?? 1.15, hmax },
     multiple,
     req.clearanceBand ? { hi: req.clearanceBand + ph[2] * 0.5 * h, h: 0.5 * h } : undefined,
     req.bands?.[2],
   );
+  let baseH = h;
+  if (req.targetCells !== undefined) {
+    const oldCells = x.n * y.n * z.n;
+    const counts = countsForCells(req.targetCells, [x.n, y.n, z.n]);
+    [x, y, z] = [x, y, z].map((a, i) => resizeAxis(a, counts[i]));
+    baseH *= Math.cbrt(oldCells / req.targetCells);
+  }
   const hmin = Math.min(...[x, y, z].map((a) => Math.min(...a.widths)));
-  return { x, y, z, h, hmin, cells: x.n * y.n * z.n };
+  return { x, y, z, h: baseH, hmin, cells: x.n * y.n * z.n };
 }
 
 /** Index of the cell containing coordinate c (clamped). */

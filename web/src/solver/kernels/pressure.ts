@@ -84,7 +84,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
   for (var dz = 0; dz < 2; dz++) {
     for (var dy = 0; dy < 2; dy++) {
       for (var dx = 0; dx < 2; dx++) {
-        sum += residual(f0.x + dx + lx() * (f0.y + dy) + lxy() * (f0.z + dz));
+        let child = f0 + vec3<i32>(dx, dy, dz);
+        if (linterior(child)) { sum += residual(child.x + lx() * child.y + lxy() * child.z); }
       }
     }
   }

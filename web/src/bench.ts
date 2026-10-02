@@ -4,6 +4,7 @@ import { parseSTL } from "./geometry/stl";
 import { requestDevice } from "./solver/gpu";
 import { runSimulation } from "./solver/run";
 import { prepareCase } from "./solver/setup";
+import { makeSampler } from "./solver/extract";
 import { DEFAULT_SETTINGS, type Settings, type SolverPart } from "./solver/types";
 
 interface BenchPart {
@@ -22,6 +23,8 @@ interface BenchSpec {
   lts?: boolean;
   ltsMaxFactor?: number;
   solver?: { vcycles?: number; cfl?: number; preSmooth?: number; postSmooth?: number; coarseSweeps?: number };
+  maxExtension?: number;
+  probeWake?: boolean;
 }
 
 const log = (m: string) => {
@@ -55,6 +58,7 @@ async function run(spec: BenchSpec) {
     solver: spec.solver,
     lts: spec.lts,
     ltsMaxFactor: spec.ltsMaxFactor,
+    maxExtension: spec.maxExtension,
     onProgress: (p) => {
       if (p.elapsed - lastLog > 5) {
         lastLog = p.elapsed;
@@ -63,10 +67,40 @@ async function run(spec: BenchSpec) {
       }
     },
   });
+  const fields = await solver.readFields();
+  let divergence2 = 0, flux2 = 0, maximumDivergence = 0, fluidCount = 0, nonFinite = 0, clipped = 0;
+  const { NX, NY, NZ, NC, aper, flags } = setup;
+  const dx = setup.grid.x.widths, dy = setup.grid.y.widths, dz = setup.grid.z.widths;
+  for (let k = 1; k < NZ - 1; k++) for (let j = 1; j < NY - 1; j++) for (let i = 1; i < NX - 1; i++) {
+    const q = i + NX * (j + NY * k);
+    if (flags[q] & 1) continue;
+    const flux = [
+      (aper[4*q] * fields.vel[q] - aper[4*(q-1)] * fields.vel[q-1]) / dx[i-1],
+      (aper[4*q+1] * fields.vel[NC+q] - aper[4*(q-NX)+1] * fields.vel[NC+q-NX]) / dy[j-1],
+      (aper[4*q+2] * fields.vel[2*NC+q] - aper[4*(q-NX*NY)+2] * fields.vel[2*NC+q-NX*NY]) / dz[k-1],
+    ];
+    const d = flux[0]+flux[1]+flux[2];
+    divergence2 += d*d; flux2 += flux.reduce((s,v) => s+v*v, 0); maximumDivergence = Math.max(maximumDivergence,Math.abs(d)); fluidCount++;
+    for (const v of [fields.vel[q],fields.vel[NC+q],fields.vel[2*NC+q],fields.pres[q],fields.turb[q],fields.turb[NC+q],fields.turb[2*NC+q]]) if (!Number.isFinite(v)) nonFinite++;
+    for (const v of [fields.vel[q],fields.vel[NC+q],fields.vel[2*NC+q]]) if (Math.abs(v) >= 3.99*setup.freestream) clipped++;
+  }
+  const diagnostics = { nonFinite, clipped, fluidCount, divergenceRms: Math.sqrt(divergence2/fluidCount), relativeDivergence: Math.sqrt(divergence2/Math.max(flux2,1e-30)), maximumDivergence };
+  const probes: {position: number[]; valid: boolean; velocity: number[]; pressure: number; k: number}[] = [];
+  if (spec.probeWake) {
+    const sampler = makeSampler(setup,fields), value = new Float32Array(5);
+    const width = setup.high[1]-setup.low[1], centre = (setup.high[1]+setup.low[1])/2;
+    for (const downstream of [.2,.7,1.5]) for (let j=0;j<9;j++) for (let k=0;k<9;k++) {
+      const position = [setup.high[0]+downstream*setup.length,centre+(j/8-.5)*1.4*width,setup.high[2]*(.15+1.15*k/8)];
+      const valid = sampler.sample(position[0],position[1],position[2],value);
+      probes.push({position,valid,velocity:Array.from(value.slice(0,3)),pressure:value[3],k:value[4]});
+    }
+  }
   solver.destroy();
   const every = Math.max(1, Math.floor(result.history.length / 400));
   return {
     adapter: adapterName,
+    diagnostics,
+    probes,
     prepSeconds,
     grid: [setup.grid.x.n, setup.grid.y.n, setup.grid.z.n],
     h: setup.grid.h,

@@ -1,0 +1,197 @@
+[
+  {
+    "key": "screen-baseline-sample",
+    "model": "sample",
+    "hypothesis": "baseline isolated equation/mesh comparison",
+    "settings": {
+      "targetCells": 125000,
+      "custom_passes": 12
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "screen-baseline-mx5",
+    "model": "mx5",
+    "hypothesis": "baseline isolated equation/mesh comparison",
+    "settings": {
+      "targetCells": 125000,
+      "custom_passes": 12
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "screen-baseline-ahmed25",
+    "model": "ahmed25",
+    "hypothesis": "baseline isolated equation/mesh comparison",
+    "settings": {
+      "targetCells": 125000,
+      "custom_passes": 12
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "screen-stress-sample",
+    "model": "sample",
+    "hypothesis": "stress isolated equation/mesh comparison",
+    "settings": {
+      "targetCells": 125000,
+      "custom_passes": 12,
+      "fullStress": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "screen-stress-mx5",
+    "model": "mx5",
+    "hypothesis": "stress isolated equation/mesh comparison",
+    "settings": {
+      "targetCells": 125000,
+      "custom_passes": 12,
+      "fullStress": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "screen-stress-ahmed25",
+    "model": "ahmed25",
+    "hypothesis": "stress isolated equation/mesh comparison",
+    "settings": {
+      "targetCells": 125000,
+      "custom_passes": 12,
+      "fullStress": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "screen-omega-sample",
+    "model": "sample",
+    "hypothesis": "omega isolated equation/mesh comparison",
+    "settings": {
+      "targetCells": 125000,
+      "custom_passes": 12,
+      "stepwiseOmega": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "screen-omega-mx5",
+    "model": "mx5",
+    "hypothesis": "omega isolated equation/mesh comparison",
+    "settings": {
+      "targetCells": 125000,
+      "custom_passes": 12,
+      "stepwiseOmega": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "screen-omega-ahmed25",
+    "model": "ahmed25",
+    "hypothesis": "omega isolated equation/mesh comparison",
+    "settings": {
+      "targetCells": 125000,
+      "custom_passes": 12,
+      "stepwiseOmega": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "screen-gradient-sample",
+    "model": "sample",
+    "hypothesis": "gradient isolated equation/mesh comparison",
+    "settings": {
+      "targetCells": 125000,
+      "custom_passes": 12,
+      "cutGradient": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "screen-gradient-mx5",
+    "model": "mx5",
+    "hypothesis": "gradient isolated equation/mesh comparison",
+    "settings": {
+      "targetCells": 125000,
+      "custom_passes": 12,
+      "cutGradient": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "screen-gradient-ahmed25",
+    "model": "ahmed25",
+    "hypothesis": "gradient isolated equation/mesh comparison",
+    "settings": {
+      "targetCells": 125000,
+      "custom_passes": 12,
+      "cutGradient": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "screen-sst-viscosity-sample",
+    "model": "sample",
+    "hypothesis": "sst-viscosity isolated equation/mesh comparison",
+    "settings": {
+      "targetCells": 125000,
+      "custom_passes": 12,
+      "noEddyFloor": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "screen-sst-viscosity-mx5",
+    "model": "mx5",
+    "hypothesis": "sst-viscosity isolated equation/mesh comparison",
+    "settings": {
+      "targetCells": 125000,
+      "custom_passes": 12,
+      "noEddyFloor": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "screen-sst-viscosity-ahmed25",
+    "model": "ahmed25",
+    "hypothesis": "sst-viscosity isolated equation/mesh comparison",
+    "settings": {
+      "targetCells": 125000,
+      "custom_passes": 12,
+      "noEddyFloor": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "screen-pressure-sample",
+    "model": "sample",
+    "hypothesis": "pressure isolated equation/mesh comparison",
+    "settings": {
+      "targetCells": 125000,
+      "custom_passes": 12,
+      "scalePressure": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "screen-pressure-mx5",
+    "model": "mx5",
+    "hypothesis": "pressure isolated equation/mesh comparison",
+    "settings": {
+      "targetCells": 125000,
+      "custom_passes": 12,
+      "scalePressure": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "screen-pressure-ahmed25",
+    "model": "ahmed25",
+    "hypothesis": "pressure isolated equation/mesh comparison",
+    "settings": {
+      "targetCells": 125000,
+      "custom_passes": 12,
+      "scalePressure": true
+    },
+    "maxExtension": 1
+  }
+]

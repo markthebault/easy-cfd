@@ -1,0 +1,306 @@
+[
+  {
+    "key": "long-baseline-sample",
+    "model": "sample",
+    "hypothesis": "Four pressure multigrid cycles with a deeper coarse solve check projection error; 80 flow passes check whether remaining force disagreement comes from short runs",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 80,
+      "max_seconds": 2400
+    },
+    "maxExtension": 1,
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24
+    }
+  },
+  {
+    "key": "long-baseline-sample-yaw10",
+    "model": "sample-yaw10",
+    "hypothesis": "Four pressure multigrid cycles with a deeper coarse solve check projection error; 80 flow passes check whether remaining force disagreement comes from short runs",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 80,
+      "max_seconds": 2400
+    },
+    "maxExtension": 1,
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24
+    }
+  },
+  {
+    "key": "long-baseline-sample-wing",
+    "model": "sample-wing",
+    "hypothesis": "Four pressure multigrid cycles with a deeper coarse solve check projection error; 80 flow passes check whether remaining force disagreement comes from short runs",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 80,
+      "max_seconds": 2400
+    },
+    "maxExtension": 1,
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24
+    }
+  },
+  {
+    "key": "long-baseline-mx5",
+    "model": "mx5",
+    "hypothesis": "Four pressure multigrid cycles with a deeper coarse solve check projection error; 80 flow passes check whether remaining force disagreement comes from short runs",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 80,
+      "max_seconds": 2400
+    },
+    "maxExtension": 1,
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24
+    }
+  },
+  {
+    "key": "long-baseline-z4",
+    "model": "z4",
+    "hypothesis": "Four pressure multigrid cycles with a deeper coarse solve check projection error; 80 flow passes check whether remaining force disagreement comes from short runs",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 80,
+      "max_seconds": 2400
+    },
+    "maxExtension": 1,
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24
+    }
+  },
+  {
+    "key": "long-baseline-z4-wing",
+    "model": "z4-wing",
+    "hypothesis": "Four pressure multigrid cycles with a deeper coarse solve check projection error; 80 flow passes check whether remaining force disagreement comes from short runs",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 80,
+      "max_seconds": 2400
+    },
+    "maxExtension": 1,
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24
+    }
+  },
+  {
+    "key": "long-baseline-simple-car",
+    "model": "simple-car",
+    "hypothesis": "Four pressure multigrid cycles with a deeper coarse solve check projection error; 80 flow passes check whether remaining force disagreement comes from short runs",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 80,
+      "max_seconds": 2400
+    },
+    "maxExtension": 1,
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24
+    }
+  },
+  {
+    "key": "long-baseline-ahmed25",
+    "model": "ahmed25",
+    "hypothesis": "Four pressure multigrid cycles with a deeper coarse solve check projection error; 80 flow passes check whether remaining force disagreement comes from short runs",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 80,
+      "max_seconds": 2400
+    },
+    "maxExtension": 1,
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24
+    }
+  },
+  {
+    "key": "long-focused-stress-sample",
+    "model": "sample",
+    "hypothesis": "Four pressure multigrid cycles with a deeper coarse solve check projection error; 80 flow passes check whether remaining force disagreement comes from short runs",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 80,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "custom_cells": 72,
+      "farGrowth": 1.3,
+      "farCellSize": 0.5,
+      "finePadding": 0.03,
+      "roofPadding": 0.03,
+      "wakeLength": 0.2,
+      "max_seconds": 2400
+    },
+    "maxExtension": 1,
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24
+    }
+  },
+  {
+    "key": "long-focused-stress-sample-yaw10",
+    "model": "sample-yaw10",
+    "hypothesis": "Four pressure multigrid cycles with a deeper coarse solve check projection error; 80 flow passes check whether remaining force disagreement comes from short runs",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 80,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "custom_cells": 72,
+      "farGrowth": 1.3,
+      "farCellSize": 0.5,
+      "finePadding": 0.03,
+      "roofPadding": 0.03,
+      "wakeLength": 0.2,
+      "max_seconds": 2400
+    },
+    "maxExtension": 1,
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24
+    }
+  },
+  {
+    "key": "long-focused-stress-sample-wing",
+    "model": "sample-wing",
+    "hypothesis": "Four pressure multigrid cycles with a deeper coarse solve check projection error; 80 flow passes check whether remaining force disagreement comes from short runs",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 80,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "custom_cells": 72,
+      "farGrowth": 1.3,
+      "farCellSize": 0.5,
+      "finePadding": 0.03,
+      "roofPadding": 0.03,
+      "wakeLength": 0.2,
+      "max_seconds": 2400
+    },
+    "maxExtension": 1,
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24
+    }
+  },
+  {
+    "key": "long-focused-stress-mx5",
+    "model": "mx5",
+    "hypothesis": "Four pressure multigrid cycles with a deeper coarse solve check projection error; 80 flow passes check whether remaining force disagreement comes from short runs",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 80,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "custom_cells": 72,
+      "farGrowth": 1.3,
+      "farCellSize": 0.5,
+      "finePadding": 0.03,
+      "roofPadding": 0.03,
+      "wakeLength": 0.2,
+      "max_seconds": 2400
+    },
+    "maxExtension": 1,
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24
+    }
+  },
+  {
+    "key": "long-focused-stress-z4",
+    "model": "z4",
+    "hypothesis": "Four pressure multigrid cycles with a deeper coarse solve check projection error; 80 flow passes check whether remaining force disagreement comes from short runs",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 80,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "custom_cells": 72,
+      "farGrowth": 1.3,
+      "farCellSize": 0.5,
+      "finePadding": 0.03,
+      "roofPadding": 0.03,
+      "wakeLength": 0.2,
+      "max_seconds": 2400
+    },
+    "maxExtension": 1,
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24
+    }
+  },
+  {
+    "key": "long-focused-stress-z4-wing",
+    "model": "z4-wing",
+    "hypothesis": "Four pressure multigrid cycles with a deeper coarse solve check projection error; 80 flow passes check whether remaining force disagreement comes from short runs",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 80,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "custom_cells": 72,
+      "farGrowth": 1.3,
+      "farCellSize": 0.5,
+      "finePadding": 0.03,
+      "roofPadding": 0.03,
+      "wakeLength": 0.2,
+      "max_seconds": 2400
+    },
+    "maxExtension": 1,
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24
+    }
+  },
+  {
+    "key": "long-focused-stress-simple-car",
+    "model": "simple-car",
+    "hypothesis": "Four pressure multigrid cycles with a deeper coarse solve check projection error; 80 flow passes check whether remaining force disagreement comes from short runs",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 80,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "custom_cells": 72,
+      "farGrowth": 1.3,
+      "farCellSize": 0.5,
+      "finePadding": 0.03,
+      "roofPadding": 0.03,
+      "wakeLength": 0.2,
+      "max_seconds": 2400
+    },
+    "maxExtension": 1,
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24
+    }
+  },
+  {
+    "key": "long-focused-stress-ahmed25",
+    "model": "ahmed25",
+    "hypothesis": "Four pressure multigrid cycles with a deeper coarse solve check projection error; 80 flow passes check whether remaining force disagreement comes from short runs",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 80,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "custom_cells": 72,
+      "farGrowth": 1.3,
+      "farCellSize": 0.5,
+      "finePadding": 0.03,
+      "roofPadding": 0.03,
+      "wakeLength": 0.2,
+      "max_seconds": 2400
+    },
+    "maxExtension": 1,
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24
+    }
+  }
+]

@@ -1,0 +1,334 @@
+[
+  {
+    "key": "500k-baseline-sample",
+    "model": "sample",
+    "hypothesis": "baseline verifies equation and cell-allocation corrections at 500,000 cells",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 40
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "500k-baseline-mx5",
+    "model": "mx5",
+    "hypothesis": "baseline verifies equation and cell-allocation corrections at 500,000 cells",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 40
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "500k-baseline-ahmed25",
+    "model": "ahmed25",
+    "hypothesis": "baseline verifies equation and cell-allocation corrections at 500,000 cells",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 40
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "500k-baseline-sample-wing",
+    "model": "sample-wing",
+    "hypothesis": "baseline verifies equation and cell-allocation corrections at 500,000 cells",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 40
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "500k-stress-omega-sample",
+    "model": "sample",
+    "hypothesis": "stress-omega verifies equation and cell-allocation corrections at 500,000 cells",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 40,
+      "fullStress": true,
+      "stepwiseOmega": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "500k-stress-omega-mx5",
+    "model": "mx5",
+    "hypothesis": "stress-omega verifies equation and cell-allocation corrections at 500,000 cells",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 40,
+      "fullStress": true,
+      "stepwiseOmega": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "500k-stress-omega-ahmed25",
+    "model": "ahmed25",
+    "hypothesis": "stress-omega verifies equation and cell-allocation corrections at 500,000 cells",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 40,
+      "fullStress": true,
+      "stepwiseOmega": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "500k-stress-omega-sample-wing",
+    "model": "sample-wing",
+    "hypothesis": "stress-omega verifies equation and cell-allocation corrections at 500,000 cells",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 40,
+      "fullStress": true,
+      "stepwiseOmega": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "500k-centroid-stress-sample",
+    "model": "sample",
+    "hypothesis": "centroid-stress verifies equation and cell-allocation corrections at 500,000 cells",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 40,
+      "centroidWallDistance": true,
+      "fullStress": true,
+      "stepwiseOmega": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "500k-centroid-stress-mx5",
+    "model": "mx5",
+    "hypothesis": "centroid-stress verifies equation and cell-allocation corrections at 500,000 cells",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 40,
+      "centroidWallDistance": true,
+      "fullStress": true,
+      "stepwiseOmega": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "500k-centroid-stress-ahmed25",
+    "model": "ahmed25",
+    "hypothesis": "centroid-stress verifies equation and cell-allocation corrections at 500,000 cells",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 40,
+      "centroidWallDistance": true,
+      "fullStress": true,
+      "stepwiseOmega": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "500k-centroid-stress-sample-wing",
+    "model": "sample-wing",
+    "hypothesis": "centroid-stress verifies equation and cell-allocation corrections at 500,000 cells",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 40,
+      "centroidWallDistance": true,
+      "fullStress": true,
+      "stepwiseOmega": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "500k-focused-stress-sample",
+    "model": "sample",
+    "hypothesis": "focused-stress verifies equation and cell-allocation corrections at 500,000 cells",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 40,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "custom_cells": 72,
+      "farGrowth": 1.3,
+      "farCellSize": 0.5,
+      "finePadding": 0.03,
+      "roofPadding": 0.03,
+      "wakeLength": 0.2
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "500k-focused-stress-mx5",
+    "model": "mx5",
+    "hypothesis": "focused-stress verifies equation and cell-allocation corrections at 500,000 cells",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 40,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "custom_cells": 72,
+      "farGrowth": 1.3,
+      "farCellSize": 0.5,
+      "finePadding": 0.03,
+      "roofPadding": 0.03,
+      "wakeLength": 0.2
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "500k-focused-stress-ahmed25",
+    "model": "ahmed25",
+    "hypothesis": "focused-stress verifies equation and cell-allocation corrections at 500,000 cells",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 40,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "custom_cells": 72,
+      "farGrowth": 1.3,
+      "farCellSize": 0.5,
+      "finePadding": 0.03,
+      "roofPadding": 0.03,
+      "wakeLength": 0.2
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "500k-focused-stress-sample-wing",
+    "model": "sample-wing",
+    "hypothesis": "focused-stress verifies equation and cell-allocation corrections at 500,000 cells",
+    "settings": {
+      "targetCells": 500000,
+      "custom_passes": 40,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "custom_cells": 72,
+      "farGrowth": 1.3,
+      "farCellSize": 0.5,
+      "finePadding": 0.03,
+      "roofPadding": 0.03,
+      "wakeLength": 0.2
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "1000000-stress-omega-sample",
+    "model": "sample",
+    "hypothesis": "Larger and longer solve checks whether the correction survives refinement",
+    "settings": {
+      "targetCells": 1000000,
+      "custom_passes": 40,
+      "fullStress": true,
+      "stepwiseOmega": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "1000000-stress-omega-mx5",
+    "model": "mx5",
+    "hypothesis": "Larger and longer solve checks whether the correction survives refinement",
+    "settings": {
+      "targetCells": 1000000,
+      "custom_passes": 40,
+      "fullStress": true,
+      "stepwiseOmega": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "1000000-focused-stress-sample",
+    "model": "sample",
+    "hypothesis": "Larger and longer solve checks whether the correction survives refinement",
+    "settings": {
+      "targetCells": 1000000,
+      "custom_passes": 40,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "custom_cells": 72,
+      "farGrowth": 1.3,
+      "farCellSize": 0.5,
+      "finePadding": 0.03,
+      "roofPadding": 0.03,
+      "wakeLength": 0.2
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "1000000-focused-stress-mx5",
+    "model": "mx5",
+    "hypothesis": "Larger and longer solve checks whether the correction survives refinement",
+    "settings": {
+      "targetCells": 1000000,
+      "custom_passes": 40,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "custom_cells": 72,
+      "farGrowth": 1.3,
+      "farCellSize": 0.5,
+      "finePadding": 0.03,
+      "roofPadding": 0.03,
+      "wakeLength": 0.2
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "2000000-stress-omega-sample",
+    "model": "sample",
+    "hypothesis": "Larger and longer solve checks whether the correction survives refinement",
+    "settings": {
+      "targetCells": 2000000,
+      "custom_passes": 60,
+      "fullStress": true,
+      "stepwiseOmega": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "2000000-stress-omega-mx5",
+    "model": "mx5",
+    "hypothesis": "Larger and longer solve checks whether the correction survives refinement",
+    "settings": {
+      "targetCells": 2000000,
+      "custom_passes": 60,
+      "fullStress": true,
+      "stepwiseOmega": true
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "2000000-focused-stress-sample",
+    "model": "sample",
+    "hypothesis": "Larger and longer solve checks whether the correction survives refinement",
+    "settings": {
+      "targetCells": 2000000,
+      "custom_passes": 60,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "custom_cells": 72,
+      "farGrowth": 1.3,
+      "farCellSize": 0.5,
+      "finePadding": 0.03,
+      "roofPadding": 0.03,
+      "wakeLength": 0.2
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "2000000-focused-stress-mx5",
+    "model": "mx5",
+    "hypothesis": "Larger and longer solve checks whether the correction survives refinement",
+    "settings": {
+      "targetCells": 2000000,
+      "custom_passes": 60,
+      "fullStress": true,
+      "stepwiseOmega": true,
+      "custom_cells": 72,
+      "farGrowth": 1.3,
+      "farCellSize": 0.5,
+      "finePadding": 0.03,
+      "roofPadding": 0.03,
+      "wakeLength": 0.2
+    },
+    "maxExtension": 1
+  }
+]
