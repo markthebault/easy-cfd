@@ -81,6 +81,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
       transportMatrix[2u*id] = vec4<f32>(0.0); transportMatrix[2u*id+1u] = vec4<f32>(0.0);
       transportMatrix[2u*(n+id)] = vec4<f32>(0.0); transportMatrix[2u*(n+id)+1u] = vec4<f32>(0.0);
       transportMatrix[4u*n+id] = vec4<f32>(0.0);
+      transportMatrix[5u*n+id] = vec4<f32>(0.0);
     }
     turbOut[3u * n + id] = turb[3u * n + id];
     turbOut[id] = turb[id];
@@ -351,6 +352,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
       transportMatrix[2u*(n+id)+1u] = vec4<f32>(linksW[4],linksW[5],dw/TRANSPORT_RELAX,sw);
     }
     transportMatrix[4u*n+id] = vec4<f32>(omegaUsed,volume*BETA_STAR/TRANSPORT_RELAX,S2,k);
+    transportMatrix[5u*n+id] = vec4<f32>(G,volume,productionK,0.0);
     turbOut[id] = k; turbOut[n+id] = omegaUsed; turbOut[2u*n+id] = nutOld;
     return;
   }
@@ -367,7 +369,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
 `;
 
 // omega is solved first. The k diagonal/source are updated with the newly solved omega before
-// the k sweeps, reproducing the destruction term's ordering in kOmegaSSTBase::correct().
+// the k sweeps. The production cap also uses new omega, as in kOmegaSSTBase::correct().
 export const solveSstWGSL = common + /* wgsl */ `
 @group(0) @binding(4) var<storage, read> input: array<f32>;
 @group(0) @binding(5) var<storage, read_write> output: array<f32>;
@@ -388,6 +390,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
     let aux = coefficients[4u*n+id];
     let change = aux.y*(input[n+id]-aux.x);
     diagonal += change; rhs += 0.3*change*aux.w;
+    let production = coefficients[5u*n+id];
+    rhs += production.y*(min(production.x,0.9*aux.w*input[n+id])-production.z);
   }
   output[offset+id] = max((sum+rhs)/max(diagonal,1e-20),select(1e-10,1e-6,COMPONENT == 1u));
 }

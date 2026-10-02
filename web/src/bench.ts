@@ -81,6 +81,7 @@ async function run(spec: BenchSpec) {
         if (component === 0) {
           const change=sstMatrix[16*n+4*q+1]*(fields.turb[n+q]-sstMatrix[16*n+4*q]);
           diagonal+=change; rhs+=.3*change*sstMatrix[16*n+4*q+3];
+          rhs+=sstMatrix[20*n+4*q+1]*(Math.min(sstMatrix[20*n+4*q],.9*sstMatrix[16*n+4*q+3]*fields.turb[n+q])-sstMatrix[20*n+4*q+2]);
         }
         let final=diagonal*fields.turb[component*n+q]-rhs, initial=diagonal*old(q)-rhs;
         const offsets=[-1,1,-setup.NX,setup.NX,-setup.NX*setup.NY,setup.NX*setup.NY];
@@ -180,7 +181,7 @@ async function validateSst() {
   const {device,adapterName}=await devicePromise;
   const {solveSstWGSL}=await import("./solver/kernels/turbulence");
   const nx=14,ny=10,nz=8,n=nx*ny*nz;
-  const initial=new Float32Array(5*n), matrix=new Float32Array(20*n);
+  const initial=new Float32Array(5*n), matrix=new Float32Array(24*n);
   const expectedK=new Float32Array(n),expectedOmega=new Float32Array(n);
   const offsets=[-1,1,-nx,nx,-nx*ny,nx*ny];
   for(let z=0;z<nz;z++) for(let y=0;y<ny;y++) for(let x=0;x<nx;x++) {
@@ -193,9 +194,10 @@ async function validateSst() {
     const omegaChange=.1*(expectedOmega[q]-1);
     for(let side=0;side<6;side++) {matrix[8*q+side]=1;matrix[8*(n+q)+side]=1;}
     matrix[8*q+6]=8;
-    matrix[8*q+7]=(2+omegaChange)*expectedK[q]-.3*omegaChange*.1;
+    matrix[8*q+7]=(2+omegaChange)*expectedK[q]-.3*omegaChange*.1-.25*.09*(expectedOmega[q]-1);
     matrix[8*(n+q)+6]=8; matrix[8*(n+q)+7]=2*expectedOmega[q];
     matrix[16*n+4*q]=1;matrix[16*n+4*q+1]=.1;matrix[16*n+4*q+3]=.1;
+    matrix[20*n+4*q]=3;matrix[20*n+4*q+1]=.25;matrix[20*n+4*q+2]=.09;
   }
   const owned:GPUBuffer[]=[];
   const buffer=(data:ArrayBufferView,usage=GPUBufferUsage.STORAGE)=>{
@@ -223,11 +225,11 @@ async function validateSst() {
     for(let z=1;z<nz-1;z++) for(let y=1;y<ny-1;y++) for(let x=1;x<nx-1;x++) {
       const q=x+nx*(y+ny*z);kError=Math.max(kError,Math.abs(result[q]-expectedK[q]));omegaError=Math.max(omegaError,Math.abs(result[n+q]-expectedOmega[q]));
       const change=.1*(result[n+q]-1);
-      const r=(8+change)*result[q]-matrix[8*q+7]-.3*change*.1-offsets.reduce((sum,s)=>sum+result[q+s],0);
+      const r=(8+change)*result[q]-matrix[8*q+7]-.3*change*.1-.25*.09*(result[n+q]-1)-offsets.reduce((sum,s)=>sum+result[q+s],0);
       residual=Math.max(residual,Math.abs(r));
     }
     if(kError>2e-5 || omegaError>2e-5 || residual>2e-5)throw new Error(`SST operator check failed: ${JSON.stringify({kError,omegaError,residual})}`);
-    return {adapter:adapterName,kMaximumError:kError,omegaMaximumError:omegaError,maximumResidual:residual,scalarSweeps:160,fluidSteps:0,reference:"manufactured affine scalar solutions with new-omega k destruction"};
+    return {adapter:adapterName,kMaximumError:kError,omegaMaximumError:omegaError,maximumResidual:residual,scalarSweeps:160,fluidSteps:0,reference:"manufactured affine scalar solutions with new-omega k destruction and production cap"};
   } finally {for(const buffer of owned)buffer.destroy();}
 }
 (window as unknown as {cfdBench:{validateSst:typeof validateSst}}).cfdBench.validateSst=validateSst;

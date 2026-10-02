@@ -166,7 +166,7 @@ export class FlowSolver {
     turb.fill(1, 4 * NC, 5 * NC);
     this.buffer("turbA", turb);
     this.buffer("turbB", turb);
-    this.buffer("sstMatrix", c.numericalFlags & 2048 ? NC*5*16 : 16);
+    this.buffer("sstMatrix", c.numericalFlags & 2048 ? NC*6*16 : 16);
     if (c.numericalFlags & 2048) this.buffer("sstScratch", turb);
 
     c.levels.forEach((lvl, l) => {
@@ -492,7 +492,7 @@ export class FlowSolver {
   /** Benchmark diagnostics for the last assembled SST systems; no extra flow step. */
   async readSstMatrix(): Promise<Float32Array | undefined> {
     if (!(this.c.numericalFlags & 2048)) return undefined;
-    return new Float32Array(await this.read(this.buffers.sstMatrix,this.c.NC*80));
+    return new Float32Array(await this.read(this.buffers.sstMatrix,this.c.NC*96));
   }
 
   /** Encode and submit `n` steps. */
