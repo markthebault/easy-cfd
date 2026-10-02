@@ -378,7 +378,9 @@ override COMPONENT: u32 = 1u;
 @compute @workgroup_size(${WG})
 fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {
   let id = gidx(gid,nwg); let n = NC(); if (id >= n) { return; }
-  for (var plane = 0u; plane < 5u; plane++) { output[plane*n+id] = input[plane*n+id]; }
+  // Only k and omega participate in these sweeps. Keep viscosity, wall distance and local
+  // time-step factors in the primary field buffer; copying them each sweep wastes bandwidth.
+  for (var plane = 0u; plane < 2u; plane++) { output[plane*n+id] = input[plane*n+id]; }
   let m = 2u*(COMPONENT*n+id); let c0 = coefficients[m]; let c1 = coefficients[m+1u];
   if (c1.z <= 0.0) { return; }
   let q = i32(id); let offset = COMPONENT*n;
