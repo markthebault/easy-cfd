@@ -4,10 +4,11 @@ export const TOLERANCE = 0.03;
 export const coefficientError = (value, reference) => Number.isFinite(value) && Number.isFinite(reference)
   ? Math.abs(value-reference)/Math.max(Math.abs(reference),0.01) : Infinity;
 
-export function comparison(result, reference) {
+export function comparison(result, reference, tolerance = TOLERANCE) {
+  if (!(tolerance > 0 && tolerance < 1)) throw new Error("Tolerance must be between zero and one");
   if (!reference || reference.settingsMatch === false) return { agrees: false, qualified: false, reason: "Missing or mismatched OpenFOAM reference" };
   const cdError = coefficientError(result.cd, reference.cd), clError = coefficientError(result.cl, reference.cl);
-  const agrees = cdError <= TOLERANCE && clError <= TOLERANCE;
+  const agrees = cdError < tolerance && clError < tolerance;
   const stable = result.settled && (result.cdBand ?? Infinity)/Math.max(Math.abs(result.cd),0.01) <= 0.01
     && (result.clBand ?? Infinity)/Math.max(Math.abs(result.cl),0.01) <= 0.01;
   const finite = result.diagnostics?.nonFinite === 0 && result.diagnostics?.clipped === 0;

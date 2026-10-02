@@ -36,10 +36,12 @@ def source_field(reference):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--from-iteration", type=int, default=92)
+    parser.add_argument("--output", default="docs/webgpu-accuracy")
     args = parser.parse_args()
-    references = json.loads((EVIDENCE / "references.json").read_text())
+    evidence = ROOT / args.output
+    references = json.loads((evidence / "references.json").read_text())
     cache, comparisons = {}, []
-    for file in sorted((EVIDENCE / "iterations").glob("*.json")):
+    for file in sorted((evidence / "iterations").glob("*.json")):
         record = json.loads(file.read_text())
         if record["iteration"] < args.from_iteration or record["status"] != "completed":
             continue
@@ -71,7 +73,7 @@ def main():
         cp_rms = float(np.sqrt(np.mean((2*(gpu_p[valid]-p[valid])/speed**2)**2)))
         comparisons.append({"iteration": record["iteration"], "model": record["model"], "referenceIteration": iteration, "points": len(points), "validPoints": int(np.sum(valid)), "velocityRelativeL2": u_error, "pressureCpRms": cp_rms, "referenceQualified": reference.get("forceSettled") and reference.get("residualConverged") and reference.get("meshIndependent"), "samples": [{"position": list(xyz[n]), "valid": bool(valid[n]), "openfoamVelocity": list(u[n].astype(float)), "webgpuVelocity": list(gpu_u[n]), "openfoamPressure": float(p[n]), "webgpuPressure": float(gpu_p[n])} for n in range(len(points))]})
         print(f"{record['model']}: {int(np.sum(valid))}/{len(points)} wake points, velocity L2 error {100*u_error:.2f}%, Cp RMS {cp_rms:.4f}", flush=True)
-    (EVIDENCE / "field-comparisons.json").write_text(json.dumps(comparisons, indent=2)+"\n")
+    (evidence / "field-comparisons.json").write_text(json.dumps(comparisons, indent=2)+"\n")
 
 
 if __name__ == "__main__":

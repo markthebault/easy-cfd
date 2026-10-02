@@ -173,6 +173,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
     // Sliver cells report the pressure of the cell they are merged with (up to two links).
     var pc = idx;
     for (var hop = 0; hop < 2; hop++) {
+      if (bitcast<f32>(P.opts.y) <= 1.0) { break; }
       let l = (flags[u32(pc)] >> 16u) & 7u;
       if (l == 0u) { break; }
       let ax = (l - 1u) / 2u;

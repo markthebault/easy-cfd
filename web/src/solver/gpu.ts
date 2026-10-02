@@ -6,6 +6,7 @@ import { WG } from "./kernels/common";
 import { bcVelocityWGSL, correctWGSL, divergenceWGSL, dtFinalizeWGSL, dtReduceWGSL, momentumWGSL } from "./kernels/flow";
 import { forcesSumWGSL, forcesWGSL, partForcesWGSL, prolongWGSL, restrictWGSL, smoothWGSL } from "./kernels/pressure";
 import { bcTurbWGSL, turbulenceWGSL } from "./kernels/turbulence";
+import { assembleMomentumWGSL, solveMomentumWGSL, momentumPressureWGSL, coarsenMomentumPressureWGSL } from "./kernels/simple";
 import { scaledLevels, type CaseSetup } from "./setup";
 import { NU } from "./types";
 
@@ -72,11 +73,15 @@ export class FlowSolver {
   /** Local time stepping: per-cell step factors set by setTimeFactors(); the global step is frozen. */
   lts = false;
   splitMomentum = true;
+  momentumSweeps = 4;
+  private momentumRelaxation: number;
   private forceGroups: number;
 
-  constructor(device: GPUDevice, c: CaseSetup, opts: { cfl?: number; correctionFactor?: number } = {}) {
+  constructor(device: GPUDevice, c: CaseSetup, opts: { cfl?: number; correctionFactor?: number; momentumRelaxation?: number } = {}) {
     this.device = device;
     this.c = c;
+    this.momentumRelaxation = opts.momentumRelaxation ?? 0.7;
+    if (!(this.momentumRelaxation > 0 && this.momentumRelaxation <= 1)) throw new Error("Momentum relaxation must be in (0, 1]");
     if (opts.correctionFactor) this.correctionFactor = opts.correctionFactor;
     this.forceGroups = Math.max(1, Math.ceil(c.faceCount / WG));
     this.createBuffers(opts.cfl ?? 0.4);
@@ -143,6 +148,13 @@ export class FlowSolver {
     }
     this.buffer("vel", vel);
     this.buffer("velStar", vel);
+    this.buffer("mobility", new Float32Array(3 * NC));
+    if (c.numericalFlags & (64|256)) this.buffer("pressureGeometry", c.levels[0].coef);
+    if (c.numericalFlags & 64) {
+      this.buffer("momentumMatrix", NC * 3 * 8 * 4);
+      this.buffer("momentumA", vel);
+      this.buffer("momentumB", vel);
+    }
     this.buffer("divScratch", NC * 4);
     // Planes: k | omega | nut | wall distance (static) | local time-step factor (static between rebuilds).
     const turb = new Float32Array(5 * NC);
@@ -194,10 +206,19 @@ export class FlowSolver {
     for (let a = 0; a < 3; a++) this.kernel(`momentum${a}`, momentumWGSL, [...base, "read", "rw", "read", "read", "read", "read"], { COMP: a });
     for (let p = 0; p < 3; p++) {
       this.kernel(`bcVel${p}`, bcVelocityWGSL, [...base, "rw"], { PHASE: p });
-      this.kernel(`bcTurb${p}`, bcTurbWGSL, [...base, "rw"], { PHASE: p });
+      this.kernel(`bcTurb${p}`, bcTurbWGSL, [...base, "rw", "read"], { PHASE: p });
     }
     this.kernel("divergence", divergenceWGSL, [...base, "read", "rw", "read", "read"]);
-    this.kernel("correct", correctWGSL, [...base, "read", "rw", "read", "read", "read", "read"]);
+    this.kernel("correct", correctWGSL, [...base, "read", "rw", "read", "read", "read", "read", "read"]);
+    if (this.c.numericalFlags & 64) {
+      this.kernel("assembleMomentum", assembleMomentumWGSL, [...base, "read", "read", "read", "read", "rw", "rw", "read"], {RELAX: this.momentumRelaxation});
+      this.kernel("solveMomentum", solveMomentumWGSL, [...base, "read", "rw", "read", "read", "read"]);
+      this.kernel("extractMomentum", solveMomentumWGSL, [...base, "read", "rw", "read", "read", "read"], {EXTRACT: 1});
+    }
+    if (this.c.numericalFlags & (64|256)) {
+      this.kernel("momentumPressure", momentumPressureWGSL, [...base, "read", "read", "rw", "read", "read", "read"]);
+      this.kernel("coarsenMomentumPressure", coarsenMomentumPressureWGSL, ["uniform", "read", "rw"]);
+    }
     this.kernel("turbulence", turbulenceWGSL, [...base, "read", "read", "rw", "read", "read", "read"]);
     this.kernel("dtReduce", dtReduceWGSL, [...base, "read", "read", "rw", "read"]);
     this.kernel("dtFinalize", dtFinalizeWGSL, [...base, "rw", "rw"]);
@@ -224,8 +245,8 @@ export class FlowSolver {
     for (let p = 0; p < 3; p++) {
       this.group(`bcVel${p}:vel`, `bcVel${p}`, [...base, b.vel]);
       this.group(`bcVel${p}:velStar`, `bcVel${p}`, [...base, b.velStar]);
-      this.group(`bcTurb${p}:A`, `bcTurb${p}`, [...base, b.turbA]);
-      this.group(`bcTurb${p}:B`, `bcTurb${p}`, [...base, b.turbB]);
+      this.group(`bcTurb${p}:A`, `bcTurb${p}`, [...base, b.turbA,b.vel]);
+      this.group(`bcTurb${p}:B`, `bcTurb${p}`, [...base, b.turbB,b.vel]);
     }
     for (const [cur, next] of [
       ["A", "B"],
@@ -237,11 +258,19 @@ export class FlowSolver {
       this.group(`turbulence:${cur}`, "turbulence", [...base, b.vel, t, tn, b.state, b.aper, b.wall]);
       this.group(`dtReduce:${cur}`, "dtReduce", [...base, b.vel, t, b.lmax, b.aper]);
       this.group(`forces:${cur}`, "forces", [...base, b.vel, t, this.levelBuffers[0].phi, b.faces, b.partials, b.wall, b.faceForce]);
+      if (this.c.numericalFlags & 64) this.group(`assembleMomentum:${cur}`, "assembleMomentum", [...base, b.vel, t, b.aper, b.wall, b.momentumMatrix, b.mobility, b.state]);
     }
     const L = this.levelBuffers;
     this.group("divergence", "divergence", [...base, b.velStar, L[0].rhs, b.state, b.aper]);
     this.group("divergence:vel", "divergence", [...base, b.vel, b.divScratch, b.state, b.aper]);
-    this.group("correct", "correct", [...base, b.velStar, b.vel, L[0].phi, b.turbA, b.state, b.aper]);
+    this.group("correct", "correct", [...base, b.velStar, b.vel, L[0].phi, b.turbA, b.state, b.aper, b.mobility]);
+    if (this.c.numericalFlags & 64) {
+      for (const [key, input, output] of [["start",b.vel,b.momentumA],["AB",b.momentumA,b.momentumB],["BA",b.momentumB,b.momentumA]] as const) {
+        this.group(`solveMomentum:${key}`, "solveMomentum", [...base,input,output,b.momentumMatrix,b.mobility,L[0].phi]);
+      }
+      for (const parity of ["A","B"]) this.group(`extractMomentum:${parity}`, "extractMomentum", [...base,b[`momentum${parity}`],b.velStar,b.momentumMatrix,b.mobility,L[0].phi]);
+    }
+    for (const parity of ["A","B"]) if (this.c.numericalFlags & (64|256)) this.group(`momentumPressure:${parity}`, "momentumPressure", [...base,b.pressureGeometry,b.mobility,L[0].coef,b.state,b[`turb${parity}`],b.velStar]);
     this.group("dtFinalize", "dtFinalize", [...base, b.lmax, b.state]);
     this.group("forcesSum", "forcesSum", [...base, b.partials, b.state, b.history]);
     this.group("partForces", "partForces", [...base, b.faceForce, b.partRanges, b.state, b.partAcc]);
@@ -252,6 +281,7 @@ export class FlowSolver {
       if (c) {
         this.group(`restrict:${l}`, "restrict", [lv.uniform, lv.coef, lv.phi, lv.rhs, c.rhs, c.phi]);
         this.group(`prolong:${l}`, "prolong", [lv.uniform, lv.coef, lv.phi, c.phi]);
+        if (this.c.numericalFlags & (64|256)) this.group(`coarsenMomentumPressure:${l}`, "coarsenMomentumPressure", [lv.uniform,lv.coef,c.coef]);
       }
     });
   }
@@ -303,9 +333,18 @@ export class FlowSolver {
     const planes = [c.NY * c.NZ, c.NX * c.NZ, c.NX * c.NY];
     const cur = this.stepParity === 0 ? "A" : "B";
     for (let p = 0; p < 3; p++) this.dispatch(pass, `bcVel${p}`, `bcVel${p}:vel`, planes[p]);
-    if (this.splitMomentum) for (let a = 0; a < 3; a++) this.dispatchWith(pass, `momentum${a}`, "momentum", `momentum:${cur}`, NC);
+    if (c.numericalFlags & 64) {
+      this.dispatch(pass,"assembleMomentum",`assembleMomentum:${cur}`,NC);
+      this.dispatch(pass,"solveMomentum","solveMomentum:start",NC);
+      for (let s = 1; s < this.momentumSweeps; s++) this.dispatch(pass,"solveMomentum",`solveMomentum:${s % 2 ? "AB" : "BA"}`,NC);
+      this.dispatch(pass,"extractMomentum",`extractMomentum:${this.momentumSweeps % 2 ? "A" : "B"}`,NC);
+    } else if (this.splitMomentum) for (let a = 0; a < 3; a++) this.dispatchWith(pass, `momentum${a}`, "momentum", `momentum:${cur}`, NC);
     else this.dispatch(pass, "momentum", `momentum:${cur}`, NC);
     for (let p = 0; p < 3; p++) this.dispatch(pass, `bcVel${p}`, `bcVel${p}:velStar`, planes[p]);
+    if (c.numericalFlags & (64|256)) {
+      this.dispatch(pass,"momentumPressure",`momentumPressure:${cur}`,NC);
+      for (let l = 0; l < c.levels.length-1; l++) this.dispatch(pass,"coarsenMomentumPressure",`coarsenMomentumPressure:${l}`,c.levels[l+1].NC);
+    }
     this.dispatch(pass, "divergence", "divergence", NC);
     for (let v = 0; v < this.vcycles; v++) this.vcycle(pass);
     this.dispatch(pass, "correct", "correct", NC);
@@ -332,7 +371,14 @@ export class FlowSolver {
     const enc = this.device.createCommandEncoder();
     enc.copyBufferToBuffer(this.buffers.vel, 0, this.buffers.velStar, 0, c.NC * 12);
     const pass = enc.beginComputePass();
+    if (c.numericalFlags & 64) {
+      this.dispatch(pass,"assembleMomentum","assembleMomentum:A",c.NC);
+    }
     for (let p = 0; p < 3; p++) this.dispatch(pass, `bcVel${p}`, `bcVel${p}:velStar`, planes[p]);
+    if (c.numericalFlags & (64|256)) {
+      this.dispatch(pass,"momentumPressure","momentumPressure:A",c.NC);
+      for (let l = 0; l < c.levels.length-1; l++) this.dispatch(pass,"coarsenMomentumPressure",`coarsenMomentumPressure:${l}`,c.levels[l+1].NC);
+    }
     this.dispatch(pass, "divergence", "divergence", c.NC);
     for (let v = 0; v < vcycles; v++) this.vcycle(pass);
     this.dispatch(pass, "correct", "correct", c.NC);

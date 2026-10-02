@@ -19,3 +19,10 @@ test("matching numbers do not qualify an unresolved reference or unstable soluti
   assert.equal(comparison({...result,diagnostics:{nonFinite:0,clipped:0,relativeDivergence:.02}},reference).qualified,false);
   assert.equal(comparison(result,null).qualified,false);
 });
+test("a separate 5 percent campaign keeps the signed lift requirement and strict bound",()=>{
+  assert.equal(comparison({...result,cd:.313,cl:-.208},reference,.05).agrees,true);
+  assert.equal(comparison({...result,cd:.316},reference,.05).agrees,false);
+  assert.equal(comparison({...result,cl:.2},reference,.05).agrees,false);
+  assert.equal(comparison({...result,cd:.313},reference).agrees,false);
+  assert.throws(()=>comparison(result,reference,0),/Tolerance/);
+});

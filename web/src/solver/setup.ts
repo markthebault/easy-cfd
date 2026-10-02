@@ -327,7 +327,7 @@ export function prepareCase(allParts: SolverPart[], settings: Settings, shapes?:
     }
   }
   // Distances were computed against all parts; a node inside a cut part is negative regardless.
-  const fr = fractions(grid, sdf, nd.part, ext.centroidWallDistance);
+  const fr = fractions(grid, sdf, nd.part, ext.centroidWallDistance || ext.surfaceWallDistance);
   void cutIndex;
   timings.voxelize = performance.now() - t0 - timings.grid;
 
@@ -477,6 +477,13 @@ export function prepareCase(allParts: SolverPart[], settings: Settings, shapes?:
         const c = i + nx * (j + ny * k);
         const g = i + 1 + NX * (j + 1 + NY * (k + 1));
         wallDist[g] = dist[c];
+        if (ext.surfaceWallDistance && theta[c]) {
+          const q = i + ng.x.n*(j+ng.y.n*k);
+          const xy = ng.x.n*ng.y.n;
+          const centreDistance = (sdf[q]+sdf[q+1]+sdf[q+ng.x.n]+sdf[q+ng.x.n+1]+sdf[q+xy]+sdf[q+xy+1]+sdf[q+xy+ng.x.n]+sdf[q+xy+ng.x.n+1])/8;
+          const surfaceDistance = fr.centroidWallDistance?.[c] || centreDistance;
+          if (surfaceDistance > 0 && surfaceDistance < .9*band) wallDist[g] = Math.min(surfaceDistance,z.centers[k]);
+        }
         aper.set([ax[c], ay[c], az[c], theta[c]], 4 * g);
         if (!theta[c]) {
           flags[g] = 1 | ((solidLabel[c] - 1) << 8);
@@ -590,7 +597,7 @@ export function prepareCase(allParts: SolverPart[], settings: Settings, shapes?:
 
   timings.total = performance.now() - t0;
   return {
-    numericalFlags: (ext.fullStress ? 1 : 0) | (ext.noEddyFloor ? 2 : 0) | (ext.cutGradient ? 4 : 0) | (ext.stepwiseOmega ? 8 : 0) | ((ext.scalePressure ?? SCALE_PRESSURE) ? 16 : 0),
+    numericalFlags: (ext.fullStress ? 1 : 0) | (ext.noEddyFloor ? 2 : 0) | (ext.cutGradient ? 4 : 0) | (ext.stepwiseOmega ? 8 : 0) | ((ext.scalePressure ?? SCALE_PRESSURE) ? 16 : 0) | (ext.sstTransport ? 32 : 0) | (ext.simpleMomentum ? 64 : 0) | (ext.pseudoTransientMomentum ? 128 : 0) | (ext.freestreamPressure ? 256 : 0) | (ext.consistentMomentum ? 512 : 0) | (ext.limitedSstGradient ? 1024 : 0),
     momentOrigin: momentOrigin(resolvedAxles(settings.axles, allParts)),
     grid,
     NX,

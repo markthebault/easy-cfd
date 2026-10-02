@@ -22,7 +22,7 @@ interface BenchSpec {
   targetPasses?: number;
   lts?: boolean;
   ltsMaxFactor?: number;
-  solver?: { vcycles?: number; cfl?: number; preSmooth?: number; postSmooth?: number; coarseSweeps?: number };
+  solver?: { vcycles?: number; cfl?: number; preSmooth?: number; postSmooth?: number; coarseSweeps?: number; momentumSweeps?: number; momentumRelaxation?: number };
   maxExtension?: number;
   probeWake?: boolean;
 }
@@ -99,6 +99,9 @@ async function run(spec: BenchSpec) {
   const every = Math.max(1, Math.floor(result.history.length / 400));
   return {
     adapter: adapterName,
+    algorithm: setup.numericalFlags & 64 ? (setup.numericalFlags & 512 ? "staggered-SIMPLEC" : "staggered-SIMPLE") : "explicit-projection",
+    initialization: "freestream followed by divergence-free projection",
+    initializedFromReference: false,
     diagnostics,
     probes,
     prepSeconds,

@@ -1,5 +1,6 @@
 import { common, WG } from "./common";
 import { SCALE_PRESSURE, THETA_EFF } from "../setup";
+import { farfieldPressure } from "./farfield";
 
 // ---------------------------------------------------------------------------------------------
 // Momentum predictor: u* = u + dt/θeff (−convection + diffusion + wall shear); the pressure
@@ -244,8 +245,14 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
   } else if (PHASE == 1u) {
     if (id >= NX() * NZ()) { return; }
     let i = id % NX(); let k = id / NX();
+    var lowInflow = P.modes.x == 1u;
+    var highInflow = P.modes.x == 2u;
+    if ((P.opts.w & 256u) != 0u) {
+      lowInflow = vel[at(1u,i,0,k)] > 0.0;
+      highInflow = vel[at(1u,i,ny,k)] < 0.0;
+    }
     // y- side
-    if (P.modes.x == 1u) {
+    if (lowInflow) {
       vel[at(1u, i, 0, k)] = Uin.y;
       vel[at(0u, i, 0, k)] = 2.0 * Uin.x - vel[at(0u, i, 1, k)];
       vel[at(2u, i, 0, k)] = -vel[at(2u, i, 1, k)];
@@ -255,7 +262,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
       vel[at(2u, i, 0, k)] = vel[at(2u, i, 1, k)];
     }
     // y+ side
-    if (P.modes.x == 2u) {
+    if (highInflow) {
       vel[at(1u, i, ny, k)] = Uin.y;
       vel[at(0u, i, ny + 1, k)] = 2.0 * Uin.x - vel[at(0u, i, ny, k)];
       vel[at(2u, i, ny + 1, k)] = -vel[at(2u, i, ny, k)];
@@ -318,6 +325,8 @@ export const correctWGSL = common + /* wgsl */ `
 @group(0) @binding(7) var<storage, read> turb: array<f32>;      // plane 4: local time-step factor
 @group(0) @binding(8) var<storage, read> state: array<f32>;
 @group(0) @binding(9) var<storage, read> aper: array<vec4<f32>>;
+@group(0) @binding(10) var<storage, read> mobility: array<f32>;
+${farfieldPressure("velStar")}
 
 fn fac(idx: i32) -> f32 { return turb[4u * NC() + u32(idx)]; }
 
@@ -327,6 +336,7 @@ fn dirichlet(a: u32, side: i32) -> bool {
   // side: 0 low face, 1 high face of the domain along a
   if (a == 0u) { return side == 1; }
   if (a == 1u) {
+    if ((P.opts.w & 256u) != 0u) { return true; }
     if (side == 0) { return P.modes.x != 1u; }
     return P.modes.x != 2u;
   }
@@ -362,12 +372,19 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
           let lP = (flags[id] >> 16u) & 7u;
           let lE = (flags[u32(idx + sa)] >> 16u) & 7u;
           if (lP == 2u * a + 2u || lE == 2u * a + 1u) { beta = beta * bitcast<f32>(P.opts.y); }
-          v -= beta * dt0 * min(fac(idx), fac(idx + sa)) * (phi[u32(idx + sa)] - phi[id]) / (cc(a, ea + 1) - cc(a, ea));
+          let inverse = select(dt0 * min(fac(idx), fac(idx + sa)),mobility[o],(P.opts.w & 64u) != 0u);
+          v -= beta * inverse * (phi[u32(idx + sa)] - phi[id]) / (cc(a, ea + 1) - cc(a, ea));
         }
       } else if (ea == na && dirichlet(a, 1) && !solid(idx)) {
-        v -= dt0 * fac(idx) * (0.0 - phi[id]) / (0.5 * cw(a, ea));
+        let inverse = select(dt0 * fac(idx),mobility[o],(P.opts.w & 64u) != 0u);
+        var fraction = 1.0;
+        if (a == 1u && (P.opts.w & 256u) != 0u) { fraction = sidePressureFraction(idx,1); }
+        v -= fraction * inverse * (0.0 - phi[id]) / (0.5 * cw(a, ea));
       } else if (ea == 0 && dirichlet(a, 0) && !solid(idx + sa)) {
-        v -= dt0 * fac(idx + sa) * (phi[u32(idx + sa)] - 0.0) / (0.5 * cw(a, 1));
+        let inverse = select(dt0 * fac(idx + sa),mobility[o],(P.opts.w & 64u) != 0u);
+        var fraction = 1.0;
+        if (a == 1u && (P.opts.w & 256u) != 0u) { fraction = sidePressureFraction(idx,-1); }
+        v -= fraction * inverse * (phi[u32(idx + sa)] - 0.0) / (0.5 * cw(a, 1));
       }
     }
     // Safety net for pathological cut cells: no face velocity beyond four times the free stream.

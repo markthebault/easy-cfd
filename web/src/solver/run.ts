@@ -37,7 +37,7 @@ export interface RunOptions {
   /** Longest run as a multiple of the requested passes when forces keep drifting (default 2). */
   maxExtension?: number;
   /** Numerical overrides for experiments. */
-  solver?: { vcycles?: number; cfl?: number; preSmooth?: number; postSmooth?: number; coarseSweeps?: number };
+  solver?: { vcycles?: number; cfl?: number; preSmooth?: number; postSmooth?: number; coarseSweeps?: number; momentumSweeps?: number; momentumRelaxation?: number };
 }
 
 export const LTS_CFL = 0.35;
@@ -203,12 +203,19 @@ async function runLevel(
   const preset = resolvePreset(settings);
   opts.onProgress?.({ stage: "preparing", fraction: 0, time: 0, targetTime: 1, steps: 0, history: [], elapsed: 0, cells: 0 });
   const setup = opts.setup ?? prepareCase(parts, settings);
-  const solver = new FlowSolver(device, setup, { cfl: opts.solver?.cfl });
+  device.pushErrorScope("validation");
+  const solver = new FlowSolver(device, setup, { cfl: opts.solver?.cfl, momentumRelaxation: opts.solver?.momentumRelaxation });
+  const initializationError = await device.popErrorScope();
+  if (initializationError) { solver.destroy(); throw new Error(`GPU solver initialization: ${initializationError.message}`); }
   const o = opts.solver ?? {};
   if (o.vcycles !== undefined) solver.vcycles = o.vcycles;
   if (o.preSmooth !== undefined) solver.preSmooth = o.preSmooth;
   if (o.postSmooth !== undefined) solver.postSmooth = o.postSmooth;
   if (o.coarseSweeps !== undefined) solver.coarseSweeps = o.coarseSweeps;
+  if (o.momentumSweeps !== undefined) {
+    if (!Number.isInteger(o.momentumSweeps) || o.momentumSweeps < 1) throw new Error("Momentum sweeps must be a positive integer");
+    solver.momentumSweeps = o.momentumSweeps;
+  }
   solver.initialProjection();
   const U = setup.freestream;
   const L = setup.length;
@@ -261,8 +268,15 @@ async function runLevel(
       const state = await solver.readState();
       const dtWall = performance.now() - t0;
       batch = Math.max(1, Math.min(64, Math.round(batch * Math.min(2, Math.max(0.5, 120 / Math.max(dtWall, 1))))));
-      if (!Number.isFinite(state[1]) || !Number.isFinite(state[0]) || state[0] <= 0)
-        throw new Error("The flow solution diverged. Try a finer mesh or check the geometry for tiny gaps.");
+      if (!Number.isFinite(state[1]) || !Number.isFinite(state[0]) || state[0] <= 0) {
+        const fields = await solver.readFields();
+        const extrema = (values: Float32Array) => {
+          let minimum = Infinity, maximum = -Infinity, nonFinite = 0;
+          for (const value of values) { if (!Number.isFinite(value)) nonFinite++; else { minimum = Math.min(minimum,value); maximum = Math.max(maximum,value); } }
+          return {minimum,maximum,nonFinite};
+        };
+        throw new Error(`The flow solution diverged: ${JSON.stringify({state:Array.from(state),velocity:extrema(fields.vel),pressure:extrema(fields.pres),turbulence:extrema(fields.turb)})}`);
+      }
       time = tauOf(state[1]);
       const step = Math.round(state[2]);
       if (lts && time >= nextRebuild) {

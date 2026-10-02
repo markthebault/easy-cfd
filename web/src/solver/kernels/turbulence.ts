@@ -40,6 +40,32 @@ fn Uc(idx: i32) -> vec3<f32> {
     0.5 * (Uf(2u, idx) + Uf(2u, idx - NX() * NY())));
 }
 
+fn scalarGradient(q: i32, plane: u32) -> vec3<f32> {
+  let e = decode(u32(q)); let value = turb[plane*NC()+u32(q)];
+  var gradient = vec3<f32>(0.0);
+  for (var a = 0u; a < 3u; a++) {
+    let s = strideOf(a); let width = cw(a,e[a]);
+    for (var side = 0; side < 2; side++) {
+      let sign = select(-1,1,side == 1); let nb = q+sign*s;
+      let face = select(q-s,q,side == 1);
+      if (aper[u32(face)][a] <= 0.0 || solid(nb)) { continue; }
+      let distance = abs(cc(a,e[a]+sign)-cc(a,e[a]));
+      gradient[a] += f32(sign)*aper[u32(face)][a]*(turb[plane*NC()+u32(nb)]-value)*0.5/distance;
+    }
+    gradient[a] /= max(aper[u32(q)].w,0.05);
+  }
+  return gradient;
+}
+
+fn blendF1(q: i32) -> f32 {
+  if (!interior(decode(u32(q))) || solid(q)) { return 0.0; }
+  let k = max(turb[u32(q)],1e-10); let w = max(turb[NC()+u32(q)],1e-6);
+  let y = max(turb[3u*NC()+u32(q)],1e-6);
+  let CD = max(2.0*ALPHA_W2*dot(scalarGradient(q,0u),scalarGradient(q,1u))/w,1e-10);
+  let argument = min(min(max(sqrt(k)/(BETA_STAR*w*y),500.0*P.turb.z/(y*y*w)),4.0*ALPHA_W2*k/(CD*y*y)),10.0);
+  return safeTanh(pow(argument,4.0));
+}
+
 @compute @workgroup_size(${WG})
 fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {
   let id = gidx(gid, nwg);
@@ -69,12 +95,16 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
   let srcScale = theta / thetaE;
 
   var grad: mat3x3<f32>;             // grad[a] = d(U)/dx_a
+  var fluxDivergence = 0.0;
   var convK = 0.0; var convW = 0.0;
   var lapK = 0.0; var lapW = 0.0;
   var diffK = 0.0; var diffW = 0.0;
   var gk = vec3<f32>(0.0); var gw = vec3<f32>(0.0);
   let pos = vec3<f32>(cc(0u, e.x), cc(1u, e.y), cc(2u, e.z));
   let uwCell = wallVelocity(partOf(idx), pos);
+  let sourceAligned = (P.opts.w & 32u) != 0u;
+  var blendHere = 0.0;
+  if (sourceAligned) { blendHere = blendF1(idx); }
 
   for (var a = 0u; a < 3u; a++) {
     let s = strideOf(a);
@@ -106,6 +136,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
           // boundary ghost: inlet fixed value, otherwise zero gradient
           uN = select(uP, P.inlet.xyz, a == 0u && side == 0);
           if (a == 1u && ((side == 0 && P.modes.x == 1u) || (side == 1 && P.modes.x == 2u))) { uN = P.inlet.xyz; }
+          if (a == 1u && (P.opts.w & 256u) != 0u) { uN = select(uP,P.inlet.xyz,F < 0.0); }
         }
         let wP = 0.5 * width[a];
         let wN2 = 0.5 * cw(a, ea + sgn);
@@ -117,8 +148,18 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
         let nutF = 0.5 * (nutOld + nutN);
         lapK += alpha * ar * (kN - k) / d;
         lapW += alpha * ar * (wN - w) / d;
-        diffK += alpha * nutF * ar * (kN - k) / d;
-        diffW += alpha * nutF * ar * (wN - w) / d;
+        if (sourceAligned) {
+          let blendNeighbour = blendF1(nIdx);
+          let akP = mix(ALPHA_K2,ALPHA_K1,blendHere); let akN = mix(ALPHA_K2,ALPHA_K1,blendNeighbour);
+          let awP = mix(ALPHA_W2,ALPHA_W1,blendHere); let awN = mix(ALPHA_W2,ALPHA_W1,blendNeighbour);
+          let effectiveK = nu+(wN2*akP*nutOld+wP*akN*nutN)/(wP+wN2);
+          let effectiveW = nu+(wN2*awP*nutOld+wP*awN*nutN)/(wP+wN2);
+          diffK += alpha*effectiveK*ar*(kN-k)/d;
+          diffW += alpha*effectiveW*ar*(wN-w)/d;
+        } else {
+          diffK += alpha * nutF * ar * (kN - k) / d;
+          diffW += alpha * nutF * ar * (wN - w) / d;
+        }
         gk[a] += 0.5 * f32(sgn) * (kN - k) / d;
         gw[a] += 0.5 * f32(sgn) * (wN - w) / d;
       }
@@ -126,9 +167,42 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
       faceU[side] = fv;
     }
     grad[a] = (faceU[1] - faceU[0]) / width[a];
+    fluxDivergence += (apC[a]*faceU[1][a]-aper[idx-s][a]*faceU[0][a])/(width[a]*max(theta,0.05));
     if ((P.opts.w & 4u) != 0u) {
       let lowOpen = aper[idx - s][a];
       grad[a] = (apC[a] * faceU[1] - lowOpen * faceU[0] + (lowOpen - apC[a]) * uwCell) / (width[a] * max(theta, 0.05));
+    }
+  }
+
+  if ((P.opts.w & 1024u) != 0u) {
+    var lower = uP; var upper = uP;
+    for (var a = 0u; a < 3u; a++) {
+      let s = strideOf(a);
+      for (var side = 0; side < 2; side++) {
+        let sign = select(-1,1,side == 1); let nb = idx+sign*s;
+        var neighbour = Uc(nb);
+        if (solid(nb)) { neighbour = uwCell; }
+        if (a == 2u && e.z == 1 && side == 0) { neighbour = vec3<f32>(P.inlet.w,0.0,0.0); }
+        lower = min(lower,neighbour); upper = max(upper,neighbour);
+      }
+    }
+    let areaVector = wall[id].xyz; let wallArea = length(areaVector);
+    if (wallArea > 0.0) { lower = min(lower,uwCell); upper = max(upper,uwCell); }
+    for (var b = 0u; b < 3u; b++) {
+      var limiter = 1.0;
+      for (var a = 0u; a < 3u; a++) {
+        let extrapolation = 0.5*width[a]*grad[a][b];
+        if (extrapolation > 1e-12) { limiter = min(limiter,min(upper[b]-uP[b],uP[b]-lower[b])/extrapolation); }
+        if (extrapolation < -1e-12) { limiter = min(limiter,min(upper[b]-uP[b],uP[b]-lower[b])/(-extrapolation)); }
+      }
+      if (wallArea > 0.0) {
+        let offset = areaVector/wallArea*wall[id].w;
+        let extrapolation = grad[0][b]*offset.x+grad[1][b]*offset.y+grad[2][b]*offset.z;
+        if (extrapolation > 1e-12) { limiter = min(limiter,(upper[b]-uP[b])/extrapolation); }
+        if (extrapolation < -1e-12) { limiter = min(limiter,(lower[b]-uP[b])/extrapolation); }
+      }
+      limiter = clamp(limiter,0.0,1.0);
+      for (var a = 0u; a < 3u; a++) { grad[a][b] *= limiter; }
     }
   }
 
@@ -162,11 +236,12 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
   }
 
   let y = max(wd, 1e-6);
+  if (sourceAligned) { gk = scalarGradient(idx,0u); gw = scalarGradient(idx,1u); }
   let CDkw = 2.0 * ALPHA_W2 * dot(gk, gw) / w;
   let CDp = max(CDkw, 1e-10);
   let sk = sqrt(max(k, 0.0));
   let arg1 = min(min(max(sk / (BETA_STAR * w * y), 500.0 * nu / (y * y * w)), 4.0 * ALPHA_W2 * k / (CDp * y * y)), 10.0);
-  let F1 = safeTanh(pow(arg1, 4.0));
+  let F1 = select(safeTanh(pow(arg1, 4.0)),blendHere,sourceAligned);
   let arg2 = min(max(2.0 * sk / (BETA_STAR * w * y), 500.0 * nu / (y * y * w)), 100.0);
   let F2 = safeTanh(arg2 * arg2);
   let alphaK = F1 * ALPHA_K1 + (1.0 - F1) * ALPHA_K2;
@@ -175,7 +250,13 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
   let beta = F1 * BETA1 + (1.0 - F1) * BETA2;
   let sS = sqrt(S2);
 
-  var G = nutOld * S2;
+  let trace = grad[0][0]+grad[1][1]+grad[2][2];
+  let divergence = select(trace,fluxDivergence,sourceAligned);
+  let production = select(S2,max(S2-(2.0/3.0)*trace*trace,0.0),sourceAligned);
+  let laminarPart = select(nu,0.0,sourceAligned);
+  let kDiffScale = select(alphaK,1.0,sourceAligned);
+  let wDiffScale = select(alphaW,1.0,sourceAligned);
+  var G = nutOld * production;
   var wNew: f32;
   if (wallY < 1e29 && P.opts.x == 0u) {
     // omegaWallFunction (binomial blending) with log-law production; k transported (kqRWallFunction).
@@ -202,13 +283,15 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
     turbOut[2u * n + id] = kw / ww;
     return;
   } else {
-    let GbyNu = min(S2, (C1 / A1) * BETA_STAR * w * max(A1 * w, B1 * F2 * sS));
+    let GbyNu = min(production, (C1 / A1) * BETA_STAR * w * max(A1 * w, B1 * F2 * sS));
     let cd = (1.0 - F1) * CDkw;
-    let src = w + dt * ((nu * lapW + alphaW * diffW - convW) / vol + srcScale * (gamma * GbyNu + max(cd, 0.0)));
-    wNew = src / (1.0 + dt * srcScale * (beta * w + max(-cd, 0.0) / w));
+    let expansion = select(0.0,(2.0/3.0)*gamma*divergence,sourceAligned);
+    let src = w + dt * ((laminarPart * lapW + wDiffScale * diffW - convW) / vol + srcScale * (gamma * GbyNu + max(cd, 0.0) + max(-expansion,0.0)*w));
+    wNew = src / (1.0 + dt * srcScale * (beta * w + max(-cd, 0.0) / w + max(expansion,0.0)));
   }
   let Pk = min(G, C1 * BETA_STAR * k * w);
-  let kNew = (k + dt * ((nu * lapK + alphaK * diffK - convK) / vol + srcScale * Pk)) / (1.0 + dt * srcScale * BETA_STAR * wNew);
+  let expansionK = select(0.0,(2.0/3.0)*divergence,sourceAligned);
+  let kNew = (k + dt * ((laminarPart * lapK + kDiffScale * diffK - convK) / vol + srcScale * (Pk+max(-expansionK,0.0)*k))) / (1.0 + dt * srcScale * (BETA_STAR * wNew+max(expansionK,0.0)));
   let kB = max(kNew, 1e-10);
   let wB = max(wNew, 1e-6);
   let sk2 = sqrt(kB);
@@ -225,6 +308,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
 // are handled in the cell update).
 export const bcTurbWGSL = common + /* wgsl */ `
 @group(0) @binding(4) var<storage, read_write> turb: array<f32>;
+@group(0) @binding(5) var<storage, read> vel: array<f32>;
 override PHASE: u32;
 
 fn put(i: i32, j: i32, k: i32, si: i32, sj: i32, sk: i32, fixed: bool) {
@@ -254,8 +338,13 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
   } else if (PHASE == 1u) {
     if (id >= NX() * NZ()) { return; }
     let i = id % NX(); let k = id / NX();
-    put(i, 0, k, i, 1, k, P.modes.x == 1u);
-    put(i, ny + 1, k, i, ny, k, P.modes.x == 2u);
+    var lowIn = P.modes.x == 1u; var highIn = P.modes.x == 2u;
+    if ((P.opts.w & 256u) != 0u) {
+      lowIn = vel[NC()+u32(i+NX()*NY()*k)] > 0.0;
+      highIn = vel[NC()+u32(i+NX()*(ny+NY()*k))] < 0.0;
+    }
+    put(i, 0, k, i, 1, k, lowIn);
+    put(i, ny + 1, k, i, ny, k, highIn);
   } else {
     if (id >= NX() * NY()) { return; }
     let i = id % NX(); let j = id / NX();

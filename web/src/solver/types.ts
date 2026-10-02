@@ -116,12 +116,26 @@ export interface ExperimentalSettings {
   noEddyFloor?: boolean;
   /** Aperture-weighted velocity gradients on the actual fluid control volume. */
   cutGradient?: boolean;
-  /** Match OpenFOAM's default stepwise omega wall function. */
+  /** Experiment with stepwise omega blending instead of the native case's binomial blending. */
   stepwiseOmega?: boolean;
   /** Consistent cut-cell pressure and momentum volume scaling. */
   scalePressure?: boolean;
   /** Use the interpolated surface distance at the fluid-volume centroid in cut cells. */
   centroidWallDistance?: boolean;
+  /** Assemble an under-relaxed implicit staggered momentum matrix and use its inverse in pressure. */
+  simpleMomentum?: boolean;
+  /** Interpolate SST effective diffusivity at faces and include deviatoric production. */
+  sstTransport?: boolean;
+  /** Add implicit pseudo-time damping to the experimental momentum matrix. */
+  pseudoTransientMomentum?: boolean;
+  /** Direction-dependent pressure mixing and inlet/outlet velocity on side patches. */
+  freestreamPressure?: boolean;
+  /** Surface distance from the signed-distance geometry for SST blending near the body. */
+  surfaceWallDistance?: boolean;
+  /** SIMPLEC correction: pressure mobility uses A minus the neighbour-coefficient sum. */
+  consistentMomentum?: boolean;
+  /** Limit the Gauss velocity gradient against neighbouring cell and wall velocities for SST. */
+  limitedSstGradient?: boolean;
   farGrowth?: number;
   farCellSize?: number;
   finePadding?: number;
