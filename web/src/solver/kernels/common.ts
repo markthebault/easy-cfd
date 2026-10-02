@@ -52,6 +52,11 @@ fn decode(idx: u32) -> vec3<i32> {
   return vec3<i32>(i32(idx % nx), i32((idx / nx) % u32(NY())), i32(idx / nxy));
 }
 
+fn roadDistance(idx: i32) -> f32 {
+  if ((P.opts.w & 8192u) != 0u) { return max(grid[u32(2*(NX()+NY()+NZ())+idx)],1e-6); }
+  return 0.5*cw(2u,decode(u32(idx)).z);
+}
+
 fn solid(idx: i32) -> bool { return (flags[u32(idx)] & 1u) != 0u; }
 fn partOf(idx: i32) -> u32 { return (flags[u32(idx)] >> 8u) & 255u; }
 

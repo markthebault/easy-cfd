@@ -70,7 +70,7 @@ fn tangential(a: u32, t: u32, idx: i32, e: vec3<i32>, uP: f32, dA: f32, dA1: f32
     let acv = (a0 * dA + a1 * dA1) / (dA + dA1);
     if (t == 2u && side == 0 && et == 1) {
       // road: log-law wall shear against the moving road (a is x or y here)
-      let y = 0.5 * cw(t, et);
+      let y = 0.5*(roadDistance(idx)+roadDistance(idx+sa));
       let o = 1u - a;
       let so = strideOf(o);
       let uo = 0.25 * (U(o, idx) + U(o, idx - so) + U(o, idx + sa) + U(o, idx + sa - so));

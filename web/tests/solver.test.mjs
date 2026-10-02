@@ -82,6 +82,40 @@ test("cut-cell fluid centroid reproduces an oblique planar wall distance", () =>
   assert.ok(Math.abs(f.centroidWallDistance[0]-expected)<.015);
 });
 
+test("geometric cuts integrate a thin road gap without sample quantization", () => {
+  const axis={n:1,faces:Float64Array.from([0,1]),centers:Float64Array.from([.5]),widths:Float64Array.from([1])};
+  const g={x:axis,y:axis,z:axis,h:1,cells:1};
+  const gap=.2, sdf=Float32Array.from(Array.from({length:8},(_,i)=>gap-(i>>2)));
+  const f=cut.fractions(g,sdf,new Uint8Array(8),true,true);
+  for (const actual of [f.theta[0],f.ax[0],f.ay[0]]) assert.ok(Math.abs(actual-gap)<1e-7);
+  assert.equal(f.az[0],0);
+  assert.ok(Math.abs(f.centroidHeight[0]-gap/2)<1e-7);
+  assert.ok(Math.abs(f.centroidWallDistance[0]-gap/2)<1e-7);
+});
+
+test("geometric cuts reproduce oblique-plane volume and centroid analytically", () => {
+  const axis={n:1,faces:Float64Array.from([0,1]),centers:Float64Array.from([.5]),widths:Float64Array.from([1])};
+  const g={x:axis,y:axis,z:axis,h:1,cells:1};
+  const offset=.6;
+  const sdf=Float32Array.from(Array.from({length:8},(_,i)=>((i&1)+((i>>1)&1)+((i>>2)&1)-offset)/Math.sqrt(3)));
+  const f=cut.fractions(g,sdf,new Uint8Array(8),true,true);
+  const solidVolume=offset**3/6, volume=1-solidVolume;
+  const centroid=(.5-solidVolume*offset/4)/volume;
+  assert.ok(Math.abs(f.theta[0]-volume)<1e-7);
+  assert.ok(Math.abs(f.centroidHeight[0]-centroid)<1e-7);
+  assert.ok(Math.abs(f.centroidWallDistance[0]-(3*centroid-offset)/Math.sqrt(3))<1e-7);
+});
+
+test("clipped tetrahedra conserve complementary volume, first moments and face area", async () => {
+  const {clippedCube,clippedFace}=await server.ssrLoadModule("/src/solver/cutGeometry.ts");
+  for (const values of [[.2,-.8,.2,-.8,.2,-.8,.2,-.8],[1,-2,3,-4,5,-6,7,-8],[0,.7,-.2,1,-.5,.3,-1,.2]]) {
+    const a=clippedCube(values),b=clippedCube(values.map(v=>-v));
+    assert.ok(Math.abs(a.volume+b.volume-1)<1e-12);
+    for (let i=0;i<3;i++) assert.ok(Math.abs(a.volume*a.centroid[i]+b.volume*b.centroid[i]-.5)<1e-12);
+    assert.ok(Math.abs(clippedFace(...values.slice(0,4))+clippedFace(...values.slice(0,4).map(v=>-v))-1)<1e-12);
+  }
+});
+
 test("sample car geometry matches the OpenFOAM app's sample", () => {
   const parts = car();
   assert.equal(parts.length, 5);

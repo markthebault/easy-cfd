@@ -327,7 +327,7 @@ export function prepareCase(allParts: SolverPart[], settings: Settings, shapes?:
     }
   }
   // Distances were computed against all parts; a node inside a cut part is negative regardless.
-  const fr = fractions(grid, sdf, nd.part, ext.centroidWallDistance || ext.surfaceWallDistance);
+  const fr = fractions(grid, sdf, nd.part, ext.centroidWallDistance || ext.surfaceWallDistance || ext.fluidCentroidRoad, ext.geometricCutCells);
   void cutIndex;
   timings.voxelize = performance.now() - t0 - timings.grid;
 
@@ -458,7 +458,7 @@ export function prepareCase(allParts: SolverPart[], settings: Settings, shapes?:
   // Ghosted arrays.
   const NX = nx + 2, NY = ny + 2, NZ = nz + 2, NC = NX * NY * NZ;
   const gx = ghostAxis(x), gy = ghostAxis(y), gz = ghostAxis(z);
-  const gridBuffer = new Float32Array(2 * (NX + NY + NZ));
+  const gridBuffer = new Float32Array(2 * (NX + NY + NZ) + (ext.fluidCentroidRoad ? NC : 0));
   gridBuffer.set(gx.centers, 0);
   gridBuffer.set(gy.centers, NX);
   gridBuffer.set(gz.centers, NX + NY);
@@ -466,6 +466,8 @@ export function prepareCase(allParts: SolverPart[], settings: Settings, shapes?:
   gridBuffer.set(gx.widths, wb);
   gridBuffer.set(gy.widths, wb + NX);
   gridBuffer.set(gz.widths, wb + NX + NY);
+  const centroidOffset = 2*(NX+NY+NZ);
+  if (ext.fluidCentroidRoad) for (let q=0;q<NC;q++) gridBuffer[centroidOffset+q]=gz.centers[Math.floor(q/(NX*NY))];
   const flags = new Uint32Array(NC);
   const wallDist = new Float32Array(NC).fill(1e3);
   const aper = new Float32Array(NC * 4).fill(1);
@@ -485,6 +487,11 @@ export function prepareCase(allParts: SolverPart[], settings: Settings, shapes?:
           const centreDistance = (sdf[q]+sdf[q+1]+sdf[q+ng.x.n]+sdf[q+ng.x.n+1]+sdf[q+xy]+sdf[q+xy+1]+sdf[q+xy+ng.x.n]+sdf[q+xy+ng.x.n+1])/8;
           const surfaceDistance = fr.centroidWallDistance?.[c] || centreDistance;
           if (surfaceDistance > 0 && surfaceDistance < .9*band) wallDist[g] = Math.min(surfaceDistance,z.centers[k]);
+        }
+        if (ext.fluidCentroidRoad && theta[c]) {
+          const height=fr.centroidHeight![c];
+          gridBuffer[centroidOffset+g]=height;
+          wallDist[g]=Math.min(wallDist[g],height);
         }
         aper.set([ax[c], ay[c], az[c], theta[c]], 4 * g);
         if (!theta[c]) {
@@ -599,7 +606,7 @@ export function prepareCase(allParts: SolverPart[], settings: Settings, shapes?:
 
   timings.total = performance.now() - t0;
   return {
-    numericalFlags: (ext.fullStress ? 1 : 0) | (ext.noEddyFloor ? 2 : 0) | (ext.cutGradient ? 4 : 0) | (ext.stepwiseOmega ? 8 : 0) | ((ext.scalePressure ?? SCALE_PRESSURE) ? 16 : 0) | (ext.sstTransport ? 32 : 0) | (ext.simpleMomentum ? 64 : 0) | (ext.pseudoTransientMomentum ? 128 : 0) | (ext.freestreamPressure ? 256 : 0) | (ext.consistentMomentum ? 512 : 0) | (ext.limitedSstGradient ? 1024 : 0) | (ext.implicitSst ? 2048 : 0) | (ext.projectRotatingWall ? 4096 : 0),
+    numericalFlags: (ext.fullStress ? 1 : 0) | (ext.noEddyFloor ? 2 : 0) | (ext.cutGradient ? 4 : 0) | (ext.stepwiseOmega ? 8 : 0) | ((ext.scalePressure ?? SCALE_PRESSURE) ? 16 : 0) | (ext.sstTransport ? 32 : 0) | (ext.simpleMomentum ? 64 : 0) | (ext.pseudoTransientMomentum ? 128 : 0) | (ext.freestreamPressure ? 256 : 0) | (ext.consistentMomentum ? 512 : 0) | (ext.limitedSstGradient ? 1024 : 0) | (ext.implicitSst ? 2048 : 0) | (ext.projectRotatingWall ? 4096 : 0) | (ext.fluidCentroidRoad ? 8192 : 0),
     momentOrigin: momentOrigin(resolvedAxles(settings.axles, allParts)),
     grid,
     NX,

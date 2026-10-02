@@ -4,6 +4,7 @@
 // mask; the magnitude is the exact distance to the nearest triangle inside a narrow band.
 
 import { locate, type Axis, type Grid } from "./grid";
+import { clippedCube, clippedFace } from "./cutGeometry";
 
 function nodeAxis(a: Axis): Axis {
   // Pseudo-axis whose "cells" are the grid nodes (face coordinates), so the ray caster can be reused.
@@ -119,6 +120,8 @@ export function nodeDistance(ng: Grid, parts: { positions: Float32Array }[], ban
 export interface Fractions {
   /** Signed-distance interpolation at the fluid-volume centroid, when requested. */
   centroidWallDistance?: Float32Array;
+  /** Height of the fluid-volume centroid above the road, when requested. */
+  centroidHeight?: Float32Array;
   /** Fluid volume fraction per interior cell. */
   theta: Float32Array;
   /** Open area fraction of the +x, +y, +z face of each interior cell. */
@@ -133,7 +136,7 @@ const FACE_SAMPLES = 16;
 const CELL_SAMPLES = 8;
 
 /** Fractions from signed node distances (negative inside). */
-export function fractions(g: Grid, sdf: Float32Array, nodePart: Uint8Array, centroids = false): Fractions {
+export function fractions(g: Grid, sdf: Float32Array, nodePart: Uint8Array, centroids = false, geometric = false): Fractions {
   const nx = g.x.n, ny = g.y.n, nz = g.z.n;
   const Nx = nx + 1, Nxy = (nx + 1) * (ny + 1);
   const cells = nx * ny * nz;
@@ -141,9 +144,11 @@ export function fractions(g: Grid, sdf: Float32Array, nodePart: Uint8Array, cent
   const ax = new Float32Array(cells), ay = new Float32Array(cells), az = new Float32Array(cells);
   const part = new Uint8Array(cells).fill(255);
   const centroidWallDistance = centroids ? new Float32Array(cells) : undefined;
+  const centroidHeight = centroids ? new Float32Array(cells) : undefined;
   const node = (i: number, j: number, k: number) => sdf[i + Nx * j + Nxy * k];
   // Fraction of a bilinear patch (corner values a,b,c,d at (0,0),(1,0),(0,1),(1,1)) above zero.
   const faceFrac = (a: number, b: number, c: number, d: number) => {
+    if (geometric) return clippedFace(a,b,c,d);
     if (a > 0 && b > 0 && c > 0 && d > 0) return 1;
     if (a <= 0 && b <= 0 && c <= 0 && d <= 0) return 0;
     let n = 0;
@@ -165,9 +170,18 @@ export function fractions(g: Grid, sdf: Float32Array, nodePart: Uint8Array, cent
         const s001 = node(i, j, k + 1), s101 = node(i + 1, j, k + 1), s011 = node(i, j + 1, k + 1), s111 = node(i + 1, j + 1, k + 1);
         const all = [s000, s100, s010, s110, s001, s101, s011, s111];
         const pos = all.filter((v) => v > 0).length;
+        if (centroidHeight) centroidHeight[c] = g.z.centers[k];
         if (pos === 8) theta[c] = 1;
         else if (pos === 0) theta[c] = 0;
-        else {
+        else if (geometric) {
+          const geometry=clippedCube(all);
+          theta[c]=geometry.volume;
+          if (centroidWallDistance && centroidHeight && geometry.volume>0) {
+            const [u,v,w]=geometry.centroid;
+            centroidHeight[c]=g.z.faces[k]+w*g.z.widths[k];
+            centroidWallDistance[c]=(1-w)*((1-v)*((1-u)*s000+u*s100)+v*((1-u)*s010+u*s110)) + w*((1-v)*((1-u)*s001+u*s101)+v*((1-u)*s011+u*s111));
+          }
+        } else {
           let n = 0;
           let sx = 0, sy = 0, sz = 0;
           for (let a = 0; a < CELL_SAMPLES; a++) {
@@ -186,6 +200,7 @@ export function fractions(g: Grid, sdf: Float32Array, nodePart: Uint8Array, cent
           theta[c] = n / CELL_SAMPLES ** 3;
           if (centroidWallDistance && n) {
             const u = sx/n, v = sy/n, w = sz/n;
+            if (centroidHeight) centroidHeight[c]=g.z.faces[k]+w*g.z.widths[k];
             centroidWallDistance[c] = (1-w)*((1-v)*((1-u)*s000+u*s100)+v*((1-u)*s010+u*s110)) + w*((1-v)*((1-u)*s001+u*s101)+v*((1-u)*s011+u*s111));
           }
         }
@@ -209,7 +224,7 @@ export function fractions(g: Grid, sdf: Float32Array, nodePart: Uint8Array, cent
           }
         }
       }
-  return { theta, ax, ay, az, part, centroidWallDistance };
+  return { theta, ax, ay, az, part, centroidWallDistance, centroidHeight };
 }
 
 function segmentHitsTriangle(

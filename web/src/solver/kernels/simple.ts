@@ -95,7 +95,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
           }
         }
         if (t == 2u && side < 0 && e.z == 1 && a != 2u) {
-          let y = 0.5*cw(2u,e.z);
+          let y = 0.5*(roadDistance(q)+roadDistance(q+sa));
           let d = nuWall(0.5*(turb[id]+turb[u32(q+sa)]),y)*area/y;
           diagonal += d; source += d*select(0.0,P.inlet.w,a == 0u); continue;
         }

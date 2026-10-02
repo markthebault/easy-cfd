@@ -142,6 +142,10 @@ export interface ExperimentalSettings {
   wallDistanceFloor?: number;
   /** Match rotatingWallVelocity's tangential projection in the SST wall gradient. */
   projectRotatingWall?: boolean;
+  /** Integrate volume, centroid and apertures from clipped tetrahedra and triangles. */
+  geometricCutCells?: boolean;
+  /** Use the cut fluid centroid height for road shear and SST wall distance. */
+  fluidCentroidRoad?: boolean;
   farGrowth?: number;
   farCellSize?: number;
   finePadding?: number;

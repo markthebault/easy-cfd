@@ -257,7 +257,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) 
     wallDU = length(slip);
   }
   if (e.z == 1) {
-    let yg = 0.5 * width.z;
+    let yg = roadDistance(idx);
     if (yg < wallY) {
       wallY = yg;
       wallDU = length(vec2<f32>(uP.x - P.inlet.w, uP.y));
