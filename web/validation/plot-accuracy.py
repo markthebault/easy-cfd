@@ -68,6 +68,10 @@ def main():
         figure.savefig(FOLDER / "final-comparison.png", dpi=160)
         figure.savefig(FOLDER / "final-comparison.svg")
         plt.close(figure)
+    for filename in ("refinement.svg", "final-comparison.svg"):
+        path = FOLDER / filename
+        if path.exists():
+            path.write_text("\n".join(line.rstrip() for line in path.read_text().splitlines()) + "\n")
 
 
 if __name__ == "__main__":
