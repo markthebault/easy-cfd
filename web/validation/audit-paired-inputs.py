@@ -77,6 +77,9 @@ def main():
             expected_omega = math.sqrt(expected_k)/(.09**.25*.07*length)
             actual_k = float(re.search(r"internalField\s+uniform\s+([\d.eE+-]+);", (case / "0/k").read_text())[1])
             actual_omega = float(re.search(r"internalField\s+uniform\s+([\d.eE+-]+);", (case / "0/omega").read_text())[1])
+            expected_dynamic_pressure = .5*s["density"]*magnitude**2
+            q_area = expected_dynamic_pressure*s["reference_area"]
+            result = g["result"]
             checks = {"actualFreestreamMatches": all(close(a,b) for a,b in zip(actual_velocity, velocity)),
                 "coefficientNormalizationMatches": all(close(a,b) for a,b in zip(coeff_inputs.values(), (s["density"], magnitude, s["reference_area"]))),
                 "groundMatches": ground == [speed if s["moving_ground"] else 0., 0., 0.] or all(close(a,b) for a,b in zip(ground, [speed if s["moving_ground"] else 0., 0., 0.])),
@@ -86,7 +89,15 @@ def main():
                 "savedDictionariesUnchanged": same_dictionaries, "nativeSst": "kOmegaSST" in turbulence,
                 "sameViscosity": "1.5e-5;" in transport,
                 "inletTurbulenceMatches": close(actual_k, expected_k) and close(actual_omega, expected_omega),
-                "freshGpuStart": not g["result"]["initializedFromReference"]}
+                "coefficientDirectionsMatch": vector(coeff_section, r"dragDir\s+\(([^()]*)\)") == [1.,0.,0.]
+                    and vector(coeff_section, r"liftDir\s+\(([^()]*)\)") == [0.,0.,1.],
+                "gpuForceNormalizationMatches": close(result["freestream"], magnitude)
+                    and close(result["dynamicPressure"], expected_dynamic_pressure)
+                    and close(result["drag"], result["cd"]*q_area)
+                    and close(result["lift"], result["cl"]*q_area),
+                "gpuForceAxesMatch": close(result["drag"], result["aero"]["force"][0])
+                    and close(result["lift"], result["aero"]["force"][2]),
+                "freshGpuStart": not result["initializedFromReference"]}
             evidence.append({"key": n["key"], "checks": checks, "matches": all(checks.values()),
                 "nativeVelocity": actual_velocity, "nativeCoefficientInputs": coeff_inputs, "nativeBounds": bounds,
                 "gpuBounds": g["result"]["domain"], "nativePartHashes": actual_parts,
