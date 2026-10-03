@@ -51,6 +51,8 @@ def read(path):
 
 def stage_statistics(output, design, stage):
     folder = output / stage
+    audit_file = output / "input-audit.json"
+    actual_audit = {r["key"]: r["matches"] for r in read(audit_file)} if audit_file.exists() else {}
     native = {r["key"]: r for p in sorted((folder / "native").glob("*.json")) if (r := read(p))}
     gpu = {r["key"]: r for p in sorted((folder / "iterations").glob("*.json")) if (r := read(p))}
     pairs, rows, failures = [], [], []
@@ -68,7 +70,7 @@ def stage_statistics(output, design, stage):
             and result["cells"] == design["stages"][stage]["gpuCells"]
             and g["sourceRevision"] == design["gpuSourceRevision"]
             and g["reference"]["key"] == key and all(g["reference"][p] == n[p] for p in ("cd", "cl"))
-            and result["initializedFromReference"] is False)
+            and result["initializedFromReference"] is False and actual_audit.get(key, False))
         errors = {p: abs(result[p]-n[p])/max(abs(n[p]), .01) for p in ("cd", "cl")}
         healthy = g["comparison"]["finite"] and g["comparison"]["conserved"]
         quality = healthy and g["comparison"]["stable"] and n["forceSettled"] and n["residualConverged"] and n["meshPassed"]
@@ -136,6 +138,24 @@ def render_report(output, design, report):
         "Baseline layer thickness is held fixed. Each native solve starts from freshly generated uniform fields and each GPU solve from freestream plus projection.", "",
         "Saved artifacts: [registered design](design.json), [full statistics](statistics.json), [paired rows](pairs.csv), per-stage plans, meshes, native records and GPU records. "
         "Full native meshes, fields and logs remain under `.accuracy-reference/paired-inputs/`.", ""])
+    lines.extend(["## Physical forces under the same changed inputs", "",
+        "Force variation includes the expected speed-squared scaling. Coefficient errors above isolate the aerodynamic response from that scaling.", "",
+        "| Stage | Force (N) | OpenFOAM Q1 / median / Q3 | WebGPU Q1 / median / Q3 | Native IQR / median (%) |", "|---|---|---|---|---:|"])
+    for stage, data in report["stages"].items():
+        for name in ("drag", "lift"):
+            detail = data["metrics"][name]
+            relative = detail["nativeRelativeIqrPercent"]
+            text = f"{relative:.2f}" if relative is not None else "pending"
+            lines.append(f"| {stage} | {name} | {triple(detail['native'], 2)} | {triple(detail['gpu'], 2)} | {text} |")
+    lines.extend(["", "## Paired signed bias", "",
+        "| Stage | Metric | Signed error Q1 / median / Q3 (%) | Bootstrap median interval (%) |", "|---|---|---|---|"])
+    for stage, data in report["stages"].items():
+        for name in ("cd", "cl"):
+            detail = data["metrics"][name]
+            interval = detail["bootstrapMedianSignedError95Percent"]
+            text = "pending" if interval[0] is None else f"{interval[0]:.2f} to {interval[1]:.2f}"
+            lines.append(f"| {stage} | {name.upper()} | {triple(detail['signedErrorPercent'], 2)} | {text} |")
+    lines.extend(["", "These bootstrap intervals describe this selected ten-point design; the pilot is too small and too narrow to establish general solver equivalence.", ""])
     (output / "README.md").write_text("\n".join(lines))
 
 

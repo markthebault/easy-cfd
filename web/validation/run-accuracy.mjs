@@ -2,7 +2,7 @@
 // node validation/run-accuracy.mjs --plan ../../.../plan.json
 import { chromium } from "@playwright/test";
 import { createServer } from "vite";
-import { readFileSync, writeFileSync, mkdirSync, readdirSync, openSync, closeSync, unlinkSync, renameSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync, openSync, closeSync, unlinkSync, renameSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { dirname, resolve, join } from "node:path";
@@ -79,7 +79,7 @@ try {
       reference=references[trial.referenceKey ?? model.id] ?? null;
       if (reference || args["wait-references"] !== "true" || !trial.referenceKey) break;
       const nativeFolder=join(evidence,"native");
-      const failed=readdirSync(nativeFolder,{withFileTypes:true}).filter(f=>f.isFile() && f.name.endsWith(".json")).map(f=>JSON.parse(readFileSync(join(nativeFolder,f.name),"utf8"))).find(r=>r.key === trial.referenceKey && r.status === "failed");
+      const failed=(existsSync(nativeFolder)?readdirSync(nativeFolder,{withFileTypes:true}):[]).filter(f=>f.isFile() && f.name.endsWith(".json")).map(f=>JSON.parse(readFileSync(join(nativeFolder,f.name),"utf8"))).find(r=>r.key === trial.referenceKey && r.status === "failed");
       if (failed) throw new Error(`Paired native solve failed: ${failed.key}: ${failed.error}`);
       if (waiting >= 7400) throw new Error(`Timed out waiting for ${trial.referenceKey}`);
       if (waiting % 20 === 0) console.log(`Waiting for matched native reference ${trial.referenceKey}`);
