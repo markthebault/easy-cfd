@@ -208,6 +208,14 @@ def render_report(output, design, report):
             for name, detail in details.items():
                 lines.append(f"| {solver} | {name} | {triple(detail['absoluteErrorPercent'], 2)} |")
         lines.append("")
+    lines.extend(["## Execution and validation", "",
+        f"GPU solver source: `{design['gpuSourceRevision']}`. The exact experimental settings are in `design.json`; production defaults were not changed. "
+        "Hardware adapter, source consistency, independent NumPy quartile checks, software checks and solve counts are recorded in [checks.json](checks.json). "
+        "Software validation is separate from numerical agreement and aerodynamic qualification.", "",
+        "To regenerate the audit/statistics/figures from the saved cases in this checkout:", "",
+        "```sh", "PYTHONPATH=backend .venv/bin/python web/validation/audit-paired-inputs.py",
+        ".venv/bin/python web/validation/paired-statistics.py",
+        "uv run --no-project --with matplotlib --with numpy python web/validation/plot-paired-inputs.py", "```", ""])
     (output / "README.md").write_text("\n".join(lines))
 
 
