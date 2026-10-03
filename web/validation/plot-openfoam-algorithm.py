@@ -18,23 +18,25 @@ def main():
     completed = [r for r in records if r["status"] == "completed"]
     failed = [r["iteration"] for r in records if r["status"] == "failed"]
     plt.rcParams.update({"font.size": 11, "axes.spines.top": False, "axes.spines.right": False})
-    fig, axes = plt.subplots(2, 1, figsize=(12, 8), sharex=True, constrained_layout=True)
-    for ax, coefficient in zip(axes, ["cd", "cl"]):
+    fig, axes = plt.subplots(3, 1, figsize=(12, 9), sharex=True, constrained_layout=True, gridspec_kw={"height_ratios": [1, 1, .13]})
+    for ax, coefficient in zip(axes[:2], ["cd", "cl"]):
         for algorithm, colour, marker in [("explicit-projection", "#186da0", "o"), ("staggered-SIMPLE", "#e28e14", "s"), ("staggered-SIMPLEC", "#24814b", "^")]:
             rows = [r for r in completed if r["result"].get("algorithm", "staggered-SIMPLE" if r["settings"].get("simpleMomentum") else "explicit-projection") == algorithm]
             error = [100*abs(r["result"][coefficient]-references[r["model"]][coefficient])/max(abs(references[r["model"]][coefficient]), .01) for r in rows]
             ax.scatter([r["iteration"] for r in rows], np.maximum(error, .01), s=40, c=colour, marker=marker, label=algorithm)
-        if failed:
-            ax.scatter(failed, [1200]*len(failed), c="#888888", marker="x", label="failed attempt")
         ax.axhline(5, c="#b54432", ls="--", lw=1.5, label="5% target")
         ax.set_yscale("log")
         ax.set_ylim(.1, 1600)
         ax.grid(axis="y", alpha=.17)
         ax.set_ylabel(("Drag Cd" if coefficient == "cd" else "Signed lift Cl")+" error (%)")
     axes[0].legend(ncol=3, fontsize=9)
-    axes[1].set_xlabel("Attempted model solve (failures consume a slot)")
-    axes[1].set_xlim(0, 51)
-    axes[1].set_xticks([1, 10, 20, 30, 40, 50])
+    axes[2].scatter(failed, [0]*len(failed), c="#888888", marker="x")
+    axes[2].set_ylim(-1, 1)
+    axes[2].set_yticks([])
+    axes[2].set_ylabel("Failed", fontsize=10, rotation=0, labelpad=30)
+    axes[2].set_xlabel("Attempted model solve (failures consume a slot)")
+    axes[2].set_xlim(0, 51)
+    axes[2].set_xticks([1, 10, 20, 30, 40, 50])
     fig.suptitle("Source-derived WebGPU experiments against matched OpenFOAM references")
     fig.savefig(EVIDENCE / "iterations.png", dpi=160)
     fig.savefig(EVIDENCE / "iterations.svg")

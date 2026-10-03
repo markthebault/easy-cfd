@@ -1,0 +1,58 @@
+[
+  {
+    "key": "control-sample",
+    "model": "sample",
+    "hypothesis": "Current control with new driver",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 16,
+      "max_seconds": 240
+    },
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "sst-sample",
+    "model": "sample",
+    "hypothesis": "Pinned v2412 face diffusivity and deviatoric production",
+    "settings": {
+      "targetCells": 250000,
+      "custom_passes": 16,
+      "max_seconds": 240,
+      "fullStress": true,
+      "noEddyFloor": true,
+      "sstTransport": true,
+      "stepwiseOmega": false
+    },
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "simple-start-sample",
+    "model": "sample",
+    "hypothesis": "Implicit under-relaxed momentum with matrix-derived pressure mobility, freestream start",
+    "settings": {
+      "targetCells": 125000,
+      "custom_passes": 8,
+      "max_seconds": 240,
+      "fullStress": true,
+      "noEddyFloor": true,
+      "sstTransport": true,
+      "stepwiseOmega": false,
+      "simpleMomentum": true,
+      "mergeBoost": 1
+    },
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24,
+      "momentumSweeps": 4
+    },
+    "maxExtension": 1
+  }
+]

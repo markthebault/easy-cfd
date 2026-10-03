@@ -1,0 +1,204 @@
+{
+  "iteration": 5,
+  "key": "simple-finite-0.7-sample",
+  "model": "sample",
+  "hypothesis": "Guard cancelling wall normals; compare momentum under-relaxation",
+  "source": "d772bc50d964163c2651e625708334461d75a45b0b69d3aa099c83a31fc9d9eb",
+  "started": "2026-10-02T22:06:00.051Z",
+  "status": "failed",
+  "settings": {
+    "speed_kmh": 100,
+    "yaw_deg": 0,
+    "reference_area": 2.2,
+    "density": 1.225,
+    "moving_ground": true,
+    "wheels": true,
+    "quality": "custom",
+    "custom_cells": 36,
+    "custom_passes": 8,
+    "max_seconds": 240,
+    "targetCells": 125000,
+    "simpleMomentum": true,
+    "fullStress": true,
+    "noEddyFloor": true,
+    "sstTransport": true,
+    "mergeBoost": 1
+  },
+  "reference": {
+    "run": "5c037a8721744c7d8a91e55123f55bda",
+    "quality": "precise",
+    "case": "/Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/.accuracy-reference/sample-refined",
+    "cd": 0.51482891138665,
+    "cl": 0.64449962761915,
+    "cells": 360000,
+    "settings": {
+      "speed_kmh": 100,
+      "yaw_deg": 0,
+      "reference_area": 2.2,
+      "density": 1.225,
+      "moving_ground": true,
+      "wheels": true
+    },
+    "settingsMatch": true,
+    "forceSettled": false,
+    "forceSpans": {
+      "cd": 0.005408651959999955,
+      "cl": 0.039168616560000036
+    },
+    "averagingIterations": 200,
+    "residualConverged": false,
+    "residuals": {
+      "Ux": 0.0001235027284,
+      "Uy": 0.0007721411586,
+      "Uz": 0.0004284580369,
+      "p": 0.002118208063,
+      "omega": 0.00001968131502,
+      "k": 0.0001986487286
+    },
+    "meshPassed": true,
+    "meshIndependent": false,
+    "image": "opencfd/openfoam-default@sha256:1ba02114b1c025c370f2e269a07677c16c9bea8d990fcd75ac8378aff9d41b50",
+    "dictionaryHashes": {
+      "system/fvSchemes": "4a219249e72e93ecf98a31f9de6651f2f257b78a23a10078c524b43b17a5e5a4",
+      "system/decomposeParDict": "22c740de4bd3081a02135a2c0f8d83478aeb9e3fa82433fbb676dd3923e722aa",
+      "system/meshQualityDict": "8ee4008f08303a79445febed153dc361d9517dfef5b880f36d4338298d9f82f8",
+      "system/fvSolution": "d46d1f3cfc6df9ab7703b066aeeef077f7cd48a40081af14231e0434b8b9b4a5",
+      "system/snappyHexMeshDict": "8efeca3b69a7e427e5226ae2cf824e3d2e2662a187d528887ba64464c226c820",
+      "system/controlDict": "73b62cd586c46fa560ec84b04ffc8799825f10b7b3518d9349f0b1481072f8a1",
+      "system/blockMeshDict": "df562abf28f45a53f994e4f25539f48f8ef853e95a4510b44885d7b4805faf32",
+      "constant/turbulenceProperties": "0cc9a047db67e5af57d1a9e155f28c106ac2d2bdc66833b2b5d475172e79401a",
+      "constant/transportProperties": "111d7df02c53a6d960a65653e2b8cad702bf296797bdab07461a67d165ad466a"
+    },
+    "timings": {
+      "checkMesh": 4.858316708356142,
+      "decomposePar": 3.793877999763936,
+      "simpleFoam": 3371.562027916312,
+      "reconstructPar": 3.307748584076762
+    },
+    "wallSeconds": 3383.620841542259,
+    "geometryFingerprint": "893412988bca7cc83b6cc45de0de3d72ffe03b939beffef19aa370fbda3cda00",
+    "status": "fresh native result; mesh independence pending",
+    "meshChanges": {
+      "cd": 0.06488698942212572,
+      "cl": 0.028952506185894282
+    },
+    "settingsDifferences": {}
+  },
+  "inputs": [
+    {
+      "file": "5c037a8721744c7d8a91e55123f55bda/geometry/part0.stl",
+      "sha256": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659"
+    },
+    {
+      "file": "5c037a8721744c7d8a91e55123f55bda/geometry/part1.stl",
+      "sha256": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc"
+    },
+    {
+      "file": "5c037a8721744c7d8a91e55123f55bda/geometry/part2.stl",
+      "sha256": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0"
+    },
+    {
+      "file": "5c037a8721744c7d8a91e55123f55bda/geometry/part3.stl",
+      "sha256": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909"
+    },
+    {
+      "file": "5c037a8721744c7d8a91e55123f55bda/geometry/part4.stl",
+      "sha256": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7"
+    }
+  ],
+  "spec": {
+    "parts": [
+      {
+        "file": "part0.stl",
+        "name": "Body",
+        "role": "body",
+        "wheel": null,
+        "url": "/geom/5c037a8721744c7d8a91e55123f55bda/geometry/part0.stl"
+      },
+      {
+        "file": "part1.stl",
+        "name": "Front right wheel",
+        "role": "wheel",
+        "wheel": {
+          "center": [
+            -1.35,
+            -1.05,
+            0.33
+          ],
+          "radius": 0.32
+        },
+        "url": "/geom/5c037a8721744c7d8a91e55123f55bda/geometry/part1.stl"
+      },
+      {
+        "file": "part2.stl",
+        "name": "Front left wheel",
+        "role": "wheel",
+        "wheel": {
+          "center": [
+            -1.35,
+            1.05,
+            0.33
+          ],
+          "radius": 0.32
+        },
+        "url": "/geom/5c037a8721744c7d8a91e55123f55bda/geometry/part2.stl"
+      },
+      {
+        "file": "part3.stl",
+        "name": "Rear right wheel",
+        "role": "wheel",
+        "wheel": {
+          "center": [
+            1.3,
+            -1.05,
+            0.33
+          ],
+          "radius": 0.32
+        },
+        "url": "/geom/5c037a8721744c7d8a91e55123f55bda/geometry/part3.stl"
+      },
+      {
+        "file": "part4.stl",
+        "name": "Rear left wheel",
+        "role": "wheel",
+        "wheel": {
+          "center": [
+            1.3,
+            1.05,
+            0.33
+          ],
+          "radius": 0.32
+        },
+        "url": "/geom/5c037a8721744c7d8a91e55123f55bda/geometry/part4.stl"
+      }
+    ],
+    "settings": {
+      "speed_kmh": 100,
+      "yaw_deg": 0,
+      "reference_area": 2.2,
+      "density": 1.225,
+      "moving_ground": true,
+      "wheels": true,
+      "quality": "custom",
+      "custom_cells": 36,
+      "custom_passes": 8,
+      "max_seconds": 240,
+      "targetCells": 125000,
+      "simpleMomentum": true,
+      "fullStress": true,
+      "noEddyFloor": true,
+      "sstTransport": true,
+      "mergeBoost": 1
+    },
+    "solver": {
+      "vcycles": 6,
+      "coarseSweeps": 24,
+      "momentumSweeps": 4,
+      "momentumRelaxation": 0.7
+    },
+    "maxExtension": 1,
+    "probeWake": true
+  },
+  "error": "page.evaluate: Error: The flow solution diverged. Try a finer mesh or check the geometry for tiny gaps.\n    at runLevel (http://127.0.0.1:5201/src/solver/run.ts:229:21)\n    at async runSimulation (http://127.0.0.1:5201/src/solver/run.ts:67:20)\n    at async Object.run (http://127.0.0.1:5201/src/bench.ts:30:32)\n    at async <anonymous>:337:30\n    at /Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/web/validation/run-accuracy.mjs:72:32",
+  "finished": "2026-10-02T22:06:00.931Z"
+}

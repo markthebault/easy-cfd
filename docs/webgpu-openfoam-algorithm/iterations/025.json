@@ -1,0 +1,146 @@
+{
+  "iteration": 25,
+  "key": "native-simplec-damped-ahmed25",
+  "model": "ahmed25",
+  "hypothesis": "Pinned v2412 SST diffusivity, limited gradients, physical wall distance, freestream pressure and matrix-consistent SIMPLE/SIMPLEC, including pseudo-time stabilization; retain van-Leer convection to isolate momentum coupling from the change of convective scheme",
+  "source": "201b7ef3f1a3d9818dd11c3b5d825214576da5e23b9f42e256a1e0243d9aa354",
+  "sourceSnapshot": true,
+  "started": "2026-10-02T22:41:52.100Z",
+  "status": "failed",
+  "settings": {
+    "speed_kmh": 144,
+    "yaw_deg": 0,
+    "reference_area": 0.115032,
+    "density": 1,
+    "moving_ground": true,
+    "wheels": false,
+    "quality": "custom",
+    "custom_cells": 72,
+    "custom_passes": 20,
+    "max_seconds": 600,
+    "targetCells": 500000,
+    "fullStress": true,
+    "noEddyFloor": true,
+    "sstTransport": true,
+    "stepwiseOmega": false,
+    "cutGradient": true,
+    "limitedSstGradient": true,
+    "surfaceWallDistance": true,
+    "centroidWallDistance": true,
+    "freestreamPressure": true,
+    "farGrowth": 1.3,
+    "farCellSize": 0.5,
+    "finePadding": 0.03,
+    "roofPadding": 0.03,
+    "wakeLength": 0.2,
+    "simpleMomentum": true,
+    "pseudoTransientMomentum": true,
+    "consistentMomentum": true,
+    "mergeBoost": 1,
+    "limiter": 0
+  },
+  "reference": {
+    "run": "e9453fcf9a394fd89f167a2ccab7d13f",
+    "quality": "precise",
+    "case": "/Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/.accuracy-reference/ahmed25-continued",
+    "cd": 0.3581666868097,
+    "cl": 0.404479004762,
+    "cells": 310851,
+    "settings": {
+      "speed_kmh": 144,
+      "yaw_deg": 0,
+      "reference_area": 0.115032,
+      "density": 1,
+      "moving_ground": true,
+      "wheels": false
+    },
+    "settingsMatch": true,
+    "forceSettled": true,
+    "forceSpans": {
+      "cd": 2.0319999999296456e-7,
+      "cl": 5.681599999918241e-7
+    },
+    "averagingIterations": 200,
+    "residualConverged": true,
+    "residuals": {
+      "Ux": 9.803868974e-9,
+      "Uy": 2.254009821e-8,
+      "Uz": 1.430560884e-8,
+      "p": 1.095345622e-7,
+      "omega": 7.61111678e-9,
+      "k": 8.550050992e-9
+    },
+    "meshPassed": true,
+    "meshIndependent": false,
+    "image": "opencfd/openfoam-default@sha256:1ba02114b1c025c370f2e269a07677c16c9bea8d990fcd75ac8378aff9d41b50",
+    "timings": {
+      "checkMesh": 2.6242324579507113,
+      "decomposePar": 2.54123054118827,
+      "simpleFoam": 986.5042171250097,
+      "reconstructPar": 5.203104082960635
+    },
+    "wallSeconds": 1001.9443856249563,
+    "geometryFingerprint": "184b9b3666f60fb8f5227434046bf2f0e86d61d90ee88722f8e7f08fa32d0da9",
+    "status": "fresh native result; mesh independence pending",
+    "settingsDifferences": {}
+  },
+  "inputs": [
+    {
+      "file": "fa415a20e52649fc9f55a6b56ed39cce/geometry/part0.stl",
+      "sha256": "184b9b3666f60fb8f5227434046bf2f0e86d61d90ee88722f8e7f08fa32d0da9"
+    }
+  ],
+  "spec": {
+    "parts": [
+      {
+        "file": "part0.stl",
+        "name": "ahmed_25deg_m 1",
+        "role": "body",
+        "wheel": null,
+        "url": "/geom/fa415a20e52649fc9f55a6b56ed39cce/geometry/part0.stl"
+      }
+    ],
+    "settings": {
+      "speed_kmh": 144,
+      "yaw_deg": 0,
+      "reference_area": 0.115032,
+      "density": 1,
+      "moving_ground": true,
+      "wheels": false,
+      "quality": "custom",
+      "custom_cells": 72,
+      "custom_passes": 20,
+      "max_seconds": 600,
+      "targetCells": 500000,
+      "fullStress": true,
+      "noEddyFloor": true,
+      "sstTransport": true,
+      "stepwiseOmega": false,
+      "cutGradient": true,
+      "limitedSstGradient": true,
+      "surfaceWallDistance": true,
+      "centroidWallDistance": true,
+      "freestreamPressure": true,
+      "farGrowth": 1.3,
+      "farCellSize": 0.5,
+      "finePadding": 0.03,
+      "roofPadding": 0.03,
+      "wakeLength": 0.2,
+      "simpleMomentum": true,
+      "pseudoTransientMomentum": true,
+      "consistentMomentum": true,
+      "mergeBoost": 1,
+      "limiter": 0
+    },
+    "solver": {
+      "vcycles": 4,
+      "coarseSweeps": 24,
+      "momentumSweeps": 8,
+      "momentumRelaxation": 0.5
+    },
+    "maxExtension": 1,
+    "probeWake": true
+  },
+  "error": "page.evaluate: Error: GPU solver initialization: Binding doesn't exist in [BindGroupLayoutInternal \"momentumPressure\"].\n - While validating that the entry-point's declaration for @group(0) @binding(10) matches [BindGroupLayoutInternal \"momentumPressure\"]\n - While validating the entry-point's compatibility for group 0 with [BindGroupLayoutInternal \"momentumPressure\"]\n - While validating compute stage ([ShaderModule \"turbulence\"], entryPoint: \"main\").\n - While calling [Device].CreateComputePipeline([ComputePipelineDescriptor \"\"turbulence\"\"]).\n\n    at runLevel (http://127.0.0.1:5201/src/solver/run.ts:139:11)\n    at async runSimulation (http://127.0.0.1:5201/src/solver/run.ts:67:20)\n    at async Object.run (http://127.0.0.1:5201/src/bench.ts:30:32)\n    at async <anonymous>:337:30\n    at /Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/web/validation/run-accuracy.mjs:74:32",
+  "finished": "2026-10-02T22:41:52.704Z"
+}

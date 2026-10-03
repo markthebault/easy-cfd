@@ -1,0 +1,427 @@
+[
+  {
+    "model": "sample",
+    "nativeCase": "/Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/.accuracy-reference/sample-refined",
+    "parts": [
+      {
+        "file": "part0.stl",
+        "webgpuSha256": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+        "nativeSha256": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part1.stl",
+        "webgpuSha256": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+        "nativeSha256": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part2.stl",
+        "webgpuSha256": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+        "nativeSha256": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part3.stl",
+        "webgpuSha256": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+        "nativeSha256": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part4.stl",
+        "webgpuSha256": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7",
+        "nativeSha256": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      }
+    ],
+    "nativeFingerprint": "893412988bca7cc83b6cc45de0de3d72ffe03b939beffef19aa370fbda3cda00",
+    "webgpuFingerprint": "893412988bca7cc83b6cc45de0de3d72ffe03b939beffef19aa370fbda3cda00",
+    "physicalInputDifferences": {},
+    "allAttemptInputsMatch": true,
+    "attemptsChecked": 19,
+    "matches": true
+  },
+  {
+    "model": "sample-yaw10",
+    "nativeCase": "/Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/.easycfd/runs/19d8a06b0b63406090c977065add33e3/case-medium",
+    "parts": [
+      {
+        "file": "part0.stl",
+        "webgpuSha256": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+        "nativeSha256": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part1.stl",
+        "webgpuSha256": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+        "nativeSha256": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part2.stl",
+        "webgpuSha256": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+        "nativeSha256": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part3.stl",
+        "webgpuSha256": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+        "nativeSha256": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part4.stl",
+        "webgpuSha256": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7",
+        "nativeSha256": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      }
+    ],
+    "nativeFingerprint": "893412988bca7cc83b6cc45de0de3d72ffe03b939beffef19aa370fbda3cda00",
+    "webgpuFingerprint": "893412988bca7cc83b6cc45de0de3d72ffe03b939beffef19aa370fbda3cda00",
+    "physicalInputDifferences": {},
+    "allAttemptInputsMatch": true,
+    "attemptsChecked": 2,
+    "matches": true
+  },
+  {
+    "model": "sample-wing",
+    "nativeCase": "/Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/.easycfd/runs/b039b9ba826042ffa6fb9cf250e21fbd/case-medium",
+    "parts": [
+      {
+        "file": "part0.stl",
+        "webgpuSha256": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+        "nativeSha256": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part1.stl",
+        "webgpuSha256": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+        "nativeSha256": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part2.stl",
+        "webgpuSha256": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+        "nativeSha256": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part3.stl",
+        "webgpuSha256": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+        "nativeSha256": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part4.stl",
+        "webgpuSha256": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7",
+        "nativeSha256": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part5.stl",
+        "webgpuSha256": "000a61e757e39c37fc645ca23df26c9300f80945d97fea9e4aaf0945b866e503",
+        "nativeSha256": "000a61e757e39c37fc645ca23df26c9300f80945d97fea9e4aaf0945b866e503",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      }
+    ],
+    "nativeFingerprint": "70030e5215d16f54bea749019d4d0d6dcc289905ad8d57f11863667215466498",
+    "webgpuFingerprint": "70030e5215d16f54bea749019d4d0d6dcc289905ad8d57f11863667215466498",
+    "physicalInputDifferences": {},
+    "allAttemptInputsMatch": true,
+    "attemptsChecked": 2,
+    "matches": true
+  },
+  {
+    "model": "mx5",
+    "nativeCase": "/Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/.accuracy-reference/mx5-continued",
+    "parts": [
+      {
+        "file": "part0.stl",
+        "webgpuSha256": "f5f1716838c0c0ee57b3981852c1dee324c1b1c04fb880392bf1577d73e6ebc7",
+        "nativeSha256": "f5f1716838c0c0ee57b3981852c1dee324c1b1c04fb880392bf1577d73e6ebc7",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part1.stl",
+        "webgpuSha256": "6407bc41a6f79703fd9d2ab9c2fe3dc0c0a248b3cb0cf0ad62d2b98647d8096b",
+        "nativeSha256": "6407bc41a6f79703fd9d2ab9c2fe3dc0c0a248b3cb0cf0ad62d2b98647d8096b",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part2.stl",
+        "webgpuSha256": "c99a2947be197d50dc738873ed4f4645dd06a399cd2b3b3a4b337c3d15676006",
+        "nativeSha256": "c99a2947be197d50dc738873ed4f4645dd06a399cd2b3b3a4b337c3d15676006",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part3.stl",
+        "webgpuSha256": "49bbae3da64f042248c1071bb8c90715ed692b730eef4a6d80bfa5935908f44e",
+        "nativeSha256": "49bbae3da64f042248c1071bb8c90715ed692b730eef4a6d80bfa5935908f44e",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part4.stl",
+        "webgpuSha256": "7283179814adfbe2b979b799ee81b4481097e236afe0e8890ab796ae932a945e",
+        "nativeSha256": "7283179814adfbe2b979b799ee81b4481097e236afe0e8890ab796ae932a945e",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      }
+    ],
+    "nativeFingerprint": "665a5caa26cdf5270a0ff8b0dcfa71f1a1d1fe3ea18f7a9f79c40da84de50bac",
+    "webgpuFingerprint": "665a5caa26cdf5270a0ff8b0dcfa71f1a1d1fe3ea18f7a9f79c40da84de50bac",
+    "physicalInputDifferences": {},
+    "allAttemptInputsMatch": true,
+    "attemptsChecked": 13,
+    "matches": true
+  },
+  {
+    "model": "z4",
+    "nativeCase": "/Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/.easycfd/runs/0e2f1e9b63264e848a034f8ac3f7e3b5/case-medium",
+    "parts": [
+      {
+        "file": "part0.stl",
+        "webgpuSha256": "4dd43ccf265c90f3627158dad7349864cf9b0c490f29dab56c9197313cdbfe99",
+        "nativeSha256": "4dd43ccf265c90f3627158dad7349864cf9b0c490f29dab56c9197313cdbfe99",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part1.stl",
+        "webgpuSha256": "6707bf83d222889a9a3bd049ee3244e2f8e33baa8df98fafe11db7b3aa77e563",
+        "nativeSha256": "6707bf83d222889a9a3bd049ee3244e2f8e33baa8df98fafe11db7b3aa77e563",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part2.stl",
+        "webgpuSha256": "57faab6c35548ebda832dbdeb9e85a90b585baa096b883d370be0945311188a0",
+        "nativeSha256": "57faab6c35548ebda832dbdeb9e85a90b585baa096b883d370be0945311188a0",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part3.stl",
+        "webgpuSha256": "5e5c0bbe8911855d2239c5b61b7d8ac6a96084bf55c2c4ddef0df11f2004ad3b",
+        "nativeSha256": "5e5c0bbe8911855d2239c5b61b7d8ac6a96084bf55c2c4ddef0df11f2004ad3b",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part4.stl",
+        "webgpuSha256": "cdc58cab347c3420f2c03c03658feacd2a01f654a273f79d1050c7ac29a4d427",
+        "nativeSha256": "cdc58cab347c3420f2c03c03658feacd2a01f654a273f79d1050c7ac29a4d427",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part5.stl",
+        "webgpuSha256": "7a13cecfa9cd649b4dbc049c3db478fe77a1b02160736c8b1dc2e7c44d7071c0",
+        "nativeSha256": "7a13cecfa9cd649b4dbc049c3db478fe77a1b02160736c8b1dc2e7c44d7071c0",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part6.stl",
+        "webgpuSha256": "79f1abb17081b17bc2259d425538d07321d38f4e399effdfc225c3a78936577d",
+        "nativeSha256": "79f1abb17081b17bc2259d425538d07321d38f4e399effdfc225c3a78936577d",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part7.stl",
+        "webgpuSha256": "64ea7957b546e0e4dbfa298711131aa103c6fb4ed677f1a63bd5683dce2d4f4f",
+        "nativeSha256": "64ea7957b546e0e4dbfa298711131aa103c6fb4ed677f1a63bd5683dce2d4f4f",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part8.stl",
+        "webgpuSha256": "a3201152a6a014822dac48e8be9b02faee9e747b74437aee1b21fb9cc482ee32",
+        "nativeSha256": "a3201152a6a014822dac48e8be9b02faee9e747b74437aee1b21fb9cc482ee32",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part9.stl",
+        "webgpuSha256": "439d7f903600eb08c3ab7f8745b1d996dae98c2d372e3605f988058f8c03997b",
+        "nativeSha256": "439d7f903600eb08c3ab7f8745b1d996dae98c2d372e3605f988058f8c03997b",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part10.stl",
+        "webgpuSha256": "cb381b33f2c674bf216be10a2a4d5273a7cf4d44f631a9868d346ee983f9573d",
+        "nativeSha256": "cb381b33f2c674bf216be10a2a4d5273a7cf4d44f631a9868d346ee983f9573d",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part11.stl",
+        "webgpuSha256": "c34ed73c84a0991f49027203ea89b8f849b9ee30f02659e4dac18bebcf8c9f7c",
+        "nativeSha256": "c34ed73c84a0991f49027203ea89b8f849b9ee30f02659e4dac18bebcf8c9f7c",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      }
+    ],
+    "nativeFingerprint": "0b4fcae631f1ea46808aa8dc6b6824b8259a894a90c762016c2d33f8b337ded8",
+    "webgpuFingerprint": "0b4fcae631f1ea46808aa8dc6b6824b8259a894a90c762016c2d33f8b337ded8",
+    "physicalInputDifferences": {},
+    "allAttemptInputsMatch": true,
+    "attemptsChecked": 2,
+    "matches": true
+  },
+  {
+    "model": "z4-wing",
+    "nativeCase": "/Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/.easycfd/runs/7308d8fe881a49a880f6a5d6d3b817b0/case-medium",
+    "parts": [
+      {
+        "file": "part0.stl",
+        "webgpuSha256": "71ecfb5ade5679aa08c15ec7cf87f39ebcaf668e693e6d47996e1bab34e38326",
+        "nativeSha256": "71ecfb5ade5679aa08c15ec7cf87f39ebcaf668e693e6d47996e1bab34e38326",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part1.stl",
+        "webgpuSha256": "19bc5a238b00bce8e30f7dab80a9118853d0a8111c244ea5304685cae8d1f40d",
+        "nativeSha256": "19bc5a238b00bce8e30f7dab80a9118853d0a8111c244ea5304685cae8d1f40d",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part2.stl",
+        "webgpuSha256": "90e85c10ca336313eb698d5c4b904c4d32d037ab73c10bd7a3733f97522b4355",
+        "nativeSha256": "90e85c10ca336313eb698d5c4b904c4d32d037ab73c10bd7a3733f97522b4355",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part3.stl",
+        "webgpuSha256": "338c3e781a09943e7b926605d7ac11980990bd866e26ffa33ad3ce95815a9dcc",
+        "nativeSha256": "338c3e781a09943e7b926605d7ac11980990bd866e26ffa33ad3ce95815a9dcc",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part4.stl",
+        "webgpuSha256": "d227b600c3689cf7a1674ec2f7634542f7028a3ba5d21ecc7662ba72e807f8b8",
+        "nativeSha256": "d227b600c3689cf7a1674ec2f7634542f7028a3ba5d21ecc7662ba72e807f8b8",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part5.stl",
+        "webgpuSha256": "7fb380c58b909f93301d17bd55e60762476ccf3ff970d043e63c64a39e2d239c",
+        "nativeSha256": "7fb380c58b909f93301d17bd55e60762476ccf3ff970d043e63c64a39e2d239c",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part6.stl",
+        "webgpuSha256": "bc64137beec72b2b5fcbc18803dc8b2544c7439e3d13ccf8c375fc33719547e7",
+        "nativeSha256": "bc64137beec72b2b5fcbc18803dc8b2544c7439e3d13ccf8c375fc33719547e7",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part7.stl",
+        "webgpuSha256": "affda4b038bae8db76335f025f5157c9863aacee488b514311b6f502870ab3f9",
+        "nativeSha256": "affda4b038bae8db76335f025f5157c9863aacee488b514311b6f502870ab3f9",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part8.stl",
+        "webgpuSha256": "cfbcc0e1acb3b719d207dd2de49f6314f2f8bbd96e21b4d99df8b46133f61ce5",
+        "nativeSha256": "cfbcc0e1acb3b719d207dd2de49f6314f2f8bbd96e21b4d99df8b46133f61ce5",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part9.stl",
+        "webgpuSha256": "d1ced2d02da674696f4adec0ff9d5b8e6039b3fffaa8519af6a4cb8faeccbdf5",
+        "nativeSha256": "d1ced2d02da674696f4adec0ff9d5b8e6039b3fffaa8519af6a4cb8faeccbdf5",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part10.stl",
+        "webgpuSha256": "8fb80ca7d06189007980479f52f19f7d9935b6e523a64aa53098a1cddadd15d5",
+        "nativeSha256": "8fb80ca7d06189007980479f52f19f7d9935b6e523a64aa53098a1cddadd15d5",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      },
+      {
+        "file": "part11.stl",
+        "webgpuSha256": "b6441596d1c174588e1d0f2646c9d0e91532ebb6c3c7b7b9b6102e58041c5ce7",
+        "nativeSha256": "b6441596d1c174588e1d0f2646c9d0e91532ebb6c3c7b7b9b6102e58041c5ce7",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      }
+    ],
+    "nativeFingerprint": "8028600a59969a895571e9b861667fe48d246ca128cf165d93b80e1f27063b91",
+    "webgpuFingerprint": "8028600a59969a895571e9b861667fe48d246ca128cf165d93b80e1f27063b91",
+    "physicalInputDifferences": {},
+    "allAttemptInputsMatch": true,
+    "attemptsChecked": 2,
+    "matches": true
+  },
+  {
+    "model": "simple-car",
+    "nativeCase": "/Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/.easycfd/runs/0fc978585cfb4ed7bb1cbf2458e4d747/case-medium",
+    "parts": [
+      {
+        "file": "part0.stl",
+        "webgpuSha256": "e28e8ab65036b593b0953be4b5b086b51badc063c08c4a7ff600cdfcc1670257",
+        "nativeSha256": "e28e8ab65036b593b0953be4b5b086b51badc063c08c4a7ff600cdfcc1670257",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      }
+    ],
+    "nativeFingerprint": "e28e8ab65036b593b0953be4b5b086b51badc063c08c4a7ff600cdfcc1670257",
+    "webgpuFingerprint": "e28e8ab65036b593b0953be4b5b086b51badc063c08c4a7ff600cdfcc1670257",
+    "physicalInputDifferences": {},
+    "allAttemptInputsMatch": true,
+    "attemptsChecked": 2,
+    "matches": true
+  },
+  {
+    "model": "ahmed25",
+    "nativeCase": "/Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/.accuracy-reference/ahmed25-continued",
+    "parts": [
+      {
+        "file": "part0.stl",
+        "webgpuSha256": "184b9b3666f60fb8f5227434046bf2f0e86d61d90ee88722f8e7f08fa32d0da9",
+        "nativeSha256": "184b9b3666f60fb8f5227434046bf2f0e86d61d90ee88722f8e7f08fa32d0da9",
+        "identicalStl": true,
+        "wheelMetadataMatches": true
+      }
+    ],
+    "nativeFingerprint": "184b9b3666f60fb8f5227434046bf2f0e86d61d90ee88722f8e7f08fa32d0da9",
+    "webgpuFingerprint": "184b9b3666f60fb8f5227434046bf2f0e86d61d90ee88722f8e7f08fa32d0da9",
+    "physicalInputDifferences": {},
+    "allAttemptInputsMatch": true,
+    "attemptsChecked": 8,
+    "matches": true
+  }
+]

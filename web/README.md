@@ -57,6 +57,8 @@ Accuracy against the OpenFOAM app, model by model, is recorded in [VALIDATION.md
 
 The [3% accuracy study](../docs/webgpu-accuracy/README.md) records exact cell budgets, experimental stress and wall-function corrections, refinement runs, native-reference convergence and final 500,000-cell comparisons. These experiments do not establish 3% accuracy for the browser solver.
 
+The [OpenFOAM algorithm follow-up](../docs/webgpu-openfoam-algorithm/README.md) audits the pinned v2412 source and tests implicit momentum/SIMPLEC, implicit SST, cut-cell geometry and boundary corrections. None of its eight final 500,000-cell models meets 5% agreement for both drag and signed lift. These paths remain experimental.
+
 ## Development
 
 ```sh

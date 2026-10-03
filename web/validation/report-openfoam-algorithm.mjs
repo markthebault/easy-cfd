@@ -73,11 +73,11 @@ The formulas and algorithms can be implemented on WebGPU. This experimental impl
 
 ${table(final)}
 
-The budget is exactly 500,000 interior Cartesian grid cells, including solid cells and excluding ghosts. Actual fluid counts are recorded separately in evaluation.json and each attempt. Geometry, speed, yaw, reference area, density, moving ground and wheel settings match each native reference. [Actual native STL and input checks](geometry-input-audit.json) verify all eight pairs. [Domain bounds](domain-audit.json) compare the actual native tunnel to the browser tunnel, with a 1e-5 metre tolerance for imported float32 geometry. Native meshes have their own fluid-cell counts. All GPU solves start from freestream plus an initial divergence-free projection; no OpenFOAM velocity, pressure or turbulence result is supplied to the solver.
+Each final run uses 40 flow passes on exactly 500,000 interior Cartesian grid cells, including solid cells and excluding ghosts. Development runs grew from 125,000 and 250,000 cells to 500,000 cells, then increased from 20 to 30 and 40 passes. Actual fluid counts are recorded separately in evaluation.json and each attempt. Geometry, speed, yaw, reference area, density, moving ground and wheel settings match each native reference. [Actual native STL and input checks](geometry-input-audit.json) verify all eight pairs. [Domain bounds](domain-audit.json) compare the actual native tunnel to the browser tunnel, with a 1e-5 metre tolerance for imported float32 geometry. Native meshes have their own fluid-cell counts. All GPU solves start from freestream plus an initial divergence-free projection; no OpenFOAM velocity, pressure or turbulence result is supplied to the solver.
 
-${selection?`The final configuration was selected using ${selection.criterion}. Selected: **${selection.selected}**. Selection is based on the recorded comparisons, not per-model fitted correction factors.`:"Final configuration selection is pending."}
+${selection?`The final configuration was selected using ${selection.criterion}. Selected: **${selection.selected}**. Selection is based on the recorded comparisons, not per-model fitted correction factors. The selected final path retains projection momentum and uses implicit SST with ${selection.finalSstSweeps} scalar sweeps, four pressure multigrid cycles, 24 coarse sweeps, geometric cut fractions and fluid-centroid road distances. The eight-case full implicit momentum/SIMPLEC suite is retained as attempts 34–41.`:"Final configuration selection is pending."}
 
-${repeat?`The independent sample repeat differed by ${pct(repeat.cdRelativeDifference)} in Cd and ${pct(repeat.clRelativeDifference)} in Cl. Exact differences are in evaluation.json.`:"The independent final sample repeat is pending."}
+${repeat?`The independent sample repeat differed by ${(100*repeat.cdRelativeDifference).toFixed(4)}% in Cd and ${(100*repeat.clRelativeDifference).toFixed(4)}% in Cl. Exact differences are in evaluation.json.`:"The independent final sample repeat is pending."}
 
 ![All attempted coefficient comparisons](iterations.png)
 
@@ -95,7 +95,9 @@ ${fields.length?"| Case / iteration | Valid wake points | Velocity relative L2 e
 
 Coefficient agreement is checked separately from physical qualification. Healthy fields require finite values, no velocity clipping, relative divergence at most 0.001, settled forces and final force bands at most 1%. The native sample reference still has unresolved force/residual and mesh-convergence limits; native MX-5 still has unresolved residual/mesh-convergence limits; Ahmed has settled forces and converged residuals but no demonstrated mesh independence. None of these are promoted to a physical 5% accuracy claim. The pinned native references were reused from the preceding campaign; no changed geometry or numerical target was introduced to manufacture agreement.
 
-## Reproduction
+## Validation and reproduction
+
+[Recorded checks](checks.json) retain the production build, 53 passing CPU tests, Python and JavaScript checks, kernel compilation and independent GPU scalar-operator validation. These software checks passed; the CFD target did not. Native input and field audits are separate records.
 
 The plans and every raw attempt retain their settings. Reproducing a committed experiment requires its recorded sourceRevision; using the final source for an earlier plan changes the experiment. Attempts 1–25 include uncommitted development snapshots identified by source digests, so those historical versions are not advertised as fully reproducible from the final commit.
 

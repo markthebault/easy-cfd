@@ -1,5 +1,11 @@
 # Validation against the OpenFOAM app
 
+## 3 October 2026: OpenFOAM algorithm follow-up
+
+The [source audit and bounded follow-up](../docs/webgpu-openfoam-algorithm/README.md) implement experimental implicit momentum/SIMPLEC and SST transport, source-based wall and side conditions, and geometric cut-cell integration. **None of the eight final models at exactly 500,000 grid cells and 40 flow passes met 5% agreement for both drag and signed lift.** Drag disagreement ranges from 3.6% to 24.2%; lift disagreement ranges from 15.0% to 428.8%. All final native/browser geometries, physical inputs and tunnel bounds match. The raw attempts include initialization and numerical failures.
+
+The full implicit momentum/SIMPLEC candidate had larger screening errors than the selected projection-momentum/implicit-SST candidate; both were tested. The source review also corrects the earlier study's wall-blending claim: this v2412 case defaults to binomial omega blending, not stepwise. Native mesh independence and several force/residual convergence checks remain unresolved. The [checks](../docs/webgpu-openfoam-algorithm/checks.json) distinguish CPU/build/GPU operator evidence from CFD agreement; experimental numerics are not enabled by the app.
+
 ## 2 October 2026: 3% accuracy study
 
 The [bounded WebGPU accuracy study](../docs/webgpu-accuracy/README.md) stopped after 100 completed trials. It tested exact cell budgets from 125,000 through two million cells, then ended with eight models at exactly 500,000 cells and 100 flow passes plus a repeat run. **None of the eight final models met 3% agreement for both drag and signed lift.** Drag disagreement ranged from 3.1% to 41.6%; lift disagreement ranged from 44.2% to 299.3%. Numerical candidates remain experimental and the production defaults are unchanged. The report retains the native-reference convergence limits, field diagnostics, measured improvements and misses.

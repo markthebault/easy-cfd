@@ -1,0 +1,46 @@
+[
+  {
+    "key": "simple-finite-0.3-sample",
+    "model": "sample",
+    "hypothesis": "Guard cancelling wall normals; compare momentum under-relaxation",
+    "settings": {
+      "targetCells": 125000,
+      "custom_passes": 8,
+      "max_seconds": 240,
+      "simpleMomentum": true,
+      "fullStress": true,
+      "noEddyFloor": true,
+      "sstTransport": true,
+      "mergeBoost": 1
+    },
+    "solver": {
+      "vcycles": 6,
+      "coarseSweeps": 24,
+      "momentumSweeps": 4,
+      "momentumRelaxation": 0.3
+    },
+    "maxExtension": 1
+  },
+  {
+    "key": "simple-finite-0.7-sample",
+    "model": "sample",
+    "hypothesis": "Guard cancelling wall normals; compare momentum under-relaxation",
+    "settings": {
+      "targetCells": 125000,
+      "custom_passes": 8,
+      "max_seconds": 240,
+      "simpleMomentum": true,
+      "fullStress": true,
+      "noEddyFloor": true,
+      "sstTransport": true,
+      "mergeBoost": 1
+    },
+    "solver": {
+      "vcycles": 6,
+      "coarseSweeps": 24,
+      "momentumSweeps": 4,
+      "momentumRelaxation": 0.7
+    },
+    "maxExtension": 1
+  }
+]
