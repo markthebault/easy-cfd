@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Ten fresh, matched native solves per mesh; no reference flow is reused."""
 import argparse
+import fcntl
 import hashlib
 import json
 import math
@@ -127,7 +128,7 @@ def native_evidence(case, log_name, settings, metadata):
         "averagingIterations": 200, "history": history[::10], "lastWindow": window}
 
 
-def run_stage(output, design, stage):
+def run_stage(output, design, stage, pair_ids=None, mesh_only=False):
     if stage == "final":
         gates = read(output / "statistics.json")["stages"]
         if not all(gates[s]["passed"] for s in ("small", "medium")):
@@ -158,9 +159,12 @@ def run_stage(output, design, stage):
             "case": str(mesh_case), "meshHashes": mesh_identity(mesh_case / "constant/polyMesh"), "timings": timings,
             "note": "Mesh built once at baseline speed; reused unchanged for all ten perturbed-input solves, including baseline prism-layer thickness."})
     mesh = read(mesh_record)
+    if mesh_only:
+        return
     refs_file = stage_output / "references.json"
-    refs = read(refs_file) if refs_file.exists() else {}
     for trial in design["trials"]:
+        if pair_ids and trial["id"] not in pair_ids:
+            continue
         key = f"{stage}-{trial['id']}"
         evidence_file = stage_output / "native" / f"{trial['id']}.json"
         if evidence_file.exists():
@@ -206,8 +210,11 @@ def run_stage(output, design, stage):
                 freestream=metadata["freestream"], geometryFingerprint=geometry["fingerprint"], partHashes=part_hashes,
                 image=foam.IMAGE, checkpoints=checkpoints, timings=timings,
                 dictionaryHashes={str(p.relative_to(case)): hashlib.sha256(p.read_bytes()).hexdigest() for folder in ("system", "0") for p in (case / folder).glob("*") if p.is_file()})
-            refs[key] = {k: v for k, v in record.items() if k not in ("history", "lastWindow", "checkpoints", "meshHashes")}
-            save(refs_file, refs)
+            with (stage_output / "references.lock").open("a") as lock:
+                fcntl.flock(lock, fcntl.LOCK_EX)
+                refs = read(refs_file) if refs_file.exists() else {}
+                refs[key] = {k: v for k, v in record.items() if k not in ("history", "lastWindow", "checkpoints", "meshHashes")}
+                save(refs_file, refs)
         except Exception as error:
             record.update(status="failed", error=str(error))
             print(f"FAILED {key}: {error}", flush=True)
@@ -221,11 +228,16 @@ def main():
     parser.add_argument("--output", default="docs/webgpu-paired-inputs")
     parser.add_argument("--model", default="sample", choices=("sample", "ahmed25", "mx5"))
     parser.add_argument("--stage", choices=("small", "medium", "final"))
+    parser.add_argument("--pairs", help="Comma-separated registered pair IDs; allows disjoint native workers after --mesh-only")
+    parser.add_argument("--mesh-only", action="store_true")
     args = parser.parse_args()
     output = ROOT / args.output
     design = initialize(output, args.model)
     if args.stage:
-        run_stage(output, design, args.stage)
+        pair_ids = set(args.pairs.split(",")) if args.pairs else None
+        if pair_ids and not pair_ids.issubset({t["id"] for t in design["trials"]}):
+            raise RuntimeError("Unknown pair ID")
+        run_stage(output, design, args.stage, pair_ids, args.mesh_only)
 
 
 if __name__ == "__main__":

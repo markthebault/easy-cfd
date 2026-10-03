@@ -19,3 +19,4 @@ docs/webgpu-accuracy/campaign.lock
 .accuracy-source/
 docs/webgpu-openfoam-algorithm/campaign.lock
 docs/webgpu-paired-inputs/*/campaign.lock
+docs/webgpu-paired-inputs/*/references.lock

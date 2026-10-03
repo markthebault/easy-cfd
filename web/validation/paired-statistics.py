@@ -75,7 +75,7 @@ def stage_statistics(output, design, stage):
         healthy = g["comparison"]["finite"] and g["comparison"]["conserved"]
         quality = healthy and g["comparison"]["stable"] and n["forceSettled"] and n["residualConverged"] and n["meshPassed"]
         row = {"key": key, "speedKmh": trial["settings"]["speed_kmh"], "yawDeg": trial["settings"]["yaw_deg"],
-            "nativeCells": n["cells"], "gpuCells": result["cells"], "nativeCd": n["cd"], "gpuCd": result["cd"],
+            "nativeCells": n["cells"], "gpuCells": result["cells"], "gpuFluidCells": result["diagnostics"]["fluidCount"], "nativeCd": n["cd"], "gpuCd": result["cd"],
             "nativeCl": n["cl"], "gpuCl": result["cl"], "cdErrorPercent": 100*errors["cd"], "clErrorPercent": 100*errors["cl"],
             "nativeForceSettled": n["forceSettled"], "nativeResidualConverged": n["residualConverged"],
             "gpuForceStable": g["comparison"]["stable"], "gpuHealthy": healthy, "inputsMatch": matches,
@@ -106,7 +106,11 @@ def triple(distribution, digits=3):
 
 
 def render_report(output, design, report):
+    total = sum(data["pairedCount"] for data in report["stages"].values())
+    outcome = ("The completed small and medium stages failed the registered 5% gate; the conditional 500,000-cell stage was not run."
+        if total >= 20 and not report["finalEligible"] else f"Pilot progress: {total} matched pairs complete. {report['finalDecision']}.")
     lines = ["# Matched OpenFOAM/WebGPU input-variation pilot", "",
+        outcome, "",
         "Ten independent native and GPU starts at each tested resolution, using the same ten speed/yaw settings on one sample car. "
         "OpenFOAM's spread across those settings measures input sensitivity. Iterative drift is recorded separately; this is not a repeatability test with identical inputs.", "",
         f"Registered tolerance: {100*design['tolerance']:.0f}% for both signed Cd and Cl in every pair, plus convergence and healthy-field checks. "
@@ -122,6 +126,13 @@ def render_report(output, design, report):
     for stage, data in report["stages"].items():
         lines.append(f"| {stage} | {data['pairedCount']}/10 | {data['agreementPairs']}/10 | {data['qualityPairs']}/10 | {'yes' if data['passed'] else 'no'} |")
     lines.extend(["", f"500,000-cell decision: **{report['finalDecision']}**.", "",
+        "![Matched coefficient distributions and per-pair errors](paired-comparison.png)", "",
+        "| Stage | Native fluid cells | GPU grid cells | GPU active fluid cells |", "|---|---:|---:|---:|"])
+    for stage, data in report["stages"].items():
+        if data["pairs"]:
+            r = data["pairs"][0]
+            lines.append(f"| {stage} | {r['nativeCells']:,} | {r['gpuCells']:,} | {r['gpuFluidCells']:,} |")
+    lines.extend(["",
         "## Native variability versus solver disagreement", "",
         "| Stage | Metric | Native IQR / median (%) | Median absolute solver difference / native IQR | Native last-200 span, Q1 / median / Q3 (%) |", "|---|---|---:|---:|---|"])
     for stage, data in report["stages"].items():
