@@ -192,6 +192,14 @@ def render_report(output, design, report):
             text = "pending" if interval[0] is None else f"{interval[0]:.2f} to {interval[1]:.2f}"
             lines.append(f"| {stage} | {name.upper()} | {triple(detail['signedErrorPercent'], 2)} | {text} |")
     lines.extend(["", "These bootstrap intervals describe this selected ten-point design; the pilot is too small and too narrow to establish general solver equivalence.", ""])
+    if total >= 20:
+        inside = {name: sum(data["nativeIterationVariability"][name]["gpuWithinNativeBlockMeanEnvelope"] for data in report["stages"].values()) for name in ("cd", "cl")}
+        lines.extend(["## Pilot decision", "",
+            f"Across {total} pairs, the GPU mean lies inside its native block-mean range in {inside['cd']}/{total} drag comparisons and {inside['cl']}/{total} lift comparisons. "
+            "The paired differences must therefore be judged alongside both the input spread and native iteration variation, rather than pooled range overlap.", "",
+            report["monteCarloDecision"], "",
+            "Unconverged native force windows/residuals and the absence of mesh independence limit a precise accuracy claim. "
+            "Reported percentages compare measured solver averages on the registered inputs, not experimentally qualified aerodynamic truth.", ""])
     if report["meshChanges"]:
         lines.extend(["## Change with mesh resolution at fixed physical inputs", "",
             "The same ten input pairs are matched across Small and Medium. This measures grid sensitivity separately from changed-input variability.", "",
@@ -217,6 +225,13 @@ def main():
     report = {"stages": stages, "meshChanges": mesh_changes(stages), "finalEligible": ready, "finalDecision": decision,
         "gate": design["gate"], "bootstrapMethod": "10,000 paired resamples, percentile interval for signed-error median, seed 20261003",
         "limits": "Only one geometry, ten selected inputs, no identical-input repetition campaign or experimental aerodynamic qualification."}
+    complete = all(stages.get(stage, {}).get("pairedCount") == 10 for stage in ("small", "medium"))
+    large_bias = complete and all(data["metrics"][name]["absoluteErrorPercent"]["median"] > 100*design["tolerance"]
+        for data in (stages["small"], stages["medium"]) for name in ("cd", "cl"))
+    report["monteCarloDecision"] = ("A broad randomized-input Monte Carlo is not supported as the next step by this pilot: both resolutions show a large paired bias. "
+        "Additional samples of these ranges would refine its estimated distribution; they would not establish 5% agreement for the tested cases. "
+        "Resolve the numerical discrepancy and native convergence before an expensive uncertainty campaign." if large_bias else
+        "Complete and assess the paired pilot, including native convergence and input spread, before deciding on a larger uncertainty campaign.")
     (output / "statistics.json").write_text(json.dumps(report, indent=2, allow_nan=False)+"\n")
     rows = [{"stage": stage, **r} for stage, data in stages.items() for r in data["pairs"]]
     if rows:
