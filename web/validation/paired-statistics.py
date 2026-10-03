@@ -81,12 +81,19 @@ def stage_statistics(output, design, stage):
             "gpuForceStable": g["comparison"]["stable"], "gpuHealthy": healthy, "inputsMatch": matches,
             "agrees": all(e <= design["tolerance"] for e in errors.values()), "quality": quality,
             "nativeWallSeconds": n["wallSeconds"], "gpuWallSeconds": result["wallSeconds"]}
+        for coefficient in ("cd", "cl"):
+            envelope = [min(n["forceWindowBlockMeans"][coefficient]), max(n["forceWindowBlockMeans"][coefficient])]
+            row[f"{coefficient}NativeBlockEnvelopeLow"] = envelope[0]
+            row[f"{coefficient}NativeBlockEnvelopeHigh"] = envelope[1]
+            row[f"{coefficient}GpuInNativeBlockEnvelope"] = envelope[0] <= result[coefficient] <= envelope[1]
         rows.append(row)
         pairs.append((n, result))
     metrics = {p: metric([n[p] for n, g in pairs], [g[p] for n, g in pairs], .01 if p in ("cd", "cl") else 1.) for p in ("cd", "cl", "drag", "lift")}
     temporal = {}
     for coefficient in ("cd", "cl"):
         temporal[coefficient] = {
+            "gpuWithinNativeBlockMeanEnvelope": sum(r[f"{coefficient}GpuInNativeBlockEnvelope"] for r in rows),
+            "blockEnvelopeNote": "Range of eight non-overlapping 25-iteration native block means in the final 200 iterations; descriptive envelope, not a confidence interval.",
             "last200SpanPercent": distribution([100*n["forceSpans"][coefficient]/max(abs(n[coefficient]), .01) for n, g in pairs]),
             "last200StdPercent": distribution([100*n["forceWindowStd"][coefficient]/max(abs(n[coefficient]), .01) for n, g in pairs]),
             "last200SplitDriftPercent": distribution([100*abs(n["forceWindowSplitMeans"][coefficient][1]-n["forceWindowSplitMeans"][coefficient][0])/max(abs(n[coefficient]), .01) for n, g in pairs])}
@@ -103,6 +110,16 @@ def triple(distribution, digits=3):
     if distribution["median"] is None:
         return "pending"
     return " / ".join(f"{distribution[k]:.{digits}f}" for k in ("q1", "median", "q3"))
+
+
+def mesh_changes(stages):
+    if not all(stages.get(s, {}).get("pairedCount") == 10 for s in ("small", "medium")):
+        return None
+    small = {r["key"].removeprefix("small-"): r for r in stages["small"]["pairs"]}
+    medium = {r["key"].removeprefix("medium-"): r for r in stages["medium"]["pairs"]}
+    keys = sorted(small.keys() & medium.keys())
+    return {solver: {name: metric([small[key][solver+name] for key in keys],
+        [medium[key][solver+name] for key in keys]) for name in ("Cd", "Cl")} for solver in ("native", "gpu")}
 
 
 def render_report(output, design, report):
@@ -149,6 +166,13 @@ def render_report(output, design, report):
         "Baseline layer thickness is held fixed. Each native solve starts from freshly generated uniform fields and each GPU solve from freestream plus projection.", "",
         "Saved artifacts: [registered design](design.json), [full statistics](statistics.json), [paired rows](pairs.csv), per-stage plans, meshes, native records and GPU records. "
         "Full native meshes, fields and logs remain under `.accuracy-reference/paired-inputs/`.", ""])
+    lines.extend(["The native variability records also count whether each GPU mean falls inside the range of the final eight native 25-iteration block means. "
+        "This checks whether native within-solve variation is large enough to cover the GPU value; it is a descriptive envelope, not a confidence interval.", "",
+        "| Stage | Metric | GPU mean inside native block-mean range |", "|---|---|---:|"])
+    for stage, data in report["stages"].items():
+        for name in ("cd", "cl"):
+            count = data["nativeIterationVariability"][name]["gpuWithinNativeBlockMeanEnvelope"]
+            lines.append(f"| {stage} | {name.upper()} | {count}/{data['pairedCount']} |")
     lines.extend(["## Physical forces under the same changed inputs", "",
         "Force variation includes the expected speed-squared scaling. Coefficient errors above isolate the aerodynamic response from that scaling.", "",
         "| Stage | Force (N) | OpenFOAM Q1 / median / Q3 | WebGPU Q1 / median / Q3 | Native IQR / median (%) |", "|---|---|---|---|---:|"])
@@ -167,6 +191,14 @@ def render_report(output, design, report):
             text = "pending" if interval[0] is None else f"{interval[0]:.2f} to {interval[1]:.2f}"
             lines.append(f"| {stage} | {name.upper()} | {triple(detail['signedErrorPercent'], 2)} | {text} |")
     lines.extend(["", "These bootstrap intervals describe this selected ten-point design; the pilot is too small and too narrow to establish general solver equivalence.", ""])
+    if report["meshChanges"]:
+        lines.extend(["## Change with mesh resolution at fixed physical inputs", "",
+            "The same ten input pairs are matched across Small and Medium. This measures grid sensitivity separately from changed-input variability.", "",
+            "| Solver | Metric | Small-to-Medium absolute change Q1 / median / Q3 (%) |", "|---|---|---|"])
+        for solver, details in report["meshChanges"].items():
+            for name, detail in details.items():
+                lines.append(f"| {solver} | {name} | {triple(detail['absoluteErrorPercent'], 2)} |")
+        lines.append("")
     (output / "README.md").write_text("\n".join(lines))
 
 
@@ -181,7 +213,7 @@ def main():
     decision = "eligible: both smaller stages passed" if ready else "not eligible: both smaller stages must pass"
     if "final" in stages:
         decision = "completed and passed" if stages["final"]["passed"] else "completed; final stage failed"
-    report = {"stages": stages, "finalEligible": ready, "finalDecision": decision,
+    report = {"stages": stages, "meshChanges": mesh_changes(stages), "finalEligible": ready, "finalDecision": decision,
         "gate": design["gate"], "bootstrapMethod": "10,000 paired resamples, percentile interval for signed-error median, seed 20261003",
         "limits": "Only one geometry, ten selected inputs, no identical-input repetition campaign or experimental aerodynamic qualification."}
     (output / "statistics.json").write_text(json.dumps(report, indent=2, allow_nan=False)+"\n")
