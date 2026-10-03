@@ -68,6 +68,8 @@ Typical workflow: import the car, then add three rear-wing versions with **Add p
 
 ## Accuracy
 
+The [October 2026 WebGPU/OpenFOAM investigation](docs/webgpu-investigation/README.md) records the later 100-attempt and 50-attempt studies and 20 matched input pairs. Those experimental configurations failed the 3% and 5% targets. Their numerical paths remain archived; the application retains only the demonstrated failure-handling fixes. The older preset comparisons below used different configurations and references.
+
 The browser solver was checked against the OpenFOAM app on eight cases, using the same geometry and conditions: the sample car (also at 10° yaw and with a rear wing), an MX-5, two BMW Z4 versions, a simple one-piece car and the Ahmed body. Drag is within ±10 % of OpenFOAM Medium for 6 of 8 cases on Fast, and 5 of 8 on Medium and Precise. All are within 16 %. On average the browser's drag is about 9 % lower. Lift is less reliable: it is 0.2–0.3 off in Cl on four models. The full tables, sensitivity studies and reproduction steps are in [web/VALIDATION.md](web/VALIDATION.md).
 
 On the sample car in the app: Fast gave Cd 0.511 ± 0.006 and Cl 0.839 in 61 s; Medium gave Cd 0.513 ± 0.001 and Cl 0.845 in 108 s. OpenFOAM Medium gives Cd 0.547.

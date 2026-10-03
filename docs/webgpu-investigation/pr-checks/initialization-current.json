@@ -1,0 +1,72 @@
+{
+  "checkedUTC": "2026-10-03T20:44:14.487Z",
+  "revision": "working tree",
+  "sourceHashes": {
+    "web/src/solver/run.ts": "8756fb4fb1b047ae95c977d4690b833a63e55733bcc5181cfc09bd2a7fc9b689",
+    "web/src/solver/gpu.ts": "4774b72a27246185851bdd428dcb2b941b27d1029e1b4c7a254ba6988f84952a"
+  },
+  "results": [
+    {
+      "mode": "healthy",
+      "adapter": "apple metal-3",
+      "software": false,
+      "scopeDepth": 0,
+      "submissions": 1,
+      "allocated": 39,
+      "destroyed": 39,
+      "producedResult": false,
+      "error": {
+        "name": "AbortError",
+        "message": "Simulation cancelled"
+      },
+      "fluidSteps": 0
+    },
+    {
+      "mode": "invalid-shader",
+      "adapter": "apple metal-3",
+      "software": false,
+      "scopeDepth": 0,
+      "submissions": 0,
+      "allocated": 39,
+      "destroyed": 39,
+      "producedResult": false,
+      "error": {
+        "name": "Error",
+        "message": "GPU solver initialization: Error while parsing WGSL: :1:1 error: unexpected token\ninvalid WGSL for initialization regression\n^^^^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"momentum\"\"]).\n"
+      },
+      "fluidSteps": 0
+    },
+    {
+      "mode": "synchronous-failure",
+      "adapter": "apple metal-3",
+      "software": false,
+      "scopeDepth": 0,
+      "submissions": 0,
+      "allocated": 39,
+      "destroyed": 39,
+      "producedResult": false,
+      "error": {
+        "name": "Error",
+        "message": "Injected synchronous shader construction failure"
+      },
+      "fluidSteps": 0
+    },
+    {
+      "mode": "buffer-upload-failure",
+      "adapter": "apple metal-3",
+      "software": false,
+      "scopeDepth": 0,
+      "submissions": 0,
+      "allocated": 1,
+      "destroyed": 1,
+      "producedResult": false,
+      "error": {
+        "name": "Error",
+        "message": "Injected synchronous buffer upload failure"
+      },
+      "fluidSteps": 0
+    }
+  ],
+  "failures": [],
+  "passed": true
+}

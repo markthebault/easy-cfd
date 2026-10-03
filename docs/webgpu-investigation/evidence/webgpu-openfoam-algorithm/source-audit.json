@@ -1,0 +1,89 @@
+{
+  "image": "opencfd/openfoam-default@sha256:1ba02114b1c025c370f2e269a07677c16c9bea8d990fcd75ac8378aff9d41b50",
+  "version": "v2412",
+  "sources": [
+    {
+      "path": "applications/solvers/incompressible/simpleFoam/UEqn.H",
+      "sha256": "65c598a3b1761b8057dc7e55cd5da2ab3f45e8b43465eb0ef396e40fb3f75b9f"
+    },
+    {
+      "path": "applications/solvers/incompressible/simpleFoam/pEqn.H",
+      "sha256": "5c4d209051724fa640b6d8f760425499722d20a395e9afdd29eb2089e9fc45b0"
+    },
+    {
+      "path": "src/TurbulenceModels/turbulenceModels/Base/kOmegaSST/kOmegaSSTBase.C",
+      "sha256": "2d11891703e63417393609cf1bcef803426b394cdef7731bfa66bfe9499d9435"
+    },
+    {
+      "path": "src/TurbulenceModels/turbulenceModels/derivedFvPatchFields/wallFunctions/nutWallFunctions/nutkWallFunction/nutkWallFunctionFvPatchScalarField.C",
+      "sha256": "0dc183bec3b00091216ecbf747d45ba0dd59c5f7676135d1fab741ec340915e9"
+    },
+    {
+      "path": "src/TurbulenceModels/turbulenceModels/derivedFvPatchFields/wallFunctions/omegaWallFunctions/omegaWallFunction/omegaWallFunctionFvPatchScalarField.C",
+      "sha256": "496e31535c04f82086ab9391bf11353317a989582aa1434fe398b1e133b18625"
+    },
+    {
+      "path": "src/TurbulenceModels/turbulenceModels/linearViscousStress/linearViscousStress.C",
+      "sha256": "f28f4a6bb9a5d4448226fa6407f505808fb2c2840b224a435d36fa898d30ea5f"
+    },
+    {
+      "path": "src/finiteVolume/fields/fvPatchFields/derived/freestreamPressure/freestreamPressureFvPatchScalarField.C",
+      "sha256": "3bebc4db7f146ca8a36cd8e328a14d1ae54dd7abb853062d5f19cb955a758835"
+    },
+    {
+      "path": "src/finiteVolume/fields/fvPatchFields/derived/inletOutlet/inletOutletFvPatchField.C",
+      "sha256": "a9b69cd02bf9566ba8e3a2098a62458b82cfa10d700b386edfa472781a7e8070"
+    },
+    {
+      "path": "src/finiteVolume/finiteVolume/gradSchemes/limitedGradSchemes/cellLimitedGrad/cellLimitedGrad.C",
+      "sha256": "797b743360870a4771f470673724c20f1ada6c5c55f8b4f07a1baa6ed37a8327"
+    },
+    {
+      "path": "src/finiteVolume/interpolation/surfaceInterpolation/schemes/linearUpwind/linearUpwindV.C",
+      "sha256": "8821bafa594cfd5b6f024ff905f58bb62933ae6613c862707781341da8d25898"
+    },
+    {
+      "path": "src/finiteVolume/fields/fvPatchFields/derived/rotatingWallVelocity/rotatingWallVelocityFvPatchVectorField.C",
+      "sha256": "b0cfe8e4fd06774ea4ed445af62730bb13ad61e13a1f06362f547e5674137d68"
+    }
+  ],
+  "nativeSchemes": "FoamFile { version 2.0; format ascii; class dictionary; object fvSchemes; }\n\nddtSchemes {default steadyState;}\ngradSchemes {default Gauss linear; grad(U) cellLimited Gauss linear 1;}\ndivSchemes {default none; div(phi,U) bounded Gauss linearUpwindV grad(U);\ndiv(phi,k) bounded Gauss upwind; div(phi,omega) bounded Gauss upwind;\ndiv((nuEff*dev2(T(grad(U))))) Gauss linear;}\nlaplacianSchemes {default Gauss linear limited 0.5;}\ninterpolationSchemes {default linear;}\nsnGradSchemes {default limited 0.5;}\nwallDist {method meshWave;}\n\n",
+  "nativeSolution": "FoamFile { version 2.0; format ascii; class dictionary; object fvSolution; }\n\nsolvers {\np {solver GAMG; tolerance 1e-7; relTol .05; smoother GaussSeidel;}\n\"(U|k|omega)\" {solver smoothSolver; smoother symGaussSeidel; tolerance 1e-8; relTol .1;}\n}\nSIMPLE {nNonOrthogonalCorrectors 1; consistent yes;}\nrelaxationFactors {fields {p .3;} equations {U .7; k .7; omega .7;}}\n\n",
+  "findings": [
+    "Native SIMPLE uses an under-relaxed implicit momentum matrix and rAU-based pressure Laplacian; old WebGPU is explicit projection",
+    "Native case dictionary constructor chooses BINOMIAL omega blending; prior stepwise-default claim was incorrect",
+    "SST effective diffusivity is interpolated at faces; old WebGPU multiplies its eddy diffusion by cell-local alpha",
+    "GbyNu uses the deviatoric symmetric stress contraction, not S2 alone",
+    "Native convection is bounded linearUpwindV with cell-limited Gauss gradients, old WebGPU uses distance-free van Leer",
+    "Native conforming polyhedral mesh and limited non-orthogonal correction are not reproduced by a Cartesian staggered matrix",
+    "SIMPLE consistent yes uses rAtU = 1/(1/rAU-H1), with previous-pressure corrections in HbyA and the flux",
+    "Side pressure is mixed using 0.5+0.5*(Up.normal)/|Up|; side velocity uses the sign of flux",
+    "SST divergence sources use conservative phi divergence, independently of the limited gradient trace",
+    "Implicit SST option follows omega then k then viscosity, bounded upwind advection, implicit diffusion/destruction, equation relaxation 0.7, and the newly solved omega in k destruction",
+    "rotatingWallVelocity projects the rigid-body velocity onto the patch tangent plane; experimental SST wall gradients now apply this projection",
+    "Native wall functions measure distance from the fluid-cell centre to the wall; previous road treatment used half the Cartesian cell width even in partial fluid cells",
+    "Cut-cell volume used 8-cubed samples and face aperture used 16-squared samples; a new optional piecewise-linear tetrahedral clipping computes volume and first moments without sample quantization",
+    "Road shear and SST wall distance can now use the clipped fluid centroid height; cell-centre pressure and diffusion geometry still use the Cartesian mesh",
+    "The SST Jacobi solver is checked against independently manufactured affine scalar solutions, including the updated omega in k destruction; this operator check executes no fluid steps",
+    "Pk(G) is evaluated after the omega solve in kOmegaSSTBase::correct: the new omega must update both k destruction and the production cap, not just destruction. Final-source correction updates both, with manufactured-solution coverage."
+  ],
+  "acceptance": {
+    "maxAttempts": 50,
+    "cells": 500000,
+    "dragAndSignedLiftRelativeErrorBelow": 0.05,
+    "suite": [
+      "sample",
+      "sample-yaw10",
+      "sample-wing",
+      "mx5",
+      "z4",
+      "z4-wing",
+      "simple-car",
+      "ahmed25"
+    ]
+  },
+  "sourceControl": {
+    "fromAttempt": 26,
+    "policy": "Freeze all committed TypeScript sources from one git revision for the entire plan; stop on the first kernel initialization failure; validate kernels without flow steps before solving"
+  }
+}

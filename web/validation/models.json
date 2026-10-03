@@ -722,7 +722,7 @@
     1.3466423759460449
    ],
    "settings": {
-    "speed_kmh": 100.0,
+    "speed_kmh": 200.0,
     "yaw_deg": 0.0,
     "reference_area": 2.2,
     "density": 1.225,

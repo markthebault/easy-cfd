@@ -1,0 +1,142 @@
+{
+  "screenIteration": 32,
+  "eightSweepResiduals": {
+    "k": {
+      "relativeResidual": 7.551504211452443e-08,
+      "reduction": 4.0876886595517345e-05
+    },
+    "omega": {
+      "relativeResidual": 6.370014366560276e-08,
+      "reduction": 8.867058179656973e-05
+    }
+  },
+  "longRunSstSweeps": 4,
+  "reason": "Eight sweeps reduced both scalar residuals by more than 10000-fold. Test four sweeps in longer runs, compare measured reduction to the native relative solver tolerance of 0.1, and retain eight for the final suite if any case fails this check. This changes linear-solve effort, not a coefficient correction.",
+  "fourSweepCheckAt34": {
+    "k": {
+      "relativeResidual": 7.526590681930274e-08,
+      "reduction": 0.0035089178413262264
+    },
+    "omega": {
+      "relativeResidual": 5.752239218689564e-08,
+      "reduction": 0.001905830173747499
+    }
+  },
+  "samplePassesNativeRelativeTolerance": true,
+  "longFourSweepChecks": [
+    {
+      "iteration": 34,
+      "model": "sample",
+      "residuals": {
+        "k": {
+          "relativeResidual": 7.526590681930274e-08,
+          "reduction": 0.0035089178413262264
+        },
+        "omega": {
+          "relativeResidual": 5.752239218689564e-08,
+          "reduction": 0.001905830173747499
+        }
+      }
+    },
+    {
+      "iteration": 35,
+      "model": "sample-yaw10",
+      "residuals": {
+        "k": {
+          "relativeResidual": 4.5755623545048757e-07,
+          "reduction": 0.0004255055732111887
+        },
+        "omega": {
+          "relativeResidual": 3.895834161697195e-07,
+          "reduction": 0.0004389254750257034
+        }
+      }
+    },
+    {
+      "iteration": 36,
+      "model": "sample-wing",
+      "residuals": {
+        "k": {
+          "relativeResidual": 7.661797666114618e-08,
+          "reduction": 0.008622577562813587
+        },
+        "omega": {
+          "relativeResidual": 6.057635459701746e-08,
+          "reduction": 0.003578317355841545
+        }
+      }
+    },
+    {
+      "iteration": 37,
+      "model": "mx5",
+      "residuals": {
+        "k": {
+          "relativeResidual": 7.907524704609022e-08,
+          "reduction": 0.0049578754377618975
+        },
+        "omega": {
+          "relativeResidual": 3.9801189735374064e-08,
+          "reduction": 0.011779522081666239
+        }
+      }
+    },
+    {
+      "iteration": 38,
+      "model": "z4",
+      "residuals": {
+        "k": {
+          "relativeResidual": 8.015049055749679e-08,
+          "reduction": 0.009219756880542088
+        },
+        "omega": {
+          "relativeResidual": 5.944062664044871e-08,
+          "reduction": 0.02369647062415317
+        }
+      }
+    },
+    {
+      "iteration": 39,
+      "model": "z4-wing",
+      "residuals": {
+        "k": {
+          "relativeResidual": 9.097585444184622e-08,
+          "reduction": 0.001783633749312798
+        },
+        "omega": {
+          "relativeResidual": 4.643388280222271e-08,
+          "reduction": 0.004000215986512123
+        }
+      }
+    },
+    {
+      "iteration": 40,
+      "model": "simple-car",
+      "residuals": {
+        "k": {
+          "relativeResidual": 5.454643643514501e-07,
+          "reduction": 0.0003928596238076561
+        },
+        "omega": {
+          "relativeResidual": 2.483562916632721e-07,
+          "reduction": 0.0002655035393351485
+        }
+      }
+    },
+    {
+      "iteration": 41,
+      "model": "ahmed25",
+      "residuals": {
+        "k": {
+          "relativeResidual": 1.299988238069477e-07,
+          "reduction": 0.00043800833406064995
+        },
+        "omega": {
+          "relativeResidual": 1.8016523991276665e-08,
+          "reduction": 0.0003869795031060294
+        }
+      }
+    }
+  ],
+  "allEightPassNativeRelativeTolerance": true,
+  "finalSstSweeps": 4
+}

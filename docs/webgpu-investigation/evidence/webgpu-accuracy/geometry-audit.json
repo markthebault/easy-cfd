@@ -1,0 +1,50 @@
+[
+  {
+    "model": "sample",
+    "nativeFingerprint": "893412988bca7cc83b6cc45de0de3d72ffe03b939beffef19aa370fbda3cda00",
+    "webgpuFingerprint": "893412988bca7cc83b6cc45de0de3d72ffe03b939beffef19aa370fbda3cda00",
+    "matches": true
+  },
+  {
+    "model": "sample-yaw10",
+    "nativeFingerprint": "893412988bca7cc83b6cc45de0de3d72ffe03b939beffef19aa370fbda3cda00",
+    "webgpuFingerprint": "893412988bca7cc83b6cc45de0de3d72ffe03b939beffef19aa370fbda3cda00",
+    "matches": true
+  },
+  {
+    "model": "sample-wing",
+    "nativeFingerprint": "70030e5215d16f54bea749019d4d0d6dcc289905ad8d57f11863667215466498",
+    "webgpuFingerprint": "70030e5215d16f54bea749019d4d0d6dcc289905ad8d57f11863667215466498",
+    "matches": true
+  },
+  {
+    "model": "mx5",
+    "nativeFingerprint": "665a5caa26cdf5270a0ff8b0dcfa71f1a1d1fe3ea18f7a9f79c40da84de50bac",
+    "webgpuFingerprint": "665a5caa26cdf5270a0ff8b0dcfa71f1a1d1fe3ea18f7a9f79c40da84de50bac",
+    "matches": true
+  },
+  {
+    "model": "z4",
+    "nativeFingerprint": "0b4fcae631f1ea46808aa8dc6b6824b8259a894a90c762016c2d33f8b337ded8",
+    "webgpuFingerprint": "0b4fcae631f1ea46808aa8dc6b6824b8259a894a90c762016c2d33f8b337ded8",
+    "matches": true
+  },
+  {
+    "model": "z4-wing",
+    "nativeFingerprint": "8028600a59969a895571e9b861667fe48d246ca128cf165d93b80e1f27063b91",
+    "webgpuFingerprint": "8028600a59969a895571e9b861667fe48d246ca128cf165d93b80e1f27063b91",
+    "matches": true
+  },
+  {
+    "model": "simple-car",
+    "nativeFingerprint": "e28e8ab65036b593b0953be4b5b086b51badc063c08c4a7ff600cdfcc1670257",
+    "webgpuFingerprint": "e28e8ab65036b593b0953be4b5b086b51badc063c08c4a7ff600cdfcc1670257",
+    "matches": true
+  },
+  {
+    "model": "ahmed25",
+    "nativeFingerprint": "184b9b3666f60fb8f5227434046bf2f0e86d61d90ee88722f8e7f08fa32d0da9",
+    "webgpuFingerprint": "184b9b3666f60fb8f5227434046bf2f0e86d61d90ee88722f8e7f08fa32d0da9",
+    "matches": true
+  }
+]

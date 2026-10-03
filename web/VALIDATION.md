@@ -1,5 +1,7 @@
 # Validation against the OpenFOAM app
 
+The [October 2026 investigation](../docs/webgpu-investigation/README.md) records subsequent source review, 100- and 50-attempt campaigns, and 20 matched input pairs. None established agreement within 3% or 5%. Its configurations and native references differ from the historical preset tables below. The Simple Car benchmark input has also been corrected from 100 to 200 km/h to match its Medium reference; its older mismatched comparison should not be treated as accuracy evidence.
+
 The browser solver was compared with the EasyCFD OpenFOAM app (OpenFOAM v2412, `simpleFoam`, k-ω SST, snappyHexMesh) on the same geometry and conditions. The target in the brief was drag within ±10 % of OpenFOAM. **That target is met for 5 of 8 models on each preset, not for all of them.** The numbers below are the measured ones, including misses.
 
 ## What was compared

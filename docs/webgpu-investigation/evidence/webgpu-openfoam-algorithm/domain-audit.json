@@ -1,0 +1,186 @@
+[
+  {
+    "model": "sample",
+    "nativeCase": "/Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/.accuracy-reference/sample-refined",
+    "nativeBounds": [
+      -14.7,
+      27.3,
+      -9.57,
+      9.57,
+      0.0,
+      9.72
+    ],
+    "webgpuBounds": [
+      -14.699999332427979,
+      27.29999876022339,
+      -9.56999957561493,
+      9.56999957561493,
+      0,
+      9.71999967098236
+    ],
+    "maximumDifferenceMetres": 1.2397766120386677e-06,
+    "allCompletedDomainsMatch": true,
+    "matches": true
+  },
+  {
+    "model": "sample-yaw10",
+    "nativeCase": "/Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/.easycfd/runs/19d8a06b0b63406090c977065add33e3/case-medium",
+    "nativeBounds": [
+      -14.7,
+      27.3,
+      -9.57,
+      9.57,
+      0.0,
+      9.72
+    ],
+    "webgpuBounds": [
+      -14.699999332427979,
+      27.29999876022339,
+      -9.56999957561493,
+      9.56999957561493,
+      0,
+      9.71999967098236
+    ],
+    "maximumDifferenceMetres": 1.2397766120386677e-06,
+    "allCompletedDomainsMatch": true,
+    "matches": true
+  },
+  {
+    "model": "sample-wing",
+    "nativeCase": "/Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/.easycfd/runs/b039b9ba826042ffa6fb9cf250e21fbd/case-medium",
+    "nativeBounds": [
+      -14.7,
+      27.3,
+      -9.57,
+      9.57,
+      0.0,
+      9.99
+    ],
+    "webgpuBounds": [
+      -14.699999332427979,
+      27.29999876022339,
+      -9.56999957561493,
+      9.56999957561493,
+      0,
+      9.989999651908875
+    ],
+    "maximumDifferenceMetres": 1.2397766120386677e-06,
+    "allCompletedDomainsMatch": true,
+    "matches": true
+  },
+  {
+    "model": "mx5",
+    "nativeCase": "/Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/.accuracy-reference/mx5-continued",
+    "nativeBounds": [
+      -14.0069528,
+      26.0129123,
+      -8.95133221,
+      8.95133221,
+      0.0,
+      9.23466946
+    ],
+    "webgpuBounds": [
+      -14.00695276260376,
+      26.012912273406982,
+      -8.951332211494446,
+      8.951332211494446,
+      0,
+      9.23466944694519
+    ],
+    "maximumDifferenceMetres": 3.7396240770704026e-08,
+    "allCompletedDomainsMatch": true,
+    "matches": true
+  },
+  {
+    "model": "z4",
+    "nativeCase": "/Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/.easycfd/runs/0e2f1e9b63264e848a034f8ac3f7e3b5/case-medium",
+    "nativeBounds": [
+      -15.1643599,
+      28.1623827,
+      -9.65202424,
+      9.65202424,
+      0.0,
+      9.91864379
+    ],
+    "webgpuBounds": [
+      -15.164359092712402,
+      28.162381172180176,
+      -9.652023792266846,
+      9.652023792266846,
+      0,
+      9.918643355369568
+    ],
+    "maximumDifferenceMetres": 1.527819822655374e-06,
+    "allCompletedDomainsMatch": true,
+    "matches": true
+  },
+  {
+    "model": "z4-wing",
+    "nativeCase": "/Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/.easycfd/runs/7308d8fe881a49a880f6a5d6d3b817b0/case-medium",
+    "nativeBounds": [
+      -15.0891713,
+      28.0227467,
+      -9.60696611,
+      9.60696611,
+      0.0,
+      9.87492676
+    ],
+    "webgpuBounds": [
+      -15.089170455932617,
+      28.02274513244629,
+      -9.60696566104889,
+      9.60696566104889,
+      0,
+      9.874926328659058
+    ],
+    "maximumDifferenceMetres": 1.5675537099468784e-06,
+    "allCompletedDomainsMatch": true,
+    "matches": true
+  },
+  {
+    "model": "simple-car",
+    "nativeCase": "/Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/.easycfd/runs/0fc978585cfb4ed7bb1cbf2458e4d747/case-medium",
+    "nativeBounds": [
+      -15.0470595,
+      27.9445391,
+      -9.39784769,
+      9.39784769,
+      0.0,
+      9.95496211
+    ],
+    "webgpuBounds": [
+      -15.047060012817383,
+      27.94454002380371,
+      -9.397847950458527,
+      9.397847950458527,
+      0,
+      9.954962372779846
+    ],
+    "maximumDifferenceMetres": 9.238037108616481e-07,
+    "allCompletedDomainsMatch": true,
+    "matches": true
+  },
+  {
+    "model": "ahmed25",
+    "nativeCase": "/Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/.accuracy-reference/ahmed25-continued",
+    "nativeBounds": [
+      -3.654,
+      6.786,
+      -2.2825,
+      2.2825,
+      0.0,
+      2.431
+    ],
+    "webgpuBounds": [
+      -3.6540001034736633,
+      6.786000192165375,
+      -2.282500058412552,
+      2.282500058412552,
+      0,
+      2.431000053882599
+    ],
+    "maximumDifferenceMetres": 1.9216537516797416e-07,
+    "allCompletedDomainsMatch": true,
+    "matches": true
+  }
+]

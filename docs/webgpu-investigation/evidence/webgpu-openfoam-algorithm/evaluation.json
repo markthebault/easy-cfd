@@ -1,0 +1,957 @@
+{
+  "limit": 50,
+  "tolerance": 0.05,
+  "created": "2026-10-02T22:03:49.057Z",
+  "attempts": 50,
+  "completed": 41,
+  "failed": 9,
+  "budgetExhausted": true,
+  "finalSuiteComplete": true,
+  "sameFinalConfiguration": true,
+  "finalCoefficientAgreement": false,
+  "finalHealthyFields": false,
+  "bothCoefficientsBelowTarget": 0,
+  "finalPassingCases": 0,
+  "targetMet": false,
+  "physicallyQualified": false,
+  "final": [
+    {
+      "iteration": 42,
+      "key": "final-sample",
+      "model": "sample",
+      "algorithm": "explicit-projection",
+      "transportResiduals": {
+        "k": {
+          "relativeResidual": 6.347376171641056e-7,
+          "reduction": 0.0003650060584443378
+        },
+        "omega": {
+          "relativeResidual": 1.974764288753821e-7,
+          "reduction": 0.0003125946510548174
+        }
+      },
+      "cells": 500000,
+      "fluidCells": 474368,
+      "cd": 0.40273231964960443,
+      "cl": 0.5480114291194903,
+      "comparison": {
+        "cdError": 0.21773561907221267,
+        "clError": 0.1497102470890439,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      },
+      "reference": {
+        "run": "5c037a8721744c7d8a91e55123f55bda",
+        "quality": "precise",
+        "case": "/Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/.accuracy-reference/sample-refined",
+        "cd": 0.51482891138665,
+        "cl": 0.64449962761915,
+        "cells": 360000,
+        "settings": {
+          "speed_kmh": 100,
+          "yaw_deg": 0,
+          "reference_area": 2.2,
+          "density": 1.225,
+          "moving_ground": true,
+          "wheels": true
+        },
+        "settingsMatch": true,
+        "forceSettled": false,
+        "forceSpans": {
+          "cd": 0.005408651959999955,
+          "cl": 0.039168616560000036
+        },
+        "averagingIterations": 200,
+        "residualConverged": false,
+        "residuals": {
+          "Ux": 0.0001235027284,
+          "Uy": 0.0007721411586,
+          "Uz": 0.0004284580369,
+          "p": 0.002118208063,
+          "omega": 0.00001968131502,
+          "k": 0.0001986487286
+        },
+        "meshPassed": true,
+        "meshIndependent": false,
+        "image": "opencfd/openfoam-default@sha256:1ba02114b1c025c370f2e269a07677c16c9bea8d990fcd75ac8378aff9d41b50",
+        "dictionaryHashes": {
+          "system/fvSchemes": "4a219249e72e93ecf98a31f9de6651f2f257b78a23a10078c524b43b17a5e5a4",
+          "system/decomposeParDict": "22c740de4bd3081a02135a2c0f8d83478aeb9e3fa82433fbb676dd3923e722aa",
+          "system/meshQualityDict": "8ee4008f08303a79445febed153dc361d9517dfef5b880f36d4338298d9f82f8",
+          "system/fvSolution": "d46d1f3cfc6df9ab7703b066aeeef077f7cd48a40081af14231e0434b8b9b4a5",
+          "system/snappyHexMeshDict": "8efeca3b69a7e427e5226ae2cf824e3d2e2662a187d528887ba64464c226c820",
+          "system/controlDict": "73b62cd586c46fa560ec84b04ffc8799825f10b7b3518d9349f0b1481072f8a1",
+          "system/blockMeshDict": "df562abf28f45a53f994e4f25539f48f8ef853e95a4510b44885d7b4805faf32",
+          "constant/turbulenceProperties": "0cc9a047db67e5af57d1a9e155f28c106ac2d2bdc66833b2b5d475172e79401a",
+          "constant/transportProperties": "111d7df02c53a6d960a65653e2b8cad702bf296797bdab07461a67d165ad466a"
+        },
+        "timings": {
+          "checkMesh": 4.858316708356142,
+          "decomposePar": 3.793877999763936,
+          "simpleFoam": 3371.562027916312,
+          "reconstructPar": 3.307748584076762
+        },
+        "wallSeconds": 3383.620841542259,
+        "geometryFingerprint": "893412988bca7cc83b6cc45de0de3d72ffe03b939beffef19aa370fbda3cda00",
+        "status": "fresh native result; mesh independence pending",
+        "meshChanges": {
+          "cd": 0.06488698942212572,
+          "cl": 0.028952506185894282
+        },
+        "settingsDifferences": {}
+      }
+    },
+    {
+      "iteration": 43,
+      "key": "final-sample-yaw10",
+      "model": "sample-yaw10",
+      "algorithm": "explicit-projection",
+      "transportResiduals": {
+        "k": {
+          "relativeResidual": 4.679773268530877e-7,
+          "reduction": 0.0002606442517954313
+        },
+        "omega": {
+          "relativeResidual": 4.0842952356992255e-7,
+          "reduction": 0.0002980813628490226
+        }
+      },
+      "cells": 500000,
+      "fluidCells": 474368,
+      "cd": 0.46716741760490155,
+      "cl": 0.3972594770809256,
+      "comparison": {
+        "cdError": 0.23360119915282238,
+        "clError": 0.44724673323585634,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      },
+      "reference": {
+        "run": "19d8a06b0b63406090c977065add33e3",
+        "quality": "medium",
+        "speed_kmh": 100,
+        "cd": 0.6095617804836,
+        "cl": 0.7186922284630002,
+        "cells": 193819,
+        "settled": true,
+        "residual_converged": false,
+        "note": "Generated for the web validation; same geometry as the sample baseline.",
+        "settingsMatch": true,
+        "settingsDifferences": {},
+        "forceSettled": true,
+        "residualConverged": false,
+        "meshIndependent": false,
+        "status": "historical reference, not mesh-qualified"
+      }
+    },
+    {
+      "iteration": 44,
+      "key": "final-sample-wing",
+      "model": "sample-wing",
+      "algorithm": "explicit-projection",
+      "transportResiduals": {
+        "k": {
+          "relativeResidual": 7.517428553844389e-7,
+          "reduction": 0.00033935080792432936
+        },
+        "omega": {
+          "relativeResidual": 5.008641376558686e-7,
+          "reduction": 0.0003182321770192588
+        }
+      },
+      "cells": 500000,
+      "fluidCells": 473409,
+      "cd": 0.5215011467005907,
+      "cl": 0.2945763528700776,
+      "comparison": {
+        "cdError": 0.23064773920089454,
+        "clError": 0.2916456132527129,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      },
+      "reference": {
+        "run": "b039b9ba826042ffa6fb9cf250e21fbd",
+        "quality": "medium",
+        "speed_kmh": 100,
+        "cd": 0.6778444326126,
+        "cl": 0.41586013778040004,
+        "cells": 265766,
+        "settled": false,
+        "residual_converged": false,
+        "settingsMatch": true,
+        "settingsDifferences": {},
+        "forceSettled": false,
+        "residualConverged": false,
+        "meshIndependent": false,
+        "status": "historical reference, not mesh-qualified"
+      }
+    },
+    {
+      "iteration": 45,
+      "key": "final-mx5",
+      "model": "mx5",
+      "algorithm": "explicit-projection",
+      "transportResiduals": {
+        "k": {
+          "relativeResidual": 5.275994609038296e-7,
+          "reduction": 0.00030831212724526905
+        },
+        "omega": {
+          "relativeResidual": 2.248237550052327e-7,
+          "reduction": 0.00026557912184985654
+        }
+      },
+      "cells": 500000,
+      "fluidCells": 476499,
+      "cd": 0.24188089376794544,
+      "cl": -0.05995564495672261,
+      "comparison": {
+        "cdError": 0.24193975271136753,
+        "clError": 1.2643703078179176,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      },
+      "reference": {
+        "run": "48d98cc2294942838eca188efa34787d",
+        "quality": "medium",
+        "case": "/Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/.accuracy-reference/mx5-continued",
+        "cd": 0.31907872050155,
+        "cl": 0.22678660645210003,
+        "cells": 165934,
+        "settings": {
+          "speed_kmh": 100,
+          "yaw_deg": 0,
+          "reference_area": 2,
+          "density": 1.225,
+          "moving_ground": true,
+          "wheels": true
+        },
+        "settingsMatch": true,
+        "forceSettled": true,
+        "forceSpans": {
+          "cd": 0.0007788095199999789,
+          "cl": 0.001482385580000023
+        },
+        "averagingIterations": 200,
+        "residualConverged": false,
+        "residuals": {
+          "Ux": 0.00001906374192,
+          "Uy": 0.000140848283,
+          "Uz": 0.00008951500078,
+          "p": 0.0004458340294,
+          "omega": 0.000004395643582,
+          "k": 0.00002870162576
+        },
+        "meshPassed": true,
+        "meshIndependent": false,
+        "image": "opencfd/openfoam-default@sha256:1ba02114b1c025c370f2e269a07677c16c9bea8d990fcd75ac8378aff9d41b50",
+        "timings": {
+          "checkMesh": 1.3078075419180095,
+          "decomposePar": 1.4124395842663944,
+          "simpleFoam": 442.44827087502927,
+          "reconstructPar": 1.962619749829173
+        },
+        "wallSeconds": 450.03776891576126,
+        "geometryFingerprint": "665a5caa26cdf5270a0ff8b0dcfa71f1a1d1fe3ea18f7a9f79c40da84de50bac",
+        "status": "fresh native result; mesh independence pending",
+        "settingsDifferences": {}
+      }
+    },
+    {
+      "iteration": 46,
+      "key": "final-z4",
+      "model": "z4",
+      "algorithm": "explicit-projection",
+      "transportResiduals": {
+        "k": {
+          "relativeResidual": 3.5266708938875463e-7,
+          "reduction": 0.00042520587742181094
+        },
+        "omega": {
+          "relativeResidual": 1.9261486582246962e-7,
+          "reduction": 0.00035695714082610076
+        }
+      },
+      "cells": 500000,
+      "fluidCells": 469963,
+      "cd": 0.5061042744929077,
+      "cl": -0.9097861930923787,
+      "comparison": {
+        "cdError": 0.1487627342788759,
+        "clError": 1.9330931361579673,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      },
+      "reference": {
+        "run": "0e2f1e9b63264e848a034f8ac3f7e3b5",
+        "quality": "medium",
+        "speed_kmh": 100,
+        "cd": 0.4405646696144,
+        "cl": -0.31017978320460005,
+        "cells": 309721,
+        "settled": true,
+        "residual_converged": true,
+        "note": "Generated for the web validation from the same geometry (fingerprint match).",
+        "settingsMatch": true,
+        "settingsDifferences": {},
+        "forceSettled": true,
+        "residualConverged": true,
+        "meshIndependent": false,
+        "status": "historical reference, not mesh-qualified"
+      }
+    },
+    {
+      "iteration": 47,
+      "key": "final-z4-wing",
+      "model": "z4-wing",
+      "algorithm": "explicit-projection",
+      "transportResiduals": {
+        "k": {
+          "relativeResidual": 1.489320145314317e-7,
+          "reduction": 0.0004387415916316796
+        },
+        "omega": {
+          "relativeResidual": 7.832216608838647e-8,
+          "reduction": 0.0003458875885796601
+        }
+      },
+      "cells": 500000,
+      "fluidCells": 469763,
+      "cd": 0.5063426439495975,
+      "cl": -0.8142621386049413,
+      "comparison": {
+        "cdError": 0.1398255314200154,
+        "clError": 4.288434993435592,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      },
+      "reference": {
+        "run": "7308d8fe881a49a880f6a5d6d3b817b0",
+        "quality": "medium",
+        "speed_kmh": 100,
+        "cd": 0.4442281998358,
+        "cl": -0.1539703408694,
+        "cells": 322045,
+        "settled": true,
+        "residual_converged": false,
+        "note": "Generated for the web validation from the same geometry (fingerprint match).",
+        "settingsMatch": true,
+        "settingsDifferences": {},
+        "forceSettled": true,
+        "residualConverged": false,
+        "meshIndependent": false,
+        "status": "historical reference, not mesh-qualified"
+      }
+    },
+    {
+      "iteration": 48,
+      "key": "final-simple-car",
+      "model": "simple-car",
+      "algorithm": "explicit-projection",
+      "transportResiduals": {
+        "k": {
+          "relativeResidual": 0.0000012535037557630245,
+          "reduction": 0.00043409142795970863
+        },
+        "omega": {
+          "relativeResidual": 6.12425612423917e-7,
+          "reduction": 0.0003361586049654173
+        }
+      },
+      "cells": 500000,
+      "fluidCells": 463518,
+      "cd": 0.3453378150579419,
+      "cl": 0.21974559592513093,
+      "comparison": {
+        "cdError": 0.067951414714663,
+        "clError": 0.5538908624987577,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      },
+      "reference": {
+        "run": "0fc978585cfb4ed7bb1cbf2458e4d747",
+        "quality": "medium",
+        "speed_kmh": 200,
+        "cd": 0.3705148213407999,
+        "cl": 0.49258259347919997,
+        "cells": 149197,
+        "settled": true,
+        "residual_converged": false,
+        "note": "Generated for the web validation from the same geometry (fingerprint match).",
+        "settingsMatch": true,
+        "settingsDifferences": {},
+        "forceSettled": true,
+        "residualConverged": false,
+        "meshIndependent": false,
+        "status": "Matched 200 km/h reference after correcting validation input speed; mesh independence pending"
+      }
+    },
+    {
+      "iteration": 49,
+      "key": "final-ahmed25",
+      "model": "ahmed25",
+      "algorithm": "explicit-projection",
+      "transportResiduals": {
+        "k": {
+          "relativeResidual": 0.0000013855253438332293,
+          "reduction": 0.0004339918883827605
+        },
+        "omega": {
+          "relativeResidual": 8.113815048537951e-8,
+          "reduction": 0.00038464468753284284
+        }
+      },
+      "cells": 500000,
+      "fluidCells": 454895,
+      "cd": 0.3712366066098258,
+      "cl": 0.24042898824195208,
+      "comparison": {
+        "cdError": 0.036491165374824795,
+        "clError": 0.40558351506174417,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      },
+      "reference": {
+        "run": "e9453fcf9a394fd89f167a2ccab7d13f",
+        "quality": "precise",
+        "case": "/Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/.accuracy-reference/ahmed25-continued",
+        "cd": 0.3581666868097,
+        "cl": 0.404479004762,
+        "cells": 310851,
+        "settings": {
+          "speed_kmh": 144,
+          "yaw_deg": 0,
+          "reference_area": 0.115032,
+          "density": 1,
+          "moving_ground": true,
+          "wheels": false
+        },
+        "settingsMatch": true,
+        "forceSettled": true,
+        "forceSpans": {
+          "cd": 2.0319999999296456e-7,
+          "cl": 5.681599999918241e-7
+        },
+        "averagingIterations": 200,
+        "residualConverged": true,
+        "residuals": {
+          "Ux": 9.803868974e-9,
+          "Uy": 2.254009821e-8,
+          "Uz": 1.430560884e-8,
+          "p": 1.095345622e-7,
+          "omega": 7.61111678e-9,
+          "k": 8.550050992e-9
+        },
+        "meshPassed": true,
+        "meshIndependent": false,
+        "image": "opencfd/openfoam-default@sha256:1ba02114b1c025c370f2e269a07677c16c9bea8d990fcd75ac8378aff9d41b50",
+        "timings": {
+          "checkMesh": 2.6242324579507113,
+          "decomposePar": 2.54123054118827,
+          "simpleFoam": 986.5042171250097,
+          "reconstructPar": 5.203104082960635
+        },
+        "wallSeconds": 1001.9443856249563,
+        "geometryFingerprint": "184b9b3666f60fb8f5227434046bf2f0e86d61d90ee88722f8e7f08fa32d0da9",
+        "status": "fresh native result; mesh independence pending",
+        "settingsDifferences": {}
+      }
+    }
+  ],
+  "bestPerModel": [
+    {
+      "iteration": 50,
+      "model": "sample",
+      "cd": 0.4027405985173618,
+      "cl": 0.5480096737882525,
+      "comparison": {
+        "cdError": 0.21771953825861753,
+        "clError": 0.14971297064568007,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 43,
+      "model": "sample-yaw10",
+      "cd": 0.46716741760490155,
+      "cl": 0.3972594770809256,
+      "comparison": {
+        "cdError": 0.23360119915282238,
+        "clError": 0.44724673323585634,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 44,
+      "model": "sample-wing",
+      "cd": 0.5215011467005907,
+      "cl": 0.2945763528700776,
+      "comparison": {
+        "cdError": 0.23064773920089454,
+        "clError": 0.2916456132527129,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 37,
+      "model": "mx5",
+      "cd": 0.24756179594359407,
+      "cl": -0.04898664707203602,
+      "comparison": {
+        "cdError": 0.22413567550208516,
+        "clError": 1.2160032633249116,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 38,
+      "model": "z4",
+      "cd": 0.4235558306296909,
+      "cl": -0.7008915658960253,
+      "comparison": {
+        "cdError": 0.03860690644938901,
+        "clError": 1.2596300721304743,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 39,
+      "model": "z4-wing",
+      "cd": 0.41093936051581686,
+      "cl": -0.6720026871840914,
+      "comparison": {
+        "cdError": 0.07493634877814524,
+        "clError": 3.3644943785251105,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 48,
+      "model": "simple-car",
+      "cd": 0.3453378150579419,
+      "cl": 0.21974559592513093,
+      "comparison": {
+        "cdError": 0.067951414714663,
+        "clError": 0.5538908624987577,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 28,
+      "model": "ahmed25",
+      "cd": 0.3753369363821932,
+      "cl": 0.26506603051532335,
+      "comparison": {
+        "cdError": 0.04793927019130072,
+        "clError": 0.34467295608756954,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    }
+  ],
+  "repeat": {
+    "cdRelativeDifference": 0.00002055675036112613,
+    "clRelativeDifference": 0.0000032030923891997796
+  },
+  "selection": {
+    "criterion": "mean relative drag and signed-lift error on the matched sample and MX-5 cases, requiring finite conserved fields; longest available run per candidate",
+    "sharedModels": [
+      "sample",
+      "mx5"
+    ],
+    "candidates": [
+      {
+        "key": "implicit-sst-projection",
+        "eligible": true,
+        "meanRelativeError": 0.5113632669875274,
+        "worstRelativeError": 1.4755968602437068,
+        "iterations": [
+          26,
+          27
+        ],
+        "forceSettled": false,
+        "settings": {
+          "speed_kmh": 100,
+          "yaw_deg": 0,
+          "reference_area": 2.2,
+          "density": 1.225,
+          "moving_ground": true,
+          "wheels": true,
+          "quality": "custom",
+          "custom_cells": 72,
+          "custom_passes": 20,
+          "max_seconds": 600,
+          "targetCells": 500000,
+          "fullStress": true,
+          "noEddyFloor": true,
+          "sstTransport": true,
+          "stepwiseOmega": false,
+          "cutGradient": true,
+          "limitedSstGradient": true,
+          "surfaceWallDistance": true,
+          "centroidWallDistance": true,
+          "freestreamPressure": true,
+          "farGrowth": 1.3,
+          "farCellSize": 0.5,
+          "finePadding": 0.03,
+          "roofPadding": 0.03,
+          "wakeLength": 0.2,
+          "implicitSst": true
+        },
+        "solver": {
+          "vcycles": 4,
+          "coarseSweeps": 24,
+          "sstSweeps": 8
+        }
+      },
+      {
+        "key": "implicit-sst-simplec",
+        "eligible": true,
+        "meanRelativeError": 0.6514797968926189,
+        "worstRelativeError": 1.3587143892676417,
+        "iterations": [
+          29,
+          30
+        ],
+        "forceSettled": false,
+        "settings": {
+          "speed_kmh": 100,
+          "yaw_deg": 0,
+          "reference_area": 2.2,
+          "density": 1.225,
+          "moving_ground": true,
+          "wheels": true,
+          "quality": "custom",
+          "custom_cells": 72,
+          "custom_passes": 20,
+          "max_seconds": 600,
+          "targetCells": 500000,
+          "fullStress": true,
+          "noEddyFloor": true,
+          "sstTransport": true,
+          "stepwiseOmega": false,
+          "cutGradient": true,
+          "limitedSstGradient": true,
+          "surfaceWallDistance": true,
+          "centroidWallDistance": true,
+          "freestreamPressure": true,
+          "farGrowth": 1.3,
+          "farCellSize": 0.5,
+          "finePadding": 0.03,
+          "roofPadding": 0.03,
+          "wakeLength": 0.2,
+          "implicitSst": true,
+          "simpleMomentum": true,
+          "pseudoTransientMomentum": true,
+          "consistentMomentum": true,
+          "mergeBoost": 1,
+          "limiter": 3
+        },
+        "solver": {
+          "vcycles": 4,
+          "coarseSweeps": 24,
+          "sstSweeps": 8,
+          "momentumSweeps": 4,
+          "momentumRelaxation": 0.7
+        }
+      },
+      {
+        "key": "geometric-projection",
+        "eligible": true,
+        "meanRelativeError": 0.4669340752751181,
+        "worstRelativeError": 1.2605835591861996,
+        "iterations": [
+          32,
+          33
+        ],
+        "forceSettled": false,
+        "settings": {
+          "speed_kmh": 100,
+          "yaw_deg": 0,
+          "reference_area": 2.2,
+          "density": 1.225,
+          "moving_ground": true,
+          "wheels": true,
+          "quality": "custom",
+          "custom_cells": 72,
+          "custom_passes": 20,
+          "max_seconds": 600,
+          "targetCells": 500000,
+          "fullStress": true,
+          "noEddyFloor": true,
+          "sstTransport": true,
+          "stepwiseOmega": false,
+          "cutGradient": true,
+          "limitedSstGradient": true,
+          "surfaceWallDistance": true,
+          "centroidWallDistance": true,
+          "freestreamPressure": true,
+          "farGrowth": 1.3,
+          "farCellSize": 0.5,
+          "finePadding": 0.03,
+          "roofPadding": 0.03,
+          "wakeLength": 0.2,
+          "implicitSst": true,
+          "geometricCutCells": true,
+          "fluidCentroidRoad": true,
+          "projectRotatingWall": true,
+          "wallDistanceFloor": 0.02
+        },
+        "solver": {
+          "vcycles": 4,
+          "coarseSweeps": 24,
+          "sstSweeps": 8
+        }
+      },
+      {
+        "key": "long-geometric-simplec",
+        "eligible": true,
+        "meanRelativeError": 0.6201714457386132,
+        "worstRelativeError": 1.2160032633249116,
+        "iterations": [
+          34,
+          37
+        ],
+        "forceSettled": true,
+        "settings": {
+          "speed_kmh": 100,
+          "yaw_deg": 0,
+          "reference_area": 2.2,
+          "density": 1.225,
+          "moving_ground": true,
+          "wheels": true,
+          "quality": "custom",
+          "custom_cells": 72,
+          "custom_passes": 30,
+          "max_seconds": 1200,
+          "targetCells": 500000,
+          "fullStress": true,
+          "noEddyFloor": true,
+          "sstTransport": true,
+          "stepwiseOmega": false,
+          "cutGradient": true,
+          "limitedSstGradient": true,
+          "surfaceWallDistance": true,
+          "centroidWallDistance": true,
+          "freestreamPressure": true,
+          "farGrowth": 1.3,
+          "farCellSize": 0.5,
+          "finePadding": 0.03,
+          "roofPadding": 0.03,
+          "wakeLength": 0.2,
+          "implicitSst": true,
+          "simpleMomentum": true,
+          "pseudoTransientMomentum": true,
+          "consistentMomentum": true,
+          "mergeBoost": 1,
+          "limiter": 3,
+          "geometricCutCells": true,
+          "fluidCentroidRoad": true,
+          "projectRotatingWall": true,
+          "wallDistanceFloor": 0.02
+        },
+        "solver": {
+          "vcycles": 4,
+          "coarseSweeps": 24,
+          "sstSweeps": 4,
+          "momentumSweeps": 4,
+          "momentumRelaxation": 0.7
+        }
+      }
+    ],
+    "selected": "geometric-projection",
+    "finalPasses": 40,
+    "finalCells": 500000,
+    "finalSstSweeps": 4,
+    "linearSolver": {
+      "nativeRelativeTolerance": 0.1,
+      "fourSweepsAdequate": true,
+      "checks": [
+        {
+          "iteration": 34,
+          "model": "sample",
+          "residuals": {
+            "k": {
+              "relativeResidual": 7.526590681930274e-8,
+              "reduction": 0.0035089178413262264
+            },
+            "omega": {
+              "relativeResidual": 5.752239218689564e-8,
+              "reduction": 0.001905830173747499
+            }
+          }
+        },
+        {
+          "iteration": 35,
+          "model": "sample-yaw10",
+          "residuals": {
+            "k": {
+              "relativeResidual": 4.5755623545048757e-7,
+              "reduction": 0.0004255055732111887
+            },
+            "omega": {
+              "relativeResidual": 3.895834161697195e-7,
+              "reduction": 0.0004389254750257034
+            }
+          }
+        },
+        {
+          "iteration": 36,
+          "model": "sample-wing",
+          "residuals": {
+            "k": {
+              "relativeResidual": 7.661797666114618e-8,
+              "reduction": 0.008622577562813587
+            },
+            "omega": {
+              "relativeResidual": 6.057635459701746e-8,
+              "reduction": 0.003578317355841545
+            }
+          }
+        },
+        {
+          "iteration": 37,
+          "model": "mx5",
+          "residuals": {
+            "k": {
+              "relativeResidual": 7.907524704609022e-8,
+              "reduction": 0.0049578754377618975
+            },
+            "omega": {
+              "relativeResidual": 3.9801189735374064e-8,
+              "reduction": 0.011779522081666239
+            }
+          }
+        },
+        {
+          "iteration": 38,
+          "model": "z4",
+          "residuals": {
+            "k": {
+              "relativeResidual": 8.015049055749679e-8,
+              "reduction": 0.009219756880542088
+            },
+            "omega": {
+              "relativeResidual": 5.944062664044871e-8,
+              "reduction": 0.02369647062415317
+            }
+          }
+        },
+        {
+          "iteration": 39,
+          "model": "z4-wing",
+          "residuals": {
+            "k": {
+              "relativeResidual": 9.097585444184622e-8,
+              "reduction": 0.001783633749312798
+            },
+            "omega": {
+              "relativeResidual": 4.643388280222271e-8,
+              "reduction": 0.004000215986512123
+            }
+          }
+        },
+        {
+          "iteration": 40,
+          "model": "simple-car",
+          "residuals": {
+            "k": {
+              "relativeResidual": 5.454643643514501e-7,
+              "reduction": 0.0003928596238076561
+            },
+            "omega": {
+              "relativeResidual": 2.483562916632721e-7,
+              "reduction": 0.0002655035393351485
+            }
+          }
+        },
+        {
+          "iteration": 41,
+          "model": "ahmed25",
+          "residuals": {
+            "k": {
+              "relativeResidual": 1.299988238069477e-7,
+              "reduction": 0.00043800833406064995
+            },
+            "omega": {
+              "relativeResidual": 1.8016523991276665e-8,
+              "reduction": 0.0003869795031060294
+            }
+          }
+        }
+      ]
+    },
+    "note": "This chooses one measured candidate for all final models. Force settling and the 5 percent coefficient gate are checked independently on the final suite. Candidate screens have 20 passes; the full implicit geometry suite has 30. Final source also corrects the omega-dependent k production cap and reduces buffer copying; it must pass kernel validation before use."
+  }
+}
