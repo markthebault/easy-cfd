@@ -173,6 +173,7 @@ def render_report(output, design, report):
         for name in ("cd", "cl"):
             count = data["nativeIterationVariability"][name]["gpuWithinNativeBlockMeanEnvelope"]
             lines.append(f"| {stage} | {name.upper()} | {count}/{data['pairedCount']} |")
+    lines.extend(["", "![Native within-solve variation versus the GPU means](native-variation.png)", ""])
     lines.extend(["## Physical forces under the same changed inputs", "",
         "Force variation includes the expected speed-squared scaling. Coefficient errors above isolate the aerodynamic response from that scaling.", "",
         "| Stage | Force (N) | OpenFOAM Q1 / median / Q3 | WebGPU Q1 / median / Q3 | Native IQR / median (%) |", "|---|---|---|---|---:|"])

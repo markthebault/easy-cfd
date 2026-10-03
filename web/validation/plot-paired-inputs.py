@@ -63,6 +63,31 @@ def main():
     fig.savefig(output / "paired-comparison.png", dpi=180)
     fig.savefig(output / "paired-comparison.svg")
     plt.close(fig)
+    fig, axes = plt.subplots(len(stages), 2, figsize=(11, 3.7*len(stages)), squeeze=False, layout="constrained")
+    for row, (stage, result) in enumerate(stages):
+        pairs = result["pairs"]
+        x = np.arange(1, len(pairs)+1)
+        for column, name in enumerate(("Cd", "Cl")):
+            ax = axes[row, column]
+            native = np.array([p[f"native{name}"] for p in pairs])
+            gpu = np.array([p[f"gpu{name}"] for p in pairs])
+            lower = np.array([p[f"{name.lower()}NativeBlockEnvelopeLow"] for p in pairs])
+            upper = np.array([p[f"{name.lower()}NativeBlockEnvelopeHigh"] for p in pairs])
+            ax.fill_between(x, native-.05*np.abs(native), native+.05*np.abs(native), color="#72ad80", alpha=.15, label="±5% around native mean")
+            ax.vlines(x, lower, upper, color=COLORS[0], linewidth=2, label="Native block-mean range")
+            ax.scatter(x, native, s=20, color=COLORS[0], label="Native final-window mean")
+            ax.scatter(x, gpu, s=32, marker="x", color=COLORS[1], label="GPU final-window mean")
+            ax.set_title(f"{stage.capitalize()}: {name}")
+            ax.set_xticks(x)
+            ax.set_xlabel("Registered pair")
+            ax.set_ylabel(name)
+            ax.grid(axis="y", alpha=.2)
+            if row == 0 and column == 1:
+                ax.legend(frameon=False, fontsize=8)
+    fig.suptitle("Native iteration variation versus GPU difference\nBars span eight final 25-iteration block means; they are descriptive ranges", fontsize=12)
+    fig.savefig(output / "native-variation.png", dpi=180)
+    fig.savefig(output / "native-variation.svg")
+    plt.close(fig)
     print(f"Saved figures for {sum(r['pairedCount'] for s,r in stages)} matched pairs")
 
 
