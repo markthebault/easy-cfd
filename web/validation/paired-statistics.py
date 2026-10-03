@@ -244,7 +244,7 @@ def main():
     rows = [{"stage": stage, **r} for stage, data in stages.items() for r in data["pairs"]]
     if rows:
         with (output / "pairs.csv").open("w", newline="") as file:
-            writer = csv.DictWriter(file, fieldnames=list(rows[0]))
+            writer = csv.DictWriter(file, fieldnames=list(rows[0]), lineterminator="\n")
             writer.writeheader()
             writer.writerows(rows)
     render_report(output, design, report)

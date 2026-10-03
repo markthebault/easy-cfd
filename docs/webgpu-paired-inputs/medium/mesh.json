@@ -1,0 +1,85 @@
+{
+  "cells": 193819,
+  "meshPassed": true,
+  "metadata": {
+    "domain": [
+      -14.700000000000001,
+      27.300000000000004,
+      -9.57,
+      9.57,
+      0,
+      9.72
+    ],
+    "velocity": [
+      27.77777777777778,
+      0.0,
+      0
+    ],
+    "freestream": 27.77777777777778,
+    "base_cells": 66300,
+    "preset": {
+      "cell": 0.5,
+      "surface": 3,
+      "wake": 2,
+      "layers": 6,
+      "max_cells": 1400000,
+      "iterations": 800,
+      "residual": 0.0001,
+      "label": "Design comparison",
+      "memory_gb": 5
+    },
+    "processes": 4,
+    "local_refinement": {
+      "part0": {
+        "surface_level": 3,
+        "nominal_spacing": 0.0625,
+        "selected": false
+      },
+      "part1": {
+        "surface_level": 3,
+        "nominal_spacing": 0.0625,
+        "selected": true
+      },
+      "part2": {
+        "surface_level": 3,
+        "nominal_spacing": 0.0625,
+        "selected": true
+      },
+      "part3": {
+        "surface_level": 3,
+        "nominal_spacing": 0.0625,
+        "selected": true
+      },
+      "part4": {
+        "surface_level": 3,
+        "nominal_spacing": 0.0625,
+        "selected": true
+      }
+    },
+    "underfloor_spacing": null,
+    "tunnel_cross_section": 186.04080000000002,
+    "blockage_ratio": 0.011825363038645287
+  },
+  "image": "opencfd/openfoam-default@sha256:1ba02114b1c025c370f2e269a07677c16c9bea8d990fcd75ac8378aff9d41b50",
+  "case": "/Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/.accuracy-reference/paired-inputs/sample/medium/mesh",
+  "meshHashes": {
+    "boundary": "b1cf396395b625bb634097fa1d4b9742386937ad00ce28a294b74fe50776af04",
+    "cellLevel": "7e723695e175a00208b725fa9b3051bc920f8e9bd26ca27ac1b5c847166f5fb4",
+    "cellZones": "0a1ae85b868235be40517ee2a6113a9501c5415c905a5ecbbb0e0679f61442d5",
+    "faceZones": "68d5715ea9b4d426cc6d425639c036a4b8f0fd4b0e2c826b1d0cb8c22149f0ec",
+    "faces": "7a1109ff328254dd87359b9a136b762ea75e27361a31eb70915287fdfc9d42c8",
+    "level0Edge": "a9e4d9cee3441badee9c99247399f5b09e7a97a93a9838610727363131b5d7c7",
+    "neighbour": "5ec01faf81ad1305ee9a01db0a3cdbc3c3840e4ef2e74d042a1b790ffe4b3017",
+    "owner": "41ab7b27e30fa532ce65f809233286e668b3e40af55a7f13939b88d140b552cc",
+    "pointLevel": "a672ec893a32ad6bca141405bfb73ad4fe2ad049f80351bafdcf0193595d96c9",
+    "pointZones": "bf8707b8f7790afbe530d4d8bc58ea13ccfa9214923baa41092bed1f719caf60",
+    "points": "91db7af2559900741854146282ede8c225d116130379049da3eab68aa9c29309",
+    "surfaceIndex": "ad100bcbb41b984a0e596871e7033266731516d21adbb02b08cce184e28d852c"
+  },
+  "timings": {
+    "blockMesh": 0.8552983328700066,
+    "snappyHexMesh": 33.14046433288604,
+    "checkMesh": 2.0737555408850312
+  },
+  "note": "Mesh built once at baseline speed; reused unchanged for all ten perturbed-input solves, including baseline prism-layer thickness."
+}

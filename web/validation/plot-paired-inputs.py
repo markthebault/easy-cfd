@@ -88,6 +88,8 @@ def main():
     fig.savefig(output / "native-variation.png", dpi=180)
     fig.savefig(output / "native-variation.svg")
     plt.close(fig)
+    for file in (output / "paired-comparison.svg", output / "native-variation.svg"):
+        file.write_text("\n".join(line.rstrip() for line in file.read_text().splitlines())+"\n")
     print(f"Saved figures for {sum(r['pairedCount'] for s,r in stages)} matched pairs")
 
 

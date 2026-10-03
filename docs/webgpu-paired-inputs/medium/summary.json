@@ -1,0 +1,198 @@
+{
+  "limit": 10,
+  "tolerance": 0.05,
+  "attempts": 10,
+  "complete": 10,
+  "records": [
+    {
+      "iteration": 1,
+      "key": "medium-pair-01",
+      "model": "sample",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.36465992568057365,
+      "cl": 0.37350733708919237,
+      "comparison": {
+        "cdError": 0.3337833775357571,
+        "clError": 0.3968861431393387,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 2,
+      "key": "medium-pair-02",
+      "model": "sample",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.36489079693697557,
+      "cl": 0.3790302000770938,
+      "comparison": {
+        "cdError": 0.3336816538345619,
+        "clError": 0.39157595485729796,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 3,
+      "key": "medium-pair-03",
+      "model": "sample",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.365262587470344,
+      "cl": 0.37229952407912137,
+      "comparison": {
+        "cdError": 0.330870087557242,
+        "clError": 0.3991048823292744,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 4,
+      "key": "medium-pair-04",
+      "model": "sample",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.36600942157841576,
+      "cl": 0.37678051862652273,
+      "comparison": {
+        "cdError": 0.3322046789813947,
+        "clError": 0.3964509593831044,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 5,
+      "key": "medium-pair-05",
+      "model": "sample",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.36920516694825717,
+      "cl": 0.37068102114482304,
+      "comparison": {
+        "cdError": 0.3272830900072841,
+        "clError": 0.40763778846443127,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 6,
+      "key": "medium-pair-06",
+      "model": "sample",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.3664578928988923,
+      "cl": 0.3693529885188202,
+      "comparison": {
+        "cdError": 0.3308716675776003,
+        "clError": 0.40801506928567555,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 7,
+      "key": "medium-pair-07",
+      "model": "sample",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.3700873768818824,
+      "cl": 0.3640669623151628,
+      "comparison": {
+        "cdError": 0.32526138782560904,
+        "clError": 0.4205655743319587,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 8,
+      "key": "medium-pair-08",
+      "model": "sample",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.3678059436996614,
+      "cl": 0.38608128859193636,
+      "comparison": {
+        "cdError": 0.32680086359356325,
+        "clError": 0.3831963260165951,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 9,
+      "key": "medium-pair-09",
+      "model": "sample",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.3662646592350314,
+      "cl": 0.3708276245082503,
+      "comparison": {
+        "cdError": 0.3352928187434085,
+        "clError": 0.4161089990081952,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 10,
+      "key": "medium-pair-10",
+      "model": "sample",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.37013655651248717,
+      "cl": 0.36064812782547545,
+      "comparison": {
+        "cdError": 0.32863119804140317,
+        "clError": 0.4340246618791114,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    }
+  ]
+}

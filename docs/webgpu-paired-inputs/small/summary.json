@@ -1,0 +1,198 @@
+{
+  "limit": 10,
+  "tolerance": 0.05,
+  "attempts": 10,
+  "complete": 10,
+  "records": [
+    {
+      "iteration": 1,
+      "key": "small-pair-01",
+      "model": "sample",
+      "status": "completed",
+      "cells": 62500,
+      "cd": 0.3770148351164607,
+      "cl": 0.3456534241421721,
+      "comparison": {
+        "cdError": 0.2735077527593866,
+        "clError": 0.4303667384028386,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 2,
+      "key": "small-pair-02",
+      "model": "sample",
+      "status": "completed",
+      "cells": 62500,
+      "cd": 0.37718400123445345,
+      "cl": 0.34766700071779855,
+      "comparison": {
+        "cdError": 0.2716362823382626,
+        "clError": 0.42693155327258425,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 3,
+      "key": "small-pair-03",
+      "model": "sample",
+      "status": "completed",
+      "cells": 62500,
+      "cd": 0.3763400639266091,
+      "cl": 0.3352339578257255,
+      "comparison": {
+        "cdError": 0.272166162490032,
+        "clError": 0.44712702373551677,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 4,
+      "key": "small-pair-04",
+      "model": "sample",
+      "status": "completed",
+      "cells": 62500,
+      "cd": 0.38029682111780283,
+      "cl": 0.34708197480152897,
+      "comparison": {
+        "cdError": 0.26939050716898466,
+        "clError": 0.42708718113658684,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 5,
+      "key": "small-pair-05",
+      "model": "sample",
+      "status": "completed",
+      "cells": 62500,
+      "cd": 0.3746750549213268,
+      "cl": 0.3435360563192703,
+      "comparison": {
+        "cdError": 0.27772195519218246,
+        "clError": 0.43360448289018305,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 6,
+      "key": "small-pair-06",
+      "model": "sample",
+      "status": "completed",
+      "cells": 62500,
+      "cd": 0.3757868742941797,
+      "cl": 0.33436293638886194,
+      "comparison": {
+        "cdError": 0.2742258100081627,
+        "clError": 0.44888076290431667,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 7,
+      "key": "small-pair-07",
+      "model": "sample",
+      "status": "completed",
+      "cells": 62500,
+      "cd": 0.37163333858316716,
+      "cl": 0.3424235716383311,
+      "comparison": {
+        "cdError": 0.28583320372475784,
+        "clError": 0.4348954388270691,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 8,
+      "key": "small-pair-08",
+      "model": "sample",
+      "status": "completed",
+      "cells": 62500,
+      "cd": 0.3780684491138862,
+      "cl": 0.3480509390258066,
+      "comparison": {
+        "cdError": 0.26882416035880113,
+        "clError": 0.42604058900614583,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 9,
+      "key": "small-pair-09",
+      "model": "sample",
+      "status": "completed",
+      "cells": 62500,
+      "cd": 0.3820222778630857,
+      "cl": 0.3501758808753709,
+      "comparison": {
+        "cdError": 0.2690997649141703,
+        "clError": 0.4213356628144054,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 10,
+      "key": "small-pair-10",
+      "model": "sample",
+      "status": "completed",
+      "cells": 62500,
+      "cd": 0.3715629905586049,
+      "cl": 0.34114636967470013,
+      "comparison": {
+        "cdError": 0.28885504325769923,
+        "clError": 0.43640836825267265,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    }
+  ]
+}
