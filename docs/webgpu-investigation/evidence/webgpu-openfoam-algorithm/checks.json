@@ -1,0 +1,142 @@
+{
+  "productionBuild": {
+    "passed": true,
+    "browserSourceRevision": "2e3794f0000ae17cc5ab34c722b3e2654564ffa2",
+    "command": "npm run build"
+  },
+  "unitTests": {
+    "passed": 53,
+    "failed": 0,
+    "sourceRevision": "f93de243be694736c2217ced883936f24795fda3",
+    "command": "npm test",
+    "note": "Geometry and CPU checks passed after the clipped-cell change. Subsequent changes were shader coupling and buffer copies, checked by the final build and GPU operator validation."
+  },
+  "kernelAndScalarOperator": {
+    "sourceRevision": "2e3794f0000ae17cc5ab34c722b3e2654564ffa2",
+    "validated": "2026-10-02T23:43:32.322Z",
+    "validations": [
+      {
+        "key": "geometric-projection-sample",
+        "settings": {
+          "speed_kmh": 100,
+          "yaw_deg": 0,
+          "reference_area": 2.2,
+          "density": 1.225,
+          "moving_ground": true,
+          "wheels": true,
+          "quality": "custom",
+          "custom_cells": 72,
+          "targetCells": 500000,
+          "custom_passes": 20,
+          "max_seconds": 600,
+          "fullStress": true,
+          "noEddyFloor": true,
+          "sstTransport": true,
+          "stepwiseOmega": false,
+          "cutGradient": true,
+          "limitedSstGradient": true,
+          "surfaceWallDistance": true,
+          "centroidWallDistance": true,
+          "freestreamPressure": true,
+          "farGrowth": 1.3,
+          "farCellSize": 0.5,
+          "finePadding": 0.03,
+          "roofPadding": 0.03,
+          "wakeLength": 0.2,
+          "implicitSst": true,
+          "geometricCutCells": true,
+          "fluidCentroidRoad": true,
+          "projectRotatingWall": true,
+          "wallDistanceFloor": 0.02
+        },
+        "adapter": "apple metal-3",
+        "cells": 500000,
+        "fluidSteps": 0
+      },
+      {
+        "key": "geometric-simplec-kernel-check",
+        "settings": {
+          "speed_kmh": 100,
+          "yaw_deg": 0,
+          "reference_area": 2.2,
+          "density": 1.225,
+          "moving_ground": true,
+          "wheels": true,
+          "quality": "custom",
+          "custom_cells": 72,
+          "targetCells": 500000,
+          "custom_passes": 20,
+          "max_seconds": 600,
+          "fullStress": true,
+          "noEddyFloor": true,
+          "sstTransport": true,
+          "stepwiseOmega": false,
+          "cutGradient": true,
+          "limitedSstGradient": true,
+          "surfaceWallDistance": true,
+          "centroidWallDistance": true,
+          "freestreamPressure": true,
+          "farGrowth": 1.3,
+          "farCellSize": 0.5,
+          "finePadding": 0.03,
+          "roofPadding": 0.03,
+          "wakeLength": 0.2,
+          "implicitSst": true,
+          "simpleMomentum": true,
+          "pseudoTransientMomentum": true,
+          "consistentMomentum": true,
+          "mergeBoost": 1,
+          "limiter": 3,
+          "geometricCutCells": true,
+          "fluidCentroidRoad": true,
+          "projectRotatingWall": true,
+          "wallDistanceFloor": 0.02
+        },
+        "adapter": "apple metal-3",
+        "cells": 500000,
+        "fluidSteps": 0
+      }
+    ],
+    "scalarOperator": {
+      "adapter": "apple metal-3",
+      "kMaximumError": 2.384185791015625e-07,
+      "omegaMaximumError": 2.384185791015625e-07,
+      "maximumResidual": 2.2348747279465897e-06,
+      "scalarSweeps": 160,
+      "fluidSteps": 0,
+      "reference": "manufactured affine scalar solutions with new-omega k destruction and production cap"
+    },
+    "fluidSteps": 0
+  },
+  "pythonAndJavaScriptChecks": {
+    "ruffPassed": true,
+    "nodeSyntaxPassed": true
+  },
+  "nativeInputAudit": {
+    "matchedCases": 8,
+    "artifact": "geometry-input-audit.json",
+    "allMeasuredDomainsMatch": true,
+    "artifactDomains": "domain-audit.json"
+  },
+  "campaignIntegrity": {
+    "attempts": 50,
+    "completed": 41,
+    "failed": 9,
+    "budgetExhausted": true,
+    "finalSuiteComplete": true,
+    "sameFinalConfiguration": true,
+    "targetMet": false,
+    "exactFinalGridCells": 500000,
+    "sourceRevision": "2e3794f0000ae17cc5ab34c722b3e2654564ffa2",
+    "repeat": {
+      "cdRelativeDifference": 2.055675036112613e-05,
+      "clRelativeDifference": 3.2030923891997796e-06
+    }
+  },
+  "fieldComparison": {
+    "records": 9,
+    "pointsPerRecord": 243,
+    "allPointsValid": true,
+    "script": "PYTHONPATH=backend .venv/bin/python web/validation/accuracy-fields.py --output docs/webgpu-openfoam-algorithm --from-iteration 42"
+  }
+}

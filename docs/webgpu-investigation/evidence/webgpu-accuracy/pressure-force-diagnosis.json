@@ -1,0 +1,78 @@
+{
+  "model": "sample",
+  "components": [
+    "drag",
+    "side",
+    "lift"
+  ],
+  "referenceCase": "/Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/.accuracy-reference/sample-refined",
+  "referenceIterationWindow": [
+    2801.0,
+    3000.0
+  ],
+  "openfoam": {
+    "total": [
+      0.5148289113867622,
+      0.0015099651094302106,
+      0.644499627619453
+    ],
+    "pressure": [
+      0.49192849828467144,
+      0.001561146424533444,
+      0.6414765345653182
+    ],
+    "viscous": [
+      0.02290041310230287,
+      -5.118131510713894e-05,
+      0.003023093053845123
+    ]
+  },
+  "webgpu": [
+    {
+      "iteration": 52,
+      "key": "500k-baseline-sample",
+      "cells": 500000,
+      "pressure": [
+        0.29228121101102533,
+        -0.0018437581531138855,
+        0.3587749779335217
+      ],
+      "viscous": [
+        0.00971721183168132,
+        -3.7566270052503714e-05,
+        0.0005363413500969781
+      ]
+    },
+    {
+      "iteration": 64,
+      "key": "500k-focused-stress-sample",
+      "cells": 500000,
+      "pressure": [
+        0.3932303881596263,
+        -0.00011694796968008185,
+        0.5517343584699774
+      ],
+      "viscous": [
+        0.016367677948818504,
+        9.269598796980039e-07,
+        0.0011198482059627548
+      ]
+    },
+    {
+      "iteration": 72,
+      "key": "2000000-stress-omega-sample",
+      "cells": 2000000,
+      "pressure": [
+        0.38012389700007077,
+        -0.09257751151431398,
+        0.43163725748958204
+      ],
+      "viscous": [
+        0.012792904659341207,
+        -0.00013705827355943914,
+        0.0004426177056430412
+      ]
+    }
+  ],
+  "note": "Pressure/viscous coefficients are integrated from actual native force output and the retained GPU force breakdown. No fitted correction is applied."
+}

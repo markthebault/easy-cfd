@@ -1,0 +1,85 @@
+{
+  "checkedUTC": "2026-10-03T20:44:15.781Z",
+  "revision": "2dfe696",
+  "sourceHashes": {
+    "web/src/solver/run.ts": "fa3a1abd10b26be720a2bb7156682109cf41316ff7ce8b5d64f540ae6d880d92",
+    "web/src/solver/gpu.ts": "d4199a4fa029ad642fcd651e37ae9b4f3e34bc2b8de86bbe4b16192c3b6ef765"
+  },
+  "results": [
+    {
+      "mode": "healthy",
+      "adapter": "apple metal-3",
+      "software": false,
+      "scopeDepth": 0,
+      "submissions": 1,
+      "allocated": 39,
+      "destroyed": 39,
+      "producedResult": false,
+      "error": {
+        "name": "AbortError",
+        "message": "Simulation cancelled"
+      },
+      "fluidSteps": 0
+    },
+    {
+      "mode": "invalid-shader",
+      "adapter": "apple metal-3",
+      "software": false,
+      "scopeDepth": 0,
+      "submissions": 1,
+      "allocated": 39,
+      "destroyed": 39,
+      "producedResult": false,
+      "error": {
+        "name": "AbortError",
+        "message": "Simulation cancelled"
+      },
+      "fluidSteps": 0
+    },
+    {
+      "mode": "synchronous-failure",
+      "adapter": "apple metal-3",
+      "software": false,
+      "scopeDepth": 0,
+      "submissions": 0,
+      "allocated": 39,
+      "destroyed": 0,
+      "producedResult": false,
+      "error": {
+        "name": "Error",
+        "message": "Injected synchronous shader construction failure"
+      },
+      "fluidSteps": 0
+    },
+    {
+      "mode": "buffer-upload-failure",
+      "adapter": "apple metal-3",
+      "software": false,
+      "scopeDepth": 0,
+      "submissions": 0,
+      "allocated": 1,
+      "destroyed": 0,
+      "producedResult": false,
+      "error": {
+        "name": "Error",
+        "message": "Injected synchronous buffer upload failure"
+      },
+      "fluidSteps": 0
+    }
+  ],
+  "failures": [
+    {
+      "mode": "invalid-shader",
+      "message": "failed initialization must stop before projection\n\n1 !== 0\n"
+    },
+    {
+      "mode": "synchronous-failure",
+      "message": "all solver buffers must be released\n\n0 !== 39\n"
+    },
+    {
+      "mode": "buffer-upload-failure",
+      "message": "all solver buffers must be released\n\n0 !== 1\n"
+    }
+  ],
+  "passed": false
+}

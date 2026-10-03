@@ -1,0 +1,247 @@
+{
+  "archiveRevision": "3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7",
+  "archiveBranch": "archive/webgpu-accuracy-investigation",
+  "experimentBaseRevision": "7903a4b42f049667fe256255636c34f41c90e49d",
+  "finalGpuRevision": "2e3794f0000ae17cc5ab34c722b3e2654564ffa2",
+  "files": [
+    {
+      "source": "docs/webgpu-accuracy/README.md",
+      "sha256": "2ca774a4d81e2d9fc77027b9207183f0bf821800de198349fefe2b2d6892edb5",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-accuracy/README.md"
+    },
+    {
+      "local": "evidence/webgpu-accuracy/evaluation.json",
+      "source": "docs/webgpu-accuracy/evaluation.json",
+      "bytes": 68316,
+      "sha256": "11b85482f5da5ebef2cff822f751a34c293d7598ca356b918758caf417ac213e",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-accuracy/evaluation.json"
+    },
+    {
+      "local": "evidence/webgpu-accuracy/summary.json",
+      "source": "docs/webgpu-accuracy/summary.json",
+      "bytes": 47278,
+      "sha256": "57412ef672f16150749f56a2d3d58c9253df4b7d35242fa407ae6c6c79043327",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-accuracy/summary.json"
+    },
+    {
+      "local": "evidence/webgpu-accuracy/trials.csv",
+      "source": "docs/webgpu-accuracy/trials.csv",
+      "bytes": 31012,
+      "sha256": "75d431b173c9398e655c25d85bfca07f30428f9afd0063f57bdc4181ff3687f4",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-accuracy/trials.csv"
+    },
+    {
+      "local": "evidence/webgpu-accuracy/references.json",
+      "source": "docs/webgpu-accuracy/references.json",
+      "bytes": 10534,
+      "sha256": "9ef43c3a486e6d4c5119c5a6d8f5fbbb21ac50bc0eddfbebc506faeaccaf0e1e",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-accuracy/references.json"
+    },
+    {
+      "local": "evidence/webgpu-accuracy/selection.json",
+      "source": "docs/webgpu-accuracy/selection.json",
+      "bytes": 18245,
+      "sha256": "581b23e098f4e0ca6417cf1b7985f4a224a60089694f4e0a6d087b4e096ebc5b",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-accuracy/selection.json"
+    },
+    {
+      "local": "evidence/webgpu-accuracy/geometry-audit.json",
+      "source": "docs/webgpu-accuracy/geometry-audit.json",
+      "bytes": 1917,
+      "sha256": "b206cce3fcfdfc1f28c6620d8928ca74a790b5488c1f2a54cf8b6acab652f3fa",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-accuracy/geometry-audit.json"
+    },
+    {
+      "local": "evidence/webgpu-accuracy/pressure-force-diagnosis.json",
+      "source": "docs/webgpu-accuracy/pressure-force-diagnosis.json",
+      "bytes": 1773,
+      "sha256": "1e8737a7a39d61d79426f74d1abc64d355f711387a2aaa59b90f352a7c0f242d",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-accuracy/pressure-force-diagnosis.json"
+    },
+    {
+      "local": "evidence/webgpu-accuracy/final-comparison.png",
+      "source": "docs/webgpu-accuracy/final-comparison.png",
+      "bytes": 75511,
+      "sha256": "2bc6c33e4ef08e49887d862f13ea4fab5bdc70690436f770244ff8cb40e775b0",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-accuracy/final-comparison.png"
+    },
+    {
+      "local": "evidence/webgpu-accuracy/refinement.png",
+      "source": "docs/webgpu-accuracy/refinement.png",
+      "bytes": 156169,
+      "sha256": "af912f7d12dae665f44933d6fc0a1034c2f99a9a9a1f312446fda15ea135cc1e",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-accuracy/refinement.png"
+    },
+    {
+      "source": "docs/webgpu-openfoam-algorithm/README.md",
+      "sha256": "a499798cdaf2e76b62da7a59b1c1ec0bdfc07708a6ed0c058863d9ce6d89e6bb",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-openfoam-algorithm/README.md"
+    },
+    {
+      "local": "evidence/webgpu-openfoam-algorithm/evaluation.json",
+      "source": "docs/webgpu-openfoam-algorithm/evaluation.json",
+      "bytes": 28946,
+      "sha256": "1f6bb09e1730f021dd8f096709ac04404c0936bc39254ae049023e29d57ab47a",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-openfoam-algorithm/evaluation.json"
+    },
+    {
+      "local": "evidence/webgpu-openfoam-algorithm/summary.json",
+      "source": "docs/webgpu-openfoam-algorithm/summary.json",
+      "bytes": 28542,
+      "sha256": "46ddd6062cdde0cc0716e744777465574f852887813816c8fb197ab2b4f3ce97",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-openfoam-algorithm/summary.json"
+    },
+    {
+      "local": "evidence/webgpu-openfoam-algorithm/trials.csv",
+      "source": "docs/webgpu-openfoam-algorithm/trials.csv",
+      "bytes": 12281,
+      "sha256": "6b443b55a2ef9b782f44b5b74620180439b9e482520297c9d8ed926e41353161",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-openfoam-algorithm/trials.csv"
+    },
+    {
+      "local": "evidence/webgpu-openfoam-algorithm/references.json",
+      "source": "docs/webgpu-openfoam-algorithm/references.json",
+      "bytes": 10536,
+      "sha256": "a28d4195cfc557becec7b834af98f8b80a82278deea564ea947ef76ef8a5e715",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-openfoam-algorithm/references.json"
+    },
+    {
+      "local": "evidence/webgpu-openfoam-algorithm/selection.json",
+      "source": "docs/webgpu-openfoam-algorithm/selection.json",
+      "bytes": 9097,
+      "sha256": "ab4f9c5c41a6a828aef506bc7a73e0d5c2c384ed378d5bfc0b42e3655af83711",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-openfoam-algorithm/selection.json"
+    },
+    {
+      "local": "evidence/webgpu-openfoam-algorithm/source-audit.json",
+      "source": "docs/webgpu-openfoam-algorithm/source-audit.json",
+      "bytes": 6264,
+      "sha256": "dce921d60f545574dcaca605bc8068a40a5e1b3e99414a2b03ba9446db6573ad",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-openfoam-algorithm/source-audit.json"
+    },
+    {
+      "local": "evidence/webgpu-openfoam-algorithm/checks.json",
+      "source": "docs/webgpu-openfoam-algorithm/checks.json",
+      "bytes": 4479,
+      "sha256": "50d039433d081ec5d157b9dffe263fe846ab586bdf9d1d644d5f033803786bc0",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-openfoam-algorithm/checks.json"
+    },
+    {
+      "local": "evidence/webgpu-openfoam-algorithm/geometry-input-audit.json",
+      "source": "docs/webgpu-openfoam-algorithm/geometry-input-audit.json",
+      "bytes": 17812,
+      "sha256": "a1573fea2dd95b0b342993b1a83b23bfd0e410d60b2cd0c8a3b9e2852139a295",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-openfoam-algorithm/geometry-input-audit.json"
+    },
+    {
+      "local": "evidence/webgpu-openfoam-algorithm/domain-audit.json",
+      "source": "docs/webgpu-openfoam-algorithm/domain-audit.json",
+      "bytes": 4402,
+      "sha256": "ab2c6d01d425f1decd65071a9e22c17ef3b2a6fd7a3dc4ae5b4c948f01d7fdd5",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-openfoam-algorithm/domain-audit.json"
+    },
+    {
+      "local": "evidence/webgpu-openfoam-algorithm/kernel-validation.json",
+      "source": "docs/webgpu-openfoam-algorithm/kernel-validation.json",
+      "bytes": 2807,
+      "sha256": "33087189cd10e2cfa1b89b3ea0c61c31a906ef25303219ccb597a914edb46afa",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-openfoam-algorithm/kernel-validation.json"
+    },
+    {
+      "local": "evidence/webgpu-openfoam-algorithm/linear-solver-selection.json",
+      "source": "docs/webgpu-openfoam-algorithm/linear-solver-selection.json",
+      "bytes": 3757,
+      "sha256": "f9d95466cce83b24996cd220da5b2ed0769a007ee2f5822f25e51f2656f7c916",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-openfoam-algorithm/linear-solver-selection.json"
+    },
+    {
+      "local": "evidence/webgpu-openfoam-algorithm/final-comparison.png",
+      "source": "docs/webgpu-openfoam-algorithm/final-comparison.png",
+      "bytes": 64305,
+      "sha256": "1c73f179408add21246ce940c222d619ae40c7058a234e91d89343ecd16b0bee",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-openfoam-algorithm/final-comparison.png"
+    },
+    {
+      "local": "evidence/webgpu-openfoam-algorithm/iterations.png",
+      "source": "docs/webgpu-openfoam-algorithm/iterations.png",
+      "bytes": 95115,
+      "sha256": "43272bf6a7553bed0cdd4884bed35b7bf3964d76298f600010eb481275af96e5",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-openfoam-algorithm/iterations.png"
+    },
+    {
+      "source": "docs/webgpu-paired-inputs/README.md",
+      "sha256": "cced6f372956656f7036bd0d9b6bf12f1d2160d45f1cc64c374b6c1bc61b7085",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-paired-inputs/README.md"
+    },
+    {
+      "local": "evidence/webgpu-paired-inputs/statistics.json",
+      "source": "docs/webgpu-paired-inputs/statistics.json",
+      "bytes": 52570,
+      "sha256": "660cf5adaa91a5eca1489f740eaf9e8d705a99b84eb09ff70ad99d206be49331",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-paired-inputs/statistics.json"
+    },
+    {
+      "local": "evidence/webgpu-paired-inputs/checks.json",
+      "source": "docs/webgpu-paired-inputs/checks.json",
+      "bytes": 1801,
+      "sha256": "e97d94e9cf437ed1fcf6d77a7583a0d4ce794e25fb84f033531ecbebfb030a42",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-paired-inputs/checks.json"
+    },
+    {
+      "local": "evidence/webgpu-paired-inputs/design.json",
+      "source": "docs/webgpu-paired-inputs/design.json",
+      "bytes": 4600,
+      "sha256": "9b3f95a9ba21b263069767b65696431169d9522180af5ffb8d9a7deb257a80bf",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-paired-inputs/design.json"
+    },
+    {
+      "local": "evidence/webgpu-paired-inputs/pairs.csv",
+      "source": "docs/webgpu-paired-inputs/pairs.csv",
+      "bytes": 6632,
+      "sha256": "65d23d71b5ec8402ea10ce0bddd2a1584718ea5f92fb4cf9a38a756446b9df14",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-paired-inputs/pairs.csv"
+    },
+    {
+      "local": "evidence/webgpu-paired-inputs/input-audit.json",
+      "source": "docs/webgpu-paired-inputs/input-audit.json",
+      "bytes": 32503,
+      "sha256": "01d225fb584223b290d44d8a114f00781550d6e63f8c8bfe4b10a58e3644fc11",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-paired-inputs/input-audit.json"
+    },
+    {
+      "local": "evidence/webgpu-paired-inputs/paired-comparison.png",
+      "source": "docs/webgpu-paired-inputs/paired-comparison.png",
+      "bytes": 403012,
+      "sha256": "d198691097b347b7378ba3435a7ccd5aee60a8109da305a42c2d959353eb4e3a",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-paired-inputs/paired-comparison.png"
+    },
+    {
+      "local": "evidence/webgpu-paired-inputs/native-variation.png",
+      "source": "docs/webgpu-paired-inputs/native-variation.png",
+      "bytes": 152029,
+      "sha256": "195fdd7e4a779b318b9ec6a9703ba9da168059e61f4273b5c7e250b92dae21d4",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-paired-inputs/native-variation.png"
+    },
+    {
+      "local": "evidence/webgpu-paired-inputs/small/mesh.json",
+      "source": "docs/webgpu-paired-inputs/small/mesh.json",
+      "bytes": 2833,
+      "sha256": "0e7cddced3dd2e7f42ffa2f26fc3ae7980a471858a3d09b940c1836085a2510e",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-paired-inputs/small/mesh.json"
+    },
+    {
+      "local": "evidence/webgpu-paired-inputs/medium/mesh.json",
+      "source": "docs/webgpu-paired-inputs/medium/mesh.json",
+      "bytes": 2838,
+      "sha256": "02d39e44342b507bd46ddd4d9635999fd33b4f2d25ecfe61f5329e9911d929d0",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-paired-inputs/medium/mesh.json"
+    },
+    {
+      "local": "evidence/webgpu-paired-inputs/small/kernel-validation.json",
+      "source": "docs/webgpu-paired-inputs/small/kernel-validation.json",
+      "bytes": 1560,
+      "sha256": "3ec54824b650e470cf9c781066a4b734161cc37a40840f76b20ee529af08deca",
+      "archiveURL": "https://github.com/markthebault/easy-cfd/blob/3fa3c8b4e913d1e5ed0414e0aa49468e0c738bb7/docs/webgpu-paired-inputs/small/kernel-validation.json"
+    }
+  ]
+}

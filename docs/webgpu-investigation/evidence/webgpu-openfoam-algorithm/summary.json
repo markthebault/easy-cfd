@@ -1,0 +1,850 @@
+{
+  "limit": 50,
+  "tolerance": 0.05,
+  "attempts": 50,
+  "complete": 41,
+  "records": [
+    {
+      "iteration": 1,
+      "key": "control-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.3148930488172607,
+      "cl": 0.10076032667015754,
+      "comparison": {
+        "cdError": 0.3883539912917443,
+        "clError": 0.8436611561090006,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 2,
+      "key": "sst-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.3328016828883605,
+      "cl": 0.1380868310624888,
+      "comparison": {
+        "cdError": 0.35356838839530963,
+        "clError": 0.7857456775070666,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 3,
+      "key": "simple-start-sample",
+      "model": "sample",
+      "status": "failed",
+      "error": "page.evaluate: Error: The flow solution diverged. Try a finer mesh or check the geometry for tiny gaps.\n    at runLevel (http://127.0.0.1:5201/src/solver/run.ts:216:21)\n    at async runSimulation (http://127.0.0.1:5201/src/solver/run.ts:67:20)\n    at async Object.run (http://127.0.0.1:5201/src/bench.ts:30:32)\n    at async <anonymous>:337:30\n    at /Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/web/validation/run-accuracy.mjs:72:32"
+    },
+    {
+      "iteration": 4,
+      "key": "simple-finite-0.3-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 125000,
+      "cd": 0.3407306120273634,
+      "cl": -0.2872330790076128,
+      "comparison": {
+        "cdError": 0.33816729307289084,
+        "clError": 1.4456683397454895,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 5,
+      "key": "simple-finite-0.7-sample",
+      "model": "sample",
+      "status": "failed",
+      "error": "page.evaluate: Error: The flow solution diverged. Try a finer mesh or check the geometry for tiny gaps.\n    at runLevel (http://127.0.0.1:5201/src/solver/run.ts:229:21)\n    at async runSimulation (http://127.0.0.1:5201/src/solver/run.ts:67:20)\n    at async Object.run (http://127.0.0.1:5201/src/bench.ts:30:32)\n    at async <anonymous>:337:30\n    at /Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/web/validation/run-accuracy.mjs:72:32"
+    },
+    {
+      "iteration": 6,
+      "key": "sst-focused-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.3998926767837466,
+      "cl": 0.5453512802645712,
+      "comparison": {
+        "cdError": 0.2232513210909852,
+        "clError": 0.1538377108468523,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 7,
+      "key": "sst-focused-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.2595671014610887,
+      "cl": -0.0740458253374988,
+      "comparison": {
+        "cdError": 0.1865107737266742,
+        "clError": 1.3264999926401657,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 8,
+      "key": "simple-low-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.3558096698668732,
+      "cl": 0.08090274592839225,
+      "comparison": {
+        "cdError": 0.30887783883673386,
+        "clError": 0.8744720051627406,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 9,
+      "key": "simple-low-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.4178600314328806,
+      "cl": -0.08131967630784755,
+      "comparison": {
+        "cdError": 0.30958288530196965,
+        "clError": 1.3585735400340901,
+        "agrees": false,
+        "stable": false,
+        "finite": false,
+        "conserved": false,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 10,
+      "key": "simple-focused-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.3815735753487497,
+      "cl": 0.14558651334896422,
+      "comparison": {
+        "cdError": 0.25883421286304187,
+        "clError": 0.7741092358939349,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 11,
+      "key": "simple-focused-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.2575057722908305,
+      "cl": -0.086063282450749,
+      "comparison": {
+        "cdError": 0.19297102644117067,
+        "clError": 1.3794901462530882,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 12,
+      "key": "pseudo-focused-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.3821893787380937,
+      "cl": 0.14347581807834228,
+      "comparison": {
+        "cdError": 0.2576380807583289,
+        "clError": 0.7773841722634391,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 13,
+      "key": "pseudo-focused-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.2557958033002237,
+      "cl": -0.08623406915527276,
+      "comparison": {
+        "cdError": 0.19833010832516132,
+        "clError": 1.3802432185230762,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 14,
+      "key": "native-transport-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.3975688884499584,
+      "cl": 0.5457778121275572,
+      "comparison": {
+        "cdError": 0.2277650309514693,
+        "clError": 0.15317590772904202,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 15,
+      "key": "native-transport-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.2592268788404228,
+      "cl": -0.10662707148182227,
+      "comparison": {
+        "cdError": 0.18757703919286112,
+        "clError": 1.4701647647977092,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 16,
+      "key": "native-transport-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.3741643740939319,
+      "cl": 0.2616600609274338,
+      "comparison": {
+        "cdError": 0.04466548083164345,
+        "clError": 0.35309358990982104,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 17,
+      "key": "native-simple-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.3802154343240492,
+      "cl": 0.13927791839827136,
+      "comparison": {
+        "cdError": 0.26147225628807497,
+        "clError": 0.7838975967871714,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 18,
+      "key": "native-simple-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.254839570084985,
+      "cl": -0.08060977863534101,
+      "comparison": {
+        "cdError": 0.20132696506864978,
+        "clError": 1.3554432948947837,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 19,
+      "key": "native-simple-ahmed25",
+      "model": "ahmed25",
+      "status": "failed",
+      "error": "page.evaluate: Error: GPU solver initialization: Binding doesn't exist in [BindGroupLayoutInternal \"momentumPressure\"].\n - While validating that the entry-point's declaration for @group(0) @binding(10) matches [BindGroupLayoutInternal \"momentumPressure\"]\n - While validating the entry-point's compatibility for group 0 with [BindGroupLayoutInternal \"momentumPressure\"]\n - While validating compute stage ([ShaderModule \"turbulence\"], entryPoint: \"main\").\n - While calling [Device].CreateComputePipeline([ComputePipelineDescriptor \"\"turbulence\"\"]).\n\n    at runLevel (http://127.0.0.1:5201/src/solver/run.ts:139:11)\n    at async runSimulation (http://127.0.0.1:5201/src/solver/run.ts:67:20)\n    at async Object.run (http://127.0.0.1:5201/src/bench.ts:30:32)\n    at async <anonymous>:337:30\n    at /Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/web/validation/run-accuracy.mjs:74:32"
+    },
+    {
+      "iteration": 20,
+      "key": "native-simplec-sample",
+      "model": "sample",
+      "status": "failed",
+      "error": "page.evaluate: Error: GPU solver initialization: Binding doesn't exist in [BindGroupLayoutInternal \"momentumPressure\"].\n - While validating that the entry-point's declaration for @group(0) @binding(10) matches [BindGroupLayoutInternal \"momentumPressure\"]\n - While validating the entry-point's compatibility for group 0 with [BindGroupLayoutInternal \"momentumPressure\"]\n - While validating compute stage ([ShaderModule \"turbulence\"], entryPoint: \"main\").\n - While calling [Device].CreateComputePipeline([ComputePipelineDescriptor \"\"turbulence\"\"]).\n\n    at runLevel (http://127.0.0.1:5201/src/solver/run.ts:139:11)\n    at async runSimulation (http://127.0.0.1:5201/src/solver/run.ts:67:20)\n    at async Object.run (http://127.0.0.1:5201/src/bench.ts:30:32)\n    at async <anonymous>:337:30\n    at /Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/web/validation/run-accuracy.mjs:74:32"
+    },
+    {
+      "iteration": 21,
+      "key": "native-simplec-mx5",
+      "model": "mx5",
+      "status": "failed",
+      "error": "page.evaluate: Error: GPU solver initialization: Binding doesn't exist in [BindGroupLayoutInternal \"momentumPressure\"].\n - While validating that the entry-point's declaration for @group(0) @binding(10) matches [BindGroupLayoutInternal \"momentumPressure\"]\n - While validating the entry-point's compatibility for group 0 with [BindGroupLayoutInternal \"momentumPressure\"]\n - While validating compute stage ([ShaderModule \"turbulence\"], entryPoint: \"main\").\n - While calling [Device].CreateComputePipeline([ComputePipelineDescriptor \"\"turbulence\"\"]).\n\n    at runLevel (http://127.0.0.1:5201/src/solver/run.ts:139:11)\n    at async runSimulation (http://127.0.0.1:5201/src/solver/run.ts:67:20)\n    at async Object.run (http://127.0.0.1:5201/src/bench.ts:30:32)\n    at async <anonymous>:337:30\n    at /Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/web/validation/run-accuracy.mjs:74:32"
+    },
+    {
+      "iteration": 22,
+      "key": "native-simplec-ahmed25",
+      "model": "ahmed25",
+      "status": "failed",
+      "error": "page.evaluate: Error: GPU solver initialization: Binding doesn't exist in [BindGroupLayoutInternal \"momentumPressure\"].\n - While validating that the entry-point's declaration for @group(0) @binding(11) matches [BindGroupLayoutInternal \"momentumPressure\"]\n - While validating the entry-point's compatibility for group 0 with [BindGroupLayoutInternal \"momentumPressure\"]\n - While validating compute stage ([ShaderModule \"turbulence\"], entryPoint: \"main\").\n - While calling [Device].CreateComputePipeline([ComputePipelineDescriptor \"\"turbulence\"\"]).\n\n    at runLevel (http://127.0.0.1:5201/src/solver/run.ts:139:11)\n    at async runSimulation (http://127.0.0.1:5201/src/solver/run.ts:67:20)\n    at async Object.run (http://127.0.0.1:5201/src/bench.ts:30:32)\n    at async <anonymous>:337:30\n    at /Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/web/validation/run-accuracy.mjs:74:32"
+    },
+    {
+      "iteration": 23,
+      "key": "native-simplec-damped-sample",
+      "model": "sample",
+      "status": "failed",
+      "error": "page.evaluate: Error: GPU solver initialization: Binding doesn't exist in [BindGroupLayoutInternal \"momentumPressure\"].\n - While validating that the entry-point's declaration for @group(0) @binding(10) matches [BindGroupLayoutInternal \"momentumPressure\"]\n - While validating the entry-point's compatibility for group 0 with [BindGroupLayoutInternal \"momentumPressure\"]\n - While validating compute stage ([ShaderModule \"turbulence\"], entryPoint: \"main\").\n - While calling [Device].CreateComputePipeline([ComputePipelineDescriptor \"\"turbulence\"\"]).\n\n    at runLevel (http://127.0.0.1:5201/src/solver/run.ts:139:11)\n    at async runSimulation (http://127.0.0.1:5201/src/solver/run.ts:67:20)\n    at async Object.run (http://127.0.0.1:5201/src/bench.ts:30:32)\n    at async <anonymous>:337:30\n    at /Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/web/validation/run-accuracy.mjs:74:32"
+    },
+    {
+      "iteration": 24,
+      "key": "native-simplec-damped-mx5",
+      "model": "mx5",
+      "status": "failed",
+      "error": "page.evaluate: Error: GPU solver initialization: Binding doesn't exist in [BindGroupLayoutInternal \"momentumPressure\"].\n - While validating that the entry-point's declaration for @group(0) @binding(10) matches [BindGroupLayoutInternal \"momentumPressure\"]\n - While validating the entry-point's compatibility for group 0 with [BindGroupLayoutInternal \"momentumPressure\"]\n - While validating compute stage ([ShaderModule \"turbulence\"], entryPoint: \"main\").\n - While calling [Device].CreateComputePipeline([ComputePipelineDescriptor \"\"turbulence\"\"]).\n\n    at runLevel (http://127.0.0.1:5201/src/solver/run.ts:139:11)\n    at async runSimulation (http://127.0.0.1:5201/src/solver/run.ts:67:20)\n    at async Object.run (http://127.0.0.1:5201/src/bench.ts:30:32)\n    at async <anonymous>:337:30\n    at /Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/web/validation/run-accuracy.mjs:74:32"
+    },
+    {
+      "iteration": 25,
+      "key": "native-simplec-damped-ahmed25",
+      "model": "ahmed25",
+      "status": "failed",
+      "error": "page.evaluate: Error: GPU solver initialization: Binding doesn't exist in [BindGroupLayoutInternal \"momentumPressure\"].\n - While validating that the entry-point's declaration for @group(0) @binding(10) matches [BindGroupLayoutInternal \"momentumPressure\"]\n - While validating the entry-point's compatibility for group 0 with [BindGroupLayoutInternal \"momentumPressure\"]\n - While validating compute stage ([ShaderModule \"turbulence\"], entryPoint: \"main\").\n - While calling [Device].CreateComputePipeline([ComputePipelineDescriptor \"\"turbulence\"\"]).\n\n    at runLevel (http://127.0.0.1:5201/src/solver/run.ts:139:11)\n    at async runSimulation (http://127.0.0.1:5201/src/solver/run.ts:67:20)\n    at async Object.run (http://127.0.0.1:5201/src/bench.ts:30:32)\n    at async <anonymous>:337:30\n    at /Volumes/SSD512/persospace/easy-cfd-webgpu-accuracy/web/validation/run-accuracy.mjs:74:32"
+    },
+    {
+      "iteration": 26,
+      "key": "implicit-sst-projection-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.3973439969621891,
+      "cl": 0.545767219518265,
+      "comparison": {
+        "cdError": 0.22820185857088873,
+        "clError": 0.1531923431292164,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 27,
+      "key": "implicit-sst-projection-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.25894450476190506,
+      "cl": -0.10785899797394395,
+      "comparison": {
+        "cdError": 0.18846200600629784,
+        "clError": 1.4755968602437068,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 28,
+      "key": "implicit-sst-projection-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.3753369363821932,
+      "cl": 0.26506603051532335,
+      "comparison": {
+        "cdError": 0.04793927019130072,
+        "clError": 0.34467295608756954,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 29,
+      "key": "implicit-sst-simplec-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.37989506896642594,
+      "cl": 0.1392669676830422,
+      "comparison": {
+        "cdError": 0.2620945316703187,
+        "clError": 0.783914587821394,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 30,
+      "key": "implicit-sst-simplec-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.2548814607360565,
+      "cl": -0.08135161902754609,
+      "comparison": {
+        "cdError": 0.20119567881112163,
+        "clError": 1.3587143892676417,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 31,
+      "key": "implicit-sst-simplec-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.33086120139944625,
+      "cl": 0.09319238787996045,
+      "comparison": {
+        "cdError": 0.0762368093288408,
+        "clError": 0.7695989488136821,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 32,
+      "key": "geometric-projection-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.40263336077026074,
+      "cl": 0.5479909497308042,
+      "comparison": {
+        "cdError": 0.2179278360925761,
+        "clError": 0.1497420227298798,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 33,
+      "key": "geometric-projection-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.2426648285825908,
+      "cl": -0.05909686108504815,
+      "comparison": {
+        "cdError": 0.23948288309181684,
+        "clError": 1.2605835591861996,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 34,
+      "key": "long-geometric-simplec-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.3804441605409465,
+      "cl": 0.14210001004307488,
+      "comparison": {
+        "cdError": 0.2610279801181893,
+        "clError": 0.7795188640092666,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 35,
+      "key": "long-geometric-simplec-sample-yaw10",
+      "model": "sample-yaw10",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.45493299558556954,
+      "cl": 0.2441310082685017,
+      "comparison": {
+        "cdError": 0.25367204744259825,
+        "clError": 0.6603121633990646,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 36,
+      "key": "long-geometric-simplec-sample-wing",
+      "model": "sample-wing",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.48640160455840953,
+      "cl": -0.09867619859480596,
+      "comparison": {
+        "cdError": 0.2824288565981383,
+        "clError": 1.2372821764583581,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 37,
+      "key": "long-geometric-simplec-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.24756179594359407,
+      "cl": -0.04898664707203602,
+      "comparison": {
+        "cdError": 0.22413567550208516,
+        "clError": 1.2160032633249116,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 38,
+      "key": "long-geometric-simplec-z4",
+      "model": "z4",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.4235558306296909,
+      "cl": -0.7008915658960253,
+      "comparison": {
+        "cdError": 0.03860690644938901,
+        "clError": 1.2596300721304743,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 39,
+      "key": "long-geometric-simplec-z4-wing",
+      "model": "z4-wing",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.41093936051581686,
+      "cl": -0.6720026871840914,
+      "comparison": {
+        "cdError": 0.07493634877814524,
+        "clError": 3.3644943785251105,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 40,
+      "key": "long-geometric-simplec-simple-car",
+      "model": "simple-car",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.2680619220355252,
+      "cl": 0.016746417917376247,
+      "comparison": {
+        "cdError": 0.276514982408864,
+        "clError": 0.966002822391483,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 41,
+      "key": "long-geometric-simplec-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.33160703210946035,
+      "cl": 0.08373746480324783,
+      "comparison": {
+        "cdError": 0.07415445288006706,
+        "clError": 0.7929745083987242,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 42,
+      "key": "final-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.40273231964960443,
+      "cl": 0.5480114291194903,
+      "comparison": {
+        "cdError": 0.21773561907221267,
+        "clError": 0.1497102470890439,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 43,
+      "key": "final-sample-yaw10",
+      "model": "sample-yaw10",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.46716741760490155,
+      "cl": 0.3972594770809256,
+      "comparison": {
+        "cdError": 0.23360119915282238,
+        "clError": 0.44724673323585634,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 44,
+      "key": "final-sample-wing",
+      "model": "sample-wing",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.5215011467005907,
+      "cl": 0.2945763528700776,
+      "comparison": {
+        "cdError": 0.23064773920089454,
+        "clError": 0.2916456132527129,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 45,
+      "key": "final-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.24188089376794544,
+      "cl": -0.05995564495672261,
+      "comparison": {
+        "cdError": 0.24193975271136753,
+        "clError": 1.2643703078179176,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 46,
+      "key": "final-z4",
+      "model": "z4",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.5061042744929077,
+      "cl": -0.9097861930923787,
+      "comparison": {
+        "cdError": 0.1487627342788759,
+        "clError": 1.9330931361579673,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 47,
+      "key": "final-z4-wing",
+      "model": "z4-wing",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.5063426439495975,
+      "cl": -0.8142621386049413,
+      "comparison": {
+        "cdError": 0.1398255314200154,
+        "clError": 4.288434993435592,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 48,
+      "key": "final-simple-car",
+      "model": "simple-car",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.3453378150579419,
+      "cl": 0.21974559592513093,
+      "comparison": {
+        "cdError": 0.067951414714663,
+        "clError": 0.5538908624987577,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 49,
+      "key": "final-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.3712366066098258,
+      "cl": 0.24042898824195208,
+      "comparison": {
+        "cdError": 0.036491165374824795,
+        "clError": 0.40558351506174417,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 50,
+      "key": "final-sample-repeat",
+      "model": "sample",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.4027405985173618,
+      "cl": 0.5480096737882525,
+      "comparison": {
+        "cdError": 0.21771953825861753,
+        "clError": 0.14971297064568007,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "reviewBaseRevision": "2dfe69607cd29f3b0c8ec0eaae9fbc9fd01ad2aa",
+  "retainedChanges": [
+    "Catch shader/pipeline validation errors before initial projection",
+    "Release buffers on synchronous construction and buffer-upload exceptions",
+    "Match Simple Car browser speed to the selected 200 km/h native reference"
+  ],
+  "sourceHashes": {
+    "web/src/solver/run.ts": "8756fb4fb1b047ae95c977d4690b833a63e55733bcc5181cfc09bd2a7fc9b689",
+    "web/src/solver/gpu.ts": "4774b72a27246185851bdd428dcb2b941b27d1029e1b4c7a254ba6988f84952a"
+  },
+  "unitTests": {
+    "command": "npm test",
+    "passed": 31,
+    "failed": 0,
+    "note": "Vite SSR test-server shutdown printed dependency-scan and websocket-port messages; tests completed with exit status 0."
+  },
+  "productionBuild": {
+    "command": "npm run build",
+    "passed": true
+  },
+  "hardwareRegression": {
+    "command": "node validation/check-initialization.mjs",
+    "adapter": "apple metal-3",
+    "passed": 4,
+    "fluidSteps": 0,
+    "artifact": "initialization-current.json"
+  },
+  "baselineRegression": {
+    "command": "node validation/check-initialization.mjs --revision 2dfe696",
+    "expectedFailures": 3,
+    "artifact": "initialization-baseline.json"
+  },
+  "evidenceVerification": {
+    "command": "python3 web/validation/verify-investigation.py",
+    "passed": true,
+    "unchangedEvidenceFiles": 32,
+    "pairedInputAudits": 20,
+    "independentQuartiles": "stdlib statistics.quantiles(method=inclusive)"
+  },
+  "staticChecks": {
+    "ruff": "passed",
+    "nodeSyntax": "passed",
+    "diffWhitespace": "passed"
+  },
+  "numericalSolverUpgrade": false,
+  "newCFDSimulations": 0,
+  "scope": "Standalone main-based PR; experimental numerical kernels, meshes and SST paths are absent from the proposed application diff."
+}

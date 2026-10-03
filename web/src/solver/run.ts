@@ -188,7 +188,17 @@ async function runLevel(
   const preset = resolvePreset(settings);
   opts.onProgress?.({ stage: "preparing", fraction: 0, time: 0, targetTime: 1, steps: 0, history: [], elapsed: 0, cells: 0 });
   const setup = opts.setup ?? prepareCase(parts, settings);
-  const solver = new FlowSolver(device, setup, { cfl: opts.solver?.cfl });
+  device.pushErrorScope("validation");
+  let solver: FlowSolver | undefined;
+  try {
+    solver = new FlowSolver(device, setup, { cfl: opts.solver?.cfl });
+  } finally {
+    const initializationError = await device.popErrorScope();
+    if (initializationError) {
+      solver?.destroy();
+      throw new Error(`GPU solver initialization: ${initializationError.message}`);
+    }
+  }
   const o = opts.solver ?? {};
   if (o.vcycles !== undefined) solver.vcycles = o.vcycles;
   if (o.preSmooth !== undefined) solver.preSmooth = o.preSmooth;

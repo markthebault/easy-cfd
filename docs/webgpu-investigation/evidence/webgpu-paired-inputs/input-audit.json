@@ -1,0 +1,1142 @@
+[
+  {
+    "key": "small-pair-01",
+    "checks": {
+      "actualFreestreamMatches": true,
+      "coefficientNormalizationMatches": true,
+      "groundMatches": true,
+      "wheelConditionsMatch": true,
+      "bodyNoSlip": true,
+      "actualDomainsMatch": true,
+      "actualStlsMatch": true,
+      "sameNativeMeshWithinStage": true,
+      "savedDictionariesUnchanged": true,
+      "nativeSst": true,
+      "sameViscosity": true,
+      "inletTurbulenceMatches": true,
+      "coefficientDirectionsMatch": true,
+      "gpuForceNormalizationMatches": true,
+      "gpuForceAxesMatch": true,
+      "freshGpuStart": true
+    },
+    "matches": true,
+    "nativeVelocity": [
+      26.5277778,
+      0.463044084,
+      0.0
+    ],
+    "nativeCoefficientInputs": {
+      "rhoInf": 1.225,
+      "magUInf": 26.531818702275885,
+      "Aref": 2.2
+    },
+    "nativeBounds": [
+      -14.7,
+      27.3,
+      -9.57,
+      9.57,
+      0.0,
+      9.72
+    ],
+    "gpuBounds": [
+      -14.699999332427979,
+      27.29999876022339,
+      -9.56999957561493,
+      9.56999957561493,
+      0,
+      9.71999967098236
+    ],
+    "nativePartHashes": {
+      "part0.stl": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+      "part1.stl": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+      "part2.stl": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+      "part3.stl": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+      "part4.stl": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7"
+    },
+    "nativeMeshCells": 41417,
+    "gpuGridCells": 62500
+  },
+  {
+    "key": "small-pair-02",
+    "checks": {
+      "actualFreestreamMatches": true,
+      "coefficientNormalizationMatches": true,
+      "groundMatches": true,
+      "wheelConditionsMatch": true,
+      "bodyNoSlip": true,
+      "actualDomainsMatch": true,
+      "actualStlsMatch": true,
+      "sameNativeMeshWithinStage": true,
+      "savedDictionariesUnchanged": true,
+      "nativeSst": true,
+      "sameViscosity": true,
+      "inletTurbulenceMatches": true,
+      "coefficientDirectionsMatch": true,
+      "gpuForceNormalizationMatches": true,
+      "gpuForceAxesMatch": true,
+      "freshGpuStart": true
+    },
+    "matches": true,
+    "nativeVelocity": [
+      26.8055556,
+      0.280717383,
+      0.0
+    ],
+    "nativeCoefficientInputs": {
+      "rhoInf": 1.225,
+      "magUInf": 26.807025401767063,
+      "Aref": 2.2
+    },
+    "nativeBounds": [
+      -14.7,
+      27.3,
+      -9.57,
+      9.57,
+      0.0,
+      9.72
+    ],
+    "gpuBounds": [
+      -14.699999332427979,
+      27.29999876022339,
+      -9.56999957561493,
+      9.56999957561493,
+      0,
+      9.71999967098236
+    ],
+    "nativePartHashes": {
+      "part0.stl": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+      "part1.stl": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+      "part2.stl": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+      "part3.stl": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+      "part4.stl": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7"
+    },
+    "nativeMeshCells": 41417,
+    "gpuGridCells": 62500
+  },
+  {
+    "key": "small-pair-03",
+    "checks": {
+      "actualFreestreamMatches": true,
+      "coefficientNormalizationMatches": true,
+      "groundMatches": true,
+      "wheelConditionsMatch": true,
+      "bodyNoSlip": true,
+      "actualDomainsMatch": true,
+      "actualStlsMatch": true,
+      "sameNativeMeshWithinStage": true,
+      "savedDictionariesUnchanged": true,
+      "nativeSst": true,
+      "sameViscosity": true,
+      "inletTurbulenceMatches": true,
+      "coefficientDirectionsMatch": true,
+      "gpuForceNormalizationMatches": true,
+      "gpuForceAxesMatch": true,
+      "freshGpuStart": true
+    },
+    "matches": true,
+    "nativeVelocity": [
+      27.0833333,
+      -0.0945390518,
+      0.0
+    ],
+    "nativeCoefficientInputs": {
+      "rhoInf": 1.225,
+      "magUInf": 27.083498335273426,
+      "Aref": 2.2
+    },
+    "nativeBounds": [
+      -14.7,
+      27.3,
+      -9.57,
+      9.57,
+      0.0,
+      9.72
+    ],
+    "gpuBounds": [
+      -14.699999332427979,
+      27.29999876022339,
+      -9.56999957561493,
+      9.56999957561493,
+      0,
+      9.71999967098236
+    ],
+    "nativePartHashes": {
+      "part0.stl": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+      "part1.stl": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+      "part2.stl": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+      "part3.stl": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+      "part4.stl": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7"
+    },
+    "nativeMeshCells": 41417,
+    "gpuGridCells": 62500
+  },
+  {
+    "key": "small-pair-04",
+    "checks": {
+      "actualFreestreamMatches": true,
+      "coefficientNormalizationMatches": true,
+      "groundMatches": true,
+      "wheelConditionsMatch": true,
+      "bodyNoSlip": true,
+      "actualDomainsMatch": true,
+      "actualStlsMatch": true,
+      "sameNativeMeshWithinStage": true,
+      "savedDictionariesUnchanged": true,
+      "nativeSst": true,
+      "sameViscosity": true,
+      "inletTurbulenceMatches": true,
+      "coefficientDirectionsMatch": true,
+      "gpuForceNormalizationMatches": true,
+      "gpuForceAxesMatch": true,
+      "freshGpuStart": true
+    },
+    "matches": true,
+    "nativeVelocity": [
+      27.3611111,
+      0.668691152,
+      0.0
+    ],
+    "nativeCoefficientInputs": {
+      "rhoInf": 1.225,
+      "magUInf": 27.36928112120746,
+      "Aref": 2.2
+    },
+    "nativeBounds": [
+      -14.7,
+      27.3,
+      -9.57,
+      9.57,
+      0.0,
+      9.72
+    ],
+    "gpuBounds": [
+      -14.699999332427979,
+      27.29999876022339,
+      -9.56999957561493,
+      9.56999957561493,
+      0,
+      9.71999967098236
+    ],
+    "nativePartHashes": {
+      "part0.stl": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+      "part1.stl": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+      "part2.stl": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+      "part3.stl": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+      "part4.stl": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7"
+    },
+    "nativeMeshCells": 41417,
+    "gpuGridCells": 62500
+  },
+  {
+    "key": "small-pair-05",
+    "checks": {
+      "actualFreestreamMatches": true,
+      "coefficientNormalizationMatches": true,
+      "groundMatches": true,
+      "wheelConditionsMatch": true,
+      "bodyNoSlip": true,
+      "actualDomainsMatch": true,
+      "actualStlsMatch": true,
+      "sameNativeMeshWithinStage": true,
+      "savedDictionariesUnchanged": true,
+      "nativeSst": true,
+      "sameViscosity": true,
+      "inletTurbulenceMatches": true,
+      "coefficientDirectionsMatch": true,
+      "gpuForceNormalizationMatches": true,
+      "gpuForceAxesMatch": true,
+      "freshGpuStart": true
+    },
+    "matches": true,
+    "nativeVelocity": [
+      27.6388889,
+      -0.4824386,
+      0.0
+    ],
+    "nativeCoefficientInputs": {
+      "rhoInf": 1.225,
+      "magUInf": 27.643099066769114,
+      "Aref": 2.2
+    },
+    "nativeBounds": [
+      -14.7,
+      27.3,
+      -9.57,
+      9.57,
+      0.0,
+      9.72
+    ],
+    "gpuBounds": [
+      -14.699999332427979,
+      27.29999876022339,
+      -9.56999957561493,
+      9.56999957561493,
+      0,
+      9.71999967098236
+    ],
+    "nativePartHashes": {
+      "part0.stl": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+      "part1.stl": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+      "part2.stl": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+      "part3.stl": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+      "part4.stl": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7"
+    },
+    "nativeMeshCells": 41417,
+    "gpuGridCells": 62500
+  },
+  {
+    "key": "small-pair-06",
+    "checks": {
+      "actualFreestreamMatches": true,
+      "coefficientNormalizationMatches": true,
+      "groundMatches": true,
+      "wheelConditionsMatch": true,
+      "bodyNoSlip": true,
+      "actualDomainsMatch": true,
+      "actualStlsMatch": true,
+      "sameNativeMeshWithinStage": true,
+      "savedDictionariesUnchanged": true,
+      "nativeSst": true,
+      "sameViscosity": true,
+      "inletTurbulenceMatches": true,
+      "coefficientDirectionsMatch": true,
+      "gpuForceNormalizationMatches": true,
+      "gpuForceAxesMatch": true,
+      "freshGpuStart": true
+    },
+    "matches": true,
+    "nativeVelocity": [
+      27.9166667,
+      -0.292353336,
+      0.0
+    ],
+    "nativeCoefficientInputs": {
+      "rhoInf": 1.225,
+      "magUInf": 27.91819743914601,
+      "Aref": 2.2
+    },
+    "nativeBounds": [
+      -14.7,
+      27.3,
+      -9.57,
+      9.57,
+      0.0,
+      9.72
+    ],
+    "gpuBounds": [
+      -14.699999332427979,
+      27.29999876022339,
+      -9.56999957561493,
+      9.56999957561493,
+      0,
+      9.71999967098236
+    ],
+    "nativePartHashes": {
+      "part0.stl": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+      "part1.stl": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+      "part2.stl": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+      "part3.stl": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+      "part4.stl": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7"
+    },
+    "nativeMeshCells": 41417,
+    "gpuGridCells": 62500
+  },
+  {
+    "key": "small-pair-07",
+    "checks": {
+      "actualFreestreamMatches": true,
+      "coefficientNormalizationMatches": true,
+      "groundMatches": true,
+      "wheelConditionsMatch": true,
+      "bodyNoSlip": true,
+      "actualDomainsMatch": true,
+      "actualStlsMatch": true,
+      "sameNativeMeshWithinStage": true,
+      "savedDictionariesUnchanged": true,
+      "nativeSst": true,
+      "sameViscosity": true,
+      "inletTurbulenceMatches": true,
+      "coefficientDirectionsMatch": true,
+      "gpuForceNormalizationMatches": true,
+      "gpuForceAxesMatch": true,
+      "freshGpuStart": true
+    },
+    "matches": true,
+    "nativeVelocity": [
+      28.1944444,
+      -0.68905738,
+      0.0
+    ],
+    "nativeCoefficientInputs": {
+      "rhoInf": 1.225,
+      "magUInf": 28.202863287335607,
+      "Aref": 2.2
+    },
+    "nativeBounds": [
+      -14.7,
+      27.3,
+      -9.57,
+      9.57,
+      0.0,
+      9.72
+    ],
+    "gpuBounds": [
+      -14.699999332427979,
+      27.29999876022339,
+      -9.56999957561493,
+      9.56999957561493,
+      0,
+      9.71999967098236
+    ],
+    "nativePartHashes": {
+      "part0.stl": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+      "part1.stl": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+      "part2.stl": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+      "part3.stl": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+      "part4.stl": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7"
+    },
+    "nativeMeshCells": 41417,
+    "gpuGridCells": 62500
+  },
+  {
+    "key": "small-pair-08",
+    "checks": {
+      "actualFreestreamMatches": true,
+      "coefficientNormalizationMatches": true,
+      "groundMatches": true,
+      "wheelConditionsMatch": true,
+      "bodyNoSlip": true,
+      "actualDomainsMatch": true,
+      "actualStlsMatch": true,
+      "sameNativeMeshWithinStage": true,
+      "savedDictionariesUnchanged": true,
+      "nativeSst": true,
+      "sameViscosity": true,
+      "inletTurbulenceMatches": true,
+      "coefficientDirectionsMatch": true,
+      "gpuForceNormalizationMatches": true,
+      "gpuForceAxesMatch": true,
+      "freshGpuStart": true
+    },
+    "matches": true,
+    "nativeVelocity": [
+      28.4722222,
+      0.0993872083,
+      0.0
+    ],
+    "nativeCoefficientInputs": {
+      "rhoInf": 1.225,
+      "magUInf": 28.47239568580027,
+      "Aref": 2.2
+    },
+    "nativeBounds": [
+      -14.7,
+      27.3,
+      -9.57,
+      9.57,
+      0.0,
+      9.72
+    ],
+    "gpuBounds": [
+      -14.699999332427979,
+      27.29999876022339,
+      -9.56999957561493,
+      9.56999957561493,
+      0,
+      9.71999967098236
+    ],
+    "nativePartHashes": {
+      "part0.stl": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+      "part1.stl": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+      "part2.stl": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+      "part3.stl": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+      "part4.stl": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7"
+    },
+    "nativeMeshCells": 41417,
+    "gpuGridCells": 62500
+  },
+  {
+    "key": "small-pair-09",
+    "checks": {
+      "actualFreestreamMatches": true,
+      "coefficientNormalizationMatches": true,
+      "groundMatches": true,
+      "wheelConditionsMatch": true,
+      "bodyNoSlip": true,
+      "actualDomainsMatch": true,
+      "actualStlsMatch": true,
+      "sameNativeMeshWithinStage": true,
+      "savedDictionariesUnchanged": true,
+      "nativeSst": true,
+      "sameViscosity": true,
+      "inletTurbulenceMatches": true,
+      "coefficientDirectionsMatch": true,
+      "gpuForceNormalizationMatches": true,
+      "gpuForceAxesMatch": true,
+      "freshGpuStart": true
+    },
+    "matches": true,
+    "nativeVelocity": [
+      28.75,
+      0.903505149,
+      0.0
+    ],
+    "nativeCoefficientInputs": {
+      "rhoInf": 1.225,
+      "magUInf": 28.764193393067902,
+      "Aref": 2.2
+    },
+    "nativeBounds": [
+      -14.7,
+      27.3,
+      -9.57,
+      9.57,
+      0.0,
+      9.72
+    ],
+    "gpuBounds": [
+      -14.699999332427979,
+      27.29999876022339,
+      -9.56999957561493,
+      9.56999957561493,
+      0,
+      9.71999967098236
+    ],
+    "nativePartHashes": {
+      "part0.stl": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+      "part1.stl": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+      "part2.stl": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+      "part3.stl": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+      "part4.stl": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7"
+    },
+    "nativeMeshCells": 41417,
+    "gpuGridCells": 62500
+  },
+  {
+    "key": "small-pair-10",
+    "checks": {
+      "actualFreestreamMatches": true,
+      "coefficientNormalizationMatches": true,
+      "groundMatches": true,
+      "wheelConditionsMatch": true,
+      "bodyNoSlip": true,
+      "actualDomainsMatch": true,
+      "actualStlsMatch": true,
+      "sameNativeMeshWithinStage": true,
+      "savedDictionariesUnchanged": true,
+      "nativeSst": true,
+      "sameViscosity": true,
+      "inletTurbulenceMatches": true,
+      "coefficientDirectionsMatch": true,
+      "gpuForceNormalizationMatches": true,
+      "gpuForceAxesMatch": true,
+      "freshGpuStart": true
+    },
+    "matches": true,
+    "nativeVelocity": [
+      29.0277778,
+      -0.912234667,
+      0.0
+    ],
+    "nativeCoefficientInputs": {
+      "rhoInf": 1.225,
+      "magUInf": 29.04210830507822,
+      "Aref": 2.2
+    },
+    "nativeBounds": [
+      -14.7,
+      27.3,
+      -9.57,
+      9.57,
+      0.0,
+      9.72
+    ],
+    "gpuBounds": [
+      -14.699999332427979,
+      27.29999876022339,
+      -9.56999957561493,
+      9.56999957561493,
+      0,
+      9.71999967098236
+    ],
+    "nativePartHashes": {
+      "part0.stl": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+      "part1.stl": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+      "part2.stl": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+      "part3.stl": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+      "part4.stl": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7"
+    },
+    "nativeMeshCells": 41417,
+    "gpuGridCells": 62500
+  },
+  {
+    "key": "medium-pair-01",
+    "checks": {
+      "actualFreestreamMatches": true,
+      "coefficientNormalizationMatches": true,
+      "groundMatches": true,
+      "wheelConditionsMatch": true,
+      "bodyNoSlip": true,
+      "actualDomainsMatch": true,
+      "actualStlsMatch": true,
+      "sameNativeMeshWithinStage": true,
+      "savedDictionariesUnchanged": true,
+      "nativeSst": true,
+      "sameViscosity": true,
+      "inletTurbulenceMatches": true,
+      "coefficientDirectionsMatch": true,
+      "gpuForceNormalizationMatches": true,
+      "gpuForceAxesMatch": true,
+      "freshGpuStart": true
+    },
+    "matches": true,
+    "nativeVelocity": [
+      26.5277778,
+      0.463044084,
+      0.0
+    ],
+    "nativeCoefficientInputs": {
+      "rhoInf": 1.225,
+      "magUInf": 26.531818702275885,
+      "Aref": 2.2
+    },
+    "nativeBounds": [
+      -14.7,
+      27.3,
+      -9.57,
+      9.57,
+      0.0,
+      9.72
+    ],
+    "gpuBounds": [
+      -14.699999332427979,
+      27.29999876022339,
+      -9.56999957561493,
+      9.56999957561493,
+      0,
+      9.71999967098236
+    ],
+    "nativePartHashes": {
+      "part0.stl": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+      "part1.stl": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+      "part2.stl": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+      "part3.stl": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+      "part4.stl": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7"
+    },
+    "nativeMeshCells": 193819,
+    "gpuGridCells": 250000
+  },
+  {
+    "key": "medium-pair-02",
+    "checks": {
+      "actualFreestreamMatches": true,
+      "coefficientNormalizationMatches": true,
+      "groundMatches": true,
+      "wheelConditionsMatch": true,
+      "bodyNoSlip": true,
+      "actualDomainsMatch": true,
+      "actualStlsMatch": true,
+      "sameNativeMeshWithinStage": true,
+      "savedDictionariesUnchanged": true,
+      "nativeSst": true,
+      "sameViscosity": true,
+      "inletTurbulenceMatches": true,
+      "coefficientDirectionsMatch": true,
+      "gpuForceNormalizationMatches": true,
+      "gpuForceAxesMatch": true,
+      "freshGpuStart": true
+    },
+    "matches": true,
+    "nativeVelocity": [
+      26.8055556,
+      0.280717383,
+      0.0
+    ],
+    "nativeCoefficientInputs": {
+      "rhoInf": 1.225,
+      "magUInf": 26.807025401767063,
+      "Aref": 2.2
+    },
+    "nativeBounds": [
+      -14.7,
+      27.3,
+      -9.57,
+      9.57,
+      0.0,
+      9.72
+    ],
+    "gpuBounds": [
+      -14.699999332427979,
+      27.29999876022339,
+      -9.56999957561493,
+      9.56999957561493,
+      0,
+      9.71999967098236
+    ],
+    "nativePartHashes": {
+      "part0.stl": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+      "part1.stl": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+      "part2.stl": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+      "part3.stl": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+      "part4.stl": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7"
+    },
+    "nativeMeshCells": 193819,
+    "gpuGridCells": 250000
+  },
+  {
+    "key": "medium-pair-03",
+    "checks": {
+      "actualFreestreamMatches": true,
+      "coefficientNormalizationMatches": true,
+      "groundMatches": true,
+      "wheelConditionsMatch": true,
+      "bodyNoSlip": true,
+      "actualDomainsMatch": true,
+      "actualStlsMatch": true,
+      "sameNativeMeshWithinStage": true,
+      "savedDictionariesUnchanged": true,
+      "nativeSst": true,
+      "sameViscosity": true,
+      "inletTurbulenceMatches": true,
+      "coefficientDirectionsMatch": true,
+      "gpuForceNormalizationMatches": true,
+      "gpuForceAxesMatch": true,
+      "freshGpuStart": true
+    },
+    "matches": true,
+    "nativeVelocity": [
+      27.0833333,
+      -0.0945390518,
+      0.0
+    ],
+    "nativeCoefficientInputs": {
+      "rhoInf": 1.225,
+      "magUInf": 27.083498335273426,
+      "Aref": 2.2
+    },
+    "nativeBounds": [
+      -14.7,
+      27.3,
+      -9.57,
+      9.57,
+      0.0,
+      9.72
+    ],
+    "gpuBounds": [
+      -14.699999332427979,
+      27.29999876022339,
+      -9.56999957561493,
+      9.56999957561493,
+      0,
+      9.71999967098236
+    ],
+    "nativePartHashes": {
+      "part0.stl": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+      "part1.stl": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+      "part2.stl": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+      "part3.stl": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+      "part4.stl": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7"
+    },
+    "nativeMeshCells": 193819,
+    "gpuGridCells": 250000
+  },
+  {
+    "key": "medium-pair-04",
+    "checks": {
+      "actualFreestreamMatches": true,
+      "coefficientNormalizationMatches": true,
+      "groundMatches": true,
+      "wheelConditionsMatch": true,
+      "bodyNoSlip": true,
+      "actualDomainsMatch": true,
+      "actualStlsMatch": true,
+      "sameNativeMeshWithinStage": true,
+      "savedDictionariesUnchanged": true,
+      "nativeSst": true,
+      "sameViscosity": true,
+      "inletTurbulenceMatches": true,
+      "coefficientDirectionsMatch": true,
+      "gpuForceNormalizationMatches": true,
+      "gpuForceAxesMatch": true,
+      "freshGpuStart": true
+    },
+    "matches": true,
+    "nativeVelocity": [
+      27.3611111,
+      0.668691152,
+      0.0
+    ],
+    "nativeCoefficientInputs": {
+      "rhoInf": 1.225,
+      "magUInf": 27.36928112120746,
+      "Aref": 2.2
+    },
+    "nativeBounds": [
+      -14.7,
+      27.3,
+      -9.57,
+      9.57,
+      0.0,
+      9.72
+    ],
+    "gpuBounds": [
+      -14.699999332427979,
+      27.29999876022339,
+      -9.56999957561493,
+      9.56999957561493,
+      0,
+      9.71999967098236
+    ],
+    "nativePartHashes": {
+      "part0.stl": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+      "part1.stl": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+      "part2.stl": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+      "part3.stl": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+      "part4.stl": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7"
+    },
+    "nativeMeshCells": 193819,
+    "gpuGridCells": 250000
+  },
+  {
+    "key": "medium-pair-05",
+    "checks": {
+      "actualFreestreamMatches": true,
+      "coefficientNormalizationMatches": true,
+      "groundMatches": true,
+      "wheelConditionsMatch": true,
+      "bodyNoSlip": true,
+      "actualDomainsMatch": true,
+      "actualStlsMatch": true,
+      "sameNativeMeshWithinStage": true,
+      "savedDictionariesUnchanged": true,
+      "nativeSst": true,
+      "sameViscosity": true,
+      "inletTurbulenceMatches": true,
+      "coefficientDirectionsMatch": true,
+      "gpuForceNormalizationMatches": true,
+      "gpuForceAxesMatch": true,
+      "freshGpuStart": true
+    },
+    "matches": true,
+    "nativeVelocity": [
+      27.6388889,
+      -0.4824386,
+      0.0
+    ],
+    "nativeCoefficientInputs": {
+      "rhoInf": 1.225,
+      "magUInf": 27.643099066769114,
+      "Aref": 2.2
+    },
+    "nativeBounds": [
+      -14.7,
+      27.3,
+      -9.57,
+      9.57,
+      0.0,
+      9.72
+    ],
+    "gpuBounds": [
+      -14.699999332427979,
+      27.29999876022339,
+      -9.56999957561493,
+      9.56999957561493,
+      0,
+      9.71999967098236
+    ],
+    "nativePartHashes": {
+      "part0.stl": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+      "part1.stl": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+      "part2.stl": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+      "part3.stl": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+      "part4.stl": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7"
+    },
+    "nativeMeshCells": 193819,
+    "gpuGridCells": 250000
+  },
+  {
+    "key": "medium-pair-06",
+    "checks": {
+      "actualFreestreamMatches": true,
+      "coefficientNormalizationMatches": true,
+      "groundMatches": true,
+      "wheelConditionsMatch": true,
+      "bodyNoSlip": true,
+      "actualDomainsMatch": true,
+      "actualStlsMatch": true,
+      "sameNativeMeshWithinStage": true,
+      "savedDictionariesUnchanged": true,
+      "nativeSst": true,
+      "sameViscosity": true,
+      "inletTurbulenceMatches": true,
+      "coefficientDirectionsMatch": true,
+      "gpuForceNormalizationMatches": true,
+      "gpuForceAxesMatch": true,
+      "freshGpuStart": true
+    },
+    "matches": true,
+    "nativeVelocity": [
+      27.9166667,
+      -0.292353336,
+      0.0
+    ],
+    "nativeCoefficientInputs": {
+      "rhoInf": 1.225,
+      "magUInf": 27.91819743914601,
+      "Aref": 2.2
+    },
+    "nativeBounds": [
+      -14.7,
+      27.3,
+      -9.57,
+      9.57,
+      0.0,
+      9.72
+    ],
+    "gpuBounds": [
+      -14.699999332427979,
+      27.29999876022339,
+      -9.56999957561493,
+      9.56999957561493,
+      0,
+      9.71999967098236
+    ],
+    "nativePartHashes": {
+      "part0.stl": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+      "part1.stl": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+      "part2.stl": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+      "part3.stl": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+      "part4.stl": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7"
+    },
+    "nativeMeshCells": 193819,
+    "gpuGridCells": 250000
+  },
+  {
+    "key": "medium-pair-07",
+    "checks": {
+      "actualFreestreamMatches": true,
+      "coefficientNormalizationMatches": true,
+      "groundMatches": true,
+      "wheelConditionsMatch": true,
+      "bodyNoSlip": true,
+      "actualDomainsMatch": true,
+      "actualStlsMatch": true,
+      "sameNativeMeshWithinStage": true,
+      "savedDictionariesUnchanged": true,
+      "nativeSst": true,
+      "sameViscosity": true,
+      "inletTurbulenceMatches": true,
+      "coefficientDirectionsMatch": true,
+      "gpuForceNormalizationMatches": true,
+      "gpuForceAxesMatch": true,
+      "freshGpuStart": true
+    },
+    "matches": true,
+    "nativeVelocity": [
+      28.1944444,
+      -0.68905738,
+      0.0
+    ],
+    "nativeCoefficientInputs": {
+      "rhoInf": 1.225,
+      "magUInf": 28.202863287335607,
+      "Aref": 2.2
+    },
+    "nativeBounds": [
+      -14.7,
+      27.3,
+      -9.57,
+      9.57,
+      0.0,
+      9.72
+    ],
+    "gpuBounds": [
+      -14.699999332427979,
+      27.29999876022339,
+      -9.56999957561493,
+      9.56999957561493,
+      0,
+      9.71999967098236
+    ],
+    "nativePartHashes": {
+      "part0.stl": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+      "part1.stl": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+      "part2.stl": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+      "part3.stl": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+      "part4.stl": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7"
+    },
+    "nativeMeshCells": 193819,
+    "gpuGridCells": 250000
+  },
+  {
+    "key": "medium-pair-08",
+    "checks": {
+      "actualFreestreamMatches": true,
+      "coefficientNormalizationMatches": true,
+      "groundMatches": true,
+      "wheelConditionsMatch": true,
+      "bodyNoSlip": true,
+      "actualDomainsMatch": true,
+      "actualStlsMatch": true,
+      "sameNativeMeshWithinStage": true,
+      "savedDictionariesUnchanged": true,
+      "nativeSst": true,
+      "sameViscosity": true,
+      "inletTurbulenceMatches": true,
+      "coefficientDirectionsMatch": true,
+      "gpuForceNormalizationMatches": true,
+      "gpuForceAxesMatch": true,
+      "freshGpuStart": true
+    },
+    "matches": true,
+    "nativeVelocity": [
+      28.4722222,
+      0.0993872083,
+      0.0
+    ],
+    "nativeCoefficientInputs": {
+      "rhoInf": 1.225,
+      "magUInf": 28.47239568580027,
+      "Aref": 2.2
+    },
+    "nativeBounds": [
+      -14.7,
+      27.3,
+      -9.57,
+      9.57,
+      0.0,
+      9.72
+    ],
+    "gpuBounds": [
+      -14.699999332427979,
+      27.29999876022339,
+      -9.56999957561493,
+      9.56999957561493,
+      0,
+      9.71999967098236
+    ],
+    "nativePartHashes": {
+      "part0.stl": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+      "part1.stl": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+      "part2.stl": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+      "part3.stl": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+      "part4.stl": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7"
+    },
+    "nativeMeshCells": 193819,
+    "gpuGridCells": 250000
+  },
+  {
+    "key": "medium-pair-09",
+    "checks": {
+      "actualFreestreamMatches": true,
+      "coefficientNormalizationMatches": true,
+      "groundMatches": true,
+      "wheelConditionsMatch": true,
+      "bodyNoSlip": true,
+      "actualDomainsMatch": true,
+      "actualStlsMatch": true,
+      "sameNativeMeshWithinStage": true,
+      "savedDictionariesUnchanged": true,
+      "nativeSst": true,
+      "sameViscosity": true,
+      "inletTurbulenceMatches": true,
+      "coefficientDirectionsMatch": true,
+      "gpuForceNormalizationMatches": true,
+      "gpuForceAxesMatch": true,
+      "freshGpuStart": true
+    },
+    "matches": true,
+    "nativeVelocity": [
+      28.75,
+      0.903505149,
+      0.0
+    ],
+    "nativeCoefficientInputs": {
+      "rhoInf": 1.225,
+      "magUInf": 28.764193393067902,
+      "Aref": 2.2
+    },
+    "nativeBounds": [
+      -14.7,
+      27.3,
+      -9.57,
+      9.57,
+      0.0,
+      9.72
+    ],
+    "gpuBounds": [
+      -14.699999332427979,
+      27.29999876022339,
+      -9.56999957561493,
+      9.56999957561493,
+      0,
+      9.71999967098236
+    ],
+    "nativePartHashes": {
+      "part0.stl": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+      "part1.stl": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+      "part2.stl": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+      "part3.stl": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+      "part4.stl": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7"
+    },
+    "nativeMeshCells": 193819,
+    "gpuGridCells": 250000
+  },
+  {
+    "key": "medium-pair-10",
+    "checks": {
+      "actualFreestreamMatches": true,
+      "coefficientNormalizationMatches": true,
+      "groundMatches": true,
+      "wheelConditionsMatch": true,
+      "bodyNoSlip": true,
+      "actualDomainsMatch": true,
+      "actualStlsMatch": true,
+      "sameNativeMeshWithinStage": true,
+      "savedDictionariesUnchanged": true,
+      "nativeSst": true,
+      "sameViscosity": true,
+      "inletTurbulenceMatches": true,
+      "coefficientDirectionsMatch": true,
+      "gpuForceNormalizationMatches": true,
+      "gpuForceAxesMatch": true,
+      "freshGpuStart": true
+    },
+    "matches": true,
+    "nativeVelocity": [
+      29.0277778,
+      -0.912234667,
+      0.0
+    ],
+    "nativeCoefficientInputs": {
+      "rhoInf": 1.225,
+      "magUInf": 29.04210830507822,
+      "Aref": 2.2
+    },
+    "nativeBounds": [
+      -14.7,
+      27.3,
+      -9.57,
+      9.57,
+      0.0,
+      9.72
+    ],
+    "gpuBounds": [
+      -14.699999332427979,
+      27.29999876022339,
+      -9.56999957561493,
+      9.56999957561493,
+      0,
+      9.71999967098236
+    ],
+    "nativePartHashes": {
+      "part0.stl": "5a14e25466cd66c0fb25ba0e7b0ea67629d8392c6c09a8d8f4f4539ae66a0659",
+      "part1.stl": "585768a6a089eb27ae723dde859c958887ede007e33b01b06d71a19ecc079bbc",
+      "part2.stl": "c98d6d89a062ef74caa229a3cc164f606f59c56b6cb699a7fc96046cd715f6f0",
+      "part3.stl": "e0d67a89f700cb33ce5f10060e78ae1284d8bba78b7d73c74fa4b382db118909",
+      "part4.stl": "6270e7f88ffd569b22d94026d1056682376453d794a22c9b4c5aa5abdf04a6f7"
+    },
+    "nativeMeshCells": 193819,
+    "gpuGridCells": 250000
+  }
+]

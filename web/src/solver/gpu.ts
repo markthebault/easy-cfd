@@ -77,9 +77,14 @@ export class FlowSolver {
     this.c = c;
     if (opts.correctionFactor) this.correctionFactor = opts.correctionFactor;
     this.forceGroups = Math.max(1, Math.ceil(c.faceCount / WG));
-    this.createBuffers(opts.cfl ?? 0.4);
-    this.createKernels();
-    this.createGroups();
+    try {
+      this.createBuffers(opts.cfl ?? 0.4);
+      this.createKernels();
+      this.createGroups();
+    } catch (error) {
+      this.destroy();
+      throw error;
+    }
   }
 
   private buffer(name: string, data: ArrayBufferView | number, usage = GPUBufferUsage.STORAGE) {
@@ -89,9 +94,9 @@ export class FlowSolver {
       usage: usage | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
       label: name,
     });
+    this.buffers[name] = buf;
     if (typeof data !== "number")
       this.device.queue.writeBuffer(buf, 0, data.buffer as ArrayBuffer, data.byteOffset, data.byteLength);
-    this.buffers[name] = buf;
     return buf;
   }
 

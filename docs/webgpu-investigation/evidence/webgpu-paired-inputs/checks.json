@@ -1,0 +1,49 @@
+{
+  "completedUTC": "2026-10-03T14:58:41.497403+00:00",
+  "nativeStarts": 20,
+  "gpuStarts": 20,
+  "matchedPairs": 20,
+  "failedSolves": 0,
+  "actualInputAuditsPassed": 20,
+  "distinctGpuSourceHashes": 1,
+  "gpuSourceRevision": "2e3794f0000ae17cc5ab34c722b3e2654564ffa2",
+  "hardwareAdapters": [
+    "apple metal-3"
+  ],
+  "allGpuFieldsFiniteUnclippedConserved": true,
+  "maximumGpuRelativeDivergence": 0.00015235812008570595,
+  "gpuForceStable": 19,
+  "nativeConvergence": {
+    "small": {
+      "forceSettled": 10,
+      "residualConverged": 6
+    },
+    "medium": {
+      "forceSettled": 0,
+      "residualConverged": 0
+    }
+  },
+  "independentNumpyQuantilesMatch": true,
+  "csvPairs": 20,
+  "final500k": "not run: both smaller stages failed the registered gate",
+  "software": {
+    "statisticsUnitTests": {
+      "passed": 4,
+      "command": ".venv/bin/python web/validation/test_paired_statistics.py"
+    },
+    "ruff": "five new Python scripts passed",
+    "nodeSyntax": "run-accuracy.mjs passed",
+    "webBuild": "npm run build passed; application sources unchanged during pilot",
+    "hardwareKernelValidation": "small/kernel-validation.json, no CFD steps",
+    "plots": "both final PNG/SVG figures visually inspected"
+  },
+  "numericalAgreementPassed": false,
+  "experimentalAerodynamicQualification": false,
+  "originalWorkspace": "preexisting dirty .gitignore preserved on feat/aerodynamic-balance-stress",
+  "reportHashes": {
+    "design.json": "9b3f95a9ba21b263069767b65696431169d9522180af5ffb8d9a7deb257a80bf",
+    "statistics.json": "660cf5adaa91a5eca1489f740eaf9e8d705a99b84eb09ff70ad99d206be49331",
+    "pairs.csv": "65d23d71b5ec8402ea10ce0bddd2a1584718ea5f92fb4cf9a38a756446b9df14",
+    "input-audit.json": "01d225fb584223b290d44d8a114f00781550d6e63f8c8bfe4b10a58e3644fc11"
+  }
+}

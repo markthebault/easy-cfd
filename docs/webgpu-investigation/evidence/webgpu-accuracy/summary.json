@@ -1,0 +1,1847 @@
+{
+  "limit": 100,
+  "attempts": 100,
+  "complete": 100,
+  "records": [
+    {
+      "iteration": 1,
+      "key": "initial-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 442368,
+      "cd": 0.383722360321236,
+      "cl": 0.5323993135779512,
+      "comparison": {
+        "cdError": 0.2981282608079287,
+        "clError": 0.15902583724330244,
+        "agrees": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 2,
+      "key": "initial-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 294912,
+      "cd": 0.2980237990104744,
+      "cl": -0.21476275370518041,
+      "comparison": {
+        "cdError": 0.06607040535900112,
+        "clError": 1.946642558951481,
+        "agrees": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 3,
+      "key": "initial-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 442368,
+      "cd": 0.3115451810264877,
+      "cl": 0.0009423503462851067,
+      "comparison": {
+        "cdError": 0.1457716198670022,
+        "clError": 0.9954542975382438,
+        "agrees": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 4,
+      "key": "screen-baseline-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 125000,
+      "cd": 0.3395909954648004,
+      "cl": 0.03361031685783088,
+      "comparison": {
+        "cdError": 0.37884953485298495,
+        "clError": 0.9469093829412626,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 5,
+      "key": "screen-baseline-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 125000,
+      "cd": 0.21272621875845613,
+      "cl": -0.33533490642020775,
+      "comparison": {
+        "cdError": 0.33337098609492305,
+        "clError": 2.4781068339026593,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 6,
+      "key": "screen-baseline-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 125000,
+      "cd": 0.389181421756084,
+      "cl": 0.2070116951211261,
+      "comparison": {
+        "cdError": 0.08659304464637874,
+        "clError": 0.4882018287383817,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 7,
+      "key": "screen-stress-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 125000,
+      "cd": 0.3492009139118978,
+      "cl": 0.021687809243067284,
+      "comparison": {
+        "cdError": 0.36127190354603783,
+        "clError": 0.9657420910300535,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 8,
+      "key": "screen-stress-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 125000,
+      "cd": 0.2185892547428496,
+      "cl": -0.33407755086053986,
+      "comparison": {
+        "cdError": 0.31499774597634533,
+        "clError": 2.4725645959494726,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 9,
+      "key": "screen-stress-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 125000,
+      "cd": 0.39800011750565606,
+      "cl": 0.20936702764094337,
+      "comparison": {
+        "cdError": 0.1112148095320192,
+        "clError": 0.48237870422529483,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 10,
+      "key": "screen-omega-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 125000,
+      "cd": 0.33958917249456644,
+      "cl": 0.03360687565350684,
+      "comparison": {
+        "cdError": 0.37885286927240097,
+        "clError": 0.9469148186430967,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 11,
+      "key": "screen-omega-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 125000,
+      "cd": 0.212726358977899,
+      "cl": -0.33533467468904027,
+      "comparison": {
+        "cdError": 0.3333705466834134,
+        "clError": 2.4781058124658344,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 12,
+      "key": "screen-omega-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 125000,
+      "cd": 0.3891767326806552,
+      "cl": 0.2069503116281752,
+      "comparison": {
+        "cdError": 0.08657995276567246,
+        "clError": 0.48835358808424634,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 13,
+      "key": "screen-gradient-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 125000,
+      "cd": 0.3397361580929942,
+      "cl": 0.03412970534309284,
+      "comparison": {
+        "cdError": 0.3785840159339656,
+        "clError": 0.9460889605902207,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 14,
+      "key": "screen-gradient-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 125000,
+      "cd": 0.21274991259058312,
+      "cl": -0.3355385949086505,
+      "comparison": {
+        "cdError": 0.3332967357461008,
+        "clError": 2.479004662732854,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 15,
+      "key": "screen-gradient-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 125000,
+      "cd": 0.3892634103101609,
+      "cl": 0.20714914982574334,
+      "comparison": {
+        "cdError": 0.08682195637653932,
+        "clError": 0.48786199737565,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 16,
+      "key": "screen-sst-viscosity-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 125000,
+      "cd": 0.3405312178446211,
+      "cl": 0.03762126912272093,
+      "comparison": {
+        "cdError": 0.3771297614303478,
+        "clError": 0.940573711318859,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 17,
+      "key": "screen-sst-viscosity-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 125000,
+      "cd": 0.2063644540485379,
+      "cl": -0.28191928448971304,
+      "comparison": {
+        "cdError": 0.3533071131977338,
+        "clError": 2.242658646729184,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 18,
+      "key": "screen-sst-viscosity-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 125000,
+      "cd": 0.3914206330297746,
+      "cl": 0.1822472590938498,
+      "comparison": {
+        "cdError": 0.0928449139789567,
+        "clError": 0.5494273216443227,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 19,
+      "key": "screen-pressure-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 125000,
+      "cd": 0.3269919435039462,
+      "cl": -0.009676832215920441,
+      "comparison": {
+        "cdError": 0.4018946305428298,
+        "clError": 1.0152854552276376,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 20,
+      "key": "screen-pressure-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 125000,
+      "cd": 0.20568758612332555,
+      "cl": -0.33927945967146916,
+      "comparison": {
+        "cdError": 0.35542824241331317,
+        "clError": 2.4954938431455216,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 21,
+      "key": "screen-pressure-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 125000,
+      "cd": 0.3890466900260106,
+      "cl": 0.21293249642838458,
+      "comparison": {
+        "cdError": 0.08621687417007405,
+        "clError": 0.4735637413603462,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 22,
+      "key": "250k-baseline-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.31521547125417276,
+      "cl": 0.09900930609897546,
+      "comparison": {
+        "cdError": 0.4234351346004408,
+        "clError": 0.8436056054577984,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 23,
+      "key": "250k-baseline-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.2602447361583702,
+      "cl": -0.15804183130153016,
+      "comparison": {
+        "cdError": 0.1844602284957179,
+        "clError": 1.6966250945452,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 24,
+      "key": "250k-baseline-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.2879994515669839,
+      "cl": 0.10003094127128369,
+      "comparison": {
+        "cdError": 0.19590663006830888,
+        "clError": 0.7526919781886435,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 25,
+      "key": "250k-stress-omega-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.32351405214210416,
+      "cl": 0.08701178747750848,
+      "comparison": {
+        "cdError": 0.408256088490742,
+        "clError": 0.862556800398377,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 26,
+      "key": "250k-stress-omega-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.2646402791972059,
+      "cl": -0.16942069774895138,
+      "comparison": {
+        "cdError": 0.17068573215644192,
+        "clError": 1.746781460422968,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 27,
+      "key": "250k-stress-omega-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.29766330938202645,
+      "cl": 0.10336179695926129,
+      "comparison": {
+        "cdError": 0.1689251759205362,
+        "clError": 0.7444570528678985,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 28,
+      "key": "250k-stress-gradient-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.32355776469070163,
+      "cl": 0.08658596097576514,
+      "comparison": {
+        "cdError": 0.408176133279159,
+        "clError": 0.8632294329068163,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 29,
+      "key": "250k-stress-gradient-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.26482187205181423,
+      "cl": -0.17071294469870046,
+      "comparison": {
+        "cdError": 0.1701166670627911,
+        "clError": 1.7524774944800978,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 30,
+      "key": "250k-stress-gradient-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.29765780751832255,
+      "cl": 0.10290894102831541,
+      "comparison": {
+        "cdError": 0.1689405371030055,
+        "clError": 0.7455766554930907,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 31,
+      "key": "250k-sst-consistent-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.33243461385036205,
+      "cl": 0.13039285332606385,
+      "comparison": {
+        "cdError": 0.3919393688825763,
+        "clError": 0.7940323778436127,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 32,
+      "key": "250k-sst-consistent-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.24662463853436012,
+      "cl": -0.13004394459285967,
+      "comparison": {
+        "cdError": 0.22714209583382095,
+        "clError": 1.5732145372587474,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 33,
+      "key": "250k-sst-consistent-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.32707142867123856,
+      "cl": 0.2291291283032467,
+      "comparison": {
+        "cdError": 0.08681781906983796,
+        "clError": 0.43352056133951794,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 34,
+      "key": "250k-volume-consistent-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.31422550142025224,
+      "cl": 0.06513995587458726,
+      "comparison": {
+        "cdError": 0.42524590176162425,
+        "clError": 0.8971053897769188,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 35,
+      "key": "250k-volume-consistent-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.24671957248544957,
+      "cl": -0.27661044419079145,
+      "comparison": {
+        "cdError": 0.22684459735634022,
+        "clError": 2.219258061297434,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 36,
+      "key": "250k-volume-consistent-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.29666404687986203,
+      "cl": 0.10691913291842936,
+      "comparison": {
+        "cdError": 0.17171511301395767,
+        "clError": 0.7356621969183343,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 37,
+      "key": "250k-clearance-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.35261534763477603,
+      "cl": 0.1555433334847009,
+      "comparison": {
+        "cdError": 0.3550265168205252,
+        "clError": 0.7543048585645294,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 38,
+      "key": "250k-clearance-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.25628465452471494,
+      "cl": -0.25622746893636855,
+      "comparison": {
+        "cdError": 0.1968701012882425,
+        "clError": 2.1294129111445375,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 39,
+      "key": "250k-clearance-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.29766208756949947,
+      "cl": 0.10334967864316114,
+      "comparison": {
+        "cdError": 0.1689285872164498,
+        "clError": 0.7444870131656257,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 40,
+      "key": "250k-centroid-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.31616421336335326,
+      "cl": 0.095342767932817,
+      "comparison": {
+        "cdError": 0.423304899259047,
+        "clError": 0.8476562599090808,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 41,
+      "key": "250k-centroid-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.2596253682626542,
+      "cl": -0.15324848200806118,
+      "comparison": {
+        "cdError": 0.18640116747341123,
+        "clError": 1.6754967174740678,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 42,
+      "key": "250k-centroid-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.2885804259761897,
+      "cl": 0.10301589579785812,
+      "comparison": {
+        "cdError": 0.1942845517344767,
+        "clError": 0.7453122295850392,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 43,
+      "key": "250k-centroid-stress-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.32209202314865915,
+      "cl": 0.0928301450717412,
+      "comparison": {
+        "cdError": 0.4124923571786396,
+        "clError": 0.8516710622102263,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 44,
+      "key": "250k-centroid-stress-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.2638980331000005,
+      "cl": -0.16356726507880393,
+      "comparison": {
+        "cdError": 0.17301173967325284,
+        "clError": 1.7209803921002675,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 45,
+      "key": "250k-centroid-stress-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.2974423989853124,
+      "cl": 0.10564529552079563,
+      "comparison": {
+        "cdError": 0.16954195690529253,
+        "clError": 0.7388115245455109,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 46,
+      "key": "250k-centroid-sst-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.3337881069928271,
+      "cl": 0.13961477137213057,
+      "comparison": {
+        "cdError": 0.3911582720238619,
+        "clError": 0.7769161006762841,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 47,
+      "key": "250k-centroid-sst-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.24690669272573598,
+      "cl": -0.1290092867044032,
+      "comparison": {
+        "cdError": 0.22625821086391892,
+        "clError": 1.5686539178111483,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 48,
+      "key": "250k-centroid-sst-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.3276372778687599,
+      "cl": 0.2315082144400148,
+      "comparison": {
+        "cdError": 0.0852379702693195,
+        "clError": 0.4276387103969452,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 49,
+      "key": "250k-centroid-conservative-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.32000634979042003,
+      "cl": 0.04390486947000519,
+      "comparison": {
+        "cdError": 0.4162967017458095,
+        "clError": 0.9298464669289094,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 50,
+      "key": "250k-centroid-conservative-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.24524977407304738,
+      "cl": -0.27139338315698214,
+      "comparison": {
+        "cdError": 0.23145056587313814,
+        "clError": 2.196262025336604,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 51,
+      "key": "250k-centroid-conservative-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 250000,
+      "cd": 0.29627312023137525,
+      "cl": 0.10900724962014736,
+      "comparison": {
+        "cdError": 0.17280657872497734,
+        "clError": 0.730499714148002,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 52,
+      "key": "500k-baseline-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.3019984228427066,
+      "cl": 0.3593113192836187,
+      "comparison": {
+        "cdError": 0.4491438198138883,
+        "clError": 0.42587328411484315,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 53,
+      "key": "500k-baseline-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.27298574602864506,
+      "cl": -0.012302240736698165,
+      "comparison": {
+        "cdError": 0.14445643507800465,
+        "clError": 1.0542458874849672,
+        "agrees": false,
+        "stable": false,
+        "finite": false,
+        "conserved": false,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 54,
+      "key": "500k-baseline-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.3695167479878497,
+      "cl": 0.03747946422793859,
+      "comparison": {
+        "cdError": 0.031689350514762786,
+        "clError": 0.907338948939573,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": false,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 55,
+      "key": "500k-baseline-sample-wing",
+      "model": "sample-wing",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.43024949475875435,
+      "cl": 0.11796404839594526,
+      "comparison": {
+        "cdError": 0.36526808503766306,
+        "clError": 0.7163372064810943,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 56,
+      "key": "500k-stress-omega-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.31290508901432756,
+      "cl": 0.34909142518399766,
+      "comparison": {
+        "cdError": 0.4292496613964007,
+        "clError": 0.4422031738823238,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 57,
+      "key": "500k-stress-omega-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.2340441642077587,
+      "cl": -0.03876870333786329,
+      "comparison": {
+        "cdError": 0.2665002421976875,
+        "clError": 1.1709479406406291,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": false,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 58,
+      "key": "500k-stress-omega-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.3792666995677463,
+      "cl": 0.04325691795416505,
+      "comparison": {
+        "cdError": 0.058911178125522705,
+        "clError": 0.8930552619725097,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": false,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 59,
+      "key": "500k-stress-omega-sample-wing",
+      "model": "sample-wing",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.4407023489816541,
+      "cl": 0.095659661154724,
+      "comparison": {
+        "cdError": 0.34984735762590047,
+        "clError": 0.7699715542218228,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 60,
+      "key": "500k-centroid-stress-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.31257870121793613,
+      "cl": 0.34975131110011215,
+      "comparison": {
+        "cdError": 0.42984500468689596,
+        "clError": 0.44114877310632533,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 61,
+      "key": "500k-centroid-stress-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.2336152536949769,
+      "cl": -0.0379595153962766,
+      "comparison": {
+        "cdError": 0.2678444575440058,
+        "clError": 1.1673798818639411,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": false,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 62,
+      "key": "500k-centroid-stress-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.3808905864854309,
+      "cl": 0.039141114465407544,
+      "comparison": {
+        "cdError": 0.06344506420386237,
+        "clError": 0.903230825713417,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": false,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 63,
+      "key": "500k-centroid-stress-sample-wing",
+      "model": "sample-wing",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.4405310960240233,
+      "cl": 0.10119900625496221,
+      "comparison": {
+        "cdError": 0.350100001078279,
+        "clError": 0.7566513424559063,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 64,
+      "key": "500k-focused-stress-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.40959806610844485,
+      "cl": 0.5528542066759402,
+      "comparison": {
+        "cdError": 0.25287813100390355,
+        "clError": 0.11662017585477663,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 65,
+      "key": "500k-focused-stress-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.27123588265840554,
+      "cl": -0.11120889758979524,
+      "comparison": {
+        "cdError": 0.1499405468592258,
+        "clError": 1.490368013039094,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": false,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 66,
+      "key": "500k-focused-stress-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.3591166000476952,
+      "cl": 0.23413834996659177,
+      "comparison": {
+        "cdError": 0.0026521771469448538,
+        "clError": 0.4211361862188562,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": false,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 67,
+      "key": "500k-focused-stress-sample-wing",
+      "model": "sample-wing",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.5341852086886715,
+      "cl": 0.3059675873215956,
+      "comparison": {
+        "cdError": 0.21193538961473224,
+        "clError": 0.264253628744851,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 68,
+      "key": "1000000-stress-omega-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 1000000,
+      "cd": 0.36204166768857554,
+      "cl": 0.3807886066339281,
+      "comparison": {
+        "cdError": 0.33962274288097416,
+        "clError": 0.3915557333147754,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 69,
+      "key": "1000000-stress-omega-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 1000000,
+      "cd": 0.25371213038570495,
+      "cl": -0.11228978369364147,
+      "comparison": {
+        "cdError": 0.2048603868446549,
+        "clError": 1.4951341062434318,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": false,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 70,
+      "key": "1000000-focused-stress-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 1000000,
+      "cd": 0.4243094593252994,
+      "cl": 0.527142983441968,
+      "comparison": {
+        "cdError": 0.22604401115529357,
+        "clError": 0.15770293435551505,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 71,
+      "key": "1000000-focused-stress-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 1000000,
+      "cd": 0.29502428775739004,
+      "cl": 0.011750879187566102,
+      "comparison": {
+        "cdError": 0.07538714178855158,
+        "clError": 0.9481853034824258,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": false,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 72,
+      "key": "2000000-stress-omega-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 2000000,
+      "cd": 0.39291680165941195,
+      "cl": 0.43207987519522506,
+      "comparison": {
+        "cdError": 0.2833053681019418,
+        "clError": 0.30959981934192116,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 73,
+      "key": "2000000-stress-omega-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 2000000,
+      "cd": 0.27819175402608864,
+      "cl": 0.030320629461747118,
+      "comparison": {
+        "cdError": 0.1281406870730596,
+        "clError": 0.8663032621895544,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 74,
+      "key": "2000000-focused-stress-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 2000000,
+      "cd": 0.4269924742452406,
+      "cl": 0.5669032062188598,
+      "comparison": {
+        "cdError": 0.22115009370940367,
+        "clError": 0.09417193797256908,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": false,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 75,
+      "key": "2000000-focused-stress-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 2000000,
+      "cd": 0.27904051388180745,
+      "cl": -0.028093934016023038,
+      "comparison": {
+        "cdError": 0.12548065429373584,
+        "clError": 1.1238782768327054,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": false,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 76,
+      "key": "long-baseline-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.3019984592190318,
+      "cl": 0.35931139235777887,
+      "comparison": {
+        "cdError": 0.41340035001992526,
+        "clError": 0.44249557802676587,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 77,
+      "key": "long-baseline-sample-yaw10",
+      "model": "sample-yaw10",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.3559078291370059,
+      "cl": 0.2706487906108158,
+      "comparison": {
+        "cdError": 0.4161250909552695,
+        "clError": 0.6234148918103274,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 78,
+      "key": "long-baseline-sample-wing",
+      "model": "sample-wing",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.43007338491904223,
+      "cl": 0.1166597935304428,
+      "comparison": {
+        "cdError": 0.3655278936769895,
+        "clError": 0.7194734889641036,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 79,
+      "key": "long-baseline-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.27301885530008313,
+      "cl": -0.01153432913088602,
+      "comparison": {
+        "cdError": 0.14435266986487472,
+        "clError": 1.0508598338823074,
+        "agrees": false,
+        "stable": false,
+        "finite": false,
+        "conserved": false,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 80,
+      "key": "long-baseline-z4",
+      "model": "z4",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.46124762271663355,
+      "cl": -0.6677165688538186,
+      "comparison": {
+        "cdError": 0.04694646332021157,
+        "clError": 1.1526759802181594,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 81,
+      "key": "long-baseline-z4-wing",
+      "model": "z4-wing",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.4851026905516456,
+      "cl": -0.6147635212944206,
+      "comparison": {
+        "cdError": 0.0920123727646153,
+        "clError": 2.992739886286752,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 82,
+      "key": "long-baseline-simple-car",
+      "model": "simple-car",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.3882882319437655,
+      "cl": 0.16501497432621268,
+      "comparison": {
+        "cdError": 0.047969499677902525,
+        "clError": 0.6650003948359562,
+        "agrees": false,
+        "stable": false,
+        "finite": false,
+        "conserved": false,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 83,
+      "key": "long-baseline-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.3700595744862086,
+      "cl": 0.040642276912530785,
+      "comparison": {
+        "cdError": 0.03320489625219523,
+        "clError": 0.8995194399856546,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": false,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 84,
+      "key": "long-focused-stress-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.40952062398860867,
+      "cl": 0.5534600048135924,
+      "comparison": {
+        "cdError": 0.20455006521370755,
+        "clError": 0.14125628457206046,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 85,
+      "key": "long-focused-stress-sample-yaw10",
+      "model": "sample-yaw10",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.4690045501853291,
+      "cl": 0.4228302113924242,
+      "comparison": {
+        "cdError": 0.23058734126466862,
+        "clError": 0.41166719960685866,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 86,
+      "key": "long-focused-stress-sample-wing",
+      "model": "sample-wing",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.5342738115654949,
+      "cl": 0.3117044084036215,
+      "comparison": {
+        "cdError": 0.2118046769134684,
+        "clError": 0.25045855544774337,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 87,
+      "key": "long-focused-stress-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.27158305959811313,
+      "cl": -0.10813188300095589,
+      "comparison": {
+        "cdError": 0.14885248639827786,
+        "clError": 1.4768001280701495,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 88,
+      "key": "long-focused-stress-z4",
+      "model": "z4",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.5471446987176515,
+      "cl": -0.9643629839788824,
+      "comparison": {
+        "cdError": 0.24191687725784874,
+        "clError": 2.1090452576103957,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 89,
+      "key": "long-focused-stress-z4-wing",
+      "model": "z4-wing",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.5297476912778185,
+      "cl": -0.884281529025448,
+      "comparison": {
+        "cdError": 0.19251252278362585,
+        "clError": 4.74319394262762,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 90,
+      "key": "long-focused-stress-simple-car",
+      "model": "simple-car",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.36575168638577843,
+      "cl": 0.1938133172288722,
+      "comparison": {
+        "cdError": 0.012855450526337561,
+        "clError": 0.6065364066969284,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 91,
+      "key": "long-focused-stress-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.3575339066912035,
+      "cl": 0.22446685732469582,
+      "comparison": {
+        "cdError": 0.0017667196358568562,
+        "clError": 0.4450469500715503,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 92,
+      "key": "final-baseline-sample",
+      "model": "sample",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.3019984860890018,
+      "cl": 0.3593111911468922,
+      "comparison": {
+        "cdError": 0.41340029782788745,
+        "clError": 0.4424958902238224,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 93,
+      "key": "final-baseline-sample-yaw10",
+      "model": "sample-yaw10",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.35591268287548705,
+      "cl": 0.270617595728962,
+      "comparison": {
+        "cdError": 0.4161171282866171,
+        "clError": 0.6234582968738837,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 94,
+      "key": "final-baseline-sample-wing",
+      "model": "sample-wing",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.4301671740180629,
+      "cl": 0.11614646956976231,
+      "comparison": {
+        "cdError": 0.36538952992491264,
+        "clError": 0.720707855795751,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 95,
+      "key": "final-baseline-mx5",
+      "model": "mx5",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.27303474432964975,
+      "cl": -0.011731159914213972,
+      "comparison": {
+        "cdError": 0.14430287328319844,
+        "clError": 1.0517277457330432,
+        "agrees": false,
+        "stable": false,
+        "finite": false,
+        "conserved": false,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 96,
+      "key": "final-baseline-z4",
+      "model": "z4",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.4612238431503784,
+      "cl": -0.6676237022763772,
+      "comparison": {
+        "cdError": 0.04689248811998508,
+        "clError": 1.1523765842469524,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 97,
+      "key": "final-baseline-z4-wing",
+      "model": "z4-wing",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.4851041830546936,
+      "cl": -0.6147711382120552,
+      "comparison": {
+        "cdError": 0.09201573253116893,
+        "clError": 2.992789356318393,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 98,
+      "key": "final-baseline-simple-car",
+      "model": "simple-car",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.38217342658619613,
+      "cl": 0.12163319063059672,
+      "comparison": {
+        "cdError": 0.03146596188300022,
+        "clError": 0.7530704652564365,
+        "agrees": false,
+        "stable": false,
+        "finite": false,
+        "conserved": false,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 99,
+      "key": "final-baseline-ahmed25",
+      "model": "ahmed25",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.37010734434162457,
+      "cl": 0.041967797606513334,
+      "comparison": {
+        "cdError": 0.03333826950318485,
+        "clError": 0.8962423336874861,
+        "agrees": false,
+        "stable": false,
+        "finite": true,
+        "conserved": false,
+        "referenceReady": false,
+        "qualified": false
+      }
+    },
+    {
+      "iteration": 100,
+      "key": "final-baseline-sample-repeat",
+      "model": "sample",
+      "status": "completed",
+      "cells": 500000,
+      "cd": 0.30199849696349,
+      "cl": 0.35931120259180327,
+      "comparison": {
+        "cdError": 0.4134002767053592,
+        "clError": 0.44249587246599825,
+        "agrees": false,
+        "stable": true,
+        "finite": true,
+        "conserved": true,
+        "referenceReady": false,
+        "qualified": false
+      }
+    }
+  ]
+}
