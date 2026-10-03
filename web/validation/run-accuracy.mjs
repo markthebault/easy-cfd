@@ -73,8 +73,19 @@ try {
     if (!model) throw new Error(`Unknown model ${trial.model}`);
     const settings={...model.settings,quality:"custom",custom_cells:36,custom_passes:12,max_seconds:1200,...trial.settings};
     const referenceFile=join(evidence,"references.json");
-    let references={};try {references=JSON.parse(readFileSync(referenceFile,"utf8"));}catch(e){if(e.code!=="ENOENT")throw e;}
-    const reference=references[model.id] ?? null;
+    let reference=null, waiting=0;
+    do {
+      let references={};try {references=JSON.parse(readFileSync(referenceFile,"utf8"));}catch(e){if(e.code!=="ENOENT")throw e;}
+      reference=references[trial.referenceKey ?? model.id] ?? null;
+      if (reference || args["wait-references"] !== "true" || !trial.referenceKey) break;
+      const nativeFolder=join(evidence,"native");
+      const failed=readdirSync(nativeFolder,{withFileTypes:true}).filter(f=>f.isFile() && f.name.endsWith(".json")).map(f=>JSON.parse(readFileSync(join(nativeFolder,f.name),"utf8"))).find(r=>r.key === trial.referenceKey && r.status === "failed");
+      if (failed) throw new Error(`Paired native solve failed: ${failed.key}: ${failed.error}`);
+      if (waiting >= 7400) throw new Error(`Timed out waiting for ${trial.referenceKey}`);
+      if (waiting % 20 === 0) console.log(`Waiting for matched native reference ${trial.referenceKey}`);
+      await new Promise(resolve=>setTimeout(resolve,5000)); waiting+=5;
+    } while (!reference);
+    if (trial.referenceKey && (!reference || reference.settingsMatch !== true || ["speed_kmh","yaw_deg","reference_area","density","moving_ground","wheels"].some(key=>settings[key] !== reference.settings[key]))) throw new Error(`Missing or mismatched paired reference ${trial.referenceKey}`);
     const source=createHash("sha256");for(const [file,contents] of frozenSources)source.update(file.replace(root,"")),source.update(contents);
     const spec={parts:model.parts.map(p=>({...p,url:`/geom/${model.geometryRun}/geometry/${p.file}`})),settings,lts:trial.lts,ltsMaxFactor:trial.ltsMaxFactor,solver:trial.solver,maxExtension:trial.maxExtension,probeWake:true};
     const iteration=records.length+1, file=join(evidence,"iterations",String(iteration).padStart(3,"0")+".json");
