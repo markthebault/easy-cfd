@@ -1,0 +1,62 @@
+
+> easy-cfd-web@0.1.0 test
+> node --test tests/*.test.mjs
+
+WebSocket server error: Port 24678 is already in use
+✔ tyre pairs conserve weight plus downforce, with mixed lift and loss of contact (676.658458ms)
+✔ tyre estimates never invent missing weights or unavailable axle data (0.24ms)
+✔ wall moments give front, rear and middle loads; sums conserve lift and Cl (0.200084ms)
+✔ pure couple, drag at height, mixed loads and zero lift do not fabricate percentages (0.151875ms)
+✔ translation of complete car and OpenFOAM origin preserves equivalent loads (0.122084ms)
+✔ invalid and unconfirmed axles are unavailable; ambiguous wheels do not suggest box ends (0.646666ms)
+✔ automatic axles require four valid wheels in two lateral pairs and preserve manual overrides (0.20025ms)
+✔ saved moments transfer from an arbitrary origin to detected axles without altering CFD snapshots (0.332542ms)
+✔ physical stress and validity survive storage without quantization; old samples remain unsupported (0.266167ms)
+✔ resource preflight rejects over-budget grids and device buffers before preparation (21.42375ms)
+WebSocket server error: Port 24678 is already in use
+✔ pressure clouds reproduce the analytic Cp plane, including suction (685.211792ms)
+✔ missing or solid samples never create pressure clouds; unreachable thresholds are empty (0.414167ms)
+✔ horizontal presets cover car width, vertical presets cover height, and both stay in the fluid box (0.253625ms)
+WebSocket server error: Port 24678 is already in use
+✔ wind yaw adds a lateral component while longitudinal road speed is unchanged (538.714958ms)
+✔ a rotating tyre travels one circumference per revolution with positive bottom tread velocity (0.19875ms)
+✔ wheel pivot is the volume centroid rather than the bounds midpoint (1.287541ms)
+✔ wheel centroid follows translation and scale and tolerates reversed winding (0.500791ms)
+✔ open, inconsistent and degenerate wheel meshes retain the imported axle center (0.550833ms)
+WebSocket server error: Port 24678 is already in use
+✔ UI settings map to the server's settings; Custom quality becomes Medium (695.373292ms)
+✔ road and wheel choices reach OpenFOAM independently, including explicit false (0.22025ms)
+✔ weight inputs reach the backend and native tyre loads use the saved axle moment (0.77875ms)
+✔ frame offset and domain conversion between the UI and the server (0.163959ms)
+✔ a server run record becomes a UI run result (0.259666ms)
+✔ advanced profile and confirmed axles map without reinterpreting old presets (0.106625ms)
+✔ native refinement retains load sensitivity and translated origins for every mesh (0.3095ms)
+WebSocket server error: Port 24678 is already in use
+✔ five preview streams clear the body and rise over a taller roof (559.099959ms)
+✔ preview smoke follows crosswind and needs no geometry or solver state (2.194792ms)
+WebSocket server error: Port 24678 is already in use
+✔ grounding anchors to enabled wheel vertices and falls back to model bottom (489.754958ms)
+✔ grounding and lifting translate the complete assembly without altering source geometry (1.236708ms)
+✔ simulation gap clears the lowest enabled part even when it hangs below the wheels (0.091292ms)
+✔ stretched axis: uniform refined region, exact ends, multigrid-friendly count (718.551542ms)
+✔ sample car geometry matches the OpenFOAM app's sample (1.781167ms)
+✔ voxel volume of the body is within 6 % of the mesh volume (21.144208ms)
+✔ cut-cell fluid fractions reproduce the body volume within 2 % (297.625834ms)
+✔ prepared case: closed wall surface, sensible frontal area, divisible multigrid levels (467.1365ms)
+✔ frontal area of the sample car (20.894958ms)
+✔ road and wheel choices set independent solver wall velocities without changing wind (1746.730125ms)
+✔ STL binary round trip and ASCII parsing (0.951875ms)
+✔ connected components and axis conversion (1.615833ms)
+✔ window statistics and moving average of force history (17.441292ms)
+✔ switching a part off keeps the grid identical (variants run on the same cells) (2161.835042ms)
+✔ overlapping shells in one part stay solid; wheels are never thin walls (22.344916ms)
+✔ detail bands: finer cells inside the band, bounded growth, multigrid-friendly count (0.527417ms)
+✔ detail boxes refine a region inside a larger part (1898.438208ms)
+ℹ tests 44
+ℹ suites 0
+ℹ pass 44
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8380.000708

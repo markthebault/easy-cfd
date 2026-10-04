@@ -1,0 +1,303 @@
+{
+  "mode": "cancel",
+  "elapsed_seconds": 1.4909362918697298,
+  "cancellation_seconds": 0.8495586668141186,
+  "qualification": "Resource/termination check only; no aerodynamic accuracy claim.",
+  "run": {
+    "id": "8e10079e5d2d4dc0896eda04b541d816",
+    "project_id": "d60a117c142c4184b5b06f4cac142a1b",
+    "name": "Aerodynamic integration verification",
+    "created": "2026-10-01T12:08:17.388282+00:00",
+    "status": "cancelled",
+    "stage": "Cancelled",
+    "settings": {
+      "profile": null,
+      "axles": {
+        "frontX": -1.4,
+        "rearX": 1.4,
+        "centrelineY": 0.0,
+        "confirmed": true
+      },
+      "moment_origin": [
+        -1.4,
+        0.0,
+        0.0
+      ],
+      "part_labels": {
+        "part0": {
+          "id": "part0",
+          "name": "Body",
+          "group": "g:body",
+          "groupName": "Body"
+        },
+        "part1": {
+          "id": "part1",
+          "name": "Front right wheel",
+          "group": "g:wheels",
+          "groupName": "Wheels"
+        },
+        "part2": {
+          "id": "part2",
+          "name": "Front left wheel",
+          "group": "g:wheels",
+          "groupName": "Wheels"
+        },
+        "part3": {
+          "id": "part3",
+          "name": "Rear right wheel",
+          "group": "g:wheels",
+          "groupName": "Wheels"
+        },
+        "part4": {
+          "id": "part4",
+          "name": "Rear left wheel",
+          "group": "g:wheels",
+          "groupName": "Wheels"
+        },
+        "part5": {
+          "id": "part5",
+          "name": "Rear wing",
+          "group": "g:wing",
+          "groupName": "Rear wing"
+        }
+      },
+      "refine_groups": null,
+      "refine_underfloor": true,
+      "max_seconds": 120,
+      "speed_kmh": 100.0,
+      "yaw_deg": 0.0,
+      "quality": "fast",
+      "simulation_box": null,
+      "custom_mesh": "medium",
+      "custom_iterations": 1000,
+      "reference_area": 2.2,
+      "density": 1.225,
+      "moving_ground": false,
+      "wheels": false,
+      "geometry_confirmed": true
+    },
+    "geometry": {
+      "parts": [
+        {
+          "id": "part0",
+          "name": "Body",
+          "role": "body",
+          "wheel": null,
+          "triangles": 24,
+          "minimum_extent": 1.0,
+          "bounds": [
+            [
+              -2.1,
+              -0.81,
+              0.32
+            ],
+            [
+              2.1,
+              0.81,
+              1.32
+            ]
+          ],
+          "issues": [],
+          "enabled": true
+        },
+        {
+          "id": "part1",
+          "name": "Front right wheel",
+          "role": "wheel",
+          "wheel": {
+            "center": [
+              -1.35,
+              -1.05,
+              0.33
+            ],
+            "radius": 0.32
+          },
+          "triangles": 128,
+          "minimum_extent": 0.23999999999999977,
+          "bounds": [
+            [
+              -1.6700000000000002,
+              -1.17,
+              0.010000000000000002
+            ],
+            [
+              -1.03,
+              -0.93,
+              0.65
+            ]
+          ],
+          "issues": [],
+          "enabled": true
+        },
+        {
+          "id": "part2",
+          "name": "Front left wheel",
+          "role": "wheel",
+          "wheel": {
+            "center": [
+              -1.35,
+              1.05,
+              0.33
+            ],
+            "radius": 0.32
+          },
+          "triangles": 128,
+          "minimum_extent": 0.23999999999999988,
+          "bounds": [
+            [
+              -1.6700000000000002,
+              0.93,
+              0.010000000000000002
+            ],
+            [
+              -1.03,
+              1.17,
+              0.65
+            ]
+          ],
+          "issues": [],
+          "enabled": true
+        },
+        {
+          "id": "part3",
+          "name": "Rear right wheel",
+          "role": "wheel",
+          "wheel": {
+            "center": [
+              1.3,
+              -1.05,
+              0.33
+            ],
+            "radius": 0.32
+          },
+          "triangles": 128,
+          "minimum_extent": 0.23999999999999977,
+          "bounds": [
+            [
+              0.98,
+              -1.17,
+              0.010000000000000002
+            ],
+            [
+              1.62,
+              -0.93,
+              0.65
+            ]
+          ],
+          "issues": [],
+          "enabled": true
+        },
+        {
+          "id": "part4",
+          "name": "Rear left wheel",
+          "role": "wheel",
+          "wheel": {
+            "center": [
+              1.3,
+              1.05,
+              0.33
+            ],
+            "radius": 0.32
+          },
+          "triangles": 128,
+          "minimum_extent": 0.23999999999999977,
+          "bounds": [
+            [
+              0.98,
+              0.93,
+              0.010000000000000002
+            ],
+            [
+              1.62,
+              1.17,
+              0.65
+            ]
+          ],
+          "issues": [],
+          "enabled": true
+        },
+        {
+          "id": "part5",
+          "name": "Rear wing",
+          "role": "body",
+          "wheel": null,
+          "triangles": 12,
+          "minimum_extent": 0.0370168056757878,
+          "bounds": [
+            [
+              1.48,
+              -0.975,
+              1.48
+            ],
+            [
+              1.9,
+              0.975,
+              1.59
+            ]
+          ],
+          "issues": [],
+          "enabled": true
+        }
+      ],
+      "bounds": [
+        [
+          -2.1,
+          -1.17,
+          0.010000000000000002
+        ],
+        [
+          2.1,
+          1.17,
+          1.59
+        ]
+      ],
+      "dimensions": [
+        4.2,
+        2.34,
+        1.58
+      ],
+      "triangles": 548,
+      "errors": [],
+      "fingerprint": "70030e5215d16f54bea749019d4d0d6dcc289905ad8d57f11863667215466498",
+      "frontal_area_estimate": 2.4489,
+      "warnings": [
+        "Automatic checks do not establish that surfaces are free of intersections. Review the model and mesh.",
+        "Small wheel-to-ground gaps avoid degenerate contact cells; ground clearance affects forces."
+      ]
+    },
+    "domain": [
+      -14.700000000000001,
+      27.300000000000004,
+      -9.57,
+      9.57,
+      0,
+      9.99
+    ],
+    "image": "opencfd/openfoam-default@sha256:1ba02114b1c025c370f2e269a07677c16c9bea8d990fcd75ac8378aff9d41b50",
+    "pipeline_hash": "e7142dac1912ffc60ee97be834dcd1ff693b95bba8f0a5e5cf67261abe946712",
+    "processes": 4,
+    "cpus": 4,
+    "reference_case": null,
+    "iteration": 0,
+    "assumptions": {
+      "inlet_turbulence_percent": 1,
+      "kinematic_viscosity": 1.5e-05,
+      "drag_axis": "+X",
+      "lift_axis": "+Z",
+      "downforce": "negative lift"
+    },
+    "configuration": {
+      "added": [],
+      "excluded": []
+    },
+    "started": "2026-10-01T12:08:17.393828+00:00",
+    "deadline_seconds": 120,
+    "deadline_at": "2026-10-01T12:10:17.393834+00:00",
+    "cancel_requested": true,
+    "finished": "2026-10-01T12:08:18.498782+00:00"
+  },
+  "logs": {
+    "case-fast/log.snappyHexMesh": "/*---------------------------------------------------------------------------*\\\n| =========                 |                                                 |\n| \\\\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |\n|  \\\\    /   O peration     | Version:  2412                                  |\n|   \\\\  /    A nd           | Website:  www.openfoam.com                      |\n|    \\\\/     M anipulation  |                                                 |\n\\*---------------------------------------------------------------------------*/\nBuild  : _45e7c4a0-20241224 OPENFOAM=2412 version=2412\nArch   : \"LSB;label=32;scalar=64\"\nExec   : snappyHexMesh -overwrite\nDate   : Oct 01 2026\nTime   : 12:08:18\nHost   : 9d1f54d94e39\nPID    : 1\nI/O    : uncollated\nCase   : /case\nnProcs : 1\ntrapFpe: Floating point exception trapping enabled (FOAM_SIGFPE).\nfileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 5, maxFileModificationPolls 20)\nallowSystemOperations : Allowing user-supplied system call operations\n\n// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\nCreate time\n\nCreate mesh for time = 0\n\nRead mesh in = 0.01 s\n\nOverall mesh bounding box  : (-14.7 -9.57 0) (27.3 9.57 9.99)\nRelative tolerance         : 1e-06\nAbsolute matching distance : 4.722435495e-05\n\nReading refinement surfaces.\nRead refinement surfaces in = 0 s\n\nReading refinement shells.\nRefinement level 1 for all cells inside wake\nRead refinement shells in = 0 s\n\nSetting refinement level of surface to be consistent with shells.\nFor geometry part0.stl detected 0 uncached triangles out of 24\nFor geometry part1.stl detected 0 uncached triangles out of 128\nFor geometry part2.stl detected 0 uncached triangles out of 128\nFor geometry part3.stl detected 0 uncached triangles out of 128\nFor geometry part4.stl detected 0 uncached triangles out of 128\nFor geometry part5.stl detected 0 uncached triangles out of 12\nChecked shell refinement in = 0 s\n\nReading features.\nRead features in = 0 s\n\n\nDetermining initial surface intersections\n-----------------------------------------\n\nEdge intersection testing:\n    Number of edges             : 97070\n    Number of edges to retest   : 0\n    Number of intersected edges : 0\nEdge intersection testing:\n    Number of edges             : 97070\n    Number of edges to retest   : 97070\n    Number of intersected edges : 74\nCalculated surface intersections in = 0.06 s\n\nInitial mesh : cells:31200  faces:97070  points:34782\nCells per refinement level:\n    0\t31200\nSetting refinement level of surface to be consistent with curvature.\nChecked curvature refinement in = 0 s\n\n\nAdding patches for surface regions\n----------------------------------\n\nPatch Type                Region                        \n----- ----                ------                        \npart0:\n\n5     wall                part0                         \n\npart1:\n\n6     wall                part1                         \n\npart2:\n\n7     wall                part2                         \n\npart3:\n\n8     wall                part3                         \n\npart4:\n\n9     wall                part4                         \n\npart5:\n\n10    wall                part5                         \n\nAdded patches in = 0 s\n\nEdge intersection testing:\n    Number of edges             : 97070\n    Number of edges to retest   : 0\n    Number of intersected edges : 74\nDecomposition method none [1]\n\nRefinement phase\n----------------\n\nFound point (-14.4959 -9.39385 0.27235) in cell 0 on processor 0\n\nSurface refinement iteration 0\n------------------------------\n\nMarked for refinement due to surface intersection          : 76 cells.\nDetermined cells to refine in = 0.01 s\nSelected for refinement : 76 cells (out of 31200)\nEdge intersection testing:\n    Number of edges             : 98909\n    Number of edges to retest   : 2442\n    Number of intersected edges : 308\nRefined mesh in = 0.05 s\nAfter refinement surface refinement iteration 0 : cells:31732  faces:98909  points:35580\nCells per refinement level:\n    0\t31124\n    1\t608\n\nSurface refinement iteration 1\n------------------------------\n\nMarked for refinement due to surface intersection          : 410 cells.\nDetermined cells to refine in = 0 s\nSelected for refinement : 436 cells (out of 31732)\nEdge intersection testing:\n    Number of edges             : 108926\n    Number of edges to retest   : 12411\n    Number of intersected edges : 1056\nRefined mesh in = 0.05 s\nAfter refinement surface refinement iteration 1 : cells:34784  faces:108926  points:39512\nCells per refinement level:\n    0\t31076\n    1\t604\n    2\t3104\n\nSurface refinement iteration 2\n------------------------------\n\nMarked for refinement due to surface intersection          : 310 cells.\nDetermined cells to refine in = 0.01 s\nSelected for refinement : 362 cells (out of 34784)\nEdge intersection testing:\n    Number of edges             : 117398\n    Number of edges to retest   : 13929\n    Number of intersected edges : 1970\nRefined mesh in = 0.05 s\nAfter refinement surface refinement iteration 2 : cells:37318  faces:117398  points:42987\nCells per refinement level:\n    0\t31066\n    1\t590\n    2\t3598\n    3\t2064\n\nSurface refinement iteration 3\n------------------------------\n\nMarked for refinement due to surface intersection          : 320 cells.\nDetermined cells to refine in = 0 s\nSelected for refinement : 362 cells (out of 37318)\n",
+    "case-fast/log.blockMesh": "/*---------------------------------------------------------------------------*\\\n| =========                 |                                                 |\n| \\\\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |\n|  \\\\    /   O peration     | Version:  2412                                  |\n|   \\\\  /    A nd           | Website:  www.openfoam.com                      |\n|    \\\\/     M anipulation  |                                                 |\n\\*---------------------------------------------------------------------------*/\nBuild  : _45e7c4a0-20241224 OPENFOAM=2412 version=2412\nArch   : \"LSB;label=32;scalar=64\"\nExec   : blockMesh\nDate   : Oct 01 2026\nTime   : 12:08:17\nHost   : b690c9e50b87\nPID    : 1\nI/O    : uncollated\nCase   : /case\nnProcs : 1\ntrapFpe: Floating point exception trapping enabled (FOAM_SIGFPE).\nfileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 5, maxFileModificationPolls 20)\nallowSystemOperations : Allowing user-supplied system call operations\n\n// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\nCreate time\n\nCreating block mesh from \"system/blockMeshDict\"\nCreating block edges\nNo non-planar block faces defined\nCreating topology blocks\n\nCreating topology patches - from boundary section\n\nCreating block mesh topology\n\nCheck topology\n\n\tBasic statistics\n\t\tNumber of internal faces : 0\n\t\tNumber of boundary faces : 6\n\t\tNumber of defined boundary faces : 6\n\t\tNumber of undefined boundary faces : 0\n\tChecking patch -> block consistency\n\nCreating block offsets\nCreating merge list (topological search)...\n\nCreating polyMesh from blockMesh\nCreating points with scale (1 1 1)\n    Block 0 cell size :\n        i : 0.6461538462 .. 0.6461538462\n        j : 0.638 .. 0.638\n        k : 0.624375 .. 0.624375\n\nCreating cells\nCreating patches\nNo patch pairs to merge\n\nWriting polyMesh with 0 cellZones\n----------------\nMesh Information\n----------------\n  boundingBox: (-14.7 -9.57 0) (27.3 9.57 9.99)\n  nPoints: 34782\n  nCells: 31200\n  nFaces: 97070\n  nInternalFaces: 90130\n----------------\nPatches\n----------------\n  patch 0 (start: 90130 size: 480) name: inlet\n  patch 1 (start: 90610 size: 480) name: outlet\n  patch 2 (start: 91090 size: 2080) name: sides\n  patch 3 (start: 93170 size: 1950) name: top\n  patch 4 (start: 95120 size: 1950) name: ground\n\nEnd\n\n"
+  }
+}

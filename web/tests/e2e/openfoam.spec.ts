@@ -100,6 +100,11 @@ for (const moving_ground of [false, true]) for (const wheels of [false, true]) t
   await expect(page.getByTestId("run-boundaries")).toHaveText(boundaries);
   await expect(page.getByTestId("engine-openfoam")).toBeEnabled();
   await page.getByTestId("engine-openfoam").click();
+  await expect(page.getByLabel("Analysis level")).toHaveValue("advanced1");
+  await expect(page.locator("#elapsed-limit")).toHaveValue("10800");
+  await page.getByLabel("Analysis level").selectOption("advanced2");
+  await expect(page.locator("#elapsed-limit")).toHaveValue("43200");
+  await page.getByLabel("Analysis level").selectOption("legacy");
   await page.getByRole("radio", { name: /^Fast/ }).click();
   await expect(page.getByTestId("run")).toHaveText(/Run on OpenFOAM/);
   await page.getByTestId("run").click();
@@ -139,6 +144,6 @@ test("without an OpenFOAM server the engine choice explains how to get one", asy
   await page.getByRole("button", { name: "Continue to conditions" }).click();
   await page.getByRole("button", { name: "Continue to run" }).click();
   await expect(page.getByTestId("engine-openfoam")).toBeDisabled();
-  await expect(page.getByTestId("engine-openfoam")).toContainText("just run-openfoam");
+  await expect(page.getByTestId("openfoam-availability")).toContainText("just run-openfoam");
   await expect(page.getByTestId("run")).toHaveText(/Run simulation/);
 });

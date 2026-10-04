@@ -28,8 +28,15 @@ await page.route("**/geom/**", (route) => {
   const rel = decodeURIComponent(new URL(route.request().url()).pathname.split("/geom/")[1]);
   route.fulfill({ body: readFileSync(resolve(runs, rel)), contentType: "application/octet-stream" });
 });
+const backend=args.backend ?? process.env.EASYCFD_VALIDATION_BACKEND;
+if(backend) await page.route("**/api/compute-lease**",async route=>{
+  const req=route.request(),u=new URL(req.url());
+  const response=await page.request.fetch(`${backend}${u.pathname}`,{method:req.method(),data:req.postDataBuffer()??undefined,headers:req.headers()});
+  await route.fulfill({response});
+});
 await page.goto(`http://127.0.0.1:${args.port ?? 5199}/bench.html`);
 await page.waitForFunction(() => window.cfdBench?.ready, null, { timeout: 60000 });
+await page.evaluate(enabled=>{window.cfdBenchBackend=enabled;},!!backend);
 
 const results = [];
 for (const model of spec.models.filter((m) => wanted.includes(m.id))) {

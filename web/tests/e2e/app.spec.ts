@@ -26,6 +26,7 @@ test("sample car, short run, results, layers, reopen after reload", async ({ pag
   await expect(page.getByTestId("run-boundaries")).toHaveText("Road fixed · Wheels fixed");
 
   // ③ Run: custom, 45 cells, 2 passes
+  await page.getByText("Expert WebGPU settings",{exact:true}).click();
   await page.getByRole("radio", { name: /Custom/ }).click();
   const sliders = page.locator(".step.open input[type=range]");
   await sliders.nth(0).fill("45");

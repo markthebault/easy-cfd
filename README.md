@@ -11,6 +11,7 @@ The browser version in [`web/`](web/README.md) is the primary EasyCFD tool. The 
 ```sh
 just run            # WebGPU only: builds web/ and serves http://127.0.0.1:4173 (static files)
 just run-openfoam   # WebGPU and OpenFOAM: http://127.0.0.1:8000 (original UI at /legacy/)
+just deploy-web     # publish the WebGPU-only edition to https://easy-cfd.mthracelab.com
 ```
 
 `just run` needs Node.js 22+ and Python 3 (for the static file server). It installs the npm packages on first use. Open the page in Chrome or Edge 113+, or Safari 26+. The app tells you if WebGPU is missing, or if the browser only offers a slow software fallback. Without `just`: `cd web && npm install && npm run build`, then serve `web/dist` from any static web server over `https://` or `http://localhost`.
@@ -33,7 +34,11 @@ The Run step offers two engines:
 - **WebGPU:** on this device, seconds to minutes. This is the default. Use it to explore and compare designs.
 - **OpenFOAM:** a *final check* on the EasyCFD server, minutes to an hour. It uses snappyHexMesh with prism layers and simpleFoam, the legacy app's pipeline, with its Fast, Medium and Precise presets, their cell budgets and the run times measured on this server.
 
-OpenFOAM is available when the page is opened from `just run-openfoam`. From `just run` or other static hosting, the choice explains how to enable it.
+OpenFOAM is available when the page is opened from `just run-openfoam`. This launcher (and `scripts/start.sh`) builds with `VITE_ENABLE_OPENFOAM=true` and uses the existing local Docker/OpenFOAM backend. Direct builds disable OpenFOAM unless that build-time variable is exactly `true`.
+
+The public edition at https://easy-cfd.mthracelab.com and `just run` use WebGPU only. OpenFOAM is greyed out with “Coming soon: OpenFOAM runs on demand.” These builds never probe or call the backend. Imported models, designs and WebGPU results stay in the browser; no cloud storage is required. On-demand OpenFOAM is not connected yet.
+
+`just deploy-web` forces `VITE_ENABLE_OPENFOAM=false`, builds `web/dist-webgpu` separately from the laptop's `web/dist`, and directly uploads the static assets to the Cloudflare Pages project `easy-cfd` (production branch `main`). It loads the API token from `~/.env.cloudflare` after building, without printing it or bundling it into the site. Deployment is manual; it does not set up automatic GitHub deployments. For a Cloudflare build, use root `web`, command `npm run build`, output `dist`, and `VITE_ENABLE_OPENFOAM=false`.
 
 With OpenFOAM, the UI:
 - uploads the car to the server, once per geometry;

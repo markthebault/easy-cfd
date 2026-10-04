@@ -11,7 +11,7 @@ run:
     set -euo pipefail
     cd web
     [ -d node_modules ] || npm install
-    npm run build
+    VITE_ENABLE_OPENFOAM=false npm run build
     if lsof -iTCP:{{web_port}} -sTCP:LISTEN >/dev/null 2>&1; then
       echo "Port {{web_port}} is already in use; stop that server first." >&2
       exit 1
@@ -21,4 +21,8 @@ run:
 
 # Web UI with both engines (WebGPU and the OpenFOAM server): http://127.0.0.1:8000, original UI at /legacy/
 run-openfoam:
-    ./scripts/start.sh
+    VITE_ENABLE_OPENFOAM=true ./scripts/start.sh
+
+# Publish the WebGPU-only edition to Cloudflare Pages.
+deploy-web:
+    ./scripts/deploy-web.sh

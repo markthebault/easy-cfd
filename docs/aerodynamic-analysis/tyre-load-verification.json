@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-01",
+  "backend": {
+    "command": "uv run pytest -q",
+    "passed": 94
+  },
+  "web_unit": {
+    "command": "npm --prefix web test",
+    "passed": 42
+  },
+  "browser": {
+    "passed": 16,
+    "transcript": "tyre-browser-checks.txt",
+    "final_engine_checks": 2,
+    "final_transcript": "tyre-analysis-final.txt"
+  },
+  "build": {
+    "command": "npm --prefix web run build",
+    "passed": true,
+    "transcript": "tyre-frontend-build.txt"
+  },
+  "lint": {
+    "command": "uv run ruff check backend",
+    "passed": true
+  },
+  "native_extraction": "tyre-native-extraction.json",
+  "limits": "Software and archived-field verification only. Existing numerical and physical qualification gates remain open."
+}

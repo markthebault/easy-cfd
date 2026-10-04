@@ -1,0 +1,17 @@
+
+> easy-cfd-web@0.1.0 test:e2e
+> playwright test tests/e2e/aerodynamics.spec.ts tests/e2e/openfoam-analysis.spec.ts
+
+[WebServer] (node:83559) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:83580) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 2 tests using 1 worker
+
+(node:83595) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/e2e/aerodynamics.spec.ts:4:1 › wall-integrated balance, physical friction, units, reopen and old-run fallback (16.9s)
+  ✓  2 tests/e2e/openfoam-analysis.spec.ts:7:1 › real OpenFOAM patch stress, saved balance, shared scales and reopening (18.1s)
+
+  2 passed (36.4s)

@@ -1,0 +1,1129 @@
+{
+  "mode": "timeout",
+  "elapsed_seconds": 29.52135037491098,
+  "cancellation_seconds": null,
+  "qualification": "Resource/termination check only; no aerodynamic accuracy claim.",
+  "run": {
+    "id": "d267fd53ac4344a7bfa0b3949074587d",
+    "project_id": "d60a117c142c4184b5b06f4cac142a1b",
+    "name": "Aerodynamic integration verification",
+    "created": "2026-10-01T12:08:43.052681+00:00",
+    "status": "completed",
+    "stage": "Provisional checkpoint",
+    "settings": {
+      "profile": null,
+      "axles": {
+        "frontX": -1.4,
+        "rearX": 1.4,
+        "centrelineY": 0.0,
+        "confirmed": true
+      },
+      "moment_origin": [
+        -1.4,
+        0.0,
+        0.0
+      ],
+      "part_labels": {
+        "part0": {
+          "id": "part0",
+          "name": "Body",
+          "group": "g:body",
+          "groupName": "Body"
+        },
+        "part1": {
+          "id": "part1",
+          "name": "Front right wheel",
+          "group": "g:wheels",
+          "groupName": "Wheels"
+        },
+        "part2": {
+          "id": "part2",
+          "name": "Front left wheel",
+          "group": "g:wheels",
+          "groupName": "Wheels"
+        },
+        "part3": {
+          "id": "part3",
+          "name": "Rear right wheel",
+          "group": "g:wheels",
+          "groupName": "Wheels"
+        },
+        "part4": {
+          "id": "part4",
+          "name": "Rear left wheel",
+          "group": "g:wheels",
+          "groupName": "Wheels"
+        },
+        "part5": {
+          "id": "part5",
+          "name": "Rear wing",
+          "group": "g:wing",
+          "groupName": "Rear wing"
+        }
+      },
+      "refine_groups": null,
+      "refine_underfloor": true,
+      "max_seconds": 30,
+      "speed_kmh": 100.0,
+      "yaw_deg": 0.0,
+      "quality": "fast",
+      "simulation_box": null,
+      "custom_mesh": "medium",
+      "custom_iterations": 1000,
+      "reference_area": 2.2,
+      "density": 1.225,
+      "moving_ground": false,
+      "wheels": false,
+      "geometry_confirmed": true
+    },
+    "geometry": {
+      "parts": [
+        {
+          "id": "part0",
+          "name": "Body",
+          "role": "body",
+          "wheel": null,
+          "triangles": 24,
+          "minimum_extent": 1.0,
+          "bounds": [
+            [
+              -2.1,
+              -0.81,
+              0.32
+            ],
+            [
+              2.1,
+              0.81,
+              1.32
+            ]
+          ],
+          "issues": [],
+          "enabled": true
+        },
+        {
+          "id": "part1",
+          "name": "Front right wheel",
+          "role": "wheel",
+          "wheel": {
+            "center": [
+              -1.35,
+              -1.05,
+              0.33
+            ],
+            "radius": 0.32
+          },
+          "triangles": 128,
+          "minimum_extent": 0.23999999999999977,
+          "bounds": [
+            [
+              -1.6700000000000002,
+              -1.17,
+              0.010000000000000002
+            ],
+            [
+              -1.03,
+              -0.93,
+              0.65
+            ]
+          ],
+          "issues": [],
+          "enabled": true
+        },
+        {
+          "id": "part2",
+          "name": "Front left wheel",
+          "role": "wheel",
+          "wheel": {
+            "center": [
+              -1.35,
+              1.05,
+              0.33
+            ],
+            "radius": 0.32
+          },
+          "triangles": 128,
+          "minimum_extent": 0.23999999999999988,
+          "bounds": [
+            [
+              -1.6700000000000002,
+              0.93,
+              0.010000000000000002
+            ],
+            [
+              -1.03,
+              1.17,
+              0.65
+            ]
+          ],
+          "issues": [],
+          "enabled": true
+        },
+        {
+          "id": "part3",
+          "name": "Rear right wheel",
+          "role": "wheel",
+          "wheel": {
+            "center": [
+              1.3,
+              -1.05,
+              0.33
+            ],
+            "radius": 0.32
+          },
+          "triangles": 128,
+          "minimum_extent": 0.23999999999999977,
+          "bounds": [
+            [
+              0.98,
+              -1.17,
+              0.010000000000000002
+            ],
+            [
+              1.62,
+              -0.93,
+              0.65
+            ]
+          ],
+          "issues": [],
+          "enabled": true
+        },
+        {
+          "id": "part4",
+          "name": "Rear left wheel",
+          "role": "wheel",
+          "wheel": {
+            "center": [
+              1.3,
+              1.05,
+              0.33
+            ],
+            "radius": 0.32
+          },
+          "triangles": 128,
+          "minimum_extent": 0.23999999999999977,
+          "bounds": [
+            [
+              0.98,
+              0.93,
+              0.010000000000000002
+            ],
+            [
+              1.62,
+              1.17,
+              0.65
+            ]
+          ],
+          "issues": [],
+          "enabled": true
+        },
+        {
+          "id": "part5",
+          "name": "Rear wing",
+          "role": "body",
+          "wheel": null,
+          "triangles": 12,
+          "minimum_extent": 0.0370168056757878,
+          "bounds": [
+            [
+              1.48,
+              -0.975,
+              1.48
+            ],
+            [
+              1.9,
+              0.975,
+              1.59
+            ]
+          ],
+          "issues": [],
+          "enabled": true
+        }
+      ],
+      "bounds": [
+        [
+          -2.1,
+          -1.17,
+          0.010000000000000002
+        ],
+        [
+          2.1,
+          1.17,
+          1.59
+        ]
+      ],
+      "dimensions": [
+        4.2,
+        2.34,
+        1.58
+      ],
+      "triangles": 548,
+      "errors": [],
+      "fingerprint": "70030e5215d16f54bea749019d4d0d6dcc289905ad8d57f11863667215466498",
+      "frontal_area_estimate": 2.4489,
+      "warnings": [
+        "Automatic checks do not establish that surfaces are free of intersections. Review the model and mesh.",
+        "Small wheel-to-ground gaps avoid degenerate contact cells; ground clearance affects forces."
+      ]
+    },
+    "domain": [
+      -14.700000000000001,
+      27.300000000000004,
+      -9.57,
+      9.57,
+      0,
+      9.99
+    ],
+    "image": "opencfd/openfoam-default@sha256:1ba02114b1c025c370f2e269a07677c16c9bea8d990fcd75ac8378aff9d41b50",
+    "pipeline_hash": "e7142dac1912ffc60ee97be834dcd1ff693b95bba8f0a5e5cf67261abe946712",
+    "processes": 4,
+    "cpus": 4,
+    "reference_case": null,
+    "iteration": 22,
+    "assumptions": {
+      "inlet_turbulence_percent": 1,
+      "kinematic_viscosity": 1.5e-05,
+      "drag_axis": "+X",
+      "lift_axis": "+Z",
+      "downforce": "negative lift"
+    },
+    "configuration": {
+      "added": [],
+      "excluded": []
+    },
+    "started": "2026-10-01T12:08:43.056913+00:00",
+    "deadline_seconds": 30,
+    "deadline_at": "2026-10-01T12:09:13.056921+00:00",
+    "container_peak_bytes": 269693747.2,
+    "host_available_bytes": 6160990208,
+    "termination_reason": "deadline-checkpoint",
+    "extraction_peak_bytes": 627228672,
+    "finished": "2026-10-01T12:09:12.284462+00:00",
+    "result": {
+      "cd": 0.9732730417781817,
+      "cl": 0.1285592508394091,
+      "drag": 1011.9486294722994,
+      "downforce": -133.6678939090307,
+      "force_settled": false,
+      "cd_span": 1.07327801937,
+      "cl_span": 1.10901542213,
+      "averaging_iterations": 22,
+      "history": [
+        {
+          "iteration": 1.0,
+          "cd": 0.99214145007,
+          "cl": -0.53036280236,
+          "drag": 1031.566824050405,
+          "downforce": 551.438176064892,
+          "force": [
+            1031.5668241,
+            0.24680021103,
+            -551.43817607
+          ],
+          "moment": [
+            -0.38050214179,
+            1688.956796,
+            0.84003641885
+          ]
+        },
+        {
+          "iteration": 2.0,
+          "cd": 1.5349766023,
+          "cl": -0.63410774441,
+          "drag": 1595.9729719130016,
+          "downforce": 659.3056987596258,
+          "force": [
+            1595.9729719,
+            -0.063027797127,
+            -659.30569876
+          ],
+          "moment": [
+            -0.25126426915,
+            1928.3741164,
+            0.60058944485
+          ]
+        },
+        {
+          "iteration": 3.0,
+          "cd": 1.7202233986,
+          "cl": -0.53450125082,
+          "drag": 1788.5810413684414,
+          "downforce": 555.7410767592207,
+          "force": [
+            1788.5810414,
+            -1.0285318571,
+            -555.74107675
+          ],
+          "moment": [
+            0.48944502754,
+            1596.4093161,
+            -0.98642893963
+          ]
+        },
+        {
+          "iteration": 4.0,
+          "cd": 1.6910455732,
+          "cl": -0.306154309,
+          "drag": 1758.2437576288582,
+          "downforce": 318.32016309992287,
+          "force": [
+            1758.2437576,
+            -2.3294973042,
+            -318.3201631
+          ],
+          "moment": [
+            1.6658553918,
+            954.15971052,
+            -3.2036239661
+          ]
+        },
+        {
+          "iteration": 5.0,
+          "cd": 1.5531618418,
+          "cl": -0.045088541583,
+          "drag": 1614.880850173997,
+          "downforce": 46.880254462262734,
+          "force": [
+            1614.8808502,
+            -3.0520292041,
+            -46.880254462
+          ],
+          "moment": [
+            2.6633773919,
+            274.92020691,
+            -4.4179100898
+          ]
+        },
+        {
+          "iteration": 6.0,
+          "cd": 1.3697169046,
+          "cl": 0.19300359501,
+          "drag": 1424.1462414726082,
+          "downforce": -200.6731051512153,
+          "force": [
+            1424.1462415,
+            -2.9266982984,
+            200.67310515
+          ],
+          "moment": [
+            2.7605391533,
+            -286.97860097,
+            -4.6650882365
+          ]
+        },
+        {
+          "iteration": 7.0,
+          "cd": 1.1801784212,
+          "cl": 0.36722823555,
+          "drag": 1227.0759433387345,
+          "downforce": -381.82102423119215,
+          "force": [
+            1227.0759433,
+            -1.8489412698,
+            381.82102423
+          ],
+          "moment": [
+            2.0816205724,
+            -647.5327393,
+            -3.5880788008
+          ]
+        },
+        {
+          "iteration": 8.0,
+          "cd": 1.0097228257,
+          "cl": 0.45725388081,
+          "drag": 1049.8468423076774,
+          "downforce": -475.42407746255793,
+          "force": [
+            1049.8468423,
+            -0.23857210363,
+            475.42407746
+          ],
+          "moment": [
+            1.2009709901,
+            -780.84512298,
+            -1.5634645115
+          ]
+        },
+        {
+          "iteration": 9.0,
+          "cd": 0.86713001962,
+          "cl": 0.47490767772,
+          "drag": 901.5877325910109,
+          "downforce": -493.7793948516204,
+          "force": [
+            901.58773259,
+            1.4666897954,
+            493.77939485
+          ],
+          "moment": [
+            0.13593447277,
+            -731.84101797,
+            0.62277316408
+          ]
+        },
+        {
+          "iteration": 10.0,
+          "cd": 0.76071805079,
+          "cl": 0.44100456176,
+          "drag": 790.9472017280286,
+          "downforce": -458.5290485891976,
+          "force": [
+            790.94720173,
+            2.9319494957,
+            458.52904859
+          ],
+          "moment": [
+            -0.58722934595,
+            -563.11092895,
+            2.3953696261
+          ]
+        },
+        {
+          "iteration": 11.0,
+          "cd": 0.69081972186,
+          "cl": 0.37831140648,
+          "drag": 718.2712771653936,
+          "downforce": -393.3446143763889,
+          "force": [
+            718.27127717,
+            3.6844504723,
+            393.34461438
+          ],
+          "moment": [
+            -0.82728038989,
+            -340.49469303,
+            3.2183959556
+          ]
+        },
+        {
+          "iteration": 12.0,
+          "cd": 0.65456567177,
+          "cl": 0.31053842321,
+          "drag": 680.5765761651815,
+          "downforce": -322.8784917249036,
+          "force": [
+            680.57657616,
+            3.6842606994,
+            322.87849172
+          ],
+          "moment": [
+            -0.77848005208,
+            -124.78785044,
+            2.9045644951
+          ]
+        },
+        {
+          "iteration": 13.0,
+          "cd": 0.64694537923,
+          "cl": 0.25395049223,
+          "drag": 672.653471074402,
+          "downforce": -264.0418891048804,
+          "force": [
+            672.65347107,
+            3.2177666143,
+            264.04188911
+          ],
+          "moment": [
+            -0.63824643149,
+            46.88879153,
+            1.7336092862
+          ]
+        },
+        {
+          "iteration": 14.0,
+          "cd": 0.66106611264,
+          "cl": 0.21461504599,
+          "drag": 687.3353293074075,
+          "downforce": -223.1433444996335,
+          "force": [
+            687.33532931,
+            2.1652704578,
+            223.1433445
+          ],
+          "moment": [
+            -0.32468932437,
+            161.9832608,
+            -0.35405137465
+          ]
+        },
+        {
+          "iteration": 15.0,
+          "cd": 0.68763113672,
+          "cl": 0.19543110271,
+          "drag": 714.9559851313272,
+          "downforce": -203.19707631305943,
+          "force": [
+            714.95598513,
+            1.3402727363,
+            203.19707631
+          ],
+          "moment": [
+            -0.27867555767,
+            217.29576469,
+            -1.7865949219
+          ]
+        },
+        {
+          "iteration": 16.0,
+          "cd": 0.71971991305,
+          "cl": 0.19185292824,
+          "drag": 748.3198941627123,
+          "downforce": -199.4767135828704,
+          "force": [
+            748.31989416,
+            0.40702919732,
+            199.47671359
+          ],
+          "moment": [
+            -0.13262487548,
+            228.59064447,
+            -3.2538240205
+          ]
+        },
+        {
+          "iteration": 17.0,
+          "cd": 0.74942028224,
+          "cl": 0.1994089881,
+          "drag": 779.2004863567902,
+          "downforce": -207.33303353761576,
+          "force": [
+            779.20048635,
+            -0.44216374371,
+            207.33303354
+          ],
+          "moment": [
+            0.0062762373891,
+            207.99519028,
+            -4.2993680796
+          ]
+        },
+        {
+          "iteration": 18.0,
+          "cd": 0.77161819822,
+          "cl": 0.21335273828,
+          "drag": 802.2804954486497,
+          "downforce": -221.83087564220682,
+          "force": [
+            802.28049545,
+            -1.033916094,
+            221.83087564
+          ],
+          "moment": [
+            0.12170860755,
+            167.05095044,
+            -5.0929335019
+          ]
+        },
+        {
+          "iteration": 19.0,
+          "cd": 0.78516911847,
+          "cl": 0.22974432961,
+          "drag": 816.3698974832756,
+          "downforce": -238.87383036224924,
+          "force": [
+            816.36989748,
+            -1.2644557154,
+            238.87383037
+          ],
+          "moment": [
+            0.20906237814,
+            115.27295178,
+            -5.507200043
+          ]
+        },
+        {
+          "iteration": 20.0,
+          "cd": 0.79091315775,
+          "cl": 0.24400221627,
+          "drag": 822.3421914105904,
+          "downforce": -253.69829199369215,
+          "force": [
+            822.34219142,
+            -1.3838026598,
+            253.698292
+          ],
+          "moment": [
+            0.2869345859,
+            60.656152288,
+            -5.565447492
+          ]
+        },
+        {
+          "iteration": 21.0,
+          "cd": 0.79020835902,
+          "cl": 0.25407776271,
+          "drag": 821.6093856322917,
+          "downforce": -264.17421701521994,
+          "force": [
+            821.60938564,
+            -1.3785691683,
+            264.17421702
+          ],
+          "moment": [
+            0.34714922088,
+            12.741313133,
+            -5.4824168647
+          ]
+        },
+        {
+          "iteration": 22.0,
+          "cd": 0.78491478027,
+          "cl": 0.25983478196,
+          "drag": 816.1054524798033,
+          "downforce": -270.1600067060957,
+          "force": [
+            816.10545248,
+            -1.2839925899,
+            270.1600067
+          ],
+          "moment": [
+            0.52051991049,
+            -28.633934761,
+            -5.2193015198
+          ]
+        }
+      ],
+      "balance_settled": false,
+      "balance_bands": {
+        "pitch": 1354.60961969,
+        "rearLift": 483.7891498892858,
+        "frontLift": 133.60596124857142
+      },
+      "freestream": 27.77777777777778,
+      "aero": {
+        "force": [
+          1011.9486294765954,
+          0.03955872156052591,
+          133.66789390918072
+        ],
+        "moment": [
+          0.37683643420514534,
+          188.95773985520904,
+          -1.9395633623412545
+        ],
+        "origin": [
+          -1.4,
+          0.0,
+          0.0
+        ],
+        "pressureMoment": [
+          0.37079908745262263,
+          181.8406232117136,
+          -1.9613166900713637
+        ],
+        "frictionMoment": [
+          0.006037346752522729,
+          7.117116643495453,
+          0.021753327730109087
+        ]
+      },
+      "part_forces": [
+        {
+          "id": "part0",
+          "name": "Body",
+          "group": "g:body",
+          "patch": "part0",
+          "pressure": [
+            555.2832634759089,
+            0.3844177459252273,
+            494.9396217261863
+          ],
+          "friction": [
+            8.502685966495456,
+            -0.00760630465836,
+            0.33505255117313637
+          ],
+          "pressureMoment": [
+            0.03511076963686365,
+            -1470.7350287109089,
+            0.447314678261818
+          ],
+          "frictionMoment": [
+            0.0036865446605681817,
+            6.057665163127272,
+            0.03561762315795455
+          ]
+        },
+        {
+          "id": "part1",
+          "name": "Front right wheel",
+          "group": "g:wheels",
+          "patch": "part1",
+          "pressure": [
+            83.97923219822728,
+            -6.2447876910894085,
+            38.60881909318637
+          ],
+          "friction": [
+            0.4201722832286363,
+            -0.015152071129563637,
+            0.05530204246819319
+          ],
+          "pressureMoment": [
+            -39.730924946908644,
+            24.88393829827273,
+            90.12047816040909
+          ],
+          "frictionMoment": [
+            -0.05120040813830091,
+            0.16084280130045456,
+            0.43269746790500013
+          ]
+        },
+        {
+          "id": "part2",
+          "name": "Front left wheel",
+          "group": "g:wheels",
+          "patch": "part2",
+          "pressure": [
+            83.98829532804547,
+            6.672841827740774,
+            38.90462803614545
+          ],
+          "friction": [
+            0.44552771080863635,
+            0.011863306352572727,
+            0.058918464754281814
+          ],
+          "pressureMoment": [
+            39.94641749295864,
+            24.872970718636363,
+            -90.11957360731816
+          ],
+          "frictionMoment": [
+            0.056833982242094995,
+            0.17579154793772725,
+            -0.4567202289890908
+          ]
+        },
+        {
+          "id": "part3",
+          "name": "Rear right wheel",
+          "group": "g:wheels",
+          "patch": "part3",
+          "pressure": [
+            64.9206703593182,
+            18.29794910228182,
+            32.87434295246818
+          ],
+          "friction": [
+            0.37720029437090913,
+            0.009677426793369089,
+            0.023652771104754996
+          ],
+          "pressureMoment": [
+            -40.91149977751364,
+            -68.14887001281363,
+            117.42135187877271
+          ],
+          "frictionMoment": [
+            -0.028757405204186362,
+            0.09215332475349092,
+            0.41503321728727266
+          ]
+        },
+        {
+          "id": "part4",
+          "name": "Rear left wheel",
+          "group": "g:wheels",
+          "patch": "part4",
+          "pressure": [
+            65.22946497686365,
+            -19.071026878904547,
+            33.08921147249999
+          ],
+          "friction": [
+            0.3674138490204545,
+            -0.009896093824363636,
+            0.020538009299710003
+          ],
+          "pressureMoment": [
+            41.3216366393,
+            -68.6265401785909,
+            -119.81009602845455
+          ],
+          "frictionMoment": [
+            0.025690995466162728,
+            0.09614419538065139,
+            -0.40556630860136367
+          ]
+        },
+        {
+          "id": "part5",
+          "name": "Rear wing",
+          "group": "g:wing",
+          "patch": "part5",
+          "pressure": [
+            147.91619569636364,
+            0.011208257961854092,
+            -505.32898528499993
+          ],
+          "friction": [
+            0.5185073385986363,
+            7.009393179094091e-05,
+            0.08679207469883636
+          ],
+          "pressureMoment": [
+            -0.2899410900491818,
+            1739.5941530999999,
+            -0.02079177008292727
+          ],
+          "frictionMoment": [
+            -0.00021636227374216365,
+            0.5345196109945454,
+            0.0006915569690787986
+          ]
+        }
+      ],
+      "reconciliation": {
+        "forceError": 7.062128306871165e-10,
+        "momentError": 3.3239629123934815e-09,
+        "forceTolerance": 8.072977088996204,
+        "momentTolerance": 18.477477738042175,
+        "complete": true
+      },
+      "provenance": {
+        "version": "openfoam-wall-integrals-2",
+        "averaging": {
+          "start": 1.0,
+          "end": 22.0,
+          "unit": "iteration"
+        },
+        "origin": [
+          -1.4,
+          0.0,
+          0.0
+        ],
+        "qualification": "exploratory",
+        "pipeline": "e7142dac1912ffc60ee97be834dcd1ff693b95bba8f0a5e5cf67261abe946712",
+        "geometry": "70030e5215d16f54bea749019d4d0d6dcc289905ad8d57f11863667215466498",
+        "mesh": "83feb052aa5c059498f289f26647fbdb0062a5c89851d41def2497357d295b4d"
+      },
+      "wall_stress": {
+        "coverage": 1.0,
+        "faces": 19155,
+        "validFaces": 19155,
+        "iteration": 22.0,
+        "unit": "Pa",
+        "force": [
+          13.315562511833406,
+          -0.010117280616373632,
+          0.8915575580573991
+        ],
+        "forceError": 0.004052298351835769,
+        "tolerance": 0.07391510159921776,
+        "passed": true,
+        "moment": [
+          0.0032835873244340457,
+          8.343765580618209,
+          0.03464761037967435
+        ],
+        "momentError": 0.0045959360316098945,
+        "momentTolerance": 0.07502617651087266,
+        "momentPassed": true
+      },
+      "breakdown": {
+        "body": {
+          "drag": 712.2206524764591,
+          "downforce": 9.96751893233371,
+          "cd": 0.6850003455358004,
+          "cl": -0.00958657108445602,
+          "pressure_drag": 703.1994591713636,
+          "viscous_drag": 9.021193305095453,
+          "pressure_downforce": 10.38936355820453,
+          "viscous_downforce": -0.4218446258708182
+        },
+        "wheels": {
+          "drag": 299.72797700060494,
+          "downforce": -143.63541284239926,
+          "cd": 0.288272696246964,
+          "cl": 0.13814582192486044,
+          "pressure_drag": 298.11766286318175,
+          "viscous_drag": 1.6103141374231817,
+          "pressure_downforce": -143.47700155477276,
+          "viscous_downforce": -0.15841128762650453
+        },
+        "pressure_drag": 1001.3171220345454,
+        "viscous_drag": 10.631507442518634,
+        "consistent": true
+      },
+      "blockage_ratio": 0.011505758632195414,
+      "wall_target_fraction": 0.8949984467225847,
+      "residuals": {
+        "Ux": 0.0005601504183,
+        "Uy": 0.02618885552,
+        "Uz": 0.004408847766,
+        "p": 0.006804775464,
+        "omega": 0.0001065590541,
+        "k": 0.001980581645
+      },
+      "residual_converged": false,
+      "ranges": {
+        "Pressure": [
+          -1605.2396240234375,
+          504.4206848144531
+        ],
+        "Speed": [
+          0.0,
+          45.35531234741211
+        ],
+        "Turbulence": [
+          0.09513697028160095,
+          15.34862995147705
+        ]
+      },
+      "iteration": 22.0,
+      "cells": 141345,
+      "warnings": [
+        "Residuals have not reached this preset's target. Forces are provisional.",
+        "Forces or pitching/axle balance are still changing. Do not rank designs from this run.",
+        "This run uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+        "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+        "The whole-job time limit stopped the solve early. This completed checkpoint is provisional; the requested study is incomplete."
+      ],
+      "y_plus": [
+        {
+          "patch": "part0",
+          "minimum": 648.22355435,
+          "maximum": 4087.2013256,
+          "mean": 1552.3441418
+        },
+        {
+          "patch": "part1",
+          "minimum": 402.81142555,
+          "maximum": 2869.4128982,
+          "mean": 1042.5029562
+        },
+        {
+          "patch": "part2",
+          "minimum": 403.84398016,
+          "maximum": 2929.8466342,
+          "mean": 1049.0042063
+        },
+        {
+          "patch": "part3",
+          "minimum": 815.41919192,
+          "maximum": 3190.9873819,
+          "mean": 1520.9166045
+        },
+        {
+          "patch": "part4",
+          "minimum": 789.99448296,
+          "maximum": 3185.9165425,
+          "mean": 1474.3572954
+        },
+        {
+          "patch": "part5",
+          "minimum": 30.051737347,
+          "maximum": 352.59850531,
+          "mean": 111.76341368
+        }
+      ],
+      "slice_bounds": [
+        -6.300000000000001,
+        10.5,
+        -1.67,
+        1.67,
+        0.02,
+        2.29
+      ],
+      "timings": {
+        "blockMesh": 0.5133211673237383,
+        "snappyHexMesh": 15.827926457859576,
+        "checkMesh": 1.5371874580159783,
+        "decomposePar": 1.0257542082108557,
+        "simpleFoam": 7.172592042014003,
+        "reconstructPar": 0.5294657917693257
+      },
+      "mesh_ok": true,
+      "preset": "fast",
+      "layer_coverage": null,
+      "resource_mode": "Legacy CPU quota",
+      "resources": {
+        "processes": 4,
+        "cpus": 4,
+        "container_memory_gib": 3,
+        "combined_limit_gib": 8,
+        "deadline_seconds": 30,
+        "container_peak_bytes": 269693747.2,
+        "extraction_peak_bytes": 627228672
+      },
+      "mesh_recipe": {
+        "domain": [
+          -14.700000000000001,
+          27.300000000000004,
+          -9.57,
+          9.57,
+          0,
+          9.99
+        ],
+        "velocity": [
+          27.77777777777778,
+          0.0,
+          0
+        ],
+        "freestream": 27.77777777777778,
+        "base_cells": 31200,
+        "preset": {
+          "cell": 0.65,
+          "surface": 2,
+          "wake": 1,
+          "layers": 0,
+          "max_cells": 350000,
+          "iterations": 300,
+          "residual": 0.001,
+          "label": "Exploratory",
+          "memory_gb": 3
+        },
+        "processes": 4,
+        "local_refinement": {
+          "part0": {
+            "surface_level": 2,
+            "nominal_spacing": 0.1625,
+            "selected": false
+          },
+          "part1": {
+            "surface_level": 3,
+            "nominal_spacing": 0.08125,
+            "selected": true
+          },
+          "part2": {
+            "surface_level": 3,
+            "nominal_spacing": 0.08125,
+            "selected": true
+          },
+          "part3": {
+            "surface_level": 3,
+            "nominal_spacing": 0.08125,
+            "selected": true
+          },
+          "part4": {
+            "surface_level": 3,
+            "nominal_spacing": 0.08125,
+            "selected": true
+          },
+          "part5": {
+            "surface_level": 6,
+            "nominal_spacing": 0.01015625,
+            "selected": true
+          }
+        },
+        "underfloor_spacing": null,
+        "tunnel_cross_section": 191.20860000000002,
+        "blockage_ratio": 0.011505758632195414
+      },
+      "incomplete": true,
+      "termination_reason": "deadline-checkpoint"
+    },
+    "disk_bytes": 67503407
+  },
+  "logs": {
+    "case-fast/log.extract": "",
+    "case-fast/log.snappyHexMesh": "ing patch faces\nSmoothing displacement ...\nIteration 0\nIteration 10\nIteration 20\nDisplacement smoothed in = 0.21 s\n\n\nMoving mesh ...\n\nIteration 0\nMoving mesh using displacement scaling : min:1  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 194\n    faces with face-decomposition tet quality < 1e-15      : 202\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 2\n    faces on cells with determinant < 0.001                : 0\n\nIteration 1\nMoving mesh using displacement scaling : min:0.75  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 2\n    faces with face-decomposition tet quality < 1e-15      : 15\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 192\n    faces on cells with determinant < 0.001                : 0\n\nIteration 2\nMoving mesh using displacement scaling : min:0.5625  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 5\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 2\n    faces on cells with determinant < 0.001                : 0\n\nIteration 3\nMoving mesh using displacement scaling : min:0.421875  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 4\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\n\nIteration 4\nMoving mesh using displacement scaling : min:0.31640625  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 4\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\n\nIteration 5\nDisplacement scaling for error reduction set to 0.\nMoving mesh using displacement scaling : min:0.2373046875  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 2\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\n\nIteration 6\nMoving mesh using displacement scaling : min:0  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 0\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\nSuccessfully moved mesh\nMoved mesh in = 0.73 s\n\n\n\nMorph iteration 8\n-----------------\nCalculating patchDisplacement as distance to nearest surface point ...\n    non-zone points : attract to nearest of all non-zone surfaces\n    zone points     : attract to zone surface only\n\nWanted displacement : average:0.0002426725792 min:8.425466881e-08 max:0.03429523142\nCalculated surface displacement in = 0.01 s\n\n\nDetecting near surfaces ...\nOverriding nearest with intersection of close gaps at 196 out of 22752 points.\nOverriding displacement on features :\n   implicit features    : true\n   explicit features    : false\n   multi-patch features : false\n\nAttraction:\n    linear   : max:(0.009955369334 8.835757504e-06 0.03281849238) avg:(5.520079667e-06 -1.147304008e-06 1.235737449e-05)\n    feature  : max:(-0.01071269386 -0 0.02004206514) avg:(7.767779704e-06 2.446809084e-07 -6.810388876e-06)\nFeature analysis : total master points :22752 of which attracted to :\n    feature point   : 16\n    feature edge    : 1440\n    nearest surface : 21296\n    rest            : 0\n\n--> FOAM Warning : Displacement (0.002335483457 -9.991870002e-18 -0.001089339124) at mesh point 36094 coord (2.097118118 -0.6258496164 0.7213480718) points through the surrounding patch faces\nSmoothing displacement ...\nIteration 0\nIteration 10\nIteration 20\nDisplacement smoothed in = 0.21 s\n\n\nMoving mesh ...\n\nIteration 0\nMoving mesh using displacement scaling : min:1  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 197\n    faces with face-decomposition tet quality < 1e-15      : 255\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 2\n    faces on cells with determinant < 0.001                : 0\n\nIteration 1\nMoving mesh using displacement scaling : min:0.75  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 194\n    faces with face-decomposition tet quality < 1e-15      : 233\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\n\nIteration 2\nMoving mesh using displacement scaling : min:0.5625  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 194\n    faces with face-decomposition tet quality < 1e-15      : 210\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 3\n    faces on cells with determinant < 0.001                : 0\n\nIteration 3\nMoving mesh using displacement scaling : min:0.421875  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 190\n    faces with face-decomposition tet quality < 1e-15      : 204\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 6\n    faces on cells with determinant < 0.001                : 0\n\nIteration 4\nMoving mesh using displacement scaling : min:0.31640625  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 202\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 192\n    faces on cells with determinant < 0.001                : 0\n\nIteration 5\nDisplacement scaling for error reduction set to 0.\nMoving mesh using displacement scaling : min:0.2373046875  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 11\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 190\n    faces on cells with determinant < 0.001                : 0\n\nIteration 6\nMoving mesh using displacement scaling : min:0  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 0\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\nSuccessfully moved mesh\nMoved mesh in = 0.9 s\n\n\n\nMorph iteration 9\n-----------------\nCalculating patchDisplacement as distance to nearest surface point ...\n    non-zone points : attract to nearest of all non-zone surfaces\n    zone points     : attract to zone surface only\n\nWanted displacement : average:0.0001351308485 min:7.191434417e-08 max:0.03403518539\nCalculated surface displacement in = 0.01 s\n\n\nDetecting near surfaces ...\nOverriding nearest with intersection of close gaps at 0 out of 22752 points.\nOverriding displacement on features :\n   implicit features    : true\n   explicit features    : false\n   multi-patch features : false\n\nAttraction:\n    linear   : max:(0.009879882363 -8.84952456e-07 0.03256964489) avg:(5.000010308e-06 -6.998462752e-07 2.217529587e-05)\n    feature  : max:(0.005377331732 0 0.01772670752) avg:(8.202052159e-06 4.598874948e-07 -6.708199201e-07)\nFeature analysis : total master points :22752 of which attracted to :\n    feature point   : 16\n    feature edge    : 1440\n    nearest surface : 21296\n    rest            : 0\n\n--> FOAM Warning : Displacement (0.0005463030315 0 -0.0002587040365) at mesh point 36094 coord (2.099453602 -0.6258496164 0.7202587326) points through the surrounding patch faces\nSmoothing displacement ...\nIteration 0\nIteration 10\nIteration 20\nDisplacement smoothed in = 0.2 s\n\n\nMoving mesh ...\n\nIteration 0\nMoving mesh using displacement scaling : min:1  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 199\n    faces with face-decomposition tet quality < 1e-15      : 267\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 2\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\n\nIteration 1\nMoving mesh using displacement scaling : min:0.75  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 197\n    faces with face-decomposition tet quality < 1e-15      : 259\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\n\nIteration 2\nMoving mesh using displacement scaling : min:0.5625  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 195\n    faces with face-decomposition tet quality < 1e-15      : 257\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 4\n    faces on cells with determinant < 0.001                : 0\n\nIteration 3\nMoving mesh using displacement scaling : min:0.421875  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 194\n    faces with face-decomposition tet quality < 1e-15      : 251\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 9\n    faces on cells with determinant < 0.001                : 0\n\nIteration 4\nMoving mesh using displacement scaling : min:0.31640625  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 190\n    faces with face-decomposition tet quality < 1e-15      : 250\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 5\n    faces on cells with determinant < 0.001                : 0\n\nIteration 5\nDisplacement scaling for error reduction set to 0.\nMoving mesh using displacement scaling : min:0.2373046875  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 188\n    faces with face-decomposition tet quality < 1e-15      : 240\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 4\n    faces on cells with determinant < 0.001                : 0\n\nIteration 6\nMoving mesh using displacement scaling : min:0  max:1\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 0\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\nSuccessfully moved mesh\nMoved mesh in = 1.01 s\n\n\nRepatching faces according to nearest surface ...\nRepatched 0 faces in = 0.03 s\n\n\nEdge intersection testing:\n    Number of edges             : 458408\n    Number of edges to retest   : 112076\n    Number of intersected edges : 22647\nMerging 3490 sets of faces.\n\nEdge intersection testing:\n    Number of edges             : 454916\n    Number of edges to retest   : 14108\n    Number of intersected edges : 19155\n\nUndo iteration 0\n----------------\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 0\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\n\nMerging all points on surface that\n- are used by only two boundary faces and\n- make an angle with a cosine of more than 0.8660254038.\n\nRemoving 3436 straight edge points ...\n\nEdge intersection testing:\n    Number of edges             : 454916\n    Number of edges to retest   : 14108\n    Number of intersected edges : 19155\n\nUndo iteration 0\n----------------\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 0\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\nSnapped mesh : cells:141345  faces:454916  points:172464\nCells per refinement level:\n    0\t30518\n    1\t4517\n    2\t5140\n    3\t6986\n    4\t7258\n    5\t18430\n    6\t68496\nWriting mesh to time constant\nWrote mesh in = 0.01 s.\nMesh snapped in = 8.41 s.\nChecking final mesh ...\nChecking faces in error :\n    non-orthogonality > 65  degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 0\n    faces with concavity > 80  degrees                     : 0\n    faces with skewness > 4   (internal) or 4   (boundary) : 0\n    faces with interpolation weights (0..1)  < 0.02        : 0\n    faces with volume ratio of neighbour cells < 0.01      : 0\n    faces with face twist < 0.02                           : 0\n    faces on cells with determinant < 0.001                : 0\nFinished meshing without any errors\nFinished meshing in = 14.85 s.\nEnd\n\n",
+    "case-fast/log.blockMesh": "/*---------------------------------------------------------------------------*\\\n| =========                 |                                                 |\n| \\\\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |\n|  \\\\    /   O peration     | Version:  2412                                  |\n|   \\\\  /    A nd           | Website:  www.openfoam.com                      |\n|    \\\\/     M anipulation  |                                                 |\n\\*---------------------------------------------------------------------------*/\nBuild  : _45e7c4a0-20241224 OPENFOAM=2412 version=2412\nArch   : \"LSB;label=32;scalar=64\"\nExec   : blockMesh\nDate   : Oct 01 2026\nTime   : 12:08:43\nHost   : 92c43f804057\nPID    : 1\nI/O    : uncollated\nCase   : /case\nnProcs : 1\ntrapFpe: Floating point exception trapping enabled (FOAM_SIGFPE).\nfileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 5, maxFileModificationPolls 20)\nallowSystemOperations : Allowing user-supplied system call operations\n\n// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\nCreate time\n\nCreating block mesh from \"system/blockMeshDict\"\nCreating block edges\nNo non-planar block faces defined\nCreating topology blocks\n\nCreating topology patches - from boundary section\n\nCreating block mesh topology\n\nCheck topology\n\n\tBasic statistics\n\t\tNumber of internal faces : 0\n\t\tNumber of boundary faces : 6\n\t\tNumber of defined boundary faces : 6\n\t\tNumber of undefined boundary faces : 0\n\tChecking patch -> block consistency\n\nCreating block offsets\nCreating merge list (topological search)...\n\nCreating polyMesh from blockMesh\nCreating points with scale (1 1 1)\n    Block 0 cell size :\n        i : 0.6461538462 .. 0.6461538462\n        j : 0.638 .. 0.638\n        k : 0.624375 .. 0.624375\n\nCreating cells\nCreating patches\nNo patch pairs to merge\n\nWriting polyMesh with 0 cellZones\n----------------\nMesh Information\n----------------\n  boundingBox: (-14.7 -9.57 0) (27.3 9.57 9.99)\n  nPoints: 34782\n  nCells: 31200\n  nFaces: 97070\n  nInternalFaces: 90130\n----------------\nPatches\n----------------\n  patch 0 (start: 90130 size: 480) name: inlet\n  patch 1 (start: 90610 size: 480) name: outlet\n  patch 2 (start: 91090 size: 2080) name: sides\n  patch 3 (start: 93170 size: 1950) name: top\n  patch 4 (start: 95120 size: 1950) name: ground\n\nEnd\n\n",
+    "case-fast/log.simpleFoam": "otal\tPressure\tViscous\tInternal\n    Cd:\t0.6545656718\t0.6451211656\t0.009444506184\t0\n    Cd(f):\t0.3271045675\t0.3223809519\t0.004723615521\t0\n    Cd(r):\t0.3274611043\t0.3227402136\t0.004720890663\t0\n    Cl:\t0.3105384232\t0.3099400316\t0.0005983915792\t0\n    Cl(f):\t0.1266933561\t0.1248373416\t0.001856014526\t0\n    Cl(r):\t0.1838450671\t0.18510269\t-0.001257622946\t0\n    CmPitch:\t-0.02857585549\t-0.03013267423\t0.001556818736\t0\n    CmRoll:\t-0.0001782684243\t-0.000179630853\t1.362428628e-06\t0\n    CmYaw:\t0.0006651321823\t0.0006609728403\t4.159342011e-06\t0\n    Cs:\t0.00354345222\t0.003556860749\t-1.340852863e-05\t0\n    Cs(f):\t0.002436858292\t0.002439403215\t-2.544922303e-06\t0\n    Cs(r):\t0.001106593928\t0.001117457534\t-1.086360633e-05\t0\n\n    writing force and moment coefficient files.\n\nTime = 13\n\nsmoothSolver:  Solving for Ux, Initial residual = 0.001371112343, Final residual = 6.118438138e-05, No Iterations 2\nsmoothSolver:  Solving for Uy, Initial residual = 0.05081697195, Final residual = 0.002108988966, No Iterations 2\nsmoothSolver:  Solving for Uz, Initial residual = 0.01682276135, Final residual = 0.000820545763, No Iterations 2\nGAMG:  Solving for p, Initial residual = 0.01464063122, Final residual = 0.0002824644202, No Iterations 3\nGAMG:  Solving for p, Initial residual = 0.00210825079, Final residual = 7.464861879e-05, No Iterations 2\ntime step continuity errors : sum local = 0.0001564162997, global = 4.194337715e-06, cumulative = -3.495934963e-05\nsmoothSolver:  Solving for omega, Initial residual = 0.0001982606871, Final residual = 1.045644064e-05, No Iterations 2\nsmoothSolver:  Solving for k, Initial residual = 0.007502280312, Final residual = 0.0007413617603, No Iterations 1\nExecutionTime = 3.7 s  ClockTime = 4 s\n\nforceCoeffs coefficients write:\n    Coefficient\tTotal\tPressure\tViscous\tInternal\n    Cd:\t0.6469453792\t0.6372937782\t0.009651601007\t0\n    Cd(f):\t0.3233265341\t0.318499521\t0.004827013028\t0\n    Cd(r):\t0.3236188452\t0.3187942572\t0.00482458798\t0\n    Cl:\t0.2539504922\t0.2533932734\t0.0005572188048\t0\n    Cl(f):\t0.1377125681\t0.1358225876\t0.001889980555\t0\n    Cl(r):\t0.1162379241\t0.1175706859\t-0.00133276175\t0\n    CmPitch:\t0.01073732199\t0.009125950841\t0.001611371153\t0\n    CmRoll:\t-0.0001461555571\t-0.000147368081\t1.212523957e-06\t0\n    CmYaw:\t0.0003969887154\t0.0003922379389\t4.750776499e-06\t0\n    Cs:\t0.003094787037\t0.003108523982\t-1.373694485e-05\t0\n    Cs(f):\t0.001944382234\t0.00194649993\t-2.117695924e-06\t0\n    Cs(r):\t0.001150404803\t0.001162024052\t-1.161924892e-05\t0\n\n    writing force and moment coefficient files.\n\nTime = 14\n\nsmoothSolver:  Solving for Ux, Initial residual = 0.001159084431, Final residual = 4.945370462e-05, No Iterations 2\nsmoothSolver:  Solving for Uy, Initial residual = 0.04898128147, Final residual = 0.002161698275, No Iterations 2\nsmoothSolver:  Solving for Uz, Initial residual = 0.01323410456, Final residual = 0.0006605556447, No Iterations 2\nGAMG:  Solving for p, Initial residual = 0.01378110123, Final residual = 0.0006840257668, No Iterations 2\nGAMG:  Solving for p, Initial residual = 0.001983554565, Final residual = 3.347544669e-05, No Iterations 3\ntime step continuity errors : sum local = 7.534112952e-05, global = 4.573718986e-06, cumulative = -3.038563065e-05\nsmoothSolver:  Solving for omega, Initial residual = 0.0001934021323, Final residual = 1.029810203e-05, No Iterations 2\nsmoothSolver:  Solving for k, Initial residual = 0.006130260183, Final residual = 0.0001705738029, No Iterations 2\nExecutionTime = 3.98 s  ClockTime = 4 s\n\nforceCoeffs coefficients write:\n    Coefficient\tTotal\tPressure\tViscous\tInternal\n    Cd:\t0.6610661126\t0.6510541718\t0.01001194085\t0\n    Cd(f):\t0.3304587039\t0.325451446\t0.00500725788\t0\n    Cd(r):\t0.3306074087\t0.3256027257\t0.005004682969\t0\n    Cl:\t0.214615046\t0.2140809068\t0.0005341391499\t0\n    Cl(f):\t0.1444009599\t0.142458327\t0.001942632856\t0\n    Cl(r):\t0.07021408612\t0.07162257983\t-0.001408493706\t0\n    CmPitch:\t0.03709343688\t0.0354178736\t0.001675563281\t0\n    CmRoll:\t-7.435239233e-05\t-7.563984773e-05\t1.287455399e-06\t0\n    CmYaw:\t-8.107616955e-05\t-8.505511291e-05\t3.978943366e-06\t0\n    Cs:\t0.002082516151\t0.002096533687\t-1.401753568e-05\t0\n    Cs(f):\t0.0009601819059\t0.0009632117304\t-3.029824475e-06\t0\n    Cs(r):\t0.001122334245\t0.001133321956\t-1.098771121e-05\t0\n\n    writing force and moment coefficient files.\n\nTime = 15\n\nsmoothSolver:  Solving for Ux, Initial residual = 0.0009982775184, Final residual = 4.178506029e-05, No Iterations 2\nsmoothSolver:  Solving for Uy, Initial residual = 0.04471218781, Final residual = 0.002140472583, No Iterations 2\nsmoothSolver:  Solving for Uz, Initial residual = 0.01181639054, Final residual = 0.0006099971387, No Iterations 2\nGAMG:  Solving for p, Initial residual = 0.01242212775, Final residual = 0.0005763554508, No Iterations 2\nGAMG:  Solving for p, Initial residual = 0.00163697248, Final residual = 7.917756818e-05, No Iterations 2\ntime step continuity errors : sum local = 0.0001994568899, global = 1.236682231e-05, cumulative = -1.801880834e-05\nsmoothSolver:  Solving for omega, Initial residual = 0.0001889401742, Final residual = 1.023753135e-05, No Iterations 2\nsmoothSolver:  Solving for k, Initial residual = 0.005018163358, Final residual = 0.0001424340137, No Iterations 2\nExecutionTime = 4.24 s  ClockTime = 4 s\n\nforceCoeffs coefficients write:\n    Coefficient\tTotal\tPressure\tViscous\tInternal\n    Cd:\t0.6876311367\t0.6772223058\t0.01040883091\t0\n    Cd(f):\t0.3437517529\t0.3385461434\t0.00520560956\t0\n    Cd(r):\t0.3438793838\t0.3386761625\t0.005203221351\t0\n    Cl:\t0.1954311027\t0.1948935376\t0.0005375651473\t0\n    Cl(f):\t0.1474753024\t0.1454769358\t0.001998366594\t0\n    Cl(r):\t0.04795580031\t0.04941660176\t-0.001460801446\t0\n    CmPitch:\t0.04975975104\t0.04803016703\t0.00172958402\t0\n    CmRoll:\t-6.381544708e-05\t-6.500955151e-05\t1.19410443e-06\t0\n    CmYaw:\t-0.0004091221873\t-0.0004146328423\t5.510655088e-06\t0\n    Cs:\t0.001289048955\t0.001300910881\t-1.186192663e-05\t0\n    Cs(f):\t0.00023540229\t0.0002358225982\t-4.203082292e-07\t0\n    Cs(r):\t0.001053646665\t0.001065088283\t-1.144161841e-05\t0\n\n    writing force and moment coefficient files.\n\nTime = 16\n\nsmoothSolver:  Solving for Ux, Initial residual = 0.000884266747, Final residual = 3.61701286e-05, No Iterations 2\nsmoothSolver:  Solving for Uy, Initial residual = 0.03966000561, Final residual = 0.001987122281, No Iterations 2\nsmoothSolver:  Solving for Uz, Initial residual = 0.01065260555, Final residual = 0.000555158868, No Iterations 2\nGAMG:  Solving for p, Initial residual = 0.01089898745, Final residual = 0.0004760847539, No Iterations 2\nGAMG:  Solving for p, Initial residual = 0.001356261131, Final residual = 6.300298807e-05, No Iterations 2\ntime step continuity errors : sum local = 0.0001750300258, global = 1.304966197e-05, cumulative = -4.969146369e-06\nsmoothSolver:  Solving for omega, Initial residual = 0.0001794170445, Final residual = 9.728124794e-06, No Iterations 2\nsmoothSolver:  Solving for k, Initial residual = 0.004219418585, Final residual = 0.000121378123, No Iterations 2\nExecutionTime = 4.52 s  ClockTime = 4 s\n\nforceCoeffs coefficients write:\n    Coefficient\tTotal\tPressure\tViscous\tInternal\n    Cd:\t0.719719913\t0.7088809809\t0.01083893218\t0\n    Cd(f):\t0.359829586\t0.3544091667\t0.005420419369\t0\n    Cd(r):\t0.359890327\t0.3544718142\t0.005418512816\t0\n    Cl:\t0.1918529282\t0.1912862279\t0.0005667003216\t0\n    Cl(f):\t0.1482726917\t0.1462183793\t0.002054312483\t0\n    Cl(r):\t0.0435802365\t0.04506784866\t-0.001487612161\t0\n    CmPitch:\t0.05234622762\t0.0505752653\t0.001770962322\t0\n    CmRoll:\t-3.037049892e-05\t-3.132377535e-05\t9.532764281e-07\t0\n    CmYaw:\t-0.0007451110399\t-0.000751893539\t6.782499102e-06\t0\n    Cs:\t0.0003914729794\t0.0004014778709\t-1.000489149e-05\t0\n    Cs(f):\t-0.0005493745502\t-0.0005511546036\t1.780053359e-06\t0\n    Cs(r):\t0.0009408475296\t0.0009526324745\t-1.178494485e-05\t0\n\n    writing force and moment coefficient files.\n\nTime = 17\n\nsmoothSolver:  Solving for Ux, Initial residual = 0.0008029717662, Final residual = 3.208916297e-05, No Iterations 2\nsmoothSolver:  Solving for Uy, Initial residual = 0.03564134495, Final residual = 0.001745783933, No Iterations 2\nsmoothSolver:  Solving for Uz, Initial residual = 0.009470901435, Final residual = 0.0004674609989, No Iterations 2\nGAMG:  Solving for p, Initial residual = 0.009569271817, Final residual = 0.0003883801875, No Iterations 2\nGAMG:  Solving for p, Initial residual = 0.001163878924, Final residual = 5.492906856e-05, No Iterations 2\ntime step continuity errors : sum local = 0.0001635902522, global = 1.439104174e-05, cumulative = 9.421895369e-06\nsmoothSolver:  Solving for omega, Initial residual = 0.0001629837423, Final residual = 8.832624126e-06, No Iterations 2\nsmoothSolver:  Solving for k, Initial residual = 0.00355409657, Final residual = 0.0001036697086, No Iterations 2\nExecutionTime = 4.8 s  ClockTime = 5 s\n\nforceCoeffs coefficients write:\n    Coefficient\tTotal\tPressure\tViscous\tInternal\n    Cd:\t0.7494202822\t0.7381402281\t0.01128005418\t0\n    Cd(f):\t0.3747115783\t0.3690710864\t0.005640491911\t0\n    Cd(r):\t0.3747087039\t0.3690691416\t0.005639562267\t0\n    Cl:\t0.1994089881\t0.1987959206\t0.0006130674984\t0\n    Cl(f):\t0.1473344555\t0.1452240577\t0.002110397734\t0\n    Cl(r):\t0.05207453264\t0.05357186288\t-0.001497330235\t0\n    CmPitch:\t0.04762996141\t0.04582609742\t0.001803863984\t0\n    CmRoll:\t1.437230083e-06\t9.724078817e-07\t4.648222016e-07\t0\n    CmYaw:\t-0.0009845359186\t-0.0009937172789\t9.181360321e-06\t0\n    Cs:\t-0.0004252647212\t-0.0004191290958\t-6.135625391e-06\t0\n    Cs(f):\t-0.001197168279\t-0.001203281827\t6.113547625e-06\t0\n    Cs(r):\t0.000771903558\t0.000784152731\t-1.224917302e-05\t0\n\n    writing force and moment coefficient files.\n\nTime = 18\n\nsmoothSolver:  Solving for Ux, Initial residual = 0.0007503461289, Final residual = 2.981910388e-05, No Iterations 2\nsmoothSolver:  Solving for Uy, Initial residual = 0.03294325315, Final residual = 0.001471101892, No Iterations 2\nsmoothSolver:  Solving for Uz, Initial residual = 0.008151358717, Final residual = 0.0003663599607, No Iterations 2\nGAMG:  Solving for p, Initial residual = 0.008518557774, Final residual = 0.0003227203547, No Iterations 2\nGAMG:  Solving for p, Initial residual = 0.001059108396, Final residual = 4.868975923e-05, No Iterations 2\ntime step continuity errors : sum local = 0.0001501310547, global = 1.524833957e-05, cumulative = 2.467023494e-05\nsmoothSolver:  Solving for omega, Initial residual = 0.0001495514168, Final residual = 7.994895742e-06, No Iterations 2\nsmoothSolver:  Solving for k, Initial residual = 0.003079465922, Final residual = 9.155597748e-05, No Iterations 2\nExecutionTime = 5.07 s  ClockTime = 5 s\n\nforceCoeffs coefficients write:\n    Coefficient\tTotal\tPressure\tViscous\tInternal\n    Cd:\t0.7716181982\t0.759946737\t0.01167146124\t0\n    Cd(f):\t0.3858369698\t0.3800007382\t0.005836231677\t0\n    Cd(r):\t0.3857812284\t0.3799459988\t0.005835229566\t0\n    Cl:\t0.2133527383\t0.2126719899\t0.0006807483495\t0\n    Cl(f):\t0.1449302841\t0.1427693334\t0.002160950698\t0\n    Cl(r):\t0.06842245417\t0.06990265652\t-0.001480202349\t0\n    CmPitch:\t0.03825391497\t0.03643333845\t0.001820576524\t0\n    CmRoll:\t2.787072275e-05\t2.736966718e-05\t5.010555641e-07\t0\n    CmYaw:\t-0.001166258825\t-0.001176205031\t9.946206345e-06\t0\n    Cs:\t-0.0009944009334\t-0.0009874042361\t-6.996697317e-06\t0\n    Cs(f):\t-0.001663459291\t-0.001669907149\t6.447857686e-06\t0\n    Cs(r):\t0.000669058358\t0.000682502913\t-1.3444555e-05\t0\n\n    writing force and moment coefficient files.\n\nTime = 19\n\nsmoothSolver:  Solving for Ux, Initial residual = 0.000704746951, Final residual = 2.811673844e-05, No Iterations 2\nsmoothSolver:  Solving for Uy, Initial residual = 0.03113133382, Final residual = 0.001219894058, No Iterations 2\nsmoothSolver:  Solving for Uz, Initial residual = 0.006854214888, Final residual = 0.0002821230257, No Iterations 2\nGAMG:  Solving for p, Initial residual = 0.007817634279, Final residual = 0.0002779253655, No Iterations 2\nGAMG:  Solving for p, Initial residual = 0.0009938113438, Final residual = 4.348401879e-05, No Iterations 2\ntime step continuity errors : sum local = 0.0001356095715, global = 1.548676418e-05, cumulative = 4.015699912e-05\nsmoothSolver:  Solving for omega, Initial residual = 0.0001353194219, Final residual = 7.102259369e-06, No Iterations 2\nsmoothSolver:  Solving for k, Initial residual = 0.002705719679, Final residual = 8.143817947e-05, No Iterations 2\nExecutionTime = 5.34 s  ClockTime = 5 s\n\nforceCoeffs coefficients write:\n    Coefficient\tTotal\tPressure\tViscous\tInternal\n    Cd:\t0.7851691185\t0.7731593591\t0.01200975934\t0\n    Cd(f):\t0.3926324336\t0.3866270049\t0.006005428711\t0\n    Cd(r):\t0.3925366849\t0.3865323543\t0.006004330633\t0\n    Cl:\t0.2297443296\t0.2290018378\t0.000742491832\t0\n    Cl(f):\t0.1412691514\t0.1390631822\t0.002205969159\t0\n    Cl(r):\t0.08847517823\t0.08993865556\t-0.001463477327\t0\n    CmPitch:\t0.02639698657\t0.02456226333\t0.001834723243\t0\n    CmRoll:\t4.787434262e-05\t4.732530363e-05\t5.490389952e-07\t0\n    CmYaw:\t-0.001261123996\t-0.001270802037\t9.678040517e-06\t0\n    Cs:\t-0.001216129579\t-0.001208219865\t-7.909713669e-06\t0\n    Cs(f):\t-0.001869188785\t-0.001874911969\t5.723183683e-06\t0\n    Cs(r):\t0.0006530592067\t0.0006666921041\t-1.363289735e-05\t0\n\n    writing force and moment coefficient files.\n\nTime = 20\n\nsmoothSolver:  Solving for Ux, Initial residual = 0.0006592390399, Final residual = 2.62591945e-05, No Iterations 2\nsmoothSolver:  Solving for Uy, Initial residual = 0.02964104215, Final residual = 0.001056499734, No Iterations 2\nsmoothSolver:  Solving for Uz, Initial residual = 0.005762068271, Final residual = 0.0002251088388, No Iterations 2\nGAMG:  Solving for p, Initial residual = 0.00734719086, Final residual = 0.0002465574339, No Iterations 2\nGAMG:  Solving for p, Initial residual = 0.000955955049, Final residual = 4.055686879e-05, No Iterations 2\ntime step continuity errors : sum local = 0.0001257889443, global = 1.44884965e-05, cumulative = 5.464549562e-05\nsmoothSolver:  Solving for omega, Initial residual = 0.0001232574047, Final residual = 6.315355254e-06, No Iterations 2\nsmoothSolver:  Solving for k, Initial residual = 0.002395847329, Final residual = 7.277851084e-05, No Iterations 2\nExecutionTime = 5.61 s  ClockTime = 6 s\n\nforceCoeffs coefficients write:\n    Coefficient\tTotal\tPressure\tViscous\tInternal\n    Cd:\t0.7909131578\t0.7786003571\t0.01231280061\t0\n    Cd(f):\t0.3955222856\t0.3893651871\t0.006157098488\t0\n    Cd(r):\t0.3953908721\t0.38923517\t0.006155702124\t0\n    Cl:\t0.2440022163\t0.2432026064\t0.0007996098444\t0\n    Cl(f):\t0.1358910937\t0.1336381648\t0.002252928953\t0\n    Cl(r):\t0.1081111226\t0.1095644417\t-0.001453319109\t0\n    CmPitch:\t0.01388998558\t0.01203686154\t0.001853124031\t0\n    CmRoll:\t6.570672733e-05\t6.500854548e-05\t6.981818447e-07\t0\n    CmYaw:\t-0.001274462399\t-0.001283577372\t9.114972524e-06\t0\n    Cs:\t-0.001330915211\t-0.001322927397\t-7.987813866e-06\t0\n    Cs(f):\t-0.001939920005\t-0.001945041071\t5.121065591e-06\t0\n    Cs(r):\t0.0006090047938\t0.0006221136733\t-1.310887946e-05\t0\n\n    writing force and moment coefficient files.\n\nTime = 21\n\nsmoothSolver:  Solving for Ux, Initial residual = 0.0006098983115, Final residual = 2.389367081e-05, No Iterations 2\nsmoothSolver:  Solving for Uy, Initial residual = 0.02804444298, Final residual = 0.0009643543622, No Iterations 2\nsmoothSolver:  Solving for Uz, Initial residual = 0.004951469539, Final residual = 0.0001915590279, No Iterations 2\nGAMG:  Solving for p, Initial residual = 0.007033714657, Final residual = 0.0002243950949, No Iterations 2\nGAMG:  Solving for p, Initial residual = 0.0009396432881, Final residual = 3.812813271e-05, No Iterations 2\ntime step continuity errors : sum local = 0.0001163938618, global = 1.046319685e-05, cumulative = 6.510869247e-05\nsmoothSolver:  Solving for omega, Initial residual = 0.0001154143194, Final residual = 5.708492976e-06, No Iterations 2\nsmoothSolver:  Solving for k, Initial residual = 0.00216224077, Final residual = 6.695527863e-05, No Iterations 2\nExecutionTime = 5.88 s  ClockTime = 6 s\n\n\n    From virtual bool Foam::regIOobject::readIfModified()\n    in file db/regIOobject/regIOobjectRead.C at line 266\n        Re-reading object controlDict from file \"/case/system/controlDict\"\nforceCoeffs coefficients write:\n    Coefficient\tTotal\tPressure\tViscous\tInternal\n    Cd:\t0.790208359\t0.7776322918\t0.01257606724\t0\n    Cd(f):\t0.3951836751\t0.3888948057\t0.006288869414\t0\n    Cd(r):\t0.3950246839\t0.3887374861\t0.006287197827\t0\n    Cl:\t0.2540777627\t0.2532454866\t0.0008322761422\t0\n    Cl(f):\t0.1299565847\t0.1276594959\t0.002297088726\t0\n    Cl(r):\t0.1241211781\t0.1255859906\t-0.001464812584\t0\n    CmPitch:\t0.002917703299\t0.001036752644\t0.001880950655\t0\n    CmRoll:\t7.949560743e-05\t7.865981408e-05\t8.35793352e-07\t0\n    CmYaw:\t-0.00125544876\t-0.00126364594\t8.197180232e-06\t0\n    Cs:\t-0.001325881738\t-0.001315177102\t-1.070463622e-05\t0\n    Cs(f):\t-0.001918389629\t-0.001921234491\t2.844862121e-06\t0\n    Cs(r):\t0.0005925078908\t0.0006060573892\t-1.354949834e-05\t0\n\n    writing force and moment coefficient files.\n\nTime = 22\n\nsmoothSolver:  Solving for Ux, Initial residual = 0.0005601504183, Final residual = 2.1341821e-05, No Iterations 2\nsmoothSolver:  Solving for Uy, Initial residual = 0.02618885552, Final residual = 0.0009073312283, No Iterations 2\nsmoothSolver:  Solving for Uz, Initial residual = 0.004408847766, Final residual = 0.000170413941, No Iterations 2\nGAMG:  Solving for p, Initial residual = 0.006804775464, Final residual = 0.0002057698047, No Iterations 2\nGAMG:  Solving for p, Initial residual = 0.0009020166127, Final residual = 3.392389512e-05, No Iterations 2\ntime step continuity errors : sum local = 0.0001019059892, global = 5.435058078e-06, cumulative = 7.054375055e-05\nsmoothSolver:  Solving for omega, Initial residual = 0.0001065590541, Final residual = 5.178094875e-06, No Iterations 2\nsmoothSolver:  Solving for k, Initial residual = 0.001980581645, Final residual = 6.223428177e-05, No Iterations 2\nExecutionTime = 6.16 s  ClockTime = 6 s\n\nforceCoeffs coefficients write:\n    Coefficient\tTotal\tPressure\tViscous\tInternal\n    Cd:\t0.7849147803\t0.7721120082\t0.01280277206\t0\n    Cd(f):\t0.3925765868\t0.3861744656\t0.006402121217\t0\n    Cd(r):\t0.3923381934\t0.3859375426\t0.006400650847\t0\n    Cl:\t0.259834782\t0.2589769775\t0.0008578044154\t0\n    Cl(f):\t0.1233603489\t0.1210218136\t0.002338535333\t0\n    Cl(r):\t0.136474433\t0.1379551639\t-0.001480730918\t0\n    CmPitch:\t-0.006557042044\t-0.00846667517\t0.001909633125\t0\n    CmRoll:\t0.0001191967142\t0.0001184615291\t7.351850879e-07\t0\n    CmYaw:\t-0.001195196531\t-0.001203091832\t7.895300798e-06\t0\n    Cs:\t-0.001234919775\t-0.001225151081\t-9.768693788e-06\t0\n    Cs(f):\t-0.001812656419\t-0.001815667373\t3.010953904e-06\t0\n    Cs(r):\t0.000577736644\t0.0005905162917\t-1.277964769e-05\t0\n\n    writing force and moment coefficient files.\n\nwallShearStress wallShearStress write:\n    writing field wallShearStress\n    min/max(part0) = (-3.900914767 -0.618877965 -0.1966617949), (0.2052551975 0.9033095449 0.2593141829)\n    min/max(part1) = (-8.628679631 -0.8891922015 -1.610333131), (0.1777874597 0.3386890739 0.1303384895)\n    min/max(part2) = (-15.2352682 -0.3403060237 -2.569307506), (0.1792252328 2.794810024 0.1332172454)\n    min/max(part3) = (-9.02922929 -2.192633681 -0.4844371193), (0.2406063663 0.5699844427 0.2984493602)\n    min/max(part4) = (-8.851897572 -0.502187516 -0.4219073287), (0.2433961456 2.196954221 0.3273714217)\n    min/max(part5) = (-2.080580624 -0.9487838842 -2.767209033), (1.176544831 0.9434063308 0.8538417953)\nyPlus yPlus write:\n    writing field yPlus\n    patch ground y+ : min = 402.8114256, max = 9230.808886, average = 5189.682395\n    patch part0 y+ : min = 648.2235543, max = 4087.201326, average = 1552.344142\n    patch part1 y+ : min = 402.8114256, max = 2869.412898, average = 1042.502956\n    patch part2 y+ : min = 403.8439802, max = 2929.846634, average = 1049.004206\n    patch part3 y+ : min = 815.4191919, max = 3190.987382, average = 1520.916604\n    patch part4 y+ : min = 789.994483, max = 3185.916542, average = 1474.357295\n    patch part5 y+ : min = 30.05173735, max = 352.5985053, average = 111.7634137\nEnd\n\nFinalising parallel run\n",
+    "case-fast/log.decomposePar": "/*---------------------------------------------------------------------------*\\\n| =========                 |                                                 |\n| \\\\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |\n|  \\\\    /   O peration     | Version:  2412                                  |\n|   \\\\  /    A nd           | Website:  www.openfoam.com                      |\n|    \\\\/     M anipulation  |                                                 |\n\\*---------------------------------------------------------------------------*/\nBuild  : _45e7c4a0-20241224 OPENFOAM=2412 version=2412\nArch   : \"LSB;label=32;scalar=64\"\nExec   : decomposePar -force\nDate   : Oct 01 2026\nTime   : 12:09:01\nHost   : d7148409c55a\nPID    : 1\nI/O    : uncollated\nCase   : /case\nnProcs : 1\ntrapFpe: Floating point exception trapping enabled (FOAM_SIGFPE).\nfileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 5, maxFileModificationPolls 20)\nallowSystemOperations : Allowing user-supplied system call operations\n\n// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\nCreate time\n\n\n\nDecomposing mesh\n\nCreate mesh\n\nCalculating distribution of cells\nDecomposition method scotch [4] (region region0)\n\nFinished decomposition in 0.2 s\n\nCalculating original mesh data\n\nDistributing cells to processors\n\nDistributing faces to processors\n\nDistributing points to processors\n\nConstructing processor meshes\nReading hexRef8 data : cellLevel\nReading hexRef8 data : pointLevel\nReading hexRef8 data : level0Edge\n\nProcessor 0\n    Number of cells = 35227\n    Number of points = 45528\n    Number of faces shared with processor 1 = 541\n    Number of faces shared with processor 2 = 1039\n    Number of faces shared with processor 3 = 230\n    Number of processor patches = 3\n    Number of processor faces = 1810\n    Number of boundary faces = 6830\n\nProcessor 1\n    Number of cells = 35465\n    Number of points = 40719\n    Number of faces shared with processor 0 = 541\n    Number of faces shared with processor 2 = 18\n    Number of faces shared with processor 3 = 174\n    Number of processor patches = 3\n    Number of processor faces = 733\n    Number of boundary faces = 7606\n\nProcessor 2\n    Number of cells = 35371\n    Number of points = 44924\n    Number of faces shared with processor 0 = 1039\n    Number of faces shared with processor 1 = 18\n    Number of faces shared with processor 3 = 986\n    Number of processor patches = 3\n    Number of processor faces = 2043\n    Number of boundary faces = 6629\n\nProcessor 3\n    Number of cells = 35282\n    Number of points = 44860\n    Number of faces shared with processor 0 = 230\n    Number of faces shared with processor 1 = 174\n    Number of faces shared with processor 2 = 986\n    Number of processor patches = 3\n    Number of processor faces = 1390\n    Number of boundary faces = 6215\n\nNumber of processor faces = 2988\nMax number of cells = 35465 (0.3643567158% above average 35336.25)\nMax number of processor patches = 3 (0% above average 3)\nMax number of faces between processors = 2043 (36.74698795% above average 1494)\n\nTime = 0\n\nProcessor 0: field transfer\nProcessor 1: field transfer\nProcessor 2: field transfer\nProcessor 3: field transfer\n\nEnd\n\n",
+    "case-fast/log.checkMesh": "/*---------------------------------------------------------------------------*\\\n| =========                 |                                                 |\n| \\\\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |\n|  \\\\    /   O peration     | Version:  2412                                  |\n|   \\\\  /    A nd           | Website:  www.openfoam.com                      |\n|    \\\\/     M anipulation  |                                                 |\n\\*---------------------------------------------------------------------------*/\nBuild  : _45e7c4a0-20241224 OPENFOAM=2412 version=2412\nArch   : \"LSB;label=32;scalar=64\"\nExec   : checkMesh -meshQuality -allTopology\nDate   : Oct 01 2026\nTime   : 12:08:59\nHost   : f09cdb60257c\nPID    : 1\nI/O    : uncollated\nCase   : /case\nnProcs : 1\ntrapFpe: Floating point exception trapping enabled (FOAM_SIGFPE).\nfileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 5, maxFileModificationPolls 20)\nallowSystemOperations : Allowing user-supplied system call operations\n\n// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\nCreate time\n\nCreate mesh for time = 0\n\nCheck mesh...\n    Enabling all (cell, face, edge, point) topology checks.\n    Enabling user-defined geometry checks.\n\nTime = 0\n\nMesh stats \n    points:           172464\n    faces:            454916\n    internal faces:   427636\n    cells:            141345\n    faces per cell:   6.243956277\n    boundary patches: 11\n    point zones:      1\n    face zones:       0\n    cell zones:       0\n\nOverall number of cells of each type:\n    hexahedra:     124476\n    prisms:        3366\n    wedges:        0\n    pyramids:      0\n    tet wedges:    0\n    tetrahedra:    0\n    polyhedra:     13503\n    Breakdown of polyhedra by number of faces:\n        faces   number of cells\n            5   104\n            6   3465\n            8   10\n            9   7702\n           11   8\n           12   1767\n           13   2\n           15   390\n           18   55\n\nChecking topology...\n    Boundary definition OK.\n    Cell to face addressing OK.\n    Point usage OK.\n    Upper triangular ordering OK.\n    Face vertices OK.\n    Topological cell zip-up check OK.\n    Face-face connectivity OK.\n    Number of regions: 1 (OK).\n\nChecking patch topology for multiply connected surfaces...\n                   Patch    Faces   Points  Surface topology\n                   inlet      480      527  ok (non-closed singly connected)\n                  outlet      480      527  ok (non-closed singly connected)\n                   sides     2080     2244  ok (non-closed singly connected)\n                     top     1950     2046  ok (non-closed singly connected)\n                  ground     3135     3359  ok (non-closed singly connected)\n                   part0     1185     1265      ok (closed singly connected)\n                   part1      169      183  ok (non-closed singly connected)\n                   part2      169      183  ok (non-closed singly connected)\n                   part3      162      178  ok (non-closed singly connected)\n                   part4      162      178  ok (non-closed singly connected)\n                   part5    17308    17327      ok (closed singly connected)\n                    \".*\"    27280    27517      ok (closed singly connected)\n\n\nChecking faceZone topology for multiply connected surfaces...\n    No faceZones found.\n\nChecking basic cellZone addressing...\n    No cellZones found.\n\nChecking basic pointZone addressing...\n               PointZone  PointsBoundingBox\n            frozenPoints       0(1e+150 1e+150 1e+150) (-1e+150 -1e+150 -1e+150)\n\nChecking geometry...\n    Overall domain bounding box (-14.7 -9.57 0) (27.3 9.57 9.99)\n    Mesh has 3 geometric (non-empty/wedge) directions (1 1 1)\n    Mesh has 3 solution (non-empty) directions (1 1 1)\n    Boundary openness (-1.551391469e-16 3.03101502e-17 -2.583288294e-16) OK.\n    Max cell openness = 2.788565062e-16 OK.\n    Max aspect ratio = 3.598761334 OK.\n    Minimum face area = 3.102591328e-05. Maximum face area = 0.414827237.  Face area magnitudes OK.\n    Min volume = 3.789272418e-07. Max volume = 0.2596605835.  Total volume = 8025.221003.  Cell volumes OK.\n    Mesh non-orthogonality Max: 49.32687385 average: 9.258188399\n    Non-orthogonality check OK.\n    Face pyramids OK.\n    Max skewness = 3.49686248 OK.\n    Coupled point location match (average 0) OK.\nChecking faces in error :\n    non-orthogonality >  65 degrees                        : 0\n    faces with face pyramid volume < 1e-13                 : 0\n    faces with face-decomposition tet quality < 1e-15      : 0\n    faces with concavity >  80 degrees                     : 0\n    faces with skewness >   4 (internal) or   4 (boundary) : 0\n    faces with interpolation weights (0..1)  <  0.02       : 0\n    faces with volume ratio of neighbour cells <  0.01     : 0\n    faces with face twist <  0.02                          : 0\n    faces on cells with determinant < 0.001                : 0\n\nMesh OK.\n\nEnd\n\n",
+    "case-fast/log.reconstructPar": "/*---------------------------------------------------------------------------*\\\n| =========                 |                                                 |\n| \\\\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |\n|  \\\\    /   O peration     | Version:  2412                                  |\n|   \\\\  /    A nd           | Website:  www.openfoam.com                      |\n|    \\\\/     M anipulation  |                                                 |\n\\*---------------------------------------------------------------------------*/\nBuild  : _45e7c4a0-20241224 OPENFOAM=2412 version=2412\nArch   : \"LSB;label=32;scalar=64\"\nExec   : reconstructPar -newTimes\nDate   : Oct 01 2026\nTime   : 12:09:09\nHost   : a07c08dfccf8\nPID    : 1\nI/O    : uncollated\nCase   : /case\nnProcs : 1\ntrapFpe: Floating point exception trapping enabled (FOAM_SIGFPE).\nfileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 5, maxFileModificationPolls 20)\nallowSystemOperations : Allowing user-supplied system call operations\n\n// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\nCreate time\n\n\n\nReconstructing fields\nregion=region0\n\nTime = 22\n\nReconstructing FV fields\n\n    Reconstructing volScalarFields\n\n        k\n        nut\n        omega\n        p\n        yPlus\n\n    Reconstructing volVectorFields\n\n        U\n        wallShearStress\n\n    Reconstructing surfaceScalarFields\n\n        phi\n\nReconstructing point fields\n\nNo point fields\n\nNo lagrangian fields\n\nNo FA fields\n\n\nEnd\n\n"
+  }
+}

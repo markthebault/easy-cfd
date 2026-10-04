@@ -1,0 +1,192 @@
+import { test, before, after } from "node:test";
+import assert from "node:assert/strict";
+import { createServer } from "vite";
+let server, aero, codec, tyres, analysis;
+before(async () => {
+  server = await createServer({
+    root: new URL("..", import.meta.url).pathname,
+    server: { middlewareMode: true, hmr: false },
+    appType: "custom",
+    optimizeDeps: { noDiscovery: true, include: [] },
+    logLevel: "error",
+  });
+  aero = await server.ssrLoadModule("/src/solver/aero.ts");
+  codec = await server.ssrLoadModule("/src/store/codec.ts");
+  tyres = await server.ssrLoadModule("/src/solver/tyreLoads.ts");
+  analysis = await server.ssrLoadModule("/src/solver/axleAnalysis.ts");
+});
+after(async () => server?.close());
+const axles = { frontX: -1, rearX: 2, centrelineY: 0, confirmed: true };
+const close = (a, b) => assert.ok(Math.abs(a - b) < 1e-10, `${a} vs ${b}`);
+test("tyre pairs conserve weight plus downforce, with mixed lift and loss of contact", () => {
+  const weight = {vehicle_mass_kg: 1200, front_weight_percent: 55};
+  for (const [frontLift, rearLift] of [[0, 0], [-120, -300], [120, -300]]) {
+    const loads = tyres.estimateTyreLoads({frontLift, rearLift}, weight);
+    close(loads.front.staticN, 1200 * 9.80665 * .55);
+    close(loads.rear.staticN, 1200 * 9.80665 * .45);
+    close(loads.front.aerodynamicN, -frontLift);
+    close(loads.rear.aerodynamicN, -rearLift);
+    close(loads.front.totalN + loads.rear.totalN, 1200 * 9.80665 - frontLift - rearLift);
+    assert.equal(loads.contactFeasible, true);
+  }
+  const unloaded = tyres.estimateTyreLoads({frontLift:7000, rearLift:0}, weight);
+  assert.ok(unloaded.front.totalN < 0);
+  assert.equal(unloaded.contactFeasible, false);
+});
+test("tyre estimates never invent missing weights or unavailable axle data", () => {
+  const balance = {frontLift:0, rearLift:0}, weight = {vehicle_mass_kg:1200, front_weight_percent:55};
+  for (const missing of [{}, {vehicle_mass_kg:1200}, {front_weight_percent:55}])
+    assert.equal(tyres.estimateTyreLoads(balance, missing), undefined);
+  assert.equal(tyres.estimateTyreLoads(undefined, weight), undefined);
+  assert.equal(tyres.estimateTyreLoads({...balance, frontLift:NaN}, weight), undefined);
+  for (const [key, value] of [["vehicle_mass_kg", 0], ["vehicle_mass_kg", -1], ["vehicle_mass_kg", 10001], ["vehicle_mass_kg", Infinity], ["front_weight_percent", -1], ["front_weight_percent", 101], ["front_weight_percent", NaN]]) {
+    const invalid = {...weight, [key]:value};
+    assert.ok(tyres.weightInputError(invalid));
+    assert.equal(tyres.estimateTyreLoads(balance, invalid), undefined);
+  }
+});
+test("wall moments give front, rear and middle loads; sums conserve lift and Cl", () => {
+  for (const [x, front, rear] of [
+    [-1, -90, 0],
+    [2, 0, -90],
+    [0.5, -45, -45],
+  ]) {
+    const f = [0, 0, -90],
+      m = aero.momentAt([x, 0, 0], f, [-1, 0, 0]),
+      b = aero.equivalentLoads(f, m, axles, 450);
+    close(b.frontLift, front);
+    close(b.rearLift, rear);
+    close(b.frontCl + b.rearCl, -0.2);
+  }
+});
+test("pure couple, drag at height, mixed loads and zero lift do not fabricate percentages", () => {
+  const b = aero.equivalentLoads([0, 0, 0], [0, 90, 0], axles, 450);
+  close(b.rearLift, -30);
+  close(b.frontLift, 30);
+  assert.equal(b.frontDownforcePercent, undefined);
+  const drag = aero.equivalentLoads(
+    [90, 0, 0],
+    aero.momentAt([0.5, 0, 1], [90, 0, 0], [-1, 0, 0]),
+    axles,
+    450,
+  );
+  close(drag.pitch, 90);
+  close(drag.frontLift, 30);
+  close(drag.rearLift, -30);
+  assert.match(b.percentageReason, /zero/);
+  const mix = aero.equivalentLoads([0, 0, -30], [0, 180, 0], axles, 450);
+  assert.match(mix.percentageReason, /Both/);
+});
+test("translation of complete car and OpenFOAM origin preserves equivalent loads", () => {
+  const f = [80, 12, -100],
+    p = [0.5, 0.2, 0.7],
+    o = [-1, 0, 0],
+    offset = [7, -3, 2];
+  const translate = (a) => a.map((v, i) => v + offset[i]);
+  const m = aero.momentAt(p, f, o),
+    other = aero.momentAt(translate(p), f, translate(o));
+  m.forEach((v, i) => close(v, other[i]));
+  const b = aero.equivalentLoads(f, m, axles, 450),
+    b2 = aero.equivalentLoads(
+      f,
+      other,
+      { ...axles, frontX: 6, rearX: 9, centrelineY: -3 },
+      450,
+    );
+  close(b.frontLift, b2.frontLift);
+  close(b.rearLift, b2.rearLift);
+});
+test("invalid and unconfirmed axles are unavailable; ambiguous wheels do not suggest box ends", () => {
+  assert.equal(
+    aero.equivalentLoads(
+      [0, 0, -10],
+      [0, 0, 0],
+      { ...axles, confirmed: false },
+      450,
+    ),
+    undefined,
+  );
+  assert.equal(aero.suggestAxles([]), undefined);
+  assert.match(aero.axleError({ ...axles, frontX: 3 }), /smaller/);
+  const wheels = [
+    [-1, -0.7],
+    [-1, 0.7],
+    [2, -0.7],
+    [2, 0.7],
+  ].map(([x, y], i) => ({
+    id: `w${i}`,
+    role: "wheel",
+    wheel: { center: [x, y, 0.3], radius: 0.3 },
+  }));
+  assert.deepEqual(aero.suggestAxles(wheels), {
+    frontX: -1,
+    rearX: 2,
+    centrelineY: 0,
+    confirmed: false,
+  });
+});
+
+test("automatic axles require four valid wheels in two lateral pairs and preserve manual overrides", () => {
+  const parts = [[-1,-.7],[-1,.7],[2,-.7],[2,.7]].map(([x,y],i)=>({id:`w${i}`,role:"wheel",wheel:{center:[x,y,.3],radius:.3}}));
+  assert.deepEqual(aero.detectedAxles(parts), {...axles,source:"wheels"});
+  assert.equal(aero.detectedAxles(parts.slice(0,3)), undefined);
+  assert.equal(aero.detectedAxles(parts.map(p=>({...p,wheel:{...p.wheel,center:[p.wheel.center[0],0,.3]}}))),undefined);
+  assert.equal(aero.detectedAxles([...parts,parts[0]]),undefined);
+  assert.equal(aero.detectedAxles(parts.map((p,i)=>i ? p : {...p,active:false})),undefined);
+  const manual={...axles,frontX:-.9,source:"manual"};
+  assert.equal(aero.resolvedAxles(manual,parts),manual);
+  const stale={...axles,frontX:-10,source:"wheels"};
+  assert.deepEqual(aero.resolvedAxles(stale,parts),{...axles,source:"wheels"});
+});
+test("saved moments transfer from an arbitrary origin to detected axles without altering CFD snapshots", () => {
+  const force=[80,12,-90], origin=[7,-3,2], point=[.5,.2,1];
+  const integral={force,origin,moment:aero.momentAt(point,force,origin)};
+  const expected=aero.equivalentLoads(force,aero.momentAt(point,force,[-1,0,0]),axles,450);
+  const r={aero:integral,dynamicPressure:225,history:[{time:1,step:1,cd:80/450,cl:-90/450,cs:12/450,pitch:integral.moment[1]}]};
+  const snapshot=structuredClone(r);
+  const result=analysis.resultAtAxles(r,axles,2);
+  close(result.balance.frontLift,expected.frontLift);
+  close(result.balance.rearLift,expected.rearLift);
+  close(result.history[0].frontLift,expected.frontLift);
+  close(result.history[0].rearLift,expected.rearLift);
+  close(result.history[0].pitch,expected.pitch);
+  assert.equal(result.balanceBands,undefined);
+  assert.deepEqual(r,snapshot);
+  assert.equal(analysis.resultAtAxles({...r,aero:undefined},axles,2).balance,undefined);
+});
+test("physical stress and validity survive storage without quantization; old samples remain unsupported", () => {
+  const s = {
+    cp: new Float32Array([0, 1, NaN]),
+    shear: new Float32Array(9),
+    wallStress: new Float32Array([0, 0, 0, 3, 4, 0, NaN, NaN, NaN]),
+    stressValid: new Uint8Array([1, 1, 2]),
+    snapshot: {
+      iteration: 120,
+      grid: "test",
+      unit: "Pa",
+      dynamicPressure: 100,
+    },
+  };
+  const actual = codec.decodeSurface(codec.encodeSurface(["part"], [s]))[0];
+  assert.deepEqual(actual.wallStress, s.wallStress);
+  assert.deepEqual(actual.stressValid, s.stressValid);
+  assert.equal(Math.hypot(...actual.wallStress.slice(3, 6)), 5);
+  const old = codec.decodeSurface([
+    { cp: codec.quantize(s.cp), shear: codec.quantize(s.shear) },
+  ])[0];
+  assert.equal(old.wallStress, undefined);
+});
+
+test("resource preflight rejects over-budget grids and device buffers before preparation", async () => {
+  const { preflight } = await server.ssrLoadModule("/src/solver/resources.ts");
+  assert.throws(() => preflight(3_000_000, 3_200_000, 10000), /2.5 M/);
+  assert.throws(() => preflight(1_500_000, 1_800_000, 400_000_000), /GiB/);
+  assert.throws(
+    () => preflight(1_500_000, 1_800_000, 1000, 16 * 1024 ** 2),
+    /GPU/,
+  );
+  assert.ok(
+    preflight(1_500_000, 1_800_000, 1000, 128 * 1024 ** 2).bytes <
+      3 * 1024 ** 3,
+  );
+});

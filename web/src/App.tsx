@@ -7,6 +7,7 @@ import type { Vec3 } from "./solver/types";
 import { useStore } from "./store/store";
 import { app, init } from "./store/app";
 import { gridBounds } from "./store/geometry";
+import { assessedAxles, assessedResult } from "./store/axleAnalysis";
 import { DropOverlay, Toasts, TopBar, ViewBar } from "./ui/Chrome";
 import { CompareView } from "./ui/CompareView";
 import { EmptyState } from "./ui/EmptyState";
@@ -100,6 +101,7 @@ export function App() {
       {view !== "compare" && (
         <StageView
           id="main"
+          axles={view === "results" && run ? assessedAxles(run.doc) : driving?.axles}
           parts={content.parts}
           partsKey={content.key}
           surface={content.surface}
@@ -107,7 +109,7 @@ export function App() {
           ranges={content.ranges}
           viz={viz}
           driving={driving}
-          forces={view === "results" ? run?.doc.result : null}
+          forces={view === "results" && run ? assessedResult(run.doc) : null}
           dark={dark}
           box={box}
           fitBox={!!box && showBox}
@@ -130,7 +132,7 @@ export function App() {
           )}
           {hasPanel && <ViewBar />}
           {hasPanel && driving && !content.field && <DrivingDock conditions={driving} focused={sceneFocus} onFocus={() => setSceneFocus(v => !v)} />}
-          {content.field && <VizDock field={content.field} particles={particles} surface={!!content.surface?.some(Boolean)} forces={view === "results" ? run?.doc.result : null} driving={driving} focused={sceneFocus} onFocus={() => setSceneFocus(v => !v)} />}
+          {content.field && <VizDock friction={!!content.surface?.some(s=>s?.stressValid?.some(v=>v===1))} field={content.field} particles={particles} surface={!!content.surface?.some(Boolean)} forces={view === "results" && run ? assessedResult(run.doc) : null} driving={driving} focused={sceneFocus} onFocus={() => setSceneFocus(v => !v)} />}
           {content.field && (
             <LegendStack viz={viz} ranges={content.ranges} hasSurface={!!content.surface?.some(Boolean)} hasField={!!content.field} />
           )}

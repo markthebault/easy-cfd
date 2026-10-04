@@ -1,6 +1,9 @@
 """One persistent queue, one solver container at a time. Run uvicorn with one worker."""
 
+import datetime
 import json
+import sys
+import psutil
 import hashlib
 import fcntl
 import os
@@ -11,19 +14,30 @@ import subprocess
 import threading
 import time
 from pathlib import Path
-from . import storage, foam, results
-from .models import Settings, resolved_preset
+from . import storage, foam, compute_lease
+from .models import Axles, Settings, resolved_preset
+from .aerodynamics import detected_axles
 
 JOBS = queue.Queue()
 STOP = threading.Event()
 THREAD = None
 ACTIVE = None
+DEADLINES = {}
 INSTANCE_LOCK = None
 # Capture source identity once, so edits on disk cannot relabel a running server's templates.
 PIPELINE_HASH = hashlib.sha256(
     b"".join(
         Path(__file__).with_name(name).read_bytes()
-        for name in ("foam.py", "models.py", "results.py", "benchmark.py", "runner.py")
+        for name in (
+            "foam.py",
+            "models.py",
+            "results.py",
+            "benchmark.py",
+            "runner.py",
+            "aerodynamics.py",
+            "extract_worker.py",
+            "sample_worker.py",
+        )
     )
 ).hexdigest()
 
@@ -72,7 +86,12 @@ def patch(key, **changes):
 
 
 def check_cancelled(key):
-    if STOP.is_set() or storage.get("runs", key)["status"] == "cancelled":
+    if time.monotonic() > DEADLINES.get(key, float("inf")):
+        raise TimeoutError(
+            "Whole-job elapsed-time limit reached. Completed mesh-level results remain saved; the qualification is incomplete."
+        )
+    record = storage.get("runs", key)
+    if STOP.is_set() or record["status"] == "cancelled" or record.get("cancel_requested"):
         raise InterruptedError("Run cancelled")
 
 
@@ -142,6 +161,11 @@ def stage(key, case, command, stage_name, memory, cpus=4):
     log_path = case / f"log.{tool}"
     args = container(name, case, command, memory, cpus)
     start = time.monotonic()
+    record = storage.get("runs", key)
+    reserve = min(120, 0.2 * record.get("deadline_seconds", 600))
+    checkpoint_requested = False
+    resource_sample_at = start
+    resource_peak = 0
     with log_path.open("w") as log:
         process = subprocess.Popen(args, stdout=log, stderr=subprocess.STDOUT)
         ACTIVE = process
@@ -150,15 +174,62 @@ def stage(key, case, command, stage_name, memory, cpus=4):
                 check_cancelled(key)
                 if time.monotonic() - start > 24 * 3600:
                     raise RuntimeError("Stage exceeded 24 hours. Refine the geometry or reduce quality.")
+                now = time.monotonic()
+                if now - resource_sample_at >= 5:
+                    resource_sample_at = now
+                    try:
+                        stats = docker(["stats", "--no-stream", "--format", "{{.MemUsage}}", name], timeout=3)
+                    except subprocess.TimeoutExpired:
+                        stats = subprocess.CompletedProcess([], 1, "", "")
+                    match = re.match(r"([\d.]+)([KMG]i?B)", stats.stdout)
+                    if match:
+                        units = {
+                            "KiB": 1024,
+                            "MiB": 1024**2,
+                            "GiB": 1024**3,
+                            "KB": 1000,
+                            "MB": 1000**2,
+                            "GB": 1000**3,
+                        }
+                        rss = float(match[1]) * units[match[2]]
+                        resource_peak = max(resource_peak, rss)
+                        record = storage.get("runs", key)
+                        patch(
+                            key,
+                            container_peak_bytes=max(record.get("container_peak_bytes", 0), resource_peak),
+                            host_available_bytes=psutil.virtual_memory().available,
+                        )
+                        if (
+                            rss + psutil.Process().memory_info().rss > 8 * 1024**3
+                            or psutil.virtual_memory().available < 512 * 1024**2
+                        ):
+                            raise RuntimeError(
+                                "Resource pressure exceeded the combined 8 GiB job budget or left less than 512 MiB available on the host. Saved checkpoints and logs remain available."
+                            )
                 if tool == "simpleFoam":
+                    if (
+                        not checkpoint_requested
+                        and DEADLINES.get(key, float("inf")) - time.monotonic() <= reserve
+                    ):
+                        control = case / "system/controlDict"
+                        content = re.sub(r"stopAt\s+endTime;", "stopAt writeNow;", control.read_text())
+                        temporary = control.with_suffix(".checkpoint")
+                        temporary.write_text(content)
+                        temporary.replace(control)
+                        checkpoint_requested = True
+                        patch(
+                            key,
+                            termination_reason="deadline-checkpoint",
+                            stage=f"{stage_name}: writing provisional checkpoint",
+                        )
                     tail = log_path.read_text(errors="replace")[-24000:]
                     iterations = re.findall(r"^Time = (\d+)", tail, re.MULTILINE)
                     if iterations:
                         patch(key, iteration=int(iterations[-1]))
                 time.sleep(0.5)
         except BaseException:
-            docker(["rm", "-f", name])
-            process.wait(timeout=15)
+            docker(["rm", "-f", name], timeout=3)
+            process.wait(timeout=2)
             raise
         finally:
             ACTIVE = None
@@ -171,6 +242,52 @@ def stage(key, case, command, stage_name, memory, cpus=4):
         )
         raise RuntimeError(f"{reason} Inspect the log for the geometry or solver error.\n{tail}")
     return time.monotonic() - start
+
+
+def extract_case(key, case, output, run):
+    output.mkdir(exist_ok=True)
+    input_record = output / ".run-input.json"
+    input_record.write_text(json.dumps(run))
+    with (case / "log.extract").open("w") as extract_log:
+        process = subprocess.Popen(
+            [
+                sys.executable,
+                "-m",
+                "easycfd.extract_worker",
+                str(case),
+                str(output),
+                str(input_record),
+                str(case / "metadata.json"),
+            ],
+            stdout=extract_log,
+            stderr=subprocess.STDOUT,
+        )
+        try:
+            while process.poll() is None:
+                check_cancelled(key)
+                try:
+                    memory = (
+                        psutil.Process(process.pid).memory_info().rss + psutil.Process().memory_info().rss
+                    )
+                except psutil.NoSuchProcess:
+                    continue
+                record = storage.get("runs", key)
+                if memory > record.get("extraction_peak_bytes", 0):
+                    patch(key, extraction_peak_bytes=memory)
+                if memory > 8 * 1024**3:
+                    raise RuntimeError(
+                        "Native extraction exceeded the 8 GiB combined process memory ceiling."
+                    )
+                time.sleep(0.2)
+            if process.returncode:
+                raise RuntimeError(
+                    "Native field extraction failed: " + (case / "log.extract").read_text()[-3000:]
+                )
+        except BaseException:
+            process.kill()
+            process.wait(timeout=5)
+            raise
+    return json.loads((output / ".extracted.json").read_text())
 
 
 def solve(key, tier):
@@ -202,6 +319,11 @@ def solve(key, tier):
     ]:
         timings[command[0]] = stage(key, case, command, f"{tier}: {label}", preset["memory_gb"], cpus)
     check = (case / "log.checkMesh").read_text()
+    count = re.search(r"^\s*cells:\s*(\d+)", check, re.MULTILINE)
+    if count and int(count[1]) > preset["max_cells"]:
+        raise RuntimeError(
+            f"Mesh has {count[1]} cells, above this preset's hard ceiling {preset['max_cells']}."
+        )
     if "Mesh OK." not in check:
         details = "\n".join(
             line.strip().lstrip("*").strip()
@@ -211,8 +333,7 @@ def solve(key, tier):
         raise RuntimeError(
             "Generated mesh failed quality checks; the airflow solver was not started. "
             "Box dimensions and mesh resolution affect cell quality even with unchanged geometry. "
-            "Review the mesh settings and log.checkMesh."
-            + (f"\n{details}" if details else "")
+            "Review the mesh settings and log.checkMesh." + (f"\n{details}" if details else "")
         )
     meshlog = (case / "log.snappyHexMesh").read_text()
     if re.search(r"reached.*(?:limit|maxGlobalCells)|maximum number of cells", meshlog, re.I):
@@ -265,9 +386,42 @@ def solve(key, tier):
         shutil.rmtree(folder)
     check_cancelled(key)
     patch(key, stage=f"{tier}: Preparing visualization")
-    output = root / ("results" if tier == run["settings"]["quality"] else f"results-{tier}")
-    data = results.process(case, output, run, meta)
-    data.update(timings=timings, mesh_ok=True, preset=tier, layer_coverage=layer_coverage)
+    output = root / (
+        "results" if (tier == run["settings"]["quality"] or tier == "advanced1") else f"results-{tier}"
+    )
+    data = extract_case(key, case, output, run)
+    data.update(
+        timings=timings,
+        mesh_ok=True,
+        preset=tier,
+        layer_coverage=layer_coverage,
+        resource_mode="Keep Mac responsive"
+        if run["settings"].get("profile") in ("advanced1", "advanced2")
+        else "Legacy CPU quota",
+        resources=dict(
+            processes=ranks,
+            cpus=cpus,
+            container_memory_gib=preset["memory_gb"],
+            combined_limit_gib=8,
+            deadline_seconds=storage.get("runs", key).get("deadline_seconds"),
+            container_peak_bytes=storage.get("runs", key).get("container_peak_bytes"),
+            extraction_peak_bytes=storage.get("runs", key).get("extraction_peak_bytes"),
+        ),
+        mesh_recipe=meta,
+    )
+    if data.get("provenance"):
+        mesh_hash = hashlib.sha256()
+        for field in ("points", "faces", "owner", "neighbour", "boundary"):
+            file = case / "constant/polyMesh" / field
+            if file.exists():
+                with file.open("rb") as stream:
+                    for block in iter(lambda: stream.read(1024 * 1024), b""):
+                        mesh_hash.update(block)
+        data["provenance"].update(
+            pipeline=run["pipeline_hash"],
+            geometry=run["geometry"].get("fingerprint"),
+            mesh=mesh_hash.hexdigest(),
+        )
     if layer_coverage is not None and layer_coverage < 0.8:
         data["warnings"].append(
             f"Boundary layers cover {layer_coverage:.0%} of requested surface faces. Inspect near-wall resolution before comparing forces."
@@ -293,12 +447,105 @@ def execute(key):
         run = storage.get("runs", key)
         if run["status"] == "cancelled":
             return
-        patch(key, status="running", started=storage.now(), stage="Preparing")
+        ceiling = run["settings"].get("max_seconds") or {
+            "basic": 300,
+            "regular": 600,
+            "advanced1": 10800,
+            "advanced2": 43200,
+        }.get(run["settings"].get("profile"), 10800)
+        DEADLINES[key] = time.monotonic() + ceiling
+        patch(
+            key,
+            status="running",
+            started=storage.now(),
+            deadline_seconds=ceiling,
+            deadline_at=(
+                datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=ceiling)
+            ).isoformat(),
+            stage="Preparing",
+        )
     try:
-        if run["settings"]["quality"] == "precise":
+        if run["settings"].get("profile") == "advanced2":
+            levels = []
+            for tier in ("advanced2_1", "advanced2_2", "advanced2_3"):
+                level = solve(key, tier)
+                levels.append(level)
+                patch(
+                    key,
+                    completed_levels=[
+                        dict(
+                            preset=level_result["preset"],
+                            cells=level_result["cells"],
+                            cd=level_result["cd"],
+                            cl=level_result["cl"],
+                            aero=level_result.get("aero"),
+                            force_settled=level_result["force_settled"],
+                            residual_converged=level_result["residual_converged"],
+                            drag=level_result["drag"],
+                            downforce=level_result["downforce"],
+                            part_forces=level_result.get("part_forces"),
+                            reconciliation=level_result.get("reconciliation"),
+                            balance_bands=level_result.get("balance_bands"),
+                            wall_stress=level_result.get("wall_stress"),
+                            wall_target_fraction=level_result.get("wall_target_fraction"),
+                            layer_coverage=level_result.get("layer_coverage"),
+                            resources=level_result.get("resources"),
+                            mesh_recipe=level_result.get("mesh_recipe"),
+                            timings=level_result.get("timings"),
+                            provenance=level_result.get("provenance"),
+                            warnings=level_result["warnings"],
+                        )
+                        for level_result in levels
+                    ],
+                )
+                if (
+                    storage.get("runs", key).get("termination_reason")
+                    or not level["force_settled"]
+                    or not level["residual_converged"]
+                ):
+                    level["warnings"].append(
+                        "Advanced 2 stopped after an unstable mesh level. The refinement study is inconclusive; subsequent levels were not run."
+                    )
+                    break
+            result = levels[-1]
+            result["refinement_levels"] = storage.get("runs", key)["completed_levels"]
+            result["refinement_complete"] = (
+                len(levels) == 3
+                and all(level["force_settled"] and level["residual_converged"] for level in levels)
+                and not storage.get("runs", key).get("termination_reason")
+            )
+            shutil.copytree(
+                storage.directory("runs", key) / f"results-{levels[-1]['preset']}",
+                storage.directory("runs", key) / "results",
+                dirs_exist_ok=True,
+            )
+        elif run["settings"]["quality"] == "precise" and not (
+            run["settings"].get("profile") or ""
+        ).startswith("advanced"):
             medium = solve(key, "medium")
-        result = solve(key, run["settings"]["quality"])
-        if run["settings"]["quality"] == "precise":
+        skipped_fine = (
+            run["settings"]["quality"] == "precise"
+            and not (run["settings"].get("profile") or "").startswith("advanced")
+            and storage.get("runs", key).get("termination_reason")
+        )
+        if skipped_fine:
+            result = medium
+            result["refinement_levels"] = [{**medium}]
+            shutil.copytree(
+                storage.directory("runs", key) / "results-medium",
+                storage.directory("runs", key) / "results",
+                dirs_exist_ok=True,
+            )
+        elif run["settings"].get("profile") != "advanced2":
+            result = solve(
+                key,
+                "advanced1" if run["settings"].get("profile") == "advanced1" else run["settings"]["quality"],
+            )
+        if run["settings"]["quality"] == "precise" and not (run["settings"].get("profile") or "").startswith(
+            "advanced"
+        ):
+            if not skipped_fine:
+                result["refinement_levels"] = [{**medium}, {**result}]
             result["medium_timings"] = medium["timings"]
             result["refinement"] = dict(
                 medium_cd=medium["cd"],
@@ -315,6 +562,13 @@ def execute(key):
                 result["warnings"].append(
                     "At least one mesh level did not settle or reach its residual target. The refinement comparison is inconclusive."
                 )
+        if storage.get("runs", key).get("termination_reason"):
+            result["force_settled"] = False
+            result["incomplete"] = True
+            result["termination_reason"] = "deadline-checkpoint"
+            result["warnings"].append(
+                "The whole-job time limit stopped the solve early. This completed checkpoint is provisional; the requested study is incomplete."
+            )
         (storage.directory("runs", key) / "results/summary.json").write_text(
             json.dumps(result, indent=2, allow_nan=False)
         )
@@ -323,7 +577,7 @@ def execute(key):
             patch(
                 key,
                 status="completed",
-                stage="Complete",
+                stage="Provisional checkpoint" if result.get("incomplete") else "Complete",
                 finished=storage.now(),
                 iteration=int(result["iteration"]),
                 result=result,
@@ -349,8 +603,14 @@ def worker():
         except queue.Empty:
             continue
         try:
+            while not compute_lease.start_server(key):
+                check_cancelled(key)
+                time.sleep(0.2)
             execute(key)
+        except InterruptedError:
+            patch(key, status="cancelled", stage="Cancelled", finished=storage.now())
         finally:
+            compute_lease.finish_server()
             JOBS.task_done()
 
 
@@ -403,15 +663,19 @@ def enqueue(project):
     geometry = project.get("geometry")
     if not geometry or geometry["errors"]:
         raise ValueError("Import valid closed geometry before running.")
+    if settings.axles is None or settings.axles.source == "wheels":
+        inferred = detected_axles(geometry["parts"])
+        settings.axles = Axles(**inferred) if inferred else None
     foam.mesh_layout(geometry, settings, reference_case=project.get("reference_case"))
     required = resolved_preset(settings)["memory_gb"]
     if status.get("memory_gb", 0) < required + 0.5:
         raise ValueError(
             f"This preset needs at least {required + 0.5} GB allocated to the container runtime."
         )
-    if shutil.disk_usage(storage.ROOT).free < 8 * 1024**3:
-        raise ValueError("Keep at least 8 GB free for mesh and results files.")
-    ranks = processes()
+    disk_gb = 16 if settings.profile == "advanced2" else 8
+    if shutil.disk_usage(storage.ROOT).free < disk_gb * 1024**3:
+        raise ValueError(f"Keep at least {disk_gb} GB free for this mesh and its results files.")
+    ranks = 2 if settings.profile in ("advanced1", "advanced2") else processes()
     key = storage.identifier()
     run = dict(
         id=key,

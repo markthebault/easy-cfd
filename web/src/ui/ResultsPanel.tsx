@@ -7,6 +7,8 @@ import { useStore } from "../store/store";
 import { app, openDesign } from "../store/app";
 import { exportCSV, exportJSON, exportPNG, startCompare } from "../store/runs";
 import type { LoadedRun } from "../store/types";
+import { AeroBalancePanel } from "./AeroBalancePanel";
+import { TyreLoadPanel } from "./TyreLoadPanel";
 import { ForceChart } from "./ForceChart";
 import { StatsTable, defaultWindow } from "./StatsTable";
 import { unitFor } from "./historyUnit";
@@ -25,7 +27,7 @@ export function Headline({ run }: { run: LoadedRun }) {
     <div className="headline">
       <div className="card hero" data-testid="card-vertical">
         <span className="card-label">{v.label}</span>
-        <span className="card-value">{fmt(v.kg, 1)}<small> kg</small></span>
+        <span className="card-value">{fmt(v.kg, 1)}<small> kgf</small></span>
         <span className="card-sub">{fmtInt(v.newtons)} N {v.label === "Downforce" ? "pushing the car down" : "lifting the car"}</span>
       </div>
       <div className="card" data-testid="card-drag">
@@ -63,7 +65,7 @@ function Breakdown({ run }: { run: LoadedRun }) {
     <div className="breakdown">
       <div className="section-title">
         Where the drag comes from
-        <span className="muted">body {pct(body, total)} · wheels {pct(wheels, total)}</span>
+        <span className="muted">body {run.doc.result.reconciliation?.complete === false ? "unavailable" : pct(body, total)} · wheels {run.doc.result.reconciliation?.complete === false ? "unavailable" : pct(wheels, total)}</span>
       </div>
       <table>
         <tbody>
@@ -74,7 +76,7 @@ function Breakdown({ run }: { run: LoadedRun }) {
                 <span className={`bar ${r.v < 0 ? "neg" : ""}`} style={{ width: `${(Math.abs(r.v) / max) * 100}%` }} />
               </td>
               <td className="num">{fmtInt(r.v)} N</td>
-              <td className="num muted">{pct(r.v, total)}</td>
+              <td className="num muted">{run.doc.result.reconciliation?.complete === false ? "–" : pct(r.v, total)}</td>
             </tr>
           ))}
         </tbody>
@@ -90,19 +92,21 @@ function GroupForces({ run }: { run: LoadedRun }) {
     <div className="breakdown group-forces" data-testid="group-forces">
       <div className="section-title">
         Forces by group
-        <span className="muted">downforce (− = lift) · drag</span>
+        <span className="muted">signed lift (+ up) · drag · side</span>
       </div>
       <table>
+        <thead><tr><th>Group</th><th>Lift (N)</th><th>Drag (N)</th><th>Side (N)</th></tr></thead>
         <tbody>
           {rows.map((g) => (
             <tr key={g.id} title={g.parts.join(", ")}>
               <th scope="row">{g.name}</th>
-              <td className="num">{g.downforceKg < 0 ? "−" : ""}{fmt(Math.abs(g.downforceKg), 1)} kg</td>
-              <td className="num muted">{fmtInt(g.drag)} N</td>
+              <td className="num">{fmt(-g.downforceKg*9.80665,1)}</td>
+              <td className="num">{fmt(g.drag,1)}</td><td className="num">{fmt(g.side,1)}</td>
             </tr>
           ))}
         </tbody>
       </table>
+      <details><summary>Pressure and friction contributions</summary><p className="field-hint">Vectors [drag, side, lift], N. Each enabled part contributes to its saved group.</p>{rows.map(g => <p className="small" key={g.id}><b>{g.name}</b> · pressure [{g.pressure.map(v=>fmt(v,2)).join(", ")}] · friction [{g.friction.map(v=>fmt(v,2)).join(", ")}]</p>)}</details>
     </div>
   );
 }
@@ -147,6 +151,9 @@ export function ResultsPanel() {
       </div>
 
       <Headline run={run} />
+      <TyreLoadPanel key={doc.id} run={run} />
+      <AeroBalancePanel run={run} />
+      <p className="muted small">Force settling, residual convergence, grid sensitivity and physical accuracy are separate checks. These predictions remain exploratory.</p>
 
       {r.warnings.length > 0 && (
         <ul className="issues">
@@ -158,12 +165,13 @@ export function ResultsPanel() {
 
       <Breakdown run={run} />
       <GroupForces run={run} />
+      {r.reconciliation && <p className="field-hint">Component integration: {r.reconciliation.complete ? "reconciled" : "incomplete or inconsistent"} · force error {r.reconciliation.forceError.toExponential(2)} N · moment error {r.reconciliation.momentError.toExponential(2)} N m.</p>}
 
-      {r.levels && r.meshSensitivity && (
+      {r.levels && (
         <div className="breakdown">
           <div className="section-title">
             Grid levels
-            <span className="muted">reported values are the mean</span>
+            <span className="muted">{of ? "reported values use the last completed mesh" : "reported values are the mean"}</span>
           </div>
           <table>
             <tbody>
@@ -174,11 +182,11 @@ export function ResultsPanel() {
                   <td className="num muted">Cl {fmt(lv.cl, 3)}</td>
                 </tr>
               ))}
-              <tr>
-                <th scope="row">Difference</th>
+              {r.meshSensitivity && <tr>
+                <th scope="row">{of ? "Observed range" : "Difference"}</th>
                 <td className="num">{r.meshSensitivity.dCd >= 0 ? "+" : ""}{fmt(r.meshSensitivity.dCd, 3)}</td>
                 <td className="num muted">{r.meshSensitivity.dCl >= 0 ? "+" : ""}{fmt(r.meshSensitivity.dCl, 3)}</td>
-              </tr>
+              </tr>}
             </tbody>
           </table>
         </div>

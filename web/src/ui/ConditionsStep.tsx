@@ -2,6 +2,8 @@
 
 import { useMemo, useRef } from "react";
 import { Box, Plus, Trash2, Wand2 } from "lucide-react";
+import { axleError, detectedAxles, resolvedAxles, suggestAxles } from "../solver/aero";
+import { toSolverParts } from "../store/geometry";
 import { domainFor, validateDomain } from "../solver/setup";
 import type { DetailBox, SimulationBox, Vec3 } from "../solver/types";
 import { useStore } from "../store/store";
@@ -9,6 +11,8 @@ import { app, goStep, setSettings } from "../store/app";
 import { gridBounds } from "../store/geometry";
 import { Badge, Checkbox, Field, NumberField, Segmented, Slider } from "./controls";
 import { fmt } from "./format";
+import { VehicleWeightFields } from "./VehicleWeightFields";
+import { weightInputError } from "../solver/tyreLoads";
 
 const MIN = 5, MAX = 300;
 const A0 = -135, A1 = 135;
@@ -189,6 +193,10 @@ export function ConditionsStep() {
     setSettings({ simulation_box: { ...cur, ...patch } });
   };
   const box = s.simulation_box;
+  const axles = resolvedAxles(s.axles, toSolverParts(parts));
+  const suggested = suggestAxles(toSolverParts(parts));
+  const setAxle = (patch: Partial<NonNullable<typeof axles>>) => setSettings({axles:{frontX:axles?.frontX ?? 0,rearX:axles?.rearX ?? 0,centrelineY:axles?.centrelineY ?? 0,confirmed:false,source:"manual",...patch}});
+  const axleProblem = axleError(axles,low,high);
 
   return (
     <div className="step-body">
@@ -273,9 +281,29 @@ export function ConditionsStep() {
         </small>
       </div>
 
+      <div className="group" data-testid="axle-setup">
+        <div className="group-title"><span>Aerodynamic balance</span><Badge kind={axleProblem ? "neutral" : "ok"}>{axleProblem ? "Axles needed" : `${fmt(axles!.rearX-axles!.frontX,3)} m wheelbase`}</Badge></div>
+        <p className="field-hint">{axles?.source === "wheels" ? "Axles detected automatically from the marked wheel centres. You can adjust them below." : "Set the axle positions in the car frame. Front is toward −X. Runs can continue without balance."}</p>
+        <div className="box-grid">
+          <Field label="Front axle X"><NumberField label="Front axle X" value={axles?.frontX ?? 0} unit="m" step={.01} digits={3} onChange={frontX=>setAxle({frontX})} /></Field>
+          <Field label="Rear axle X"><NumberField label="Rear axle X" value={axles?.rearX ?? 0} unit="m" step={.01} digits={3} onChange={rearX=>setAxle({rearX})} /></Field>
+          <Field label="Centreline Y"><NumberField label="Centreline Y" value={axles?.centrelineY ?? 0} unit="m" step={.01} digits={3} onChange={centrelineY=>setAxle({centrelineY})} /></Field>
+        </div>
+        <button className="btn ghost sm" disabled={!suggested} onClick={()=>setSettings({axles:detectedAxles(toSolverParts(parts))})}><Wand2 size={14} /> Suggest from marked wheels</button>
+        {!suggested && <small className="field-hint">No unambiguous pair of wheel axles found. Enter the positions manually.</small>}
+        <Checkbox hint="Use these saved positions for this run’s balance." label="Confirm axle positions" checked={axles?.confirmed ?? false} onChange={confirmed=>setAxle({confirmed: confirmed && !axleError(axles ? {...axles,confirmed:true}:undefined,low,high)})} />
+        {axleProblem && <p className="field-hint" role="status">{axleProblem}</p>}
+        <details className="analysis-availability"><summary>What these loads mean</summary><p>Equivalent aerodynamic loads use the whole-car force and pitching moment about the road below the front axle. Drag acting above the road contributes to pitch. These are forces, not tyre loads or a model of vehicle mass and suspension.</p></details>
+      </div>
+      <div className="group" data-testid="vehicle-weight-setup">
+        <div className="group-title"><span>Tyre load estimate</span><Badge kind="neutral">Optional</Badge></div>
+        <p className="field-hint">Add the car’s static weight to the aerodynamic axle loads. Each result is the combined load on the front or rear tyre pair, on a level road at constant speed.</p>
+        <VehicleWeightFields value={s} onChange={setSettings} />
+        <small className="field-hint">You can also enter these values on a saved result without rerunning CFD.</small>
+      </div>
       <DetailBoxes low={low} high={high} />
 
-      <button className="btn primary block" disabled={!!boxError} onClick={() => goStep("run")}>
+      <button className="btn primary block" disabled={!!boxError || !!weightInputError(s)} onClick={() => goStep("run")}>
         Continue to run
       </button>
     </div>

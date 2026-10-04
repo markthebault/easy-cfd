@@ -64,7 +64,11 @@ def test_preview_solver_snapshot_and_comparison(client, tmp_path):
     assert "(-10 -5 0)" in (root / "case-custom/system/blockMeshDict").read_text()
     updated = {**settings, "custom_iterations": 150, "simulation_box": dict(box(), x_max=21)}
     assert client.put(f"/api/projects/{p['id']}/settings", json=updated).status_code == 200
-    assert storage.get("runs", run["id"])["settings"] == settings
+    assert run["settings"] == {
+        **settings,
+        "axles": dict(frontX=-1.35, rearX=1.3, centrelineY=0, confirmed=True, source="wheels"),
+    }
+    assert storage.get("runs", run["id"])["settings"] == run["settings"]
     other = client.post(f"/api/projects/{p['id']}/runs").json()
     for saved in (run, other):
         storage.update(
@@ -135,10 +139,13 @@ def test_mesher_limits_match_final_skewness_gate(tmp_path, quality):
         assert "maxInternalSkewness 4;" in text
 
 
-@pytest.mark.parametrize("failure", [
-    "***Max skewness = 4.6500418, 4 highly skew faces detected",
-    "***Negative volume cells detected",
-])
+@pytest.mark.parametrize(
+    "failure",
+    [
+        "***Max skewness = 4.6500418, 4 highly skew faces detected",
+        "***Negative volume cells detected",
+    ],
+)
 def test_failed_mesh_still_blocks_solver_with_specific_reason(client, monkeypatch, failure):
     p = client.post("/api/projects", json={"sample": True}).json()
     client.put(
@@ -161,5 +168,8 @@ def test_failed_mesh_still_blocks_solver_with_specific_reason(client, monkeypatc
     assert failure.lstrip("*") in failed["error"]
     assert "airflow solver was not started" in failed["error"]
     assert "repair the geometry" not in failed["error"]
-    assert commands == [["blockMesh"], ["snappyHexMesh", "-overwrite"],
-                        ["checkMesh", "-meshQuality", "-allTopology"]]
+    assert commands == [
+        ["blockMesh"],
+        ["snappyHexMesh", "-overwrite"],
+        ["checkMesh", "-meshQuality", "-allTopology"],
+    ]

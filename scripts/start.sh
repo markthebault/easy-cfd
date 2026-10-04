@@ -13,7 +13,7 @@ fi
 # (served at /legacy/) is rebuilt when it was built for another base path.
 if command -v npm >/dev/null 2>&1; then
   [[ -d web/node_modules ]] || npm --prefix web ci
-  npm --prefix web run build --silent >/dev/null
+  VITE_ENABLE_OPENFOAM=true npm --prefix web run build --silent >/dev/null
   if ! grep -q '/legacy/assets/' frontend/dist/index.html; then
     npm --prefix frontend run build --silent -- --base=/legacy/ >/dev/null
   fi

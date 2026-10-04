@@ -25,6 +25,10 @@ export interface VizField {
 }
 
 export interface SurfaceSample {
+  /** Fluid traction on the wall, Pa. Never confused with near-wall velocity below. */
+  wallStress?: Float32Array;
+  stressValid?: Uint8Array;
+  snapshot?: { iteration: number; grid: string; unit: "Pa"; dynamicPressure: number };
   /** Pressure coefficient per soup vertex (p / ½U²). */
   cp: Float32Array;
   /** Near-wall velocity direction per soup vertex (tangential, m/s), for surface flow lines. */

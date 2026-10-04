@@ -89,7 +89,7 @@ export function LivePanel() {
           ? `The 3D flow updates every few seconds (${live.snapshots} snapshot${live.snapshots === 1 ? "" : "s"}). It is the solver's current state, not converged yet.`
           : "The flow appears here after the first snapshot."}
       </p>
-      <button className="btn danger block" onClick={cancelRun} disabled={live.stage === "saving"}>
+      <button className="btn danger block" onClick={cancelRun}>
         <Square size={14} fill="currentColor" /> Cancel
       </button>
     </div>
