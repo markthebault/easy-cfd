@@ -5,6 +5,7 @@ import { checkGeometry, UNIT_SCALE, DEFAULT_IMPORT, LIMITS, type GeometryReport,
 import type { VizField } from "../solver/extract";
 import { requestDevice, type GpuInfo } from "../solver/gpu";
 import { probeServer, type ServerInfo } from "../engine/openfoam";
+import { availableSettings, OPENFOAM_ENABLED } from "../engine/features";
 import { DEFAULT_SETTINGS, type ForceSample, type Settings } from "../solver/types";
 import type { VizSettings } from "../viz/stage";
 import { collectFiles, get, getAll, hasKey, newId, put, remove, sha256 } from "./db";
@@ -133,7 +134,7 @@ export const app = createStore<AppState>({
   theme: initialTheme,
   dark: initialTheme === "system" ? systemDark() : initialTheme === "dark",
   gpu: { status: "checking", adapter: "", message: "" },
-  server: { status: "checking", info: null },
+  server: { status: OPENFOAM_ENABLED ? "checking" : "unavailable", info: null },
   design: null,
   parts: [],
   groups: [],
@@ -285,7 +286,7 @@ export function newDesignDoc(name: string, source: SourceRef, settings: Settings
 }
 
 function setDesign(d: DesignDoc, rebuildOpts?: Parameters<typeof rebuild>[0]) {
-  app.set({ design: { ...d, updatedAt: Date.now() } });
+  app.set({ design: { ...d, settings: availableSettings(d.settings), updatedAt: Date.now() } });
   scheduleSave();
   return rebuild(rebuildOpts);
 }
@@ -444,7 +445,7 @@ export function deleteGroup(id: string) {
 export function setSettings(patch: Partial<Settings>) {
   const d = app.get().design;
   if (!d) return;
-  app.set({ design: { ...d, settings: { ...d.settings, ...patch }, updatedAt: Date.now() } });
+  app.set({ design: { ...d, settings: availableSettings({ ...d.settings, ...patch }), updatedAt: Date.now() } });
   scheduleSave();
 }
 
@@ -473,7 +474,7 @@ export async function openDesign(id: string) {
     return;
   }
   localStorage.setItem(LAST_DESIGN, id);
-  app.set({ design: d, step: "car", view: "setup", run: null, library: false, compare: null });
+  app.set({ design: { ...d, settings: availableSettings(d.settings) }, step: "car", view: "setup", run: null, library: false, compare: null });
   await rebuild();
 }
 

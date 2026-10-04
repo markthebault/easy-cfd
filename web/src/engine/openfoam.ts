@@ -4,6 +4,7 @@
 
 import { balanceAtAxles, momentOrigin } from "../solver/aero";
 import { estimateTyreLoads } from "../solver/tyreLoads";
+import { OPENFOAM_ENABLED, OPENFOAM_COMING_SOON } from "./features";
 import type { Part } from "../geometry/model";
 import { writeSTL } from "../geometry/stl";
 import { vizBoxFor, vizGrid, type SurfaceSample, type VizField } from "../solver/extract";
@@ -59,6 +60,7 @@ export interface ServerPart {
 export class ServerError extends Error {}
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  if (!OPENFOAM_ENABLED) throw new ServerError(OPENFOAM_COMING_SOON);
   let response: Response;
   try {
     response = await fetch("/api" + path, init);
@@ -88,6 +90,7 @@ function median(values: number[]): number {
 
 /** The server's health and presets, or null when this page is not served by the OpenFOAM app. */
 export async function probeServer(): Promise<ServerInfo | null> {
+  if (!OPENFOAM_ENABLED) return null;
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 4000);

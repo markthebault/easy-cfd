@@ -1,3 +1,5 @@
+import { OPENFOAM_ENABLED } from "./features";
+
 /** Backend lease is optional offline; navigator.locks still coordinates this origin's tabs. */
 export async function computeLease(
   signal: AbortSignal,
@@ -31,7 +33,7 @@ export async function computeLease(
     });
   let online = false;
   try {
-    const response = useBackend ? await fetch("/api/compute-lease", {
+    const response = useBackend && OPENFOAM_ENABLED ? await fetch("/api/compute-lease", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ owner }),

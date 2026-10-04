@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { Cpu, Play, Server, TriangleAlert, Zap } from "lucide-react";
 import type { ServerInfo } from "../engine/openfoam";
+import { OPENFOAM_ENABLED, OPENFOAM_COMING_SOON } from "../engine/features";
 import { partShapes } from "../solver/detail";
 import { boundsOf } from "../solver/setup";
 import {
@@ -64,8 +65,8 @@ export function RunStep() {
   const blocked =
     !report || report.errors.length > 0 || !confirmed || resourceBlocked;
   const noGpu = gpu.status === "unavailable" || gpu.status === "checking";
-  const openfoam = s.engine === "openfoam";
-  const serverReady = server.status === "ready";
+  const openfoam = OPENFOAM_ENABLED && s.engine === "openfoam";
+  const serverReady = OPENFOAM_ENABLED && server.status === "ready";
   const limitCeiling = openfoam
     ? s.profile === "advanced1"
       ? 10800
@@ -78,11 +79,14 @@ export function RunStep() {
     <div className="step-body">
       <div
         className="engine-grid"
-        role="group"
-        aria-label="Simulation profiles"
+        role="radiogroup"
+        aria-label="Solver engine"
       >
         <button
+          role="radio"
+          aria-checked={!openfoam}
           className={`engine-card ${!openfoam ? "on" : ""}`}
+          data-testid="engine-webgpu"
           onClick={() =>
             setSettings({
               engine: "webgpu",
@@ -92,12 +96,17 @@ export function RunStep() {
             })
           }
         >
-          <b>Quick</b>
-          <span className="q-blurb">Offline · Basic / Regular</span>
+          <span className="q-label"><Zap size={15} /> WebGPU</span>
+          <span className="q-blurb">On this device</span>
+          <span className="q-meta">Explore and compare designs</span>
         </button>
         <button
+          role="radio"
+          aria-checked={openfoam}
           className={`engine-card ${openfoam ? "on" : ""}`}
           disabled={!serverReady}
+          aria-describedby={!serverReady ? "openfoam-availability" : undefined}
+          data-testid="engine-openfoam"
           onClick={() =>
             setSettings({
               engine: "openfoam",
@@ -107,14 +116,22 @@ export function RunStep() {
             })
           }
         >
-          <b>Advanced</b>
-          <span className="q-blurb">Local OpenFOAM · bounded resources</span>
+          <span className="q-label"><Server size={15} /> OpenFOAM</span>
+          <span className="q-blurb">{OPENFOAM_ENABLED ? "On your local server" : "On demand"}</span>
+          <span className="q-meta">Advanced analysis</span>
         </button>
       </div>
+      {!serverReady && (
+        <p id="openfoam-availability" className="field-hint" data-testid="openfoam-availability">
+          {!OPENFOAM_ENABLED ? OPENFOAM_COMING_SOON : server.status === "checking"
+            ? "Looking for the local OpenFOAM server…"
+            : server.info?.message || "OpenFOAM is unavailable. Start the local server with just run-openfoam."}
+        </p>
+      )}
       {openfoam && (
         <div className="group">
           <label className="field-label" htmlFor="advanced-profile">
-            Advanced profile
+            Analysis level
           </label>
           <select
             id="advanced-profile"
@@ -132,18 +149,22 @@ export function RunStep() {
               );
             }}
           >
-            <option value="legacy">Basic</option>
+            <option value="legacy">Standard · choose a mesh preset</option>
             <option value="advanced1">
-              Advanced level 1 · ≤1 M cells · 5 GiB · 2 CPUs · 3 h
+              Advanced 1 · single mesh
             </option>
             <option value="advanced2">
-              Advanced level 2 · 3 meshes, ≤2 M each · 6 GiB · 2 CPUs · 12 h
+              Advanced 2 · three-mesh comparison
             </option>
           </select>
           <p className="field-hint">
+            {s.profile === "advanced1"
+              ? "One mesh, up to 1 million cells. Limits: 5 GiB memory, 2 CPUs and 3 hours. "
+              : s.profile === "advanced2"
+                ? "Compare three meshes, up to 2 million cells each. Limits: 6 GiB memory, 2 CPUs and 12 hours. "
+                : "Choose Fast, Medium or Precise below. "}
             Runtime ceilings are safety limits, not measured completion times.
-            These profiles are not yet numerically qualified. Advanced level 2 stops when
-            a mesh level remains unstable.
+            {s.profile?.startsWith("advanced") && " These levels are not yet numerically qualified. Advanced 2 stops if a mesh remains unstable."}
           </p>
         </div>
       )}
@@ -219,61 +240,9 @@ export function RunStep() {
         }
       />
       <p className="field-hint">
-        Quick planning ceilings: 2.5 M cells / 3 GiB. GPU limits are checked
-        before voxelization. Stop is available during preparation and solving.
+        {!openfoam && "WebGPU limits: 2.5 million cells / 3 GiB. GPU limits are checked before preparing the grid. "}
+        Stop is available during preparation and solving.
       </p>
-      <details className="group">
-        <summary>Legacy engine options</summary>
-        <div
-          className="engine-grid"
-          role="radiogroup"
-          aria-label="Solver engine"
-        >
-          <button
-            role="radio"
-            aria-checked={!openfoam}
-            className={`engine-card ${!openfoam ? "on" : ""}`}
-            onClick={() => setSettings({ engine: "webgpu" })}
-            data-testid="engine-webgpu"
-          >
-            <span className="q-label">
-              <Zap size={15} /> WebGPU
-            </span>
-            <span className="q-blurb">On this device · seconds to minutes</span>
-            <span className="q-meta">Explore and compare designs</span>
-          </button>
-          <button
-            role="radio"
-            aria-checked={openfoam}
-            className={`engine-card ${openfoam ? "on" : ""}`}
-            disabled={
-              server.status === "unavailable" || server.status === "checking"
-            }
-            onClick={() =>
-              setSettings({
-                engine: "openfoam",
-                quality: s.quality === "custom" ? "medium" : s.quality,
-              })
-            }
-            data-testid="engine-openfoam"
-          >
-            <span className="q-label">
-              <Server size={15} /> OpenFOAM{" "}
-              <span className="badge">numerical check</span>
-            </span>
-            <span className="q-blurb">
-              On the EasyCFD server · minutes to an hour
-            </span>
-            <span className="q-meta">
-              {server.status === "checking"
-                ? "Looking for the server…"
-                : server.status === "unavailable"
-                  ? "Not connected: open EasyCFD with just run-openfoam"
-                  : "Snapped mesh with prism layers, simpleFoam"}
-            </span>
-          </button>
-        </div>
-      </details>
 
       {openfoam ? (
         s.profile?.startsWith("advanced") ? (

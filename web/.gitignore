@@ -1,5 +1,7 @@
 node_modules/
 dist/
+dist-webgpu/
+.wrangler/
 test-results/
 playwright-report/
 # Diagnostic outputs; the final validation JSON files are kept explicitly.

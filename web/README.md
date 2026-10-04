@@ -32,7 +32,8 @@ Designs and runs are saved in the browser (IndexedDB). Runs can be exported as J
 ## Engines
 
 WebGPU (in the browser, the default) or OpenFOAM (the EasyCFD server, for final checks), chosen in the Run step.
-- **When OpenFOAM is available:** when the page is served by the OpenFOAM app (`just run-openfoam`); detected at `/api/health`.
+- **When OpenFOAM is available:** opt in at build time with `VITE_ENABLE_OPENFOAM=true`, then serve from the OpenFOAM app; detected at `/api/health`. `just run-openfoam` and `scripts/start.sh` do this automatically. Default builds and `just run` disable backend calls and show “Coming soon: OpenFOAM runs on demand.”
+- **Public deployment:** `just deploy-web` publishes a forced WebGPU-only build to https://easy-cfd.mthracelab.com using Cloudflare Pages. Models and results remain in browser storage.
 - **Client:** `src/engine/openfoam.ts` is the server client and the mapping from server records to UI results. It measures the frame offset from the uploaded parts' bounds.
 - **Run flow:** `src/store/openfoamRuns.ts` runs, follows and opens OpenFOAM runs.
 - **Backend:** its endpoints for the viewer are in `backend/easycfd/webview.py`.
