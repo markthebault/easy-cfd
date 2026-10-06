@@ -37,9 +37,9 @@ test("capture advances the solver rather than manufacturing repeated frames and 
   const sample=async()=>({solid:new Uint8Array(1),u:new Float32Array([t]),v:new Float32Array(1),w:new Float32Array(1),p:new Float32Array(1),k:new Float32Array(1)});
   const a=await animation.recordFlowAnimation(solver,sample);
   assert.ok(transient);
-  assert.equal(a.frames.length,24);
+  assert.equal(a.frames.length,48);
   assert.equal(a.frames[0].time,0);
-  assert.ok(a.frames.at(-1).time>=.6);
+  assert.ok(a.frames.at(-1).time>=2.4);
   assert.ok(a.frames.every((f,i)=>i===0 || f.time>a.frames[i-1].time));
   const c=new AbortController();c.abort();
   await assert.rejects(animation.recordFlowAnimation(solver,sample,{signal:c.signal}),{name:"AbortError"});

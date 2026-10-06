@@ -76,6 +76,22 @@ vec4 scalarsAt(vec3 p) { return texture(uScalars, fieldUVW(p)); }
 vec3 flowAt(vec3 p) { vec4 a = velocityAt(p); return a.xyz / max(a.w, 0.5); }
 `;
 
+/** One temporal sample shared by colour planes and advected flow markers. */
+export const NEXT_FIELD_GLSL = FIELD_GLSL.replace(/\b(uVelocity|uScalars|uOrigin|uExtent|uDims|fieldUVW|insideField|velocityAt|scalarsAt|flowAt)\b/g, "$1Next");
+export const FRAME_FIELD_GLSL = /* glsl */ `
+${FIELD_GLSL}
+${NEXT_FIELD_GLSL}
+uniform float uFrameMix;
+vec4 velocityFrameAt(vec3 p) {
+  vec4 a = velocityAt(p);
+  return uFrameMix > 0.0 ? mix(a, velocityAtNext(p), uFrameMix) : a;
+}
+vec3 flowFrameAt(vec3 p) {
+  vec4 a = velocityFrameAt(p);
+  return a.xyz / max(a.w, 0.5);
+}
+`;
+
 export function fieldUniforms(g: FieldGPU | null) {
   return {
     uVelocity: { value: g?.velocity ?? null },

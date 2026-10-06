@@ -10,8 +10,8 @@ export interface FlowAnimation {
 }
 
 export const ANIMATION_POINTS = 120_000;
-export const ANIMATION_FRAMES = 24;
-export const ANIMATION_PASSES = 3;
+export const ANIMATION_FRAMES = 48;
+export const ANIMATION_PASSES = 12;
 
 /** Bracket actual solver timestamps, including nonuniform time steps. Never interpolate the loop seam. */
 export function frameAt(times: number[], time: number): { index: number; mix: number } {

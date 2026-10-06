@@ -47,6 +47,7 @@ export interface VizSettings {
   slice: boolean;
   animation?: boolean;
   animationLoop?: boolean;
+  animationStreaks?: boolean;
   wake: boolean;
   pressureCloud: boolean;
   cloudLevel: number;
@@ -341,11 +342,17 @@ export class Stage {
     const moved = this.controls.update();
     let animate = false;
     const v = this.viz;
+    let flowDt = dt;
     if (v?.animation && this.animation && v.playing) {
       const frames = this.animation.frames, first = frames[0].time, last = frames.at(-1)!.time;
       const duration = last - first;
-      this.animationClock += dt * duration / 6 * v.flowSpeed;
-      if (this.animationClock > last) this.animationClock = v.animationLoop !== false ? first + (this.animationClock - first) % duration : last;
+      const rate = duration / 6 * v.flowSpeed;
+      if (v.animationLoop === false) flowDt = Math.min(dt, Math.max(0, (last - this.animationClock) / rate));
+      this.animationClock += flowDt * rate;
+      if (this.animationClock > last) {
+        this.animationClock = v.animationLoop !== false ? first + (this.animationClock - first) % duration : last;
+        this.tracers?.reseed();
+      }
       this.updateAnimationFrame();
       animate = v.animationLoop !== false || this.animationClock < last;
       this.dirty = true;
@@ -374,10 +381,12 @@ export class Stage {
       animate ||= v.playing;
     }
     if (this.tracers?.mesh.visible && v) {
-      this.tracers.playing = v.playing;
-      this.tracers.timeScale = scale * v.flowSpeed * 0.6;
-      this.tracers.step(dt, this.camera);
-      animate ||= v.playing;
+      this.tracers.playing = v.playing && (!v.animation || flowDt > 0);
+      this.tracers.timeScale = v.animation && this.animation
+        ? (this.animation.frames.at(-1)!.time - this.animation.frames[0].time) / 6 * v.flowSpeed
+        : scale * v.flowSpeed * 0.6;
+      this.tracers.step(v.animation ? flowDt : dt, this.camera);
+      animate ||= this.tracers.playing;
     }
     if (this.streamMesh?.visible && v?.stream.animate && v.playing) {
       const pulse = this.streamMat.uniforms.uPulse.value as number;
@@ -708,13 +717,15 @@ export class Stage {
   private animationGPU: [FieldGPU | null, FieldGPU | null] = [null, null];
 
   setAnimation(animation: FlowAnimation | null, ranges: Ranges | null) {
-    if (animation !== this.animation) {
+    const changed = animation !== this.animation;
+    if (changed) {
       this.clearAnimationGPU();
       this.animation = animation;
       this.animationClock = animation?.frames[0].time ?? 0;
     }
     this.animationRanges = ranges;
     this.applyViz();
+    if (changed) this.tracers?.reseed();
   }
 
   animationPosition() {
@@ -728,6 +739,8 @@ export class Stage {
     if (!frames) return;
     this.animationClock = frames[0].time + Math.min(1, Math.max(0, position)) * (frames.at(-1)!.time - frames[0].time);
     this.updateAnimationFrame();
+    // A seek is a discontinuity; no marker may carry a path from another timestamp.
+    this.tracers?.reseed();
     this.requestRender();
   }
 
@@ -747,8 +760,10 @@ export class Stage {
       this.animationGPU = [createFieldGPU(a.frames[pair.index].field), createFieldGPU(a.frames[pair.index + 1].field)];
       const { min, max } = fieldBox(a.frames[0].field);
       this.slice.setField(this.animationGPU[0], min, max);
+      this.tracers?.setField(this.animationGPU[0], a.frames[0].field.freestream);
     }
     this.slice.setNextField(this.animationGPU[1], pair.mix);
+    this.tracers?.setNextField(this.animationGPU[1], pair.mix);
   }
 
   setField(field: VizField | null, ranges: Ranges | null) {
@@ -803,7 +818,8 @@ export class Stage {
     else {
       this.clearAnimationGPU();
       this.slice.setNextField(null, 0);
-      if (f) { const { min, max } = fieldBox(f); this.slice.setField(this.fieldGPU, min, max); }
+      this.tracers?.setNextField(null, 0);
+      if (f) { const { min, max } = fieldBox(f); this.slice.setField(this.fieldGPU, min, max); this.tracers?.setField(this.fieldGPU, f.freestream); }
     }
     this.slice.mesh.visible = on(v?.slice) && (!v?.animation || !!this.animation);
     if (v && r && f) {
@@ -813,9 +829,15 @@ export class Stage {
       this.slice.setMode(v.sliceField, range, sr.density, sr.q, v.animation);
     }
     if (this.tracers) {
-      this.tracers.mesh.visible = on(v?.slice && v.sliceTracers);
+      const transient = !!(v?.animation && this.animation);
+      this.tracers.setHistory(transient);
+      this.tracers.setLife(transient ? 4 : 2.2);
+      this.tracers.uniforms.uTrail.value = transient ? 0.12 : 0.35;
+      this.tracers.uniforms.uOpacity.value = transient ? 0.85 : this.dark ? 0.5 : 0.6;
+      this.tracers.mesh.geometry.instanceCount = transient ? 2304 : TRACER_SIZE * TRACER_SIZE;
+      this.tracers.mesh.visible = on(v?.slice && (transient ? v.animationStreaks !== false : v.sliceTracers));
       if (v && f && this.tracers.mesh.visible) {
-        const { min, max } = fieldBox(f);
+        const { min, max } = fieldBox(transient ? this.animation!.frames[0].field : f);
         this.tracers.setPlane(v.sliceAxis, this.slice.pos, min, max);
       }
     }

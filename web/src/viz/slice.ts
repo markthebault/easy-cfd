@@ -2,13 +2,12 @@
 // isolines help read gradients; samples inside the car are drawn as a flat cut face.
 
 import * as THREE from "three";
-import { FIELD_GLSL, fieldUniforms, updateFieldUniforms, type FieldGPU } from "./field";
+import { FRAME_FIELD_GLSL, fieldUniforms, updateFieldUniforms, type FieldGPU } from "./field";
 import { mapTexture, type MapName } from "./colormap";
 
 export type SliceField = "speed" | "pressure" | "cp0" | "k";
 
 export const SLICE_MAP: Record<SliceField, MapName> = { speed: "speed", pressure: "diverging", cp0: "loss", k: "turbulence" };
-const NEXT_FIELD_GLSL = FIELD_GLSL.replace(/\b(uVelocity|uScalars|uOrigin|uExtent|uDims|fieldUVW|insideField|velocityAt|scalarsAt|flowAt)\b/g, "$1Next");
 const MODE: Record<SliceField, number> = { speed: 0, pressure: 1, cp0: 2, k: 3 };
 
 export class Slice {
@@ -42,9 +41,7 @@ export class Slice {
           gl_Position = projectionMatrix * viewMatrix * w;
         }`,
       fragmentShader: /* glsl */ `
-        ${FIELD_GLSL}
-        ${NEXT_FIELD_GLSL}
-        uniform float uFrameMix;
+        ${FRAME_FIELD_GLSL}
         uniform sampler2D uMap;
         uniform int uMode;
         uniform vec2 uRange;
@@ -54,8 +51,7 @@ export class Slice {
         uniform float uOpacity;
         varying vec3 vWorld;
         void main() {
-          vec4 a = velocityAt(vWorld);
-          if (uFrameMix > 0.0) a = mix(a, velocityAtNext(vWorld), uFrameMix);
+          vec4 a = velocityFrameAt(vWorld);
           if (a.w < 0.5) { gl_FragColor = vec4(uSolid, 0.96);
             #include <colorspace_fragment>
             return; }

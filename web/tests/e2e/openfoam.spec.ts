@@ -31,6 +31,31 @@ const record = (status: string) => ({
   },
 });
 
+test("OpenFOAM recording has a visible preset budget and retains a lower custom limit", async ({page}) => {
+  await page.route("**/api/health", route=>route.fulfill({contentType:"application/json",body:JSON.stringify(health)}));
+  await page.route("**/api/runs", route=>route.fulfill({contentType:"application/json",body:"[]"}));
+  await page.goto("/");
+  await page.getByTestId("try-sample").click();
+  await page.getByText("I checked size, orientation, wheels and clearance.").click();
+  await page.getByRole("button", {name:"Continue to conditions"}).click();
+  await page.getByRole("button", {name:"Continue to run"}).click();
+  await page.getByTestId("engine-openfoam").click();
+  await page.getByLabel("Analysis level").selectOption("legacy");
+  await page.getByRole("radio", {name:/^Fast/}).click();
+  // A saved Basic server design keeps its explicit five-minute profile budget.
+  await page.evaluate(async()=>{const {setSettings}=await import("/src/store/app.ts");setSettings({profile:"basic",quality:"fast",max_seconds:300});});
+  const recording=page.getByRole("switch", {name:"Record flow animation"});
+  await recording.check();
+  expect(await page.evaluate(()=>(window as any).__easycfd.app.get().design.settings.max_seconds)).toBe(600);
+  await expect(page.getByText(/Whole-job limit including recording: 10 min/)).toBeVisible();
+  await recording.uncheck();
+  expect(await page.evaluate(()=>(window as any).__easycfd.app.get().design.settings.max_seconds)).toBe(300);
+  await page.evaluate(async()=>{const {setSettings}=await import("/src/store/app.ts");setSettings({max_seconds:120});});
+  await recording.check();
+  expect(await page.evaluate(()=>(window as any).__easycfd.app.get().design.settings.max_seconds)).toBe(120);
+  await expect(page.getByText(/Whole-job limit including recording: 2 min/)).toBeVisible();
+});
+
 for (const moving_ground of [false, true]) for (const wheels of [false, true]) test(`OpenFOAM motion: road ${moving_ground}, wheels ${wheels}, run and reopen result`, async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));

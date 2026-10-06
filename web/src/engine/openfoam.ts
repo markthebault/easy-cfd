@@ -444,7 +444,7 @@ export async function runGeometry(run: ServerRun, partId: string): Promise<Array
 export async function fetchAnimation(run: ServerRun, offset: Vec3, signal?: AbortSignal): Promise<import("../solver/animation").FlowAnimation | undefined> {
   if (!run.result?.flow_animation) return undefined;
   const m = await api<import("../solver/animation").FlowAnimation & { origin: Vec3; spacing: Vec3; dims: [number, number, number]; freestream: number; inlet: Vec3; length: number }>(`/runs/${run.id}/animation`, { signal });
-  if (m.version !== 1 || m.timeUnit !== "s" || m.frames.length < 2 || m.frames.length > 26 || m.dims.some(d => !Number.isInteger(d) || d < 2) || m.dims.reduce((a,b)=>a*b,1) > 150000) throw new ServerError("Invalid flow animation data.");
+  if (m.version !== 1 || m.timeUnit !== "s" || m.frames.length < 2 || m.frames.length > 50 || m.dims.some(d => !Number.isInteger(d) || d < 2) || m.dims.reduce((a,b)=>a*b,1) > 150000) throw new ServerError("Invalid flow animation data.");
   const n = m.dims[0] * m.dims[1] * m.dims[2];
   const frames: import("../solver/animation").FlowAnimation["frames"] = [];
   for (let i = 0; i < m.frames.length; i++) {

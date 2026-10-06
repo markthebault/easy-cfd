@@ -32,6 +32,11 @@ class Axles(BaseModel):
         return self
 
 
+def profile_time_limit(profile, flow_animation=False):
+    limit = {"basic": 300, "regular": 600, "advanced1": 10800, "advanced2": 43200}.get(profile)
+    return limit * 2 if limit and flow_animation and profile in ("basic", "regular") else limit
+
+
 class Settings(BaseModel):
     model_config = ConfigDict(allow_inf_nan=False, extra="forbid")
     profile: Literal["basic", "regular", "advanced1", "advanced2"] | None = None
@@ -59,7 +64,7 @@ class Settings(BaseModel):
 
     @model_validator(mode="after")
     def profile_deadline(self):
-        ceiling = {"basic": 300, "regular": 600, "advanced1": 10800, "advanced2": 43200}.get(self.profile)
+        ceiling = profile_time_limit(self.profile, self.flow_animation)
         if ceiling and self.max_seconds and self.max_seconds > ceiling:
             raise ValueError(f"This profile permits at most {ceiling} seconds for the whole job.")
         return self

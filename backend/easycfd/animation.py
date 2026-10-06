@@ -5,8 +5,8 @@ import shutil
 from pathlib import Path
 from . import foam
 
-FRAMES = 24
-PASSES = 3
+FRAMES = 48
+PASSES = 12
 POINTS = 120_000
 
 

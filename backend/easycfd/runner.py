@@ -15,7 +15,7 @@ import threading
 import time
 from pathlib import Path
 from . import storage, foam, compute_lease
-from .models import Axles, Settings, resolved_preset
+from .models import Axles, Settings, resolved_preset, profile_time_limit
 from .aerodynamics import detected_axles
 
 JOBS = queue.Queue()
@@ -449,12 +449,9 @@ def execute(key):
         run = storage.get("runs", key)
         if run["status"] == "cancelled":
             return
-        ceiling = run["settings"].get("max_seconds") or {
-            "basic": 300,
-            "regular": 600,
-            "advanced1": 10800,
-            "advanced2": 43200,
-        }.get(run["settings"].get("profile"), 10800)
+        ceiling = run["settings"].get("max_seconds") or profile_time_limit(
+            run["settings"].get("profile"), run["settings"].get("flow_animation", False)
+        ) or 10800
         DEADLINES[key] = time.monotonic() + ceiling
         patch(
             key,

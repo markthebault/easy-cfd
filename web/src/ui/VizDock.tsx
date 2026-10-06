@@ -105,7 +105,7 @@ function Options({ layer, viz, field, particles, stageIds, forces, driving, anim
     };
     return (
       <>
-        {layer === "animation" && animation && <AnimationTimeline animation={animation} viz={viz} stageIds={stageIds} />}
+        {layer === "animation" && animation && <AnimationTimeline animation={animation} viz={viz} stageIds={stageIds} particles={particles} />}
         <Segmented<0 | 1 | 2>
           size="sm"
           label="Slice direction"
@@ -151,7 +151,7 @@ function Options({ layer, viz, field, particles, stageIds, forces, driving, anim
   );
 }
 
-function AnimationTimeline({ animation, viz, stageIds }: { animation: FlowAnimation; viz: VizSettings; stageIds?: string[] }) {
+function AnimationTimeline({ animation, viz, stageIds, particles }: { animation: FlowAnimation; viz: VizSettings; stageIds?: string[]; particles: boolean }) {
   const ids = stageIds ?? ["main"];
   const [position, setPosition] = useState(0);
   useEffect(() => {
@@ -168,10 +168,11 @@ function AnimationTimeline({ animation, viz, stageIds }: { animation: FlowAnimat
   const seek = (p: number) => { ids.forEach(id => stages[id]?.seekAnimation(p)); setPosition(p); };
   return <div className="flow-timeline">
     <div className="flow-timeline-heading"><span className="eyebrow">{animation.engine === "openfoam" ? "OpenFOAM" : "WebGPU"} · TRANSIENT FLOW</span><span>{animation.frames.length} frames</span></div>
-    <p className="muted small">Computed airflow over time. Colours share one scale throughout playback. The sequence plays over six seconds at 1×.</p>
+    <p className="muted small">Colours show the recorded flow. Moving streaks follow the air velocity. Playback takes six seconds at 1×.</p>
     <Slider label="Animation time" min={0} max={1} step={0.001} value={position} display={`${(first + duration * position).toFixed(3)} / ${(first + duration).toFixed(3)} s`} onChange={p => { setViz({playing:false}); seek(p); }} />
     <div className="flow-playback-actions"><button className="btn sm" onClick={() => { if (position >= 1) seek(0); setViz({playing: !viz.playing}); }}><span aria-hidden="true">{viz.playing ? <Pause size={14} /> : <Play size={14} />}</span>{viz.playing ? "Pause flow" : "Play flow"}</button><button className="btn ghost sm" onClick={() => seek(0)}><RotateCcw size={14} />Restart</button></div>
     <Toggle checked={viz.animationLoop !== false} onChange={animationLoop => setViz({animationLoop})} label="Loop playback" />
+    {particles ? <Toggle checked={viz.animationStreaks !== false} onChange={animationStreaks => setViz({animationStreaks})} label="Moving flow streaks" hint="Follow recorded air velocity within the section plane." /> : <p className="inline-error">Moving streaks need WebGL float render targets. This browser can play the recorded colours.</p>}
     <p className="tip">This is a short simulated sequence. Surface colours and drag/lift cards use the steady run.</p>
   </div>;
 }

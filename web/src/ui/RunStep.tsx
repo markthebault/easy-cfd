@@ -66,6 +66,8 @@ export function RunStep() {
     !report || report.errors.length > 0 || !confirmed || resourceBlocked;
   const noGpu = gpu.status === "unavailable" || gpu.status === "checking";
   const openfoam = OPENFOAM_ENABLED && s.engine === "openfoam";
+  const qualityLimit = (q: Quality) => (q === "fast" ? 300 : 600) * (openfoam && s.flow_animation ? 2 : 1);
+  const timeLimit = s.max_seconds ?? (!openfoam ? qualityLimit(s.quality) : s.profile === "basic" ? qualityLimit("fast") : s.profile === "regular" ? qualityLimit("medium") : s.profile === "advanced2" ? 43200 : 10800);
   const serverReady = OPENFOAM_ENABLED && server.status === "ready";
   const limitCeiling = openfoam
     ? s.profile === "advanced1"
@@ -279,7 +281,7 @@ export function RunStep() {
                           : q === "medium"
                             ? "regular"
                             : undefined,
-                      max_seconds: q === "fast" ? 300 : 600,
+                      max_seconds: qualityLimit(q),
                     })
                   }
                 >
@@ -351,7 +353,7 @@ export function RunStep() {
                             : q === "medium"
                               ? "regular"
                               : undefined,
-                        max_seconds: q === "fast" ? 300 : 600,
+                        max_seconds: qualityLimit(q),
                       })
                     }
                   >
@@ -442,8 +444,13 @@ export function RunStep() {
       )}
 
       <div className="group flow-record-option">
-        <Toggle checked={!!s.flow_animation} onChange={flow_animation => setSettings({ flow_animation })} label="Record flow animation" hint="Watch the coloured airflow and wake evolve after the run." />
-        {s.flow_animation && <p className="field-hint">Records 24 frames over three car-lengths of airflow using {openfoam ? "OpenFOAM" : "WebGPU"}. Adds simulation time within your run limit. Play it in Explore airflow.</p>}
+        <Toggle checked={!!s.flow_animation} onChange={flow_animation => {
+          const normalLimit = s.profile === "basic" ? 300 : 600;
+          const standard = openfoam && (s.profile === "basic" || s.profile === "regular");
+          const from = normalLimit * (s.flow_animation ? 2 : 1), to = normalLimit * (flow_animation ? 2 : 1);
+          setSettings({flow_animation, ...(standard && (!s.max_seconds || s.max_seconds === from || s.max_seconds > to) ? {max_seconds:to} : {})});
+        }} label="Record flow animation" hint="Watch the coloured airflow and wake evolve after the run." />
+        {s.flow_animation && <p className="field-hint">Records 48 frames over twelve car-lengths of airflow using {openfoam ? "OpenFOAM" : "WebGPU"}. Whole-job limit including recording: {fmtDuration(timeLimit)}. Play it in Explore airflow.</p>}
       </div>
 
       {openfoam ? (
