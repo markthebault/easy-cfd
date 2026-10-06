@@ -32,7 +32,15 @@ test("WebGPU records changing physical frames, plays, seeks and survives reload"
   await page.getByRole("button", {name:"Explore airflow"}).click();
   await page.getByTestId("analysis-animation").click();
   await expect(page.getByText("Air speed · transient flow")).toBeVisible();
-  await expect(page.getByRole("switch", {name:"Moving flow streaks"})).toBeChecked();
+  await expect(page.getByRole("radio", {name:"Flowing smoke",exact:true})).toBeChecked();
+  await expect(page.getByRole("switch", {name:"Moving flow streaks"})).not.toBeChecked();
+  await page.getByRole("switch", {name:"Moving flow streaks"}).check();
+  const readSmoke = () => page.evaluate(() => {
+    const s=(window as any).__easycfd.stages.main, smoke=s.flowSmoke;
+    const pixels=new Uint16Array(smoke.dye.width*smoke.dye.height*4);
+    s.renderer.readRenderTargetPixels(smoke.dye,0,0,smoke.dye.width,smoke.dye.height,pixels);
+    return Array.from(pixels.filter((_:number,i:number)=>i%256===0));
+  });
   const readMarkers = () => page.evaluate(() => {
     const stage=(window as any).__easycfd.stages.main, t=stage.tracers;
     const pixels=new Float32Array(t.size*t.size*4);
@@ -44,14 +52,21 @@ test("WebGPU records changing physical frames, plays, seeks and survives reload"
   await timeline.fill("0.2");
   const paused = await page.evaluate(()=>(window as any).__easycfd.stages.main.animationPosition());
   const pausedMarkers = await readMarkers();
+  const pausedSmoke = await readSmoke();
   expect(paused).toBeCloseTo(.2,2);
   await page.waitForTimeout(300);
   expect(await page.evaluate(()=>(window as any).__easycfd.stages.main.animationPosition())).toBeCloseTo(paused,4);
   expect(await readMarkers()).toEqual(pausedMarkers);
+  expect(await readSmoke()).toEqual(pausedSmoke);
   await page.getByRole("button", {name:"Play flow",exact:true}).click();
   await page.waitForTimeout(500);
   expect(await page.evaluate(()=>(window as any).__easycfd.stages.main.animationPosition())).toBeGreaterThan(paused);
   const movingMarkers=await readMarkers();
+  expect((await readSmoke()).filter((p,i)=>Math.abs(p-pausedSmoke[i])>10).length).toBeGreaterThan(100);
+  expect(await page.evaluate(()=>{
+    const s=(window as any).__easycfd.stages.main;
+    return s.flowSmoke.frameMix.value===s.slice.uniforms.uFrameMix.value && s.slice.uniforms.uSmokeEnabled.value;
+  })).toBe(true);
   expect(movingMarkers.filter((p,i)=>i%4!==3 && Math.abs(p-pausedMarkers[i])>.001).length).toBeGreaterThan(40);
   const trail = await page.evaluate(() => {
     const s=(window as any).__easycfd.stages.main, t=s.tracers;
@@ -70,6 +85,10 @@ test("WebGPU records changing physical frames, plays, seeks and survives reload"
   const before = await page.evaluate(() => ({result:JSON.stringify((window as any).__easycfd.app.get().run.doc.result),gpu:(window as any).__easycfd.stages.main.slice.uniforms.uFrameMix.value}));
   expect(before.result).toBe(original.result);
   expect(before.gpu).toBeGreaterThan(0);
+  await page.getByRole("radio", {name:"Colour field",exact:true}).click();
+  expect(await page.evaluate(()=>(window as any).__easycfd.stages.main.slice.uniforms.uSmokeEnabled.value)).toBe(false);
+  await page.getByRole("radio", {name:"Flowing smoke",exact:true}).click();
+  expect(await page.evaluate(()=>(window as any).__easycfd.stages.main.flowSmoke!==null)).toBe(true);
   await page.getByRole("switch", {name:"Moving flow streaks"}).uncheck();
   expect(await page.evaluate(()=>(window as any).__easycfd.stages.main.tracers.mesh.visible)).toBe(false);
   await page.getByRole("switch", {name:"Moving flow streaks"}).check();

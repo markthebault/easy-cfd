@@ -9,7 +9,7 @@ export const ANALYSES: { id: AnalysisMode; title: string; description: string; l
   { id: "pressure", title: "Surface pressure", description: "Find suction and high-pressure areas on the car.", layer: "surface", view: "iso", needsSurface: true },
   { id: "friction", title: "Surface friction", description: "Physical wall stress from the solver, in Pa or Cf.", layer: "surface", view: "iso", needsStress: true },
   { id: "clouds", title: "3D pressure clouds", description: "See pressure regions in the air around the car.", layer: "pressureCloud", view: "iso" },
-  { id: "animation", title: "Flow animation", description: "Watch the coloured airflow and wake evolve over time.", layer: "animation", view: "side", needsAnimation: true },
+  { id: "animation", title: "Flow animation", description: "Watch coloured smoke flow around the car and through its wake.", layer: "animation", view: "side", needsAnimation: true },
   { id: "vertical", title: "Vertical streamlines", description: "Follow air over the roof and under the floor.", layer: "streamlines", view: "side" },
   { id: "horizontal", title: "Horizontal streamlines", description: "See how air splits around the sides of the car.", layer: "streamlines", view: "top" },
   { id: "surfaceFlow", title: "Surface flow", description: "Read near-wall flow direction with oil-flow streaks.", layer: "surface", view: "iso", needsSurface: true },

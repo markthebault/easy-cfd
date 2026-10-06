@@ -12,6 +12,7 @@ import { createFieldGPU, disposeFieldGPU, fieldBox, type FieldGPU } from "./fiel
 import { detailBoxes, labelSprite, OrientationCube, road, tunnelBox, type ViewName } from "./helpers";
 import { oilFlowGeometry, oilFlowMaterial } from "./oilflow";
 import { Particles } from "./particles";
+import { FlowSmoke } from "./flowSmoke";
 import { Slice, type SliceField } from "./slice";
 import { streamlineMaterial, traceStreamlines, tubeGeometry } from "./streamlines";
 import { totalPressureCoefficient, wakeGeometry, wakeMaterial, type WakeColor } from "./wake";
@@ -48,6 +49,7 @@ export interface VizSettings {
   animation?: boolean;
   animationLoop?: boolean;
   animationStreaks?: boolean;
+  animationAppearance?: "smoke" | "colours";
   wake: boolean;
   pressureCloud: boolean;
   cloudLevel: number;
@@ -126,6 +128,7 @@ export class Stage {
   private ranges: Ranges | null = null;
   private smoke: Particles | null = null;
   private tracers: Particles | null = null;
+  private flowSmoke: FlowSmoke | null = null;
   private slice = new Slice();
   private streamMesh: THREE.Mesh | null = null;
   private streamMat = streamlineMaterial();
@@ -352,10 +355,16 @@ export class Stage {
       if (this.animationClock > last) {
         this.animationClock = v.animationLoop !== false ? first + (this.animationClock - first) % duration : last;
         this.tracers?.reseed();
+        this.flowSmoke?.reset();
       }
       this.updateAnimationFrame();
       animate = v.animationLoop !== false || this.animationClock < last;
       this.dirty = true;
+    }
+    if (this.flowSmoke && v?.animation && this.animation) {
+      const duration = this.animation.frames.at(-1)!.time - this.animation.frames[0].time;
+      this.flowSmoke.step(v.playing ? flowDt * duration / 6 * v.flowSpeed : 0);
+      this.slice.setSmoke(this.flowSmoke.texture);
     }
     const scale = MOTION_TIME_SCALE;
     if (v?.playing && this.driving && (v.motion || v.windDirection)) {
@@ -598,7 +607,7 @@ export class Stage {
 
   private updateCarLook() {
     const surface = !!this.viz?.surface;
-    const ghost = !!this.viz?.slice && !!this.field;
+    const ghost = !!this.viz?.slice && !this.viz?.animation && !!this.field;
     for (const m of this.carGroup.children as THREE.Mesh[]) {
       const p = this.parts.find((q) => q.id === m.userData.partId);
       if (!p) continue;
@@ -725,7 +734,7 @@ export class Stage {
     }
     this.animationRanges = ranges;
     this.applyViz();
-    if (changed) this.tracers?.reseed();
+    if (changed) { this.tracers?.reseed(); this.flowSmoke?.reset(); }
   }
 
   animationPosition() {
@@ -741,6 +750,7 @@ export class Stage {
     this.updateAnimationFrame();
     // A seek is a discontinuity; no marker may carry a path from another timestamp.
     this.tracers?.reseed();
+    this.flowSmoke?.reset();
     this.requestRender();
   }
 
@@ -764,6 +774,7 @@ export class Stage {
     }
     this.slice.setNextField(this.animationGPU[1], pair.mix);
     this.tracers?.setNextField(this.animationGPU[1], pair.mix);
+    this.flowSmoke?.setField(this.animationGPU[0], this.animationGPU[1], pair.mix);
   }
 
   setField(field: VizField | null, ranges: Ranges | null) {
@@ -828,6 +839,15 @@ export class Stage {
       const range = v.sliceField === "speed" ? sr.speed : v.sliceField === "pressure" ? sr.pressure : v.sliceField === "cp0" ? sr.cp0 : sr.k;
       this.slice.setMode(v.sliceField, range, sr.density, sr.q, v.animation);
     }
+    const flowingSmoke = this.slice.mesh.visible && !!v?.animation && v.animationAppearance !== "colours" && this.particlesAvailable;
+    if (flowingSmoke && v && f) {
+      this.flowSmoke ??= new FlowSmoke(this.renderer);
+      this.flowSmoke.configure(v.sliceAxis, this.slice.pos, this.slice.min, this.slice.max, f.length, f.freestream);
+      this.flowSmoke.setField(this.animationGPU[0], this.animationGPU[1], this.slice.uniforms.uFrameMix.value);
+    } else if (this.flowSmoke) {
+      this.flowSmoke.dispose(); this.flowSmoke = null;
+    }
+    if (!flowingSmoke) this.slice.setSmoke(null);
     if (this.tracers) {
       const transient = !!(v?.animation && this.animation);
       this.tracers.setHistory(transient);
@@ -835,7 +855,7 @@ export class Stage {
       this.tracers.uniforms.uTrail.value = transient ? 0.12 : 0.35;
       this.tracers.uniforms.uOpacity.value = transient ? 0.85 : this.dark ? 0.5 : 0.6;
       this.tracers.mesh.geometry.instanceCount = transient ? 2304 : TRACER_SIZE * TRACER_SIZE;
-      this.tracers.mesh.visible = on(v?.slice && (transient ? v.animationStreaks !== false : v.sliceTracers));
+      this.tracers.mesh.visible = on(v?.slice && (transient ? v.animationStreaks === true : v.sliceTracers));
       if (v && f && this.tracers.mesh.visible) {
         const { min, max } = fieldBox(transient ? this.animation!.frames[0].field : f);
         this.tracers.setPlane(v.sliceAxis, this.slice.pos, min, max);
@@ -1237,6 +1257,7 @@ export class Stage {
     this.controls.dispose();
     this.smoke?.dispose();
     this.tracers?.dispose();
+    this.flowSmoke?.dispose();
     this.clearAnimationGPU();
     this.slice.dispose();
     disposeFieldGPU(this.fieldGPU);

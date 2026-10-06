@@ -168,11 +168,14 @@ function AnimationTimeline({ animation, viz, stageIds, particles }: { animation:
   const seek = (p: number) => { ids.forEach(id => stages[id]?.seekAnimation(p)); setPosition(p); };
   return <div className="flow-timeline">
     <div className="flow-timeline-heading"><span className="eyebrow">{animation.engine === "openfoam" ? "OpenFOAM" : "WebGPU"} · TRANSIENT FLOW</span><span>{animation.frames.length} frames</span></div>
-    <p className="muted small">Colours show the recorded flow. Moving streaks follow the air velocity. Playback takes six seconds at 1×.</p>
+    <p className="muted small">Smoke follows the recorded air velocity through this section. Colour shows the selected flow measurement.</p>
+    {particles && <Segmented<"smoke" | "colours"> size="sm" label="Flow appearance" value={viz.animationAppearance ?? "smoke"}
+      options={[{value:"smoke",label:"Flowing smoke"},{value:"colours",label:"Colour field"}]}
+      onChange={animationAppearance => setViz({animationAppearance})} />}
     <Slider label="Animation time" min={0} max={1} step={0.001} value={position} display={`${(first + duration * position).toFixed(3)} / ${(first + duration).toFixed(3)} s`} onChange={p => { setViz({playing:false}); seek(p); }} />
     <div className="flow-playback-actions"><button className="btn sm" onClick={() => { if (position >= 1) seek(0); setViz({playing: !viz.playing}); }}><span aria-hidden="true">{viz.playing ? <Pause size={14} /> : <Play size={14} />}</span>{viz.playing ? "Pause flow" : "Play flow"}</button><button className="btn ghost sm" onClick={() => seek(0)}><RotateCcw size={14} />Restart</button></div>
     <Toggle checked={viz.animationLoop !== false} onChange={animationLoop => setViz({animationLoop})} label="Loop playback" />
-    {particles ? <Toggle checked={viz.animationStreaks !== false} onChange={animationStreaks => setViz({animationStreaks})} label="Moving flow streaks" hint="Follow recorded air velocity within the section plane." /> : <p className="inline-error">Moving streaks need WebGL float render targets. This browser can play the recorded colours.</p>}
+    {particles ? <Toggle checked={viz.animationStreaks === true} onChange={animationStreaks => setViz({animationStreaks})} label="Moving flow streaks" hint="Add individual paths over the flow." /> : <p className="inline-error">Flowing smoke needs WebGL float render targets. This browser can play the recorded colours.</p>}
     <p className="tip">This is a short simulated sequence. Surface colours and drag/lift cards use the steady run.</p>
   </div>;
 }
