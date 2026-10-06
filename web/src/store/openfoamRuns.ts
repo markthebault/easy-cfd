@@ -8,6 +8,7 @@ import {
   domainToUi,
   ensureProject,
   fetchField,
+  fetchAnimation,
   fetchSurface,
   frameOffset,
   getRun,
@@ -231,7 +232,8 @@ async function finish(
     adapter: OPENFOAM_ADAPTER,
     hasField: true,
   };
-  await saveAndShow(doc, enabled, field, surface);
+  const animation = await fetchAnimation(rec, offset, signal);
+  await saveAndShow(doc, enabled, field, surface, animation);
 }
 
 export async function startOpenFoamRun() {
@@ -355,6 +357,7 @@ function settingsFromServer(s: ServerRun["settings"]): Settings {
   const box = s.simulation_box as Settings["simulation_box"] | undefined;
   return {
     ...DEFAULT_SETTINGS,
+    flow_animation: !!s.flow_animation,
     speed_kmh: s.speed_kmh,
     yaw_deg: s.yaw_deg,
     quality: q,

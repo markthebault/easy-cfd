@@ -18,7 +18,7 @@ import { estimate } from "../store/estimate";
 import { toSolverParts } from "../store/geometry";
 import { startRun } from "../store/runs";
 import { weightInputError } from "../solver/tyreLoads";
-import { Slider } from "./controls";
+import { Slider, Toggle } from "./controls";
 import { boundaryLine, fmt, fmtCells, fmtDuration } from "./format";
 
 const QUALITIES: { q: Quality; label: string; blurb: string }[] = [
@@ -440,6 +440,11 @@ export function RunStep() {
           .<span className="muted"> Set per group in the car step.</span>
         </p>
       )}
+
+      <div className="group flow-record-option">
+        <Toggle checked={!!s.flow_animation} onChange={flow_animation => setSettings({ flow_animation })} label="Record flow animation" hint="Watch the coloured airflow and wake evolve after the run." />
+        {s.flow_animation && <p className="field-hint">Records 24 frames over three car-lengths of airflow using {openfoam ? "OpenFOAM" : "WebGPU"}. Adds simulation time within your run limit. Play it in Explore airflow.</p>}
+      </div>
 
       {openfoam ? (
         !s.profile?.startsWith("advanced") && (

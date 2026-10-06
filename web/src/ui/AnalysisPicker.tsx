@@ -4,6 +4,7 @@ import { ANALYSES, type AnalysisMode } from "../viz/analysis";
 
 function Thumbnail({ mode }: { mode: AnalysisMode }) {
   return <svg className={`analysis-thumb thumb-${mode}`} viewBox="0 0 100 58" fill="none" aria-hidden="true">
+    {mode === "animation" && <><defs><linearGradient id="flow-thumb" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#efec59" /><stop offset=".45" stopColor="#f39839" /><stop offset="1" stopColor="#285bea" /></linearGradient></defs><rect x="4" y="8" width="92" height="37" rx="4" fill="url(#flow-thumb)" opacity=".65" /><path d="M67 25C85 11 96 39 77 37S72 20 93 29" stroke="#79dcb5" strokeWidth="3" /><circle cx="87" cy="15" r="8" fill="#fff" /><path d="M85 11L91 15L85 19Z" fill="#285bea" /></>}
     {mode === "clouds" && <><ellipse cx="25" cy="32" rx="15" ry="17" fill="#fb886a" fillOpacity=".3" stroke="#fb886a" /><ellipse cx="65" cy="24" rx="25" ry="15" fill="#70acff" fillOpacity=".2" stroke="#70acff" /></>}
     {mode === "wake" && <path d="M58 24C73 13 93 17 96 26C83 29 96 45 73 43L54 38" fill="#71b9f5" fillOpacity=".25" stroke="#71b9f5" />}
     {mode === "turbulence" && <><path d="M6 9H95V46H6Z" fill="#ad92f9" fillOpacity=".14" /><ellipse cx="75" cy="31" rx="20" ry="11" fill="#ad92f9" fillOpacity=".5" /></>}
@@ -17,7 +18,7 @@ function Thumbnail({ mode }: { mode: AnalysisMode }) {
   </svg>;
 }
 
-export function AnalysisPicker({ active, surface, friction, forces, onPick, onClose }: { active: AnalysisMode | null; surface: boolean; friction?: boolean; forces: boolean; onPick: (mode: AnalysisMode) => void; onClose: () => void }) {
+export function AnalysisPicker({ active, surface, friction, forces, animation, onPick, onClose }: { active: AnalysisMode | null; animation?: boolean; surface: boolean; friction?: boolean; forces: boolean; onPick: (mode: AnalysisMode) => void; onClose: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     ref.current?.querySelector<HTMLButtonElement>(".analysis-card:not(:disabled)")?.focus();
@@ -29,8 +30,8 @@ export function AnalysisPicker({ active, surface, friction, forces, onPick, onCl
     <div className="analysis-heading"><div><span className="eyebrow">ANALYSIS</span><h2>What do you want to see?</h2><p>Choose a view. We’ll position the camera and the flow for you.</p></div><button className="icon-btn" aria-label="Close analysis picker" onClick={onClose}><X size={17} /></button></div>
     <div className="analysis-grid">
       {ANALYSES.map(a => {
-        const disabled = a.needsStress && !friction || a.needsSurface && !surface || a.needsForces && !forces;
-        const reason = a.needsStress ? "Physical wall stress is unavailable in this run. Run it again with the updated solver." : a.needsForces ? "Available when the run finishes." : "Surface samples are not available for this run.";
+        const disabled = a.needsAnimation && !animation || a.needsStress && !friction || a.needsSurface && !surface || a.needsForces && !forces;
+        const reason = a.needsAnimation ? "Enable Record flow animation in Run, then run again." : a.needsStress ? "Physical wall stress is unavailable in this run. Run it again with the updated solver." : a.needsForces ? "Available when the run finishes." : "Surface samples are not available for this run.";
         return <button key={a.id} className={`analysis-card ${active === a.id ? "selected" : ""}`} aria-pressed={active === a.id} disabled={!!disabled} onClick={() => onPick(a.id)} data-testid={`analysis-${a.id}`} title={disabled ? reason : a.description}>
           <Thumbnail mode={a.id} /><span className="analysis-copy"><b>{a.title}</b><span>{disabled ? reason : a.description}</span></span>{active === a.id && <Check size={14} className="analysis-check" />}
         </button>;

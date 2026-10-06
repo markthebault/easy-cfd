@@ -23,7 +23,7 @@ test("UI settings map to the server's settings; Custom quality becomes Medium", 
   assert.deepEqual(out.simulation_box, s.simulation_box);
   assert.equal(out.geometry_confirmed, true);
   // Only fields the server accepts (its model forbids extra ones).
-  assert.deepEqual(Object.keys(out).sort(), ["custom_iterations", "custom_mesh", "density", "geometry_confirmed", "moving_ground", "quality", "reference_area", "simulation_box", "speed_kmh", "wheels", "yaw_deg"]);
+  assert.deepEqual(Object.keys(out).sort(), ["custom_iterations", "custom_mesh", "density", "flow_animation", "geometry_confirmed", "moving_ground", "quality", "reference_area", "simulation_box", "speed_kmh", "wheels", "yaw_deg"]);
 });
 
 test("road and wheel choices reach OpenFOAM independently, including explicit false", () => {

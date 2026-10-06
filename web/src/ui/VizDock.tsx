@@ -1,7 +1,8 @@
 // Visualisation layers: toggle chips plus the options of the layer in focus.
 
-import { useCallback, useRef, useState } from "react";
-import { Car, ChevronUp, CircleGauge, Cloud, Grid2X2, Layers, Maximize2, PanelLeftOpen, Pause, Play, Spline, Wind, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Car, ChevronUp, CircleGauge, Cloud, Grid2X2, Layers, Maximize2, PanelLeftOpen, Pause, Play, RotateCcw, Spline, Wind, X } from "lucide-react";
+import type { FlowAnimation } from "../solver/animation";
 import type { VizField } from "../solver/extract";
 import { useStore } from "../store/store";
 import { app, setViz } from "../store/app";
@@ -22,12 +23,13 @@ const LAYERS: { key: Layer; label: string; icon: typeof Car; needsField: boolean
   { key: "surface", label: "Surface", icon: Car, needsField: false },
   { key: "smoke", label: "Smoke", icon: Wind, needsField: true },
   { key: "streamlines", label: "Streamlines", icon: Spline, needsField: true },
+  { key: "animation", label: "Flow animation", icon: Play, needsField: true },
   { key: "slice", label: "Slice", icon: Layers, needsField: true },
   { key: "wake", label: "Wake", icon: Cloud, needsField: true },
   { key: "motion", label: "Road & tyres", icon: CircleGauge, needsField: false },
 ];
 
-function Options({ layer, viz, field, particles, stageIds, forces, driving }: { layer: Layer; viz: VizSettings; field: VizField | null; particles: boolean; stageIds?: string[]; forces?: ForceValues | null; driving?: DrivingConditions | null }) {
+function Options({ layer, viz, field, particles, stageIds, forces, driving, animation }: { animation?: FlowAnimation; layer: Layer; viz: VizSettings; field: VizField | null; particles: boolean; stageIds?: string[]; forces?: ForceValues | null; driving?: DrivingConditions | null }) {
   if (layer === "motion") return <><p className="muted small">The road and imported wheels follow this run’s saved boundary settings at {Math.round(driving?.speed_kmh ?? 0)} km/h. Playback is slowed so you can see the motion.</p><p className="tip">Road {driving?.moving_ground ? "moving" : "fixed"} · Wheels {driving?.wheels ? "rotating" : "fixed"}. Wheel rotation pauses in surface and slice analyses to keep the saved data aligned.</p></>;
   if (layer === "pressureCloud") return <>
     <p className="muted small">Blue encloses suction; coral encloses positive pressure. These surfaces mark equal static pressure in the computed air field.</p>
@@ -93,7 +95,7 @@ function Options({ layer, viz, field, particles, stageIds, forces, driving }: { 
         <p className="tip">Drag the yellow knob to move the seed rake.</p>
       </>
     );
-  if (layer === "slice") {
+  if (layer === "slice" || layer === "animation") {
     const box = field ? fieldBox(field) : null;
     const lo = box ? box.min.getComponent(viz.sliceAxis) : 0, hi = box ? box.max.getComponent(viz.sliceAxis) : 1;
     const setAxis = (a: 0 | 1 | 2) => {
@@ -103,6 +105,7 @@ function Options({ layer, viz, field, particles, stageIds, forces, driving }: { 
     };
     return (
       <>
+        {layer === "animation" && animation && <AnimationTimeline animation={animation} viz={viz} stageIds={stageIds} />}
         <Segmented<0 | 1 | 2>
           size="sm"
           label="Slice direction"
@@ -127,7 +130,7 @@ function Options({ layer, viz, field, particles, stageIds, forces, driving }: { 
           ]}
           onChange={(f) => setViz({ sliceField: f })}
         />
-        {particles && <Toggle checked={viz.sliceTracers} onChange={(v) => setViz({ sliceTracers: v })} label="Flow tracers" hint="In-plane motion of the air." />}
+        {particles && layer !== "animation" && <Toggle checked={viz.sliceTracers} onChange={(v) => setViz({ sliceTracers: v })} label="Flow tracers" hint="In-plane motion of the air." />}
         {viz.sliceField === "k" && <p className="muted small">Modelled turbulent kinetic energy. Brighter regions contain more turbulent energy; this is not a noise level.</p>}
         <p className="tip">Drag the white knob to slide the plane.</p>
       </>
@@ -148,7 +151,32 @@ function Options({ layer, viz, field, particles, stageIds, forces, driving }: { 
   );
 }
 
-export function VizDock(props: { field: VizField | null; particles: boolean; surface: boolean; friction?: boolean; forces?: ForceValues | null; stageIds?: string[]; driving?: DrivingConditions | null; focused?: boolean; onFocus?: () => void }) {
+function AnimationTimeline({ animation, viz, stageIds }: { animation: FlowAnimation; viz: VizSettings; stageIds?: string[] }) {
+  const ids = stageIds ?? ["main"];
+  const [position, setPosition] = useState(0);
+  useEffect(() => {
+    const update = () => {
+      const p = stages[ids[0]]?.animationPosition() ?? 0;
+      setPosition(p);
+      if (p >= 1 && viz.animationLoop === false && viz.playing) setViz({playing:false});
+    };
+    update();
+    const timer = setInterval(update, 150);
+    return () => clearInterval(timer);
+  }, [animation, ids.join(","), viz.animationLoop, viz.playing]);
+  const first = animation.frames[0].time, duration = animation.frames.at(-1)!.time - first;
+  const seek = (p: number) => { ids.forEach(id => stages[id]?.seekAnimation(p)); setPosition(p); };
+  return <div className="flow-timeline">
+    <div className="flow-timeline-heading"><span className="eyebrow">{animation.engine === "openfoam" ? "OpenFOAM" : "WebGPU"} · TRANSIENT FLOW</span><span>{animation.frames.length} frames</span></div>
+    <p className="muted small">Computed airflow over time. Colours share one scale throughout playback. The sequence plays over six seconds at 1×.</p>
+    <Slider label="Animation time" min={0} max={1} step={0.001} value={position} display={`${(first + duration * position).toFixed(3)} / ${(first + duration).toFixed(3)} s`} onChange={p => { setViz({playing:false}); seek(p); }} />
+    <div className="flow-playback-actions"><button className="btn sm" onClick={() => { if (position >= 1) seek(0); setViz({playing: !viz.playing}); }}><span aria-hidden="true">{viz.playing ? <Pause size={14} /> : <Play size={14} />}</span>{viz.playing ? "Pause flow" : "Play flow"}</button><button className="btn ghost sm" onClick={() => seek(0)}><RotateCcw size={14} />Restart</button></div>
+    <Toggle checked={viz.animationLoop !== false} onChange={animationLoop => setViz({animationLoop})} label="Loop playback" />
+    <p className="tip">This is a short simulated sequence. Surface colours and drag/lift cards use the steady run.</p>
+  </div>;
+}
+
+export function VizDock(props: { animation?: FlowAnimation; field: VizField | null; particles: boolean; surface: boolean; friction?: boolean; forces?: ForceValues | null; stageIds?: string[]; driving?: DrivingConditions | null; focused?: boolean; onFocus?: () => void }) {
   const { field, particles, surface } = props;
   const viz = useStore(app, (s) => s.viz);
   const [focus, setFocus] = useState<Layer | null>(null);
@@ -162,42 +190,48 @@ export function VizDock(props: { field: VizField | null; particles: boolean; sur
     if (!stage) return;
     const a = ANALYSES.find(a => a.id === mode)!;
     setViz(analysisPreset(mode, viz, field, stage.carBounds()));
-    for (const id of ids) stages[id]?.setView(a.view, viz.playing, false, a.layer === "slice", a.layer === "forces");
+    for (const id of ids) stages[id]?.setView(a.view, viz.playing, false, (a.layer === "slice" || a.layer === "animation"), a.layer === "forces");
     setFocus(window.innerWidth <= 760 ? null : a.layer);
     closePicker();
   };
   const toggle = (l: Layer) => {
-    const on = !viz[l];
+    const on = !(viz[l] && (l !== "slice" || !viz.animation));
     // A section plane reads best on its own: smoke off, camera facing the plane.
-    setViz(l === "slice" && on ? { slice: true, smoke: false } : ({ [l]: on } as Partial<VizSettings>));
-    if (l === "slice" && on) for (const id of props.stageIds ?? ["main"]) stages[id]?.setView(sliceView(viz.sliceAxis), true, false, true);
+    const ids = props.stageIds ?? ["main"];
+    const stage = stages[ids[0]];
+    if (l === "animation" && on && (!props.animation || !field || !stage)) return;
+    const next: Partial<VizSettings> = l === "animation"
+      ? on ? analysisPreset("animation", viz, field!, stage!.carBounds()) : { animation: false, slice: false }
+      : l === "slice" && on ? { slice: true, smoke: false, animation: false } : { [l]: on, animation: false };
+    setViz(next);
+    if ((l === "slice" || l === "animation") && on) for (const id of ids) stages[id]?.setView(sliceView(next.sliceAxis ?? viz.sliceAxis), true, false, true);
     setFocus(on ? l : focus === l ? null : focus);
   };
   const shownFocus = focus && (focus === "surface" || focus === "forces" || focus === "pressureCloud" || viz[focus]) ? focus : null;
-  const animated = viz.motion || viz.windDirection || viz.smoke || viz.surfaceFlow || (viz.slice && viz.sliceTracers) || (viz.streamlines && viz.stream.animate);
+  const animated = viz.animation || viz.motion || viz.windDirection || viz.smoke || viz.surfaceFlow || (viz.slice && viz.sliceTracers) || (viz.streamlines && viz.stream.animate);
   const active = activeAnalysis(viz);
   const current = ANALYSES.find(a => a.id === active);
   const focusTitle = current?.layer === shownFocus ? current.title : LAYERS.find(l => l.key === shownFocus)?.label ?? (shownFocus === "pressureCloud" ? "3D pressure clouds" : "Forces");
   return (
     <div className="viz-dock">
-      {picker && <AnalysisPicker active={active} surface={surface} friction={props.friction} forces={!!props.forces} onPick={pick} onClose={closePicker} />}
+      {picker && <AnalysisPicker active={active} surface={surface} animation={!!props.animation} friction={props.friction} forces={!!props.forces} onPick={pick} onClose={closePicker} />}
       {!picker && shownFocus && (
         <div className="viz-options glass" role="region" aria-label={`${shownFocus} options`}>
           <div className="viz-options-head">
             <b>{focusTitle}</b>
             <button className="icon-btn xs" aria-label="Close options" onClick={() => setFocus(null)}><X size={14} /></button>
           </div>
-          <Options layer={shownFocus} viz={viz} field={field} particles={particles} stageIds={props.stageIds} forces={props.forces} driving={props.driving} />
+          <Options layer={shownFocus} viz={viz} field={field} particles={particles} stageIds={props.stageIds} forces={props.forces} driving={props.driving} animation={props.animation} />
         </div>
       )}
       <div className="analysis-launcher glass"><button ref={launcher} className={`analysis-open ${picker ? "on" : ""}`} aria-expanded={picker} aria-controls="analysis-picker" onClick={() => picker ? closePicker() : setPicker(true)}><Grid2X2 size={17} /><span>Explore airflow</span><ChevronUp size={14} /></button><span className="analysis-current">{current?.title ?? "Custom layers"}</span>{current && !picker && <button className="btn ghost sm" aria-label="View settings" onClick={() => setFocus(shownFocus ? null : current.layer)}>Settings</button>}</div>
       <div className="viz-bar glass" role="toolbar" aria-label="Visualisation layers">
         {LAYERS.map(({ key, label, icon: Icon, needsField }) => {
-          const disabled = key === "motion" || key === "windDirection" ? !props.driving : needsField ? !field : !surface;
-          const on = viz[key] && !disabled;
+          const disabled = key === "animation" ? !props.animation : key === "motion" || key === "windDirection" ? !props.driving : needsField ? !field : !surface;
+          const on = viz[key] && !disabled && (key !== "slice" || !viz.animation);
           return (
             <div key={key} className={`layer-chip ${on ? "on" : ""} ${shownFocus === key ? "focus" : ""}`}>
-              <button className="layer-toggle" aria-pressed={on} disabled={disabled} onClick={() => toggle(key)} data-testid={`layer-${key}`} title={disabled ? "Available after a run" : `Show ${label.toLowerCase()}`}>
+              <button className="layer-toggle" aria-pressed={on} disabled={disabled} onClick={() => toggle(key)} data-testid={`layer-${key}`} title={disabled ? key === "animation" ? "Enable Record flow animation in Run, then run again." : "Available after a run" : `Show ${label.toLowerCase()}`}>
                 <Icon size={16} /> <span>{label}</span>
               </button>
               {on && (

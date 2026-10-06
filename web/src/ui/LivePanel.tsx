@@ -55,7 +55,7 @@ export function LivePanel() {
     <div className="live" aria-live="polite">
       <div className="live-head">
         <span className="eyebrow"><span className="rec" /> Live{openfoam ? " · OpenFOAM server" : ""}</span>
-        <h2>{openfoam ? serverStageText(live.serverStage) : STAGE[live.stage]}</h2>
+        <h2>{openfoam ? serverStageText(live.serverStage) : (live.serverStage || STAGE[live.stage])}</h2>
         <p className="muted small">{live.designName} · {conditionsLine(live.settings)}</p>
         <p className="muted small" data-testid="run-boundaries">{boundaryLine(live.settings)}</p>
       </div>

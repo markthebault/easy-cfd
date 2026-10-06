@@ -54,6 +54,7 @@ class Settings(BaseModel):
     density: float = Field(default=1.225, ge=0.8, le=1.5)
     moving_ground: bool = True
     wheels: bool = True
+    flow_animation: bool = False
     geometry_confirmed: bool = False
 
     @model_validator(mode="after")

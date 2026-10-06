@@ -80,6 +80,8 @@ export interface Settings extends VehicleWeight {
   gpu_buffer_limit?: number;
   /** Shared whole-job elapsed-time ceiling, seconds. */
   max_seconds?: number;
+  /** Record a physical-time airflow sequence after the steady solve. */
+  flow_animation?: boolean;
   speed_kmh: number;
   yaw_deg: number;
   quality: Quality;

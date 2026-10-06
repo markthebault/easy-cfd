@@ -8,11 +8,13 @@ import { mapTexture, type MapName } from "./colormap";
 export type SliceField = "speed" | "pressure" | "cp0" | "k";
 
 export const SLICE_MAP: Record<SliceField, MapName> = { speed: "speed", pressure: "diverging", cp0: "loss", k: "turbulence" };
+const NEXT_FIELD_GLSL = FIELD_GLSL.replace(/\b(uVelocity|uScalars|uOrigin|uExtent|uDims|fieldUVW|insideField|velocityAt|scalarsAt|flowAt)\b/g, "$1Next");
 const MODE: Record<SliceField, number> = { speed: 0, pressure: 1, cp0: 2, k: 3 };
 
 export class Slice {
   readonly mesh: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
   private fieldU = fieldUniforms(null);
+  private nextU = fieldUniforms(null);
   axis: 0 | 1 | 2 = 1;
   pos = 0;
   min = new THREE.Vector3();
@@ -22,6 +24,8 @@ export class Slice {
     const material = new THREE.ShaderMaterial({
       uniforms: {
         ...this.fieldU,
+        ...Object.fromEntries(Object.entries(this.nextU).map(([k,v])=>[`${k}Next`, v])),
+        uFrameMix: { value: 0 },
         uMap: { value: mapTexture("speed") },
         uMode: { value: 0 },
         uRange: { value: new THREE.Vector2(0, 1) },
@@ -39,6 +43,8 @@ export class Slice {
         }`,
       fragmentShader: /* glsl */ `
         ${FIELD_GLSL}
+        ${NEXT_FIELD_GLSL}
+        uniform float uFrameMix;
         uniform sampler2D uMap;
         uniform int uMode;
         uniform vec2 uRange;
@@ -49,10 +55,12 @@ export class Slice {
         varying vec3 vWorld;
         void main() {
           vec4 a = velocityAt(vWorld);
+          if (uFrameMix > 0.0) a = mix(a, velocityAtNext(vWorld), uFrameMix);
           if (a.w < 0.5) { gl_FragColor = vec4(uSolid, 0.96);
             #include <colorspace_fragment>
             return; }
           vec4 b = scalarsAt(vWorld);
+          if (uFrameMix > 0.0) b = mix(b, scalarsAtNext(vWorld), uFrameMix);
           // Renormalise the fluid-weighted blend near the wall (solid samples carry zeros).
           vec3 u = a.xyz / max(a.w, 0.5);
           float speed = length(u);
@@ -94,10 +102,15 @@ export class Slice {
     this.place(this.axis, this.pos);
   }
 
-  setMode(field: SliceField, range: [number, number], density: number, q: number) {
+  setNextField(g: FieldGPU | null, mix: number) {
+    updateFieldUniforms(this.nextU, g);
+    this.uniforms.uFrameMix.value = g ? mix : 0;
+  }
+
+  setMode(field: SliceField, range: [number, number], density: number, q: number, animation = false) {
     const u = this.uniforms;
     u.uMode.value = MODE[field];
-    u.uMap.value = mapTexture(SLICE_MAP[field]);
+    u.uMap.value = mapTexture(animation && field === "speed" ? "flow" : SLICE_MAP[field]);
     (u.uRange.value as THREE.Vector2).set(range[0], range[1]);
     u.uDensity.value = density;
     u.uQ.value = q;

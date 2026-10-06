@@ -56,3 +56,10 @@ export function encodeSurface(keys: string[], s: SurfaceSample[]): FieldDoc["sur
 export function decodeSurface(s: FieldDoc["surface"]): SurfaceSample[] {
   return s.map((x) => ({ cp: dequantize(x.cp), shear: dequantize(x.shear), wallStress: x.wallStress, stressValid: x.stressValid, snapshot: x.snapshot }));
 }
+
+export function encodeAnimation(a: import("../solver/animation").FlowAnimation): FieldDoc["animation"] {
+  return { ...a, frames: a.frames.map(f => ({ time: f.time, field: encodeField(f.field) })) };
+}
+export function decodeAnimation(a: NonNullable<FieldDoc["animation"]>): import("../solver/animation").FlowAnimation {
+  return { ...a, frames: a.frames.map(f => ({ time: f.time, field: decodeField(f.field) })) };
+}

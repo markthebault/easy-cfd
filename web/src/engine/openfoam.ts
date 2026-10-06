@@ -144,6 +144,7 @@ export function serverSettings(s: Settings): Record<string, unknown> {
     density: s.density,
     moving_ground: s.moving_ground,
     wheels: s.wheels,
+    flow_animation: !!s.flow_animation,
     geometry_confirmed: true,
   };
 }
@@ -437,4 +438,24 @@ export async function fetchSurface(run: ServerRun, parts: Part[], offset: Vec3, 
 
 export async function runGeometry(run: ServerRun, partId: string): Promise<ArrayBuffer> {
   return api<ArrayBuffer>(`/runs/${run.id}/geometry/${partId}.stl`);
+}
+
+/** Fetch computed physical-time frames, keeping server/UI coordinates aligned. */
+export async function fetchAnimation(run: ServerRun, offset: Vec3, signal?: AbortSignal): Promise<import("../solver/animation").FlowAnimation | undefined> {
+  if (!run.result?.flow_animation) return undefined;
+  const m = await api<import("../solver/animation").FlowAnimation & { origin: Vec3; spacing: Vec3; dims: [number, number, number]; freestream: number; inlet: Vec3; length: number }>(`/runs/${run.id}/animation`, { signal });
+  if (m.version !== 1 || m.timeUnit !== "s" || m.frames.length < 2 || m.frames.length > 26 || m.dims.some(d => !Number.isInteger(d) || d < 2) || m.dims.reduce((a,b)=>a*b,1) > 150000) throw new ServerError("Invalid flow animation data.");
+  const n = m.dims[0] * m.dims[1] * m.dims[2];
+  const frames: import("../solver/animation").FlowAnimation["frames"] = [];
+  for (let i = 0; i < m.frames.length; i++) {
+    const time = m.frames[i].time;
+    if (!Number.isFinite(time) || (i > 0 && time <= m.frames[i-1].time)) throw new ServerError("Invalid flow animation timestamps.");
+    const buf = await api<ArrayBuffer>(`/runs/${run.id}/animation/${i}`, { signal });
+    if (buf.byteLength !== 21 * n) throw new ServerError("Invalid flow animation frame size.");
+    const valid = new Uint8Array(buf, 20*n, n), solid = valid.map(v => v ? 0 : 1);
+    const f = (c: number) => new Float32Array(buf, 4*n*c, n).slice();
+    frames.push({time, field: { origin: m.origin.map((v,j)=>v-offset[j]) as Vec3, spacing:m.spacing, dims:m.dims,
+      freestream:m.freestream, inlet:m.inlet, length:m.length, u:f(0), v:f(1), w:f(2), p:f(3), k:f(4), solid }});
+  }
+  return { version:1, engine:"openfoam", timeUnit:"s", model:m.model, frames };
 }

@@ -415,6 +415,14 @@ export class FlowSolver {
     levels.forEach((lv, l) => this.device.queue.writeBuffer(this.levelBuffers[l].coef, 0, lv.coef));
   }
 
+  /** Restore the unscaled pressure operator and unit cell steps before physical-time recording. */
+  beginTransient() {
+    this.setTimeFactors(new Float32Array(this.c.NC).fill(1), 1e-6);
+    this.lts = false;
+    this.device.queue.writeBuffer(this.buffers.state, 4, new Float32Array([0]));
+    this.setPace(1);
+  }
+
   /** Pace of pseudo time relative to the GPU clock (local time stepping), used to weight part forces. */
   setPace(f: number) {
     this.device.queue.writeBuffer(this.buffers.state, 12, new Float32Array([f]));

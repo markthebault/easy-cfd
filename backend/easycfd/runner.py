@@ -37,6 +37,8 @@ PIPELINE_HASH = hashlib.sha256(
             "aerodynamics.py",
             "extract_worker.py",
             "sample_worker.py",
+            "animation.py",
+            "animation_worker.py",
         )
     )
 ).hexdigest()
@@ -157,7 +159,7 @@ def stage(key, case, command, stage_name, memory, cpus=4):
     check_cancelled(key)
     name = f"easycfd-{key}"
     patch(key, stage=stage_name)
-    tool = "simpleFoam" if "simpleFoam" in command else command[0]
+    tool = next((s for s in ("simpleFoam", "pimpleFoam") if s in command), command[0])
     log_path = case / f"log.{tool}"
     args = container(name, case, command, memory, cpus)
     start = time.monotonic()
@@ -244,7 +246,7 @@ def stage(key, case, command, stage_name, memory, cpus=4):
     return time.monotonic() - start
 
 
-def extract_case(key, case, output, run):
+def extract_case(key, case, output, run, module="easycfd.extract_worker"):
     output.mkdir(exist_ok=True)
     input_record = output / ".run-input.json"
     input_record.write_text(json.dumps(run))
@@ -253,7 +255,7 @@ def extract_case(key, case, output, run):
             [
                 sys.executable,
                 "-m",
-                "easycfd.extract_worker",
+                module,
                 str(case),
                 str(output),
                 str(input_record),
@@ -569,6 +571,14 @@ def execute(key):
             result["warnings"].append(
                 "The whole-job time limit stopped the solve early. This completed checkpoint is provisional; the requested study is incomplete."
             )
+        if run["settings"].get("flow_animation"):
+            from .animation import record
+
+            root = storage.directory("runs", key)
+            source = root / f"case-{result['preset']}"
+            meta = json.loads((source / "metadata.json").read_text())
+            low, high = run["geometry"]["bounds"]
+            result["flow_animation"] = record(key, source, root / "animation", run, meta, high[0] - low[0])
         (storage.directory("runs", key) / "results/summary.json").write_text(
             json.dumps(result, indent=2, allow_nan=False)
         )

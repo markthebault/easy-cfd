@@ -69,3 +69,8 @@ export function mergeRanges(a: Ranges, b: Ranges): Ranges {
   const m = (x: [number, number], y: [number, number]): [number, number] => [Math.min(x[0], y[0]), Math.max(x[1], y[1])];
   return { friction: m(a.friction ?? [0,1],b.friction ?? [0,1]), cf: m(a.cf ?? [0,.01],b.cf ?? [0,.01]), speed: m(a.speed, b.speed), pressure: m(a.pressure, b.pressure), cp: m(a.cp, b.cp), k: m(a.k, b.k), cp0: m(a.cp0, b.cp0), q: Math.max(a.q, b.q), density: a.density };
 }
+
+/** One fixed colour scale over the whole sequence; frame-to-frame autoscaling hides changes. */
+export function animationRanges(a: import("../solver/animation").FlowAnimation, density: number): Ranges {
+  return a.frames.map(f => computeRanges(f.field, null, f.field.freestream, density)).reduce(mergeRanges);
+}

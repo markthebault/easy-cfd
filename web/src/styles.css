@@ -3202,3 +3202,23 @@ input[type="range"]::-moz-range-thumb {
 .balance-history svg { display: block; width: 100%; height: 76px; border-radius: 8px; background: var(--panel); }
 [data-testid="aero-balance"] table { font-size: 11px; }
 [data-testid="aero-balance"] td { padding: 8px 3px; }
+
+/* Physical-time airflow recording and playback share the existing analysis dock. */
+.flow-record-option { padding: 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--field); }
+.flow-record-option .field-hint { margin: 9px 0 0; }
+.viz-options:has(.flow-timeline) { position: fixed; right: 16px; top: 120px; max-height: calc(100dvh - 250px); overflow-y: auto; }
+.flow-timeline { display: grid; gap: 10px; padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border); }
+.flow-timeline p { margin: 0; }
+.flow-timeline-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 11px; color: var(--muted); }
+.flow-playback-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+@media (max-width: 760px) {
+  .viz-options:has(.flow-timeline) { position: static; max-height: calc(50dvh - 170px); }
+  .scene-focus .viz-options:has(.flow-timeline) { max-height: calc(100dvh - 230px); }
+}
+
+.flow-record-option .toggle, .flow-timeline .toggle { position: relative; }
+.flow-record-option .toggle input, .flow-timeline .toggle input {
+  width: 34px; height: 20px; right: 0; top: 50%; margin: 0;
+  transform: translateY(-50%); z-index: 1; cursor: pointer; pointer-events: auto;
+}

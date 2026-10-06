@@ -4,6 +4,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+import { frameAt, type FlowAnimation } from "../solver/animation";
 import type { VizField } from "../solver/extract";
 import type { Ranges } from "../store/types";
 import { applyPressureColors, applyStressColors, carGeometry, clayMaterial, pressureMaterial } from "./car";
@@ -44,6 +45,8 @@ export interface VizSettings {
   smoke: boolean;
   streamlines: boolean;
   slice: boolean;
+  animation?: boolean;
+  animationLoop?: boolean;
   wake: boolean;
   pressureCloud: boolean;
   cloudLevel: number;
@@ -338,6 +341,15 @@ export class Stage {
     const moved = this.controls.update();
     let animate = false;
     const v = this.viz;
+    if (v?.animation && this.animation && v.playing) {
+      const frames = this.animation.frames, first = frames[0].time, last = frames.at(-1)!.time;
+      const duration = last - first;
+      this.animationClock += dt * duration / 6 * v.flowSpeed;
+      if (this.animationClock > last) this.animationClock = v.animationLoop !== false ? first + (this.animationClock - first) % duration : last;
+      this.updateAnimationFrame();
+      animate = v.animationLoop !== false || this.animationClock < last;
+      this.dirty = true;
+    }
     const scale = MOTION_TIME_SCALE;
     if (v?.playing && this.driving && (v.motion || v.windDirection)) {
       const distance = dt * scale * v.flowSpeed * drivingVelocity(this.driving)[0];
@@ -689,6 +701,56 @@ export class Stage {
   // Flow field and layers
   // -------------------------------------------------------------------------------------------
 
+  private animation: FlowAnimation | null = null;
+  private animationRanges: Ranges | null = null;
+  private animationClock = 0;
+  private animationIndex = -1;
+  private animationGPU: [FieldGPU | null, FieldGPU | null] = [null, null];
+
+  setAnimation(animation: FlowAnimation | null, ranges: Ranges | null) {
+    if (animation !== this.animation) {
+      this.clearAnimationGPU();
+      this.animation = animation;
+      this.animationClock = animation?.frames[0].time ?? 0;
+    }
+    this.animationRanges = ranges;
+    this.applyViz();
+  }
+
+  animationPosition() {
+    const frames = this.animation?.frames;
+    if (!frames) return 0;
+    return (this.animationClock - frames[0].time) / Math.max(1e-12, frames.at(-1)!.time - frames[0].time);
+  }
+
+  seekAnimation(position: number) {
+    const frames = this.animation?.frames;
+    if (!frames) return;
+    this.animationClock = frames[0].time + Math.min(1, Math.max(0, position)) * (frames.at(-1)!.time - frames[0].time);
+    this.updateAnimationFrame();
+    this.requestRender();
+  }
+
+  private clearAnimationGPU() {
+    this.animationGPU.forEach(disposeFieldGPU);
+    this.animationGPU = [null, null];
+    this.animationIndex = -1;
+  }
+
+  private updateAnimationFrame() {
+    const a = this.animation;
+    if (!this.viz?.animation || !a || a.frames.length < 2) return;
+    const pair = frameAt(a.frames.map(f => f.time), this.animationClock);
+    if (pair.index !== this.animationIndex) {
+      this.clearAnimationGPU();
+      this.animationIndex = pair.index;
+      this.animationGPU = [createFieldGPU(a.frames[pair.index].field), createFieldGPU(a.frames[pair.index + 1].field)];
+      const { min, max } = fieldBox(a.frames[0].field);
+      this.slice.setField(this.animationGPU[0], min, max);
+    }
+    this.slice.setNextField(this.animationGPU[1], pair.mix);
+  }
+
   setField(field: VizField | null, ranges: Ranges | null) {
     if (field !== this.field) {
       disposeFieldGPU(this.fieldGPU);
@@ -737,11 +799,18 @@ export class Stage {
         this.smoke.mesh.geometry.instanceCount = Math.round(SMOKE_SIZE * SMOKE_SIZE * v.smokeDensity);
       }
     }
-    this.slice.mesh.visible = on(v?.slice);
+    if (v?.animation && this.animation) this.updateAnimationFrame();
+    else {
+      this.clearAnimationGPU();
+      this.slice.setNextField(null, 0);
+      if (f) { const { min, max } = fieldBox(f); this.slice.setField(this.fieldGPU, min, max); }
+    }
+    this.slice.mesh.visible = on(v?.slice) && (!v?.animation || !!this.animation);
     if (v && r && f) {
       this.slice.place(v.sliceAxis, v.slicePos);
-      const range = v.sliceField === "speed" ? r.speed : v.sliceField === "pressure" ? r.pressure : v.sliceField === "cp0" ? r.cp0 : r.k;
-      this.slice.setMode(v.sliceField, range, r.density, r.q);
+      const sr = v.animation ? this.animationRanges ?? r : r;
+      const range = v.sliceField === "speed" ? sr.speed : v.sliceField === "pressure" ? sr.pressure : v.sliceField === "cp0" ? sr.cp0 : sr.k;
+      this.slice.setMode(v.sliceField, range, sr.density, sr.q, v.animation);
     }
     if (this.tracers) {
       this.tracers.mesh.visible = on(v?.slice && v.sliceTracers);
@@ -1146,6 +1215,7 @@ export class Stage {
     this.controls.dispose();
     this.smoke?.dispose();
     this.tracers?.dispose();
+    this.clearAnimationGPU();
     this.slice.dispose();
     disposeFieldGPU(this.fieldGPU);
     this.streamMesh?.geometry.dispose();

@@ -1,5 +1,6 @@
 // Persisted shapes (IndexedDB) and the in-memory view of a loaded run.
 
+import type { FlowAnimation } from "../solver/animation";
 import type { ImportOptions, Part } from "../geometry/model";
 import type { SurfaceSample, VizField } from "../solver/extract";
 import type { Axles, RunResult, Settings, TyreLoads, Vec3, VehicleWeight } from "../solver/types";
@@ -99,6 +100,7 @@ export interface EncodedField {
 export interface FieldDoc {
   id: string;
   field: EncodedField;
+  animation?: Omit<FlowAnimation, "frames"> & { frames: { time: number; field: EncodedField }[] };
   /** One entry per enabled part, in solver order. */
   surface: { key: string; cp: Quantized; shear: Quantized; version?: 2; wallStress?: Float32Array; stressValid?: Uint8Array; snapshot?: SurfaceSample["snapshot"] }[];
 }
@@ -123,6 +125,8 @@ export interface Ranges {
 }
 
 export interface LoadedRun {
+  animation?: FlowAnimation;
+  animationRanges?: Ranges;
   doc: RunDoc;
   parts: Part[];
   field: VizField | null;

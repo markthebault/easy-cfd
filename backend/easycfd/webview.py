@@ -350,3 +350,23 @@ def run_geometry_stl(key: str, part_id: str):
     return FileResponse(
         storage.directory("runs", key) / "geometry" / f"{part_id}.stl", media_type="model/stl"
     )
+
+
+@router.get("/api/runs/{key}/animation")
+def animation_manifest(key: str):
+    run = storage.get("runs", key)
+    if run["status"] != "completed":
+        raise ValueError("Flow animation is available when the run finishes.")
+    path = storage.directory("runs", key) / "animation/manifest.json"
+    if not path.exists():
+        raise ValueError("This run has no flow animation. Enable Record flow animation and run again.")
+    return json.loads(path.read_text())
+
+
+@router.get("/api/runs/{key}/animation/{frame}")
+def animation_frame(key: str, frame: int):
+    manifest = animation_manifest(key)
+    if not 0 <= frame < len(manifest["frames"]):
+        raise ValueError("Unknown animation frame.")
+    path = storage.directory("runs", key) / f"animation/frame-{frame}.bin.gz"
+    return FileResponse(path, media_type="application/octet-stream", headers={"Content-Encoding": "gzip"})
