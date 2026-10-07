@@ -1,0 +1,8 @@
+[
+  {"number":19,"title":"Reproducible aero maps with static poses and independent road/wind inputs","url":"https://github.com/markthebault/easy-cfd/issues/19"},
+  {"number":20,"title":"Mutually exclusive replacement-body and wing variant groups","url":"https://github.com/markthebault/easy-cfd/issues/20"},
+  {"number":21,"title":"Cooling ducts and radiator pressure loss with mass-flow evidence","url":"https://github.com/markthebault/easy-cfd/issues/21"},
+  {"number":22,"title":"Diagnose inconsistent STL face winding before running CFD","url":"https://github.com/markthebault/easy-cfd/issues/22"},
+  {"number":16,"title":"Complete aerodynamic accuracy qualification for lift, wings and advanced runs","url":"https://github.com/markthebault/easy-cfd/issues/16","existing":true},
+  {"number":15,"title":"Complete force/moment tables and offline simulation reports","url":"https://github.com/markthebault/easy-cfd/issues/15","existing":true}
+]

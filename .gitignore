@@ -13,4 +13,9 @@ test-results/
 .env.*
 !.env.example
 playwright-report/
+web/public/course/
+web/dist/
+web/dist-webgpu/
+tmp/pdfs/
+web/course/evidence/runs.in-progress.json
 *.log

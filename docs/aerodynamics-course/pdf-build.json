@@ -1,0 +1,12 @@
+{
+  "source": "web/course/content.html",
+  "html": "web/public/course/index.html",
+  "pdf": "output/pdf/easycfd-car-aerodynamics.pdf",
+  "lessonCount": 24,
+  "staticDiagrams": 29,
+  "actualFieldViews": 2,
+  "interactiveWorkbenches": 8,
+  "paper": "10.3390/app12083763",
+  "format": "A4, print CSS, expanded answers, default widget values",
+  "generator": "web/course/export-pdf.mjs"
+}

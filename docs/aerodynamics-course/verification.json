@@ -1,0 +1,96 @@
+{
+  "verifiedAt": "2026-10-07T21:28:23.001995+00:00",
+  "scope": "Local functional, document-quality and evidence-integrity verification; aerodynamic accuracy and manufactured-part qualification remain unestablished.",
+  "course": {
+    "guidedDays": 4,
+    "guidedHours": 28,
+    "sourceWords": 20004,
+    "lessons": 24,
+    "labs": 12,
+    "workedExercises": 12,
+    "originalDiagrams": 29,
+    "actualFieldViews": 2,
+    "workbenches": 8
+  },
+  "tests": {
+    "unit": {
+      "command": "npm test",
+      "passed": 53,
+      "failed": 0
+    },
+    "browser": {
+      "command": "VITE_ENABLE_OPENFOAM=false EASYCFD_WEB_TEST_PORT=5300 npm run test:e2e -- --config playwright.course.config.ts",
+      "passed": 8,
+      "failed": 0
+    },
+    "builds": [
+      {
+        "command": "VITE_ENABLE_OPENFOAM=true npm run build",
+        "passed": true
+      },
+      {
+        "command": "VITE_ENABLE_OPENFOAM=false npm run build:webgpu",
+        "passed": true
+      }
+    ],
+    "productionSmoke": {
+      "pageErrors": [],
+      "backendRequests": [],
+      "svgLabelsOutOfBounds": [],
+      "checks": [
+        "App course entry point",
+        "Separate teaching-car design creation and reload",
+        "Standalone reading and all eight workbenches",
+        "Served and built HTML/PDF copies match"
+      ]
+    }
+  },
+  "evidence": {
+    "solverCommit": "b5816e2f831e30fbdd193190fa35599bf1379de8",
+    "hardwareCases": 9,
+    "separateAppFieldCapture": 1,
+    "settledCases": 2,
+    "unsettledCases": 7,
+    "commonGridIds": [
+      "240x96x64-mpw68s"
+    ],
+    "cellsEach": 1474560,
+    "closedTeachingMeshes": 12,
+    "geometryInputHashesMatchBothCaptures": true
+  },
+  "pdf": {
+    "pages": 72,
+    "tagged": true,
+    "outlineEntries": 143,
+    "internalLinks": 28,
+    "externalLinkTargets": 22,
+    "localhostLinks": [],
+    "outOfPageText": [],
+    "replacementGlyphPages": [],
+    "sparsePagesUnder400Characters": [],
+    "skipLinkCount": 0,
+    "unsplitLessonIntroductions": 24,
+    "renderedPages": 72,
+    "visuallyReviewedPages": 72,
+    "renderer": "Poppler pdftoppm",
+    "review": "All-page contact sheets plus full-page inspection of lesson openings, equations, paper table, actual CFD table and exercises."
+  },
+  "artifacts": {
+    "htmlBytes": 2623663,
+    "pdfBytes": 3392408,
+    "htmlSha256": "f1ffae55f02980aacfe4f388289bc36c857c90ffebf0ed0d65822118f0127e03",
+    "pdfSha256": "3fd9860bd7729fbd102fe49b38fb675700eb87ddb23f32b38ce97b394a21fdd7",
+    "servedAndBuiltCopiesMatch": true,
+    "teachingPackCrcAndTwelveHashesMatch": true
+  },
+  "createdFeatureIssues": [
+    19,
+    20,
+    21,
+    22
+  ],
+  "relatedExistingIssues": [
+    16,
+    15
+  ]
+}

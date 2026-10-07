@@ -51,6 +51,7 @@ export function EmptyState() {
           </button>
           <Toggle checked={wing} onChange={setWing} label="with rear wing" />
         </div>
+        <p className="course-entry"><a href={`${import.meta.env.BASE_URL}course/index.html`} target="_blank" rel="noopener">Learn car aerodynamics</a> · a four-day course with visual lessons and practical labs.</p>
         {(gpu.status === "unavailable" || gpu.status === "software") && (
           <p className={`gpu-note ${gpu.status}`}><TriangleAlert size={15} /> {gpu.message}</p>
         )}

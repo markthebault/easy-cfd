@@ -1,7 +1,7 @@
 // Top bar, camera view buttons, toasts and the drag-and-drop overlay.
 
 import { useEffect, useRef, useState } from "react";
-import { CircleHelp, FolderOpen, Monitor, Moon, Plus, Replace, Sun } from "lucide-react";
+import { BookOpen, CircleHelp, FolderOpen, Monitor, Moon, Plus, Replace, Sun } from "lucide-react";
 import { useStore } from "../store/store";
 import { app, importFiles, renameCurrent, setTheme, type ThemePref } from "../store/app";
 import type { ViewName } from "../viz/helpers";
@@ -56,6 +56,9 @@ export function TopBar() {
         />
       )}
       <div className="spacer" />
+      <a className="btn ghost sm" href={`${import.meta.env.BASE_URL}course/index.html`} target="_blank" rel="noopener" aria-label="Car aerodynamics course" title="Car aerodynamics course">
+        <BookOpen size={16} /> <span className="hide-sm">Aero course</span>
+      </a>
       <button className="btn ghost sm" onClick={() => app.set({ library: true })} data-testid="open-library">
         <FolderOpen size={16} /> <span className="hide-sm">Designs &amp; runs</span>
       </button>
