@@ -14,3 +14,9 @@ test-results/
 !.env.example
 playwright-report/
 *.log
+
+# Demo capture leftovers (large binaries, session state)
+docs/*-demo/*.webm
+docs/*-demo/*.zip
+docs/*-demo/*.stl
+docs/*-demo/project-id.txt

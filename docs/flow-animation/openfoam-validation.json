@@ -1,0 +1,14 @@
+{
+  "engine": "OpenFOAM pimpleFoam",
+  "frames": 48,
+  "physical_seconds": 1.8143999999977,
+  "strictly_increasing_times": true,
+  "samples_per_frame": 119952,
+  "max_velocity_change_m_s": 4.451751708984375,
+  "changed_velocity_samples": 117861,
+  "change_threshold_m_s": 0.0001,
+  "cd": 0.516961188873,
+  "cl": 0.6066794820315999,
+  "status": "completed",
+  "whole_job_limit_seconds": 600
+}

@@ -7,5 +7,5 @@ export const OPENFOAM_COMING_SOON = "Coming soon: OpenFOAM runs on demand.";
 /** Reopened local-server designs remain runnable in the WebGPU-only edition. */
 export function availableSettings(settings: Settings): Settings {
   if (OPENFOAM_ENABLED || settings.engine !== "openfoam") return settings;
-  return { ...settings, engine: "webgpu", profile: "regular", quality: "medium", max_seconds: 600 };
+  return { ...settings, engine: "webgpu", profile: "regular", quality: "medium", max_seconds: 600, flow_detail: "standard" };
 }

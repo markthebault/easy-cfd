@@ -127,6 +127,8 @@ def live(key: str, every: int = 1):
         case=case.name if case else None,
         error=run.get("error"),
         history=history,
+        recording_time_seconds=run.get("recording_time_seconds"),
+        recording_duration_seconds=run.get("recording_duration_seconds"),
     )
 
 
@@ -350,3 +352,35 @@ def run_geometry_stl(key: str, part_id: str):
     return FileResponse(
         storage.directory("runs", key) / "geometry" / f"{part_id}.stl", media_type="model/stl"
     )
+
+
+@router.get("/api/runs/{key}/animation")
+def animation_manifest(key: str, section: str | None = None):
+    run = storage.get("runs", key)
+    if run["status"] != "completed":
+        raise ValueError("Flow animation is available when the run finishes.")
+    path = storage.directory("runs", key) / "animation/manifest.json"
+    if not path.exists():
+        raise ValueError("This run has no flow animation. Enable Record flow animation and run again.")
+    manifest = json.loads(path.read_text())
+    if manifest.get("version") == 2:
+        selected = section or manifest["section"]
+        plane = next((p for p in manifest["sections"] if p["id"] == selected), None)
+        if plane is None or selected not in ("top", "upper", "side", "wheels"):
+            raise ValueError("Unknown recorded section.")
+        manifest.update(section=selected, **{k: plane[k] for k in ("origin", "spacing", "dims")})
+    elif section is not None:
+        raise ValueError("This recording uses a volume field, not separate sections.")
+    return manifest
+
+
+@router.get("/api/runs/{key}/animation/{frame}")
+def animation_frame(key: str, frame: int, section: str | None = None):
+    manifest = animation_manifest(key, section)
+    if not 0 <= frame < len(manifest["frames"]):
+        raise ValueError("Unknown animation frame.")
+    folder = storage.directory("runs", key) / "animation"
+    if manifest.get("version") == 2:
+        folder = folder / "sections" / manifest["section"]
+    path = folder / f"frame-{frame}.bin.gz"
+    return FileResponse(path, media_type="application/octet-stream", headers={"Content-Encoding": "gzip"})

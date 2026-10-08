@@ -132,6 +132,8 @@ export function CompareView() {
         partsKey={`cmp:${r.doc.id}`}
         axles={assessedAxles(r.doc)}
         surface={r.surface}
+        animation={r.animation}
+        animationRanges={r.animationRanges}
         field={r.field}
         ranges={r.ranges}
         viz={viz}
@@ -194,8 +196,8 @@ export function CompareView() {
         <button className="icon-btn compare-close" aria-label="Close comparison" onClick={closeCompare}><X size={18} /></button>
       </div>
       <ViewBar ids={["cmpA", "cmpB"]} />
-      <VizDock friction={!!a.surface?.some(s=>s?.stressValid?.some(v=>v===1)) && !!b.surface?.some(s=>s?.stressValid?.some(v=>v===1))} field={a.field ?? b.field} particles surface={!!a.surface?.some(Boolean) && !!b.surface?.some(Boolean)} forces={ra} driving={a.doc.settings} stageIds={["cmpA", "cmpB"]} />
-      <LegendStack viz={viz} ranges={a.ranges} hasSurface={!!a.surface} hasField={!!a.field} />
+      <VizDock animation={a.animation && b.animation ? a.animation : undefined} friction={!!a.surface?.some(s=>s?.stressValid?.some(v=>v===1)) && !!b.surface?.some(s=>s?.stressValid?.some(v=>v===1))} field={a.field ?? b.field} particles surface={!!a.surface?.some(Boolean) && !!b.surface?.some(Boolean)} forces={ra} driving={a.doc.settings} stageIds={["cmpA", "cmpB"]} />
+      <LegendStack viz={viz} ranges={viz.animation ? a.animationRanges ?? a.ranges : a.ranges} hasSurface={!!a.surface} hasField={!!a.field} />
     </div>
   );
 }

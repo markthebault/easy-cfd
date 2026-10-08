@@ -32,6 +32,11 @@ class Axles(BaseModel):
         return self
 
 
+def profile_time_limit(profile, flow_animation=False):
+    limit = {"basic": 300, "regular": 1200, "advanced1": 10800, "advanced2": 43200}.get(profile)
+    return limit * 2 if limit and flow_animation and profile == "basic" else limit
+
+
 class Settings(BaseModel):
     model_config = ConfigDict(allow_inf_nan=False, extra="forbid")
     profile: Literal["basic", "regular", "advanced1", "advanced2"] | None = None
@@ -54,11 +59,21 @@ class Settings(BaseModel):
     density: float = Field(default=1.225, ge=0.8, le=1.5)
     moving_ground: bool = True
     wheels: bool = True
+    flow_animation: bool = False
+    flow_detail: Literal["standard", "fine"] = "standard"
     geometry_confirmed: bool = False
 
     @model_validator(mode="after")
     def profile_deadline(self):
-        ceiling = {"basic": 300, "regular": 600, "advanced1": 10800, "advanced2": 43200}.get(self.profile)
+        if (
+            self.flow_animation
+            and self.flow_detail == "fine"
+            and (self.profile is not None or self.quality != "medium")
+        ):
+            raise ValueError("Detailed wake uses its dedicated single-mesh profile with quality medium.")
+        ceiling = profile_time_limit(self.profile, self.flow_animation)
+        if self.profile is None and self.quality == "medium" and not (self.flow_animation and self.flow_detail == "fine"):
+            ceiling = 1200
         if ceiling and self.max_seconds and self.max_seconds > ceiling:
             raise ValueError(f"This profile permits at most {ceiling} seconds for the whole job.")
         return self
@@ -98,15 +113,15 @@ PRESETS = {
         memory_gb=3,
     ),
     "medium": dict(
-        cell=0.5,
+        cell=0.6,
         surface=3,
         wake=2,
-        layers=6,
-        max_cells=1400000,
-        iterations=1000,
+        layers=3,
+        max_cells=700000,
+        iterations=600,
         residual=1e-4,
         label="Design comparison",
-        memory_gb=5,
+        memory_gb=4,
     ),
     "precise": dict(
         cell=0.4,
@@ -171,6 +186,19 @@ ADVANCED = {
 
 
 def resolved_preset(settings: Settings, quality=None):
+    if settings.flow_animation and settings.flow_detail == "fine":
+        # The transient wake needs its own mesh, independently of the force preset.
+        return dict(
+            cell=0.5,
+            surface=4,
+            wake=3,
+            layers=6,
+            max_cells=2_000_000,
+            iterations=500,
+            residual=1e-4,
+            label="Detailed wake",
+            memory_gb=6,
+        )
     if quality in ADVANCED:
         return dict(ADVANCED[quality])
     if settings.profile == "advanced1":

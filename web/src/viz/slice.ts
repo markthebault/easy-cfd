@@ -2,7 +2,7 @@
 // isolines help read gradients; samples inside the car are drawn as a flat cut face.
 
 import * as THREE from "three";
-import { FIELD_GLSL, fieldUniforms, updateFieldUniforms, type FieldGPU } from "./field";
+import { FRAME_FIELD_GLSL, fieldUniforms, updateFieldUniforms, type FieldGPU } from "./field";
 import { mapTexture, type MapName } from "./colormap";
 
 export type SliceField = "speed" | "pressure" | "cp0" | "k";
@@ -13,6 +13,7 @@ const MODE: Record<SliceField, number> = { speed: 0, pressure: 1, cp0: 2, k: 3 }
 export class Slice {
   readonly mesh: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
   private fieldU = fieldUniforms(null);
+  private nextU = fieldUniforms(null);
   axis: 0 | 1 | 2 = 1;
   pos = 0;
   min = new THREE.Vector3();
@@ -22,6 +23,8 @@ export class Slice {
     const material = new THREE.ShaderMaterial({
       uniforms: {
         ...this.fieldU,
+        ...Object.fromEntries(Object.entries(this.nextU).map(([k,v])=>[`${k}Next`, v])),
+        uFrameMix: { value: 0 },
         uMap: { value: mapTexture("speed") },
         uMode: { value: 0 },
         uRange: { value: new THREE.Vector2(0, 1) },
@@ -29,6 +32,12 @@ export class Slice {
         uQ: { value: 1 },
         uSolid: { value: new THREE.Color(0x3a3d44) },
         uOpacity: { value: 0.94 },
+        uCutFace: { value: true },
+        uSmoke: { value: null },
+        uSmokeEnabled: { value: false },
+        uSmokeAxis: { value: 1 },
+        uSmokeMin: { value: new THREE.Vector3() },
+        uSmokeSize: { value: new THREE.Vector3(1, 1, 1) },
       },
       vertexShader: /* glsl */ `
         varying vec3 vWorld;
@@ -38,7 +47,7 @@ export class Slice {
           gl_Position = projectionMatrix * viewMatrix * w;
         }`,
       fragmentShader: /* glsl */ `
-        ${FIELD_GLSL}
+        ${FRAME_FIELD_GLSL}
         uniform sampler2D uMap;
         uniform int uMode;
         uniform vec2 uRange;
@@ -46,13 +55,20 @@ export class Slice {
         uniform float uQ;
         uniform vec3 uSolid;
         uniform float uOpacity;
+        uniform bool uCutFace;
+        uniform sampler2D uSmoke;
+        uniform bool uSmokeEnabled;
+        uniform int uSmokeAxis;
+        uniform vec3 uSmokeMin;
+        uniform vec3 uSmokeSize;
         varying vec3 vWorld;
         void main() {
-          vec4 a = velocityAt(vWorld);
-          if (a.w < 0.5) { gl_FragColor = vec4(uSolid, 0.96);
+          vec4 a = velocityFrameAt(vWorld);
+          if (a.w < 0.5) { if (!uCutFace) discard; gl_FragColor = vec4(uSolid, 0.96);
             #include <colorspace_fragment>
             return; }
           vec4 b = scalarsAt(vWorld);
+          if (uFrameMix > 0.0) b = mix(b, scalarsAtNext(vWorld), uFrameMix);
           // Renormalise the fluid-weighted blend near the wall (solid samples carry zeros).
           vec3 u = a.xyz / max(a.w, 0.5);
           float speed = length(u);
@@ -67,6 +83,16 @@ export class Slice {
           else { value = b.y / max(a.w, 0.5); t = value / uRange.y; }
           t = clamp(t, 0.0, 1.0);
           vec3 col = texture2D(uMap, vec2(t, 0.5)).rgb;
+          if (uSmokeEnabled) {
+            vec3 uvw = (vWorld - uSmokeMin) / uSmokeSize;
+            vec2 uv = uSmokeAxis == 0 ? uvw.yz : uSmokeAxis == 1 ? uvw.xz : uvw.xy;
+            float dye = smoothstep(0.18, 0.82, texture2D(uSmoke, uv).r);
+            // Density reveals continuous transported wisps; hue still comes from the CFD scalar.
+            col *= mix(0.58, 1.12, dye);
+            gl_FragColor = vec4(col, mix(0.68, 0.98, dye));
+            #include <colorspace_fragment>
+            return;
+          }
           // Isolines every 1/12 of the colour range, anti-aliased with screen-space derivatives.
           float bands = t * 12.0;
           float line = abs(fract(bands - 0.5) - 0.5) / max(fwidth(bands), 1e-4);
@@ -94,13 +120,26 @@ export class Slice {
     this.place(this.axis, this.pos);
   }
 
-  setMode(field: SliceField, range: [number, number], density: number, q: number) {
+  setNextField(g: FieldGPU | null, mix: number) {
+    updateFieldUniforms(this.nextU, g);
+    this.uniforms.uFrameMix.value = g ? mix : 0;
+  }
+
+  setMode(field: SliceField, range: [number, number], density: number, q: number, animation = false) {
     const u = this.uniforms;
     u.uMode.value = MODE[field];
-    u.uMap.value = mapTexture(SLICE_MAP[field]);
+    u.uMap.value = mapTexture(animation && field === "speed" ? "flow" : SLICE_MAP[field]);
     (u.uRange.value as THREE.Vector2).set(range[0], range[1]);
     u.uDensity.value = density;
     u.uQ.value = q;
+  }
+
+  setSmoke(texture: THREE.Texture | null) {
+    this.uniforms.uSmoke.value = texture;
+    this.uniforms.uSmokeEnabled.value = !!texture;
+    this.uniforms.uSmokeAxis.value = this.axis;
+    this.uniforms.uSmokeMin.value.copy(this.min);
+    this.uniforms.uSmokeSize.value.subVectors(this.max, this.min);
   }
 
   /** Position the plane across the whole field box on the given axis. */

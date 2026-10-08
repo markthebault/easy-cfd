@@ -63,9 +63,9 @@ export function LegendStack({ viz, ranges, hasSurface, hasField }: { viz: VizSet
     out.push(
       <Legend
         key="speed"
-        title="Air speed"
+        title={viz.animation ? "Air speed · transient flow" : "Air speed"}
         unit="m/s"
-        map="speed"
+        map={viz.animation ? "flow" : "speed"}
         ticks={sequential(ranges.speed[0], ranges.speed[1]).map((t) => ({ ...t, sub: `${Math.round(Number(t.label.replace(/,/g, "")) * 3.6)} km/h` }))}
       />,
     );

@@ -1,16 +1,17 @@
 // IndexedDB persistence. Designs and runs are small documents; fields and source files are large
 // blobs kept in their own stores so listing designs never loads them.
 
-import type { DesignDoc, FieldDoc, FileDoc, RunDoc } from "./types";
+import type { AnimationFrameDoc, DesignDoc, FieldDoc, FileDoc, RunDoc } from "./types";
 
 const NAME = "easycfd-web";
-const VERSION = 1;
+const VERSION = 2;
 
 interface Stores {
   designs: DesignDoc;
   runs: RunDoc;
   fields: FieldDoc;
   files: FileDoc;
+  animationFrames: AnimationFrameDoc;
 }
 type StoreName = keyof Stores;
 
@@ -25,6 +26,7 @@ function open(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains("runs")) db.createObjectStore("runs", { keyPath: "id" }).createIndex("design", "designId");
       if (!db.objectStoreNames.contains("fields")) db.createObjectStore("fields", { keyPath: "id" });
       if (!db.objectStoreNames.contains("files")) db.createObjectStore("files", { keyPath: "hash" });
+      if (!db.objectStoreNames.contains("animationFrames")) db.createObjectStore("animationFrames", { keyPath: "id" }).createIndex("run", "runId");
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error ?? new Error("Could not open the browser database."));
@@ -45,7 +47,22 @@ async function tx<K extends StoreName>(name: K, mode: IDBTransactionMode) {
 }
 
 export async function put<K extends StoreName>(name: K, value: Stores[K]): Promise<void> {
-  await wrap((await tx(name, "readwrite")).put(value));
+  const store = await tx(name, "readwrite");
+  await new Promise<void>((resolve,reject) => {
+    const transaction = store.transaction;
+    transaction.oncomplete = () => resolve();
+    transaction.onabort = transaction.onerror = () => reject(transaction.error ?? new Error("Browser storage write failed."));
+    const request = store.put(value);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+/** Remove old frame generations only after their replacement metadata has committed. */
+export async function removeAnimationFrames(runId:string, keep:readonly string[] = []) {
+  const store = await tx("animationFrames", "readonly");
+  const keys = await wrap(store.index("run").getAllKeys(IDBKeyRange.only(runId)));
+  const retained = new Set(keep);
+  for (const key of keys) if (!retained.has(String(key))) await remove("animationFrames", String(key));
 }
 
 export async function get<K extends StoreName>(name: K, key: string): Promise<Stores[K] | undefined> {

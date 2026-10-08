@@ -749,6 +749,16 @@ def cancel(key: str):
         return storage.update("runs", key, cancel_requested=True, stage="Cancelling")
 
 
+class RecordingContinuation(BaseModel):
+    max_seconds: int = Field(default=43200, ge=30, le=43200)
+    restart_from_steady: bool = False
+
+
+@app.post("/api/runs/{key}/continue-recording", status_code=202)
+def continue_recording(key: str, body: RecordingContinuation):
+    return runner.enqueue_recording_continuation(key, body.max_seconds, body.restart_from_steady)
+
+
 @app.get("/api/runs/{key}/geometry/{part_id}.vtp")
 def run_geometry(key: str, part_id: str):
     run = storage.get("runs", key)

@@ -18,6 +18,8 @@ interface Props {
   partsKey: string;
   surface?: (SurfaceSample | null)[] | null;
   field: VizField | null;
+  animation?: import("../solver/animation").FlowAnimation;
+  animationRanges?: Ranges;
   ranges: Ranges | null;
   viz: VizSettings;
   driving?: DrivingConditions | null;
@@ -73,6 +75,7 @@ export function StageView(props: Props) {
   }, [props.parts, props.partsKey, props.surface, props.ranges]);
 
   useEffect(() => stage.current?.setField(props.field, props.ranges), [props.field, props.ranges]);
+  useEffect(() => stage.current?.setAnimation(props.animation ?? null, props.animationRanges ?? null), [props.animation, props.animationRanges]);
   useEffect(() => stage.current?.setViz(props.viz), [props.viz]);
   useEffect(() => stage.current?.setAxles(props.axles), [props.axles,props.partsKey]);
   useEffect(() => stage.current?.setDriving(props.driving ?? null), [props.driving]);

@@ -1,18 +1,18 @@
 // GPU smoke: particle positions live in a float render target (GPGPU ping-pong) and are advected
-// through the solver velocity texture with RK2. Trails are drawn without storing history: the
-// field is steady, so a particle's recent path is the streamline traced backwards from its head.
+// through the solver velocity texture with RK2. Transient streaks retain actual position history;
+// steady smoke can trace its recent streamline backwards without storing history.
 // Each particle is an instanced ribbon whose vertices integrate that backward path in the shader.
 // Two modes: 0 = emitted from a rake plane upstream, 1 = tracers confined to a section plane.
 
 import * as THREE from "three";
 import { GPUComputationRenderer, type Variable } from "three/examples/jsm/misc/GPUComputationRenderer.js";
-import { FIELD_GLSL, fieldUniforms, updateFieldUniforms, type FieldGPU } from "./field";
+import { FRAME_FIELD_GLSL, fieldUniforms, updateFieldUniforms, type FieldGPU } from "./field";
 import { mapTexture } from "./colormap";
 
 const SEGMENTS = 6;
 
 const COMMON = /* glsl */ `
-${FIELD_GLSL}
+${FRAME_FIELD_GLSL}
 uniform int uMode;
 uniform int uAxis;
 float hash12(vec2 p) {
@@ -73,11 +73,11 @@ void main() {
     gl_FragColor = vec4(p, age);
     return;
   }
-  vec3 v1 = inPlane(flowAt(p));
-  vec3 v2 = inPlane(flowAt(p + 0.5 * uDt * v1));
+  vec3 v1 = inPlane(flowFrameAt(p));
+  vec3 v2 = inPlane(flowFrameAt(p + 0.5 * uDt * v1));
   p += uDt * v2;
   age += uDtAge;
-  vec4 here = velocityAt(p);
+  vec4 here = velocityFrameAt(p);
   bool dead = age > lifeOf(uv, uLife) || !insideField(p) || here.w < 0.5 || length(inPlane(here.xyz / max(here.w, 0.5))) < uStall;
   if (dead) { p = spawn(uv, uTime + age * 7.31); age = 0.0; }
   gl_FragColor = vec4(p, age);
@@ -92,12 +92,18 @@ uniform float uTimeScale;
 uniform float uLife;
 uniform float uWidth;
 uniform vec2 uViewport;
+uniform bool uHistory;
+${Array.from({length:SEGMENTS}, (_,i)=>`uniform sampler2D uHistory${i};`).join("\n")}
 attribute float aSeg;
 attribute float aSide;
 attribute vec2 aRef;
 varying float vSpeed;
 varying float vAlpha;
 varying float vSide;
+vec4 historyPosition(float segment) {
+  ${Array.from({length:SEGMENTS}, (_,i)=>`if (segment < ${i + 1}.5) return texture2D(uHistory${i}, aRef);`).join("\n")}
+  return texture2D(uHistory${SEGMENTS - 1}, aRef);
+}
 void main() {
   vec4 s = texture(uPos, aRef);
   float age = s.w;
@@ -108,13 +114,21 @@ void main() {
   float trail = min(uTrail, age);
   float h = trail / float(${SEGMENTS}) * uTimeScale;
   vec3 p = s.xyz;
-  vec3 v = inPlane(flowAt(p));
+  vec3 v = inPlane(flowFrameAt(p));
   vec3 head = v;
-  for (int i = 0; i < ${SEGMENTS}; i++) {
-    if (float(i) >= aSeg) break;
-    p -= h * v;
-    v = inPlane(flowAt(p));
+  if (uHistory && aSeg > 0.0) {
+    vec4 past = historyPosition(aSeg);
+    // Respawning starts a new path; never join it to a particle's previous lifetime.
+    if (past.w >= 0.0 && past.w <= age) p = past.xyz;
+    v = inPlane(flowFrameAt(p));
+  } else if (!uHistory) {
+    for (int i = 0; i < ${SEGMENTS}; i++) {
+      if (float(i) >= aSeg) break;
+      p -= h * v;
+      v = inPlane(flowFrameAt(p));
+    }
   }
+  if (velocityFrameAt(p).w < 0.5) { gl_Position = vec4(0.0, 0.0, 2.0, 1.0); return; }
   vec3 dirWorld = length(v) > 1e-5 ? v : head;
   vec4 c0 = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
   vec4 c1 = projectionMatrix * modelViewMatrix * vec4(p + normalize(dirWorld + 1e-6) * 0.05, 1.0);
@@ -138,12 +152,14 @@ uniform float uSpeedMax;
 uniform float uOpacity;
 uniform bool uMono;
 uniform vec3 uMonoColor;
+uniform bool uContrast;
 varying float vSpeed;
 varying float vAlpha;
 varying float vSide;
 void main() {
   float edge = 1.0 - vSide * vSide;
   vec3 col = uMono ? uMonoColor : texture2D(uMap, vec2(clamp(vSpeed / uSpeedMax, 0.0, 1.0), 0.5)).rgb;
+  if (uContrast) col = mix(vec3(1.0), vec3(0.015, 0.025, 0.045), smoothstep(0.2, 0.65, abs(vSide)));
   gl_FragColor = vec4(col, vAlpha * uOpacity * edge);
   if (gl_FragColor.a < 0.003) discard;
   #include <colorspace_fragment>
@@ -161,6 +177,13 @@ export class Particles {
   private variable: Variable;
   private simUniforms: Record<string, THREE.IUniform>;
   private fieldU = fieldUniforms(null);
+  private nextU = fieldUniforms(null);
+  private frameMix = { value: 0 };
+  private history: THREE.WebGLRenderTarget[] = [];
+  private historyHead = 0;
+  private historyTime = 0;
+  private minSpacing = 1;
+  private freestream = 1;
   private time = 0;
   private seeded = false;
   readonly size: number;
@@ -177,7 +200,8 @@ export class Particles {
     this.variable = this.gpu.addVariable("tPos", SIM, init);
     this.gpu.setVariableDependencies(this.variable, [this.variable]);
     this.simUniforms = this.variable.material.uniforms;
-    Object.assign(this.simUniforms, this.fieldU, {
+    Object.assign(this.simUniforms, this.fieldU, Object.fromEntries(Object.entries(this.nextU).map(([k,v])=>[`${k}Next`,v])), {
+      uFrameMix: this.frameMix,
       uMode: { value: opts.mode },
       uAxis: { value: 0 },
       uDt: { value: 0 },
@@ -218,6 +242,10 @@ export class Particles {
       fragmentShader: FRAG,
       uniforms: {
         ...this.fieldU,
+        ...Object.fromEntries(Object.entries(this.nextU).map(([k,v])=>[`${k}Next`,v])),
+        uFrameMix: this.frameMix,
+        uHistory: { value: false },
+        ...Object.fromEntries(Array.from({length:SEGMENTS}, (_,i)=>[`uHistory${i}`,{value:null}])),
         uMode: this.simUniforms.uMode,
         uAxis: this.simUniforms.uAxis,
         uLife: this.simUniforms.uLife,
@@ -231,6 +259,7 @@ export class Particles {
         uOpacity: { value: 0.8 },
         uMono: { value: false },
         uMonoColor: { value: new THREE.Color(1, 1, 1) },
+        uContrast: { value: false },
       },
       transparent: true,
       depthWrite: false,
@@ -248,8 +277,37 @@ export class Particles {
 
   setField(g: FieldGPU | null, freestream: number) {
     updateFieldUniforms(this.fieldU, g);
-    this.simUniforms.uStall.value = 0.015 * freestream;
+    this.freestream = freestream;
+    if (g) this.minSpacing = Math.min(g.extent.x / (g.dims.x - 1), g.extent.y / (g.dims.y - 1), g.extent.z / (g.dims.z - 1));
+    this.simUniforms.uStall.value = (this.history.length ? 0.001 : 0.015) * freestream;
     this.mesh.visible = !!g && this.mesh.visible;
+  }
+
+  setNextField(g: FieldGPU | null, mix: number) {
+    updateFieldUniforms(this.nextU, g);
+    this.frameMix.value = g ? mix : 0;
+  }
+
+  /** Keep six GPU snapshots of the path actually travelled, instead of steady backtracing. */
+  setHistory(enabled: boolean) {
+    if (enabled === !!this.history.length) return;
+    if (enabled) {
+      const source = this.gpu.getCurrentRenderTarget(this.variable);
+      this.history = Array.from({length:SEGMENTS}, () => source.clone());
+    } else {
+      this.history.forEach(target=>target.dispose());
+      this.history = [];
+      for (let i=0;i<SEGMENTS;i++) this.uniforms[`uHistory${i}`].value = null;
+    }
+    this.uniforms.uHistory.value = enabled;
+    this.simUniforms.uStall.value = (enabled ? 0.001 : 0.015) * this.freestream;
+    this.uniforms.uContrast.value = enabled;
+    this.mesh.material.blending = enabled ? THREE.NormalBlending : THREE.AdditiveBlending;
+    this.seeded = false;
+  }
+
+  private syncHistory() {
+    for (let i=0;i<SEGMENTS;i++) this.uniforms[`uHistory${i}`].value = this.history[(this.historyHead - i + SEGMENTS) % SEGMENTS].texture;
   }
 
   /** `spacing` > 0 emits from a grid of nozzles that far apart; 0 emits a continuous sheet. */
@@ -278,9 +336,22 @@ export class Particles {
   reseed() {
     const tex = this.gpu.createTexture();
     const d = tex.image.data as Float32Array;
-    for (let i = 0; i < d.length; i += 4) d[i + 3] = -Math.random() * this.life;
+    for (let i = 0; i < d.length; i += 4) {
+      if (this.history.length && this.simUniforms.uMode.value === 1) {
+        const min = this.simUniforms.uBoxMin.value as THREE.Vector3, max = this.simUniforms.uBoxMax.value as THREE.Vector3;
+        for (let axis=0;axis<3;axis++) d[i+axis] = axis === this.simUniforms.uAxis.value ? this.simUniforms.uPlanePos.value : THREE.MathUtils.lerp(min.getComponent(axis),max.getComponent(axis),Math.random());
+        d[i+3] = this.life * (0.2 + 0.6 * Math.random());
+      } else d[i + 3] = -Math.random() * this.life;
+    }
     for (const rt of (this.variable as unknown as { renderTargets: THREE.WebGLRenderTarget[] }).renderTargets) this.gpu.renderTexture(tex, rt);
     tex.dispose();
+    if (this.history.length) {
+      const current = this.gpu.getCurrentRenderTarget(this.variable).texture;
+      this.history.forEach(target=>this.gpu.renderTexture(current,target));
+      this.historyHead = 0;
+      this.historyTime = this.time;
+      this.syncHistory();
+    }
     this.seeded = true;
   }
 
@@ -293,17 +364,25 @@ export class Particles {
     (this.uniforms.uViewport.value as THREE.Vector2).set(size.x / 2, size.y / 2);
     this.uniforms.uTimeScale.value = this.timeScale;
     if (this.playing && dt > 0) {
-      const d = Math.min(dt, 0.05);
+      const d = Math.min(dt, this.history.length ? 0.1 : 0.05);
+      if (this.history.length && this.time + d - this.historyTime >= this.uniforms.uTrail.value / SEGMENTS) {
+        this.historyHead = (this.historyHead + 1) % SEGMENTS;
+        this.gpu.renderTexture(this.gpu.getCurrentRenderTarget(this.variable).texture, this.history[this.historyHead]);
+        this.historyTime = this.time;
+        this.syncHistory();
+      }
       this.time += d;
-      this.simUniforms.uDt.value = d * this.timeScale;
-      this.simUniforms.uDtAge.value = d;
+      const substeps = this.history.length ? Math.max(1, Math.min(12, Math.ceil(d * this.timeScale * this.freestream / (0.45 * this.minSpacing)))) : 1;
+      this.simUniforms.uDt.value = d * this.timeScale / substeps;
+      this.simUniforms.uDtAge.value = d / substeps;
       this.simUniforms.uTime.value = this.time % 1000;
-      this.gpu.compute();
+      for (let i=0;i<substeps;i++) this.gpu.compute();
     }
     this.uniforms.uPos.value = this.gpu.getCurrentRenderTarget(this.variable).texture;
   }
 
   dispose() {
+    this.history.forEach(target=>target.dispose());
     this.gpu.dispose();
     this.mesh.geometry.dispose();
     this.mesh.material.dispose();

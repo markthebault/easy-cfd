@@ -105,6 +105,8 @@ export function App() {
           parts={content.parts}
           partsKey={content.key}
           surface={content.surface}
+          animation={view === "results" ? run?.animation : undefined}
+          animationRanges={run?.animationRanges}
           field={content.field}
           ranges={content.ranges}
           viz={viz}
@@ -132,9 +134,9 @@ export function App() {
           )}
           {hasPanel && <ViewBar />}
           {hasPanel && driving && !content.field && <DrivingDock conditions={driving} focused={sceneFocus} onFocus={() => setSceneFocus(v => !v)} />}
-          {content.field && <VizDock friction={!!content.surface?.some(s=>s?.stressValid?.some(v=>v===1))} field={content.field} particles={particles} surface={!!content.surface?.some(Boolean)} forces={view === "results" && run ? assessedResult(run.doc) : null} driving={driving} focused={sceneFocus} onFocus={() => setSceneFocus(v => !v)} />}
+          {content.field && <VizDock animation={view === "results" ? run?.animation : undefined} friction={!!content.surface?.some(s=>s?.stressValid?.some(v=>v===1))} field={content.field} particles={particles} surface={!!content.surface?.some(Boolean)} forces={view === "results" && run ? assessedResult(run.doc) : null} driving={driving} focused={sceneFocus} onFocus={() => setSceneFocus(v => !v)} />}
           {content.field && (
-            <LegendStack viz={viz} ranges={content.ranges} hasSurface={!!content.surface?.some(Boolean)} hasField={!!content.field} />
+            <LegendStack viz={viz} ranges={viz.animation && run?.animationRanges ? run.animationRanges : content.ranges} hasSurface={!!content.surface?.some(Boolean)} hasField={!!content.field} />
           )}
         </>
       )}

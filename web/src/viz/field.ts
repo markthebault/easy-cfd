@@ -8,7 +8,7 @@ export interface FieldGPU {
   velocity: THREE.Data3DTexture;
   scalars: THREE.Data3DTexture;
   origin: THREE.Vector3;
-  /** spacing × (dims − 1): the box the samples span. */
+  /** Sample span, with a finite divisor along the normal of a 2D section. */
   extent: THREE.Vector3;
   dims: THREE.Vector3;
 }
@@ -45,7 +45,9 @@ export function createFieldGPU(f: VizField): FieldGPU {
     velocity: texture3D(a, f.dims),
     scalars: texture3D(b, f.dims),
     origin: new THREE.Vector3(...f.origin),
-    extent: new THREE.Vector3(f.spacing[0] * (f.dims[0] - 1), f.spacing[1] * (f.dims[1] - 1), f.spacing[2] * (f.dims[2] - 1)),
+    // A recorded 2D section has one texel along its normal. That texture coordinate
+    // is constant; use a finite divisor rather than a zero world-space extent.
+    extent: new THREE.Vector3(...f.spacing.map((s,i)=>s*Math.max(1,f.dims[i]-1))),
     dims: new THREE.Vector3(...f.dims),
   };
 }
@@ -74,6 +76,22 @@ vec4 velocityAt(vec3 p) { return texture(uVelocity, fieldUVW(p)); }
 vec4 scalarsAt(vec3 p) { return texture(uScalars, fieldUVW(p)); }
 // Solid samples hold zero velocity; dividing by the filtered fluid fraction undoes that bias.
 vec3 flowAt(vec3 p) { vec4 a = velocityAt(p); return a.xyz / max(a.w, 0.5); }
+`;
+
+/** One temporal sample shared by colour planes and advected flow markers. */
+export const NEXT_FIELD_GLSL = FIELD_GLSL.replace(/\b(uVelocity|uScalars|uOrigin|uExtent|uDims|fieldUVW|insideField|velocityAt|scalarsAt|flowAt)\b/g, "$1Next");
+export const FRAME_FIELD_GLSL = /* glsl */ `
+${FIELD_GLSL}
+${NEXT_FIELD_GLSL}
+uniform float uFrameMix;
+vec4 velocityFrameAt(vec3 p) {
+  vec4 a = velocityAt(p);
+  return uFrameMix > 0.0 ? mix(a, velocityAtNext(p), uFrameMix) : a;
+}
+vec3 flowFrameAt(vec3 p) {
+  vec4 a = velocityFrameAt(p);
+  return a.xyz / max(a.w, 0.5);
+}
 `;
 
 export function fieldUniforms(g: FieldGPU | null) {
@@ -106,7 +124,7 @@ export class FieldSampler {
     const [nx, ny, nz] = f.dims;
     const gx = (x - f.origin[0]) / f.spacing[0], gy = (y - f.origin[1]) / f.spacing[1], gz = (z - f.origin[2]) / f.spacing[2];
     if (gx < 0 || gy < 0 || gz < 0 || gx > nx - 1 || gy > ny - 1 || gz > nz - 1) return false;
-    const i = Math.min(nx - 2, Math.floor(gx)), j = Math.min(ny - 2, Math.floor(gy)), k = Math.min(nz - 2, Math.floor(gz));
+    const i = Math.max(0, Math.min(nx - 2, Math.floor(gx))), j = Math.max(0, Math.min(ny - 2, Math.floor(gy))), k = Math.max(0, Math.min(nz - 2, Math.floor(gz)));
     const tx = gx - i, ty = gy - j, tz = gz - k;
     // Inside the car if the nearest sample is solid.
     const near = i + (tx > 0.5 ? 1 : 0) + nx * (j + (ty > 0.5 ? 1 : 0) + ny * (k + (tz > 0.5 ? 1 : 0)));
@@ -116,6 +134,7 @@ export class FieldSampler {
     for (let dk = 0; dk < 2; dk++)
       for (let dj = 0; dj < 2; dj++)
         for (let di = 0; di < 2; di++) {
+          if (i+di>=nx || j+dj>=ny || k+dk>=nz) continue;
           const idx = i + di + nx * (j + dj + ny * (k + dk));
           if (f.solid[idx]) continue;
           const w = (di ? tx : 1 - tx) * (dj ? ty : 1 - ty) * (dk ? tz : 1 - tz);

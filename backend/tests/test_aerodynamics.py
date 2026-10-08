@@ -73,7 +73,7 @@ def test_balance_drift_is_separate_from_stable_total_lift():
 
 
 def test_profile_runtime_cannot_bypass_shared_ceiling():
-    for profile, seconds in [("basic", 300), ("regular", 600), ("advanced1", 10800), ("advanced2", 43200)]:
+    for profile, seconds in [("basic", 300), ("regular", 1200), ("advanced1", 10800), ("advanced2", 43200)]:
         assert Settings(profile=profile, max_seconds=seconds).max_seconds == seconds
         with pytest.raises(ValueError):
             Settings(profile=profile, max_seconds=seconds + 1)

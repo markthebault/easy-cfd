@@ -15,6 +15,7 @@ import { boundaryLine, conditionsLine, fmt, fmtCells, fmtDuration, fmtInt } from
 const STAGE: Record<string, string> = {
   preparing: "Preparing the grid",
   solving: "Solving the flow",
+  recording: "Recording the airflow",
   finishing: "Averaging forces",
   saving: "Sampling the flow for display",
 };
@@ -55,7 +56,7 @@ export function LivePanel() {
     <div className="live" aria-live="polite">
       <div className="live-head">
         <span className="eyebrow"><span className="rec" /> Live{openfoam ? " · OpenFOAM server" : ""}</span>
-        <h2>{openfoam ? serverStageText(live.serverStage) : STAGE[live.stage]}</h2>
+        <h2>{openfoam ? serverStageText(live.serverStage) : (live.serverStage || STAGE[live.stage])}</h2>
         <p className="muted small">{live.designName} · {conditionsLine(live.settings)}</p>
         <p className="muted small" data-testid="run-boundaries">{boundaryLine(live.settings)}</p>
       </div>
@@ -65,6 +66,7 @@ export function LivePanel() {
       {openfoam ? (
         <div className="live-stats">
           <div><b>{fmtInt(live.iteration ?? 0)}<small> / {fmtInt(live.iterations ?? 0)}</small></b><span>iterations</span></div>
+          {live.recordingDuration && <div><b>{fmt(live.recordingTime ?? 0,3)}<small> / {fmt(live.recordingDuration,3)} s</small></b><span>recording physical time</span></div>}
           <div><b>{fmtDuration(live.elapsed)}</b><span>elapsed{Number.isFinite(remaining) ? ` · ~${fmtDuration(remaining)} left` : ""}</span></div>
         </div>
       ) : (

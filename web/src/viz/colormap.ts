@@ -3,10 +3,11 @@
 
 import * as THREE from "three";
 
-export type MapName = "speed" | "diverging" | "loss" | "turbulence";
+export type MapName = "flow" | "speed" | "diverging" | "loss" | "turbulence";
 
 const STOPS: Record<MapName, string[]> = {
   // Slow indigo → teal → warm yellow (fast). Visible on both the dark and light stage.
+  flow: ["#281c83", "#285bea", "#24bad1", "#79dcb5", "#efec59", "#f39839", "#c5263b"],
   speed: ["#2d1e6b", "#2b4fa6", "#1f86b8", "#1fb3a3", "#6bd07a", "#d6e45a", "#fff3a6"],
   // Suction blue ↔ grey ↔ stagnation red.
   diverging: ["#104281", "#2a78d6", "#86b6ef", "#dcdad5", "#f2a488", "#e34948", "#8f1d1d"],

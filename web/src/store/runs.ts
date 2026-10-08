@@ -5,6 +5,7 @@ import { OPENFOAM_ENABLED, OPENFOAM_COMING_SOON } from "../engine/features";
 import type { Part } from "../geometry/model";
 import type { SurfaceSample, VizField } from "../solver/extract";
 import { cancelOpenFoamRun, startOpenFoamRun } from "./openfoamRuns";
+import { recordFlowAnimation, ANIMATION_POINTS, type FlowAnimation } from "../solver/animation";
 import { runSimulation } from "../solver/run";
 import { resolvePreset } from "../solver/types";
 import type { VehicleWeight } from "../solver/types";
@@ -14,10 +15,11 @@ import { assessedResult, detectRunAxles } from "./axleAnalysis";
 import { CaseWorker } from "../workers/caseClient";
 import { app, gpuDevice, partsBounds, refreshLists, setSettings, toast, vizForCar, type LiveState } from "./app";
 import { decodeField, decodeSurface, encodeField, encodeSurface } from "./codec";
-import { collectFiles, get, newId, put, remove, sha256 } from "./db";
+import { cacheAnimation, restoreAnimation } from "./animationCache";
+import { collectFiles, get, newId, put, remove, removeAnimationFrames, sha256 } from "./db";
 import { recordRun } from "./estimate";
 import { buildDesignParts, partKey, rawFromSource, summarize, toSolverParts, type RawPart } from "./geometry";
-import { computeRanges, mergeRanges } from "./ranges";
+import { animationRanges, computeRanges, mergeRanges } from "./ranges";
 import type { LoadedRun, RunDoc } from "./types";
 
 const LIVE_POINTS = 260_000;
@@ -30,18 +32,22 @@ function patchLive(p: Partial<LiveState>) {
 }
 
 /** Save a finished run (either engine) in the browser and show it. */
-export async function saveAndShow(doc: RunDoc, enabled: Part[], field: VizField | null, surface: SurfaceSample[] | null) {
+export async function saveAndShow(doc: RunDoc, enabled: Part[], field: VizField | null, surface: SurfaceSample[] | null, animation?: FlowAnimation, shouldShow: () => boolean = () => true) {
   doc = detectRunAxles(doc, enabled);
   const keys = enabled.map(partKey);
   try {
-    if (field) await put("fields", { id: doc.id, field: encodeField(field), surface: encodeSurface(keys, surface ?? []) });
+    if (field) {
+      const recording = await cacheAnimation(doc.id,animation);
+      await put("fields", { id: doc.id, field: encodeField(field), surface: encodeSurface(keys, surface ?? []), ...recording });
+    }
     await put("runs", doc);
   } catch (e) {
     toast(`The result could not be saved in the browser (${e instanceof Error ? e.message : String(e)}). It is shown but will be lost on reload.`, "error");
   }
   refreshLists();
+  if (!shouldShow()) return;
   const ranges = computeRanges(field, surface, doc.result.freestream, doc.settings.density);
-  app.set({ view: "results", live: null, run: { doc, parts: enabled, field, surface, ranges } });
+  app.set({ view: "results", live: null, run: { doc, parts: enabled, field, surface, ranges, animation, animationRanges: animation ? animationRanges(animation, doc.settings.density) : undefined } });
 }
 
 /** Add a separately versioned weight assessment without changing the original CFD snapshot. */
@@ -145,8 +151,21 @@ export async function startRun() {
     });
     const solveSeconds = (performance.now() - (solveStart || started)) / 1000;
     patchLive({ stage: "saving", fraction: 1 });
-    const fields = await solver.readFields(true).finally(()=>solver.destroy());
-    const { field, surface } = await worker.extract(fields, solver.c, FINAL_POINTS, true);
+    let animation: FlowAnimation | undefined;
+    let field: VizField, surface: SurfaceSample[] | null;
+    try {
+      const fields = await solver.readFields(true);
+      ({ field, surface } = await worker.extract(fields, solver.c, FINAL_POINTS, true));
+      if (settings.flow_animation) {
+        patchLive({ stage: "finishing", fraction: 0, serverStage: "Recording flow animation" });
+        animation = await recordFlowAnimation(solver, async () => {
+          const f = await solver.readFields();
+          return (await worker.extract(f, solver.c, ANIMATION_POINTS, false)).field;
+        }, { signal, deadline: started + 1000 * (settings.max_seconds ?? (settings.quality === "fast" ? 300 : 600)),
+          onProgress: fraction => patchLive({ fraction, serverStage: "Recording flow animation" }) });
+      }
+    } finally { solver.destroy(); }
+
     const preset = resolvePreset(settings);
     if (!result.levels) recordRun(result.cells, result.steps, solveSeconds, preset.passes, preset.cellsPerLength * Math.sqrt(result.detail?.ratio ?? 1));
     const doc: RunDoc = {
@@ -165,7 +184,7 @@ export async function startRun() {
       hasField: true,
     };
     if(result.provenance)result.provenance.geometry=await sha256(new TextEncoder().encode(JSON.stringify([doc.source,doc.importOptions,doc.overrides,doc.geometry])).buffer);
-    await saveAndShow(doc, enabled, field, surface);
+    await saveAndShow(doc, enabled, field, surface, animation);
   } catch (e) {
     if (signal.aborted || (e instanceof DOMException && e.name === "AbortError")) {
       app.set({ view: "setup", live: null, step: "run" });
@@ -221,6 +240,7 @@ export async function loadRun(id: string): Promise<LoadedRun> {
     try { await put("runs", doc); } catch { notice ??= "Detected axles could not be saved in this browser."; }
   }
   const field = fdoc ? decodeField(fdoc.field) : null;
+  const animation = fdoc ? await restoreAnimation(fdoc) : undefined;
   let surface: (SurfaceSample | null)[] | null = fdoc ? decodeSurface(fdoc.surface) : null;
   if (surface) {
     // Surface values are per soup vertex; only use them when the rebuilt parts match exactly.
@@ -228,7 +248,7 @@ export async function loadRun(id: string): Promise<LoadedRun> {
     if (surface.some((s) => !s) && parts.length) notice ??= "Some parts changed since this run; their surface pressure is not shown.";
   }
   const ranges = computeRanges(field, surface, doc.result.freestream, doc.settings.density);
-  return { doc, parts, field, surface, ranges, notice };
+  return { doc, parts, field, surface, ranges, notice, animation, animationRanges: animation ? animationRanges(animation, doc.settings.density) : undefined };
 }
 
 export async function openRun(id: string) {
@@ -247,6 +267,7 @@ export async function openRun(id: string) {
 export async function deleteRun(id: string) {
   await remove("runs", id);
   await remove("fields", id);
+  await removeAnimationFrames(id);
   const s = app.get();
   if (s.run?.doc.id === id) app.set({ run: null, view: "setup" });
   await collectFiles();
@@ -258,6 +279,7 @@ export async function startCompare(a: string, b: string) {
   try {
     const [ra, rb] = await Promise.all([loadRun(a), loadRun(b)]);
     const shared = mergeRanges(ra.ranges, rb.ranges);
+    if (ra.animationRanges && rb.animationRanges) { const ar = mergeRanges(ra.animationRanges, rb.animationRanges); ra.animationRanges = rb.animationRanges = ar; }
     ra.ranges = rb.ranges = shared;
     const { low, high } = partsBounds(ra.parts.length ? ra.parts : rb.parts);
     app.set((s) => ({ compare: { a: ra, b: rb }, view: "compare", busy: null, viz: Number.isFinite(low[0]) ? vizForCar(s.viz, low, high) : s.viz }));

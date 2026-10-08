@@ -32,7 +32,9 @@ export interface LiveState {
   serverStage?: string;
   iteration?: number;
   iterations?: number;
-  stage: "preparing" | "solving" | "finishing" | "saving";
+  recordingTime?: number;
+  recordingDuration?: number;
+  stage: "preparing" | "solving" | "recording" | "finishing" | "saving";
   fraction: number;
   time: number;
   targetTime: number;
@@ -98,6 +100,8 @@ export const DEFAULT_VIZ: VizSettings = {
   smoke: true,
   streamlines: false,
   slice: false,
+  animation: false,
+  animationLoop: true,
   wake: false,
   pressureCloud: false,
   cloudLevel: 0.15,
@@ -517,6 +521,7 @@ export function vizForCar(v: VizSettings, low: number[], high: number[]): VizSet
   const yc = (low[1] + high[1]) / 2;
   return {
     ...v,
+    animation: false,
     rake: { x: low[0] - 0.14 * L, y: yc, z: zc, width: W * 0.9, height: H * 0.9 },
     stream: { ...v.stream, x: low[0] - 0.12 * L, y: yc + 0.02 * W, z: zc, length: v.stream.orientation === "vertical" ? H * 1.05 : W * 1.2 },
     slicePos: v.sliceAxis === 1 ? yc : v.sliceAxis === 2 ? zc : high[0] + 0.3 * L,

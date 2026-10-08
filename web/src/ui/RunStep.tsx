@@ -18,7 +18,7 @@ import { estimate } from "../store/estimate";
 import { toSolverParts } from "../store/geometry";
 import { startRun } from "../store/runs";
 import { weightInputError } from "../solver/tyreLoads";
-import { Slider } from "./controls";
+import { Slider, Toggle } from "./controls";
 import { boundaryLine, fmt, fmtCells, fmtDuration } from "./format";
 
 const QUALITIES: { q: Quality; label: string; blurb: string }[] = [
@@ -66,9 +66,18 @@ export function RunStep() {
     !report || report.errors.length > 0 || !confirmed || resourceBlocked;
   const noGpu = gpu.status === "unavailable" || gpu.status === "checking";
   const openfoam = OPENFOAM_ENABLED && s.engine === "openfoam";
+  const fineFlow = openfoam && !!s.flow_animation && s.flow_detail === "fine";
+  const qualityLimit = (q: Quality) => openfoam && q === "medium" ? 1200 : (q === "fast" ? 300 : 600) * (openfoam && s.flow_animation ? 2 : 1);
+  const requestedLimit = s.max_seconds ?? (!openfoam ? qualityLimit(s.quality) : fineFlow ? 43200 : s.profile === "basic" ? qualityLimit("fast") : s.profile === "regular" ? qualityLimit("medium") : s.profile === "advanced2" ? 43200 : !s.profile && s.quality === "medium" ? 1200 : 10800);
+  const mediumLevel = openfoam && !fineFlow && (!s.profile || s.profile === "regular") && (s.quality === "medium" || s.quality === "custom");
+  const timeLimit = mediumLevel ? Math.min(requestedLimit,1200) : requestedLimit;
   const serverReady = OPENFOAM_ENABLED && server.status === "ready";
   const limitCeiling = openfoam
-    ? s.profile === "advanced1"
+    ? !fineFlow && (s.profile === "regular" || (!s.profile && s.quality === "medium"))
+      ? 1200
+      : s.profile === "basic"
+      ? qualityLimit("fast")
+      : s.profile === "advanced1"
       ? 10800
       : 43200
     : s.quality === "fast"
@@ -93,6 +102,7 @@ export function RunStep() {
               profile: "regular",
               quality: "medium",
               max_seconds: 600,
+              flow_detail: "standard",
             })
           }
         >
@@ -110,9 +120,10 @@ export function RunStep() {
           onClick={() =>
             setSettings({
               engine: "openfoam",
-              profile: "advanced1",
+              profile: "regular",
               quality: "medium",
-              max_seconds: 10800,
+              max_seconds: 1200,
+              flow_detail: "standard",
             })
           }
         >
@@ -128,46 +139,7 @@ export function RunStep() {
             : server.info?.message || "OpenFOAM is unavailable. Start the local server with just run-openfoam."}
         </p>
       )}
-      {openfoam && (
-        <div className="group">
-          <label className="field-label" htmlFor="advanced-profile">
-            Analysis level
-          </label>
-          <select
-            id="advanced-profile"
-            value={s.profile ?? "legacy"}
-            onChange={(e) => {
-              const profile = e.target.value as "advanced1" | "advanced2";
-              setSettings(
-                profile === "advanced1" || profile === "advanced2"
-                  ? {
-                      profile,
-                      quality: "medium",
-                      max_seconds: profile === "advanced2" ? 43200 : 10800,
-                    }
-                  : { profile: undefined, max_seconds: undefined },
-              );
-            }}
-          >
-            <option value="legacy">Standard · choose a mesh preset</option>
-            <option value="advanced1">
-              Advanced 1 · single mesh
-            </option>
-            <option value="advanced2">
-              Advanced 2 · three-mesh comparison
-            </option>
-          </select>
-          <p className="field-hint">
-            {s.profile === "advanced1"
-              ? "One mesh, up to 1 million cells. Limits: 5 GiB memory, 2 CPUs and 3 hours. "
-              : s.profile === "advanced2"
-                ? "Compare three meshes, up to 2 million cells each. Limits: 6 GiB memory, 2 CPUs and 12 hours. "
-                : "Choose Fast, Medium or Precise below. "}
-            Runtime ceilings are safety limits, not measured completion times.
-            {s.profile?.startsWith("advanced") && " These levels are not yet numerically qualified. Advanced 2 stops if a mesh remains unstable."}
-          </p>
-        </div>
-      )}
+      {openfoam && <OpenFoamLevels settings={s} />}
       {openfoam && s.profile?.startsWith("advanced") && (
         <div className="group">
           <span className="field-label">Local refinement</span>
@@ -219,6 +191,7 @@ export function RunStep() {
           refinement.
         </p>
       )}
+      <details className="group run-time-settings"><summary>Time limit</summary>
       <label className="field-label" htmlFor="elapsed-limit">
         Whole-job time limit (seconds)
       </label>
@@ -228,7 +201,7 @@ export function RunStep() {
         min="30"
         max={limitCeiling}
         value={
-          s.max_seconds ?? (openfoam ? 10800 : s.quality === "fast" ? 300 : 600)
+          timeLimit
         }
         onChange={(e) =>
           setSettings({
@@ -244,15 +217,17 @@ export function RunStep() {
         Stop is available during preparation and solving.
       </p>
 
+      </details>
+
       {openfoam ? (
-        s.profile?.startsWith("advanced") ? (
+        fineFlow ? <p className="field-hint">Detailed wake mesh · up to 2 million cells · 6 GiB. Fine cells surround the car and continue into its wake.</p> : s.profile?.startsWith("advanced") ? (
           <p className="field-hint">
             Keep Mac responsive · 2 MPI ranks / 2-CPU quota. Runtime not yet
             benchmarked. All analysis views are included when their data are
             available.
           </p>
         ) : (
-          <OpenFoamQualities quality={s.quality} info={server.info} />
+          <p className="field-hint">{s.quality === "medium" ? "Medium stops within 20 minutes, including preparation and any standard recording. Unfinished results are marked incomplete." : "Stop is available throughout the run."}</p>
         )
       ) : (
         <div className="quality-grid" role="radiogroup" aria-label="Quality">
@@ -279,7 +254,7 @@ export function RunStep() {
                           : q === "medium"
                             ? "regular"
                             : undefined,
-                      max_seconds: q === "fast" ? 300 : 600,
+                      max_seconds: qualityLimit(q),
                     })
                   }
                 >
@@ -351,7 +326,7 @@ export function RunStep() {
                             : q === "medium"
                               ? "regular"
                               : undefined,
-                        max_seconds: q === "fast" ? 300 : 600,
+                        max_seconds: qualityLimit(q),
                       })
                     }
                   >
@@ -441,8 +416,35 @@ export function RunStep() {
         </p>
       )}
 
+      <div className="group flow-record-option">
+        <Toggle checked={!!s.flow_animation} onChange={flow_animation => {
+          if(flow_animation && openfoam && s.flow_detail === "fine") {
+            setSettings({flow_animation,profile:undefined,quality:"medium",max_seconds:43200});
+            return;
+          }
+          const normalLimit = s.profile === "basic" ? 300 : 1200;
+          const standard = openfoam && (s.profile === "basic" || s.profile === "regular");
+          const from = normalLimit * (s.profile === "basic" && s.flow_animation ? 2 : 1), to = normalLimit * (s.profile === "basic" && flow_animation ? 2 : 1);
+          setSettings({flow_animation, ...(standard && (!s.max_seconds || s.max_seconds === from || s.max_seconds > to) ? {max_seconds:to} : {})});
+        }} label="Record flow animation" hint="Watch the coloured airflow and wake evolve after the run." />
+        {s.flow_animation && openfoam && <>
+          <label className="field-label" htmlFor="flow-detail">Recording detail</label>
+          <select id="flow-detail" value={s.flow_detail ?? "standard"} onChange={e=> {
+            const flow_detail = e.target.value as "standard" | "fine";
+            setSettings(flow_detail === "fine" ? {flow_detail, profile:undefined, quality:"medium", max_seconds:43200} : {flow_detail,profile:"advanced1",quality:"medium",max_seconds:10800});
+          }}>
+            <option value="standard">Standard airflow</option>
+            <option value="fine">Detailed wake</option>
+          </select>
+        </>}
+        {s.flow_animation && <p className="field-hint">{fineFlow
+          ? "Resolves wake motion with DDES and records about 192 frames in four detailed sections after the flow develops. This needs substantially more computation than a standard recording."
+          : `Records 48 frames over twelve car-lengths of airflow using ${openfoam ? "OpenFOAM" : "WebGPU"}.`}
+          {" "}Whole-job limit including recording: {fmtDuration(timeLimit)}. Play it in Explore airflow.</p>}
+      </div>
+
       {openfoam ? (
-        !s.profile?.startsWith("advanced") && (
+        !fineFlow && !s.profile?.startsWith("advanced") && (
           <OpenFoamSummary quality={s.quality} info={server.info} />
         )
       ) : (
@@ -536,65 +538,29 @@ export function RunStep() {
   );
 }
 
-const OF_QUALITIES: { q: "fast" | "medium" | "precise"; label: string }[] = [
-  { q: "fast", label: "Fast" },
-  { q: "medium", label: "Medium" },
-  { q: "precise", label: "Precise" },
-];
+const OF_LEVELS = [
+  {profile:"basic",quality:"fast",label:"Fast",blurb:"Check the setup",limit:300},
+  {profile:"regular",quality:"medium",label:"Medium",blurb:"Compare designs",limit:1200},
+  {profile:"advanced1",quality:"medium",label:"Precise",blurb:"Single fine mesh",limit:10800},
+  {profile:"advanced2",quality:"medium",label:"Very Precise",blurb:"Compare three meshes",limit:43200},
+] as const;
 
-function measuredText(
-  info: ServerInfo | null,
-  q: "fast" | "medium" | "precise",
-): string {
-  const m = info?.measured[q];
-  return m
-    ? `~${fmtDuration(m.seconds)} (median of ${m.runs} run${m.runs > 1 ? "s" : ""} here)`
-    : "no runs measured here yet";
-}
-
-function OpenFoamQualities({
-  quality,
-  info,
-}: {
-  quality: string;
-  info: ServerInfo | null;
-}) {
-  return (
-    <div
-      className="quality-grid of"
-      role="radiogroup"
-      aria-label="OpenFOAM quality"
-    >
-      {OF_QUALITIES.map(({ q, label }) => {
-        const p = info?.presets[q];
-        const on = quality === q || (q === "medium" && quality === "custom");
-        return (
-          <button
-            key={q}
-            role="radio"
-            aria-checked={on}
-            className={`quality-card ${on ? "on" : ""}`}
-            onClick={() =>
-              setSettings({
-                quality: q,
-                profile: undefined,
-                max_seconds: undefined,
-              })
-            }
-          >
-            <span className="q-label">{label}</span>
-            <span className="q-blurb">{p?.label ?? ""}</span>
-            <span className="q-meta">
-              {p
-                ? `≤ ${fmtCells(p.max_cells)} cells · ${p.layers ? `${p.layers} layers · ` : ""}${p.iterations} iterations`
-                : "–"}
-            </span>
-            <span className="q-est">{measuredText(info, q)}</span>
-          </button>
-        );
-      })}
+function OpenFoamLevels({settings:s}:{settings:Settings}) {
+  const fine = !!s.flow_animation && s.flow_detail === "fine";
+  const selected = s.profile ?? (s.quality === "fast" ? "basic" : s.quality === "precise" ? "advanced1" : "regular");
+  return <div className="group">
+    <span className="field-label">Analysis level</span>
+    <div className="quality-grid of" role="radiogroup" aria-label="Analysis level">
+      {OF_LEVELS.map(level => <button key={level.profile} role="radio" aria-checked={!fine && selected === level.profile}
+        className={`quality-card ${!fine && selected === level.profile ? "on" : ""}`}
+        onClick={()=>setSettings({profile:level.profile,quality:level.quality,flow_detail:"standard",max_seconds:level.limit * (level.profile === "basic" && s.flow_animation ? 2 : 1)})}>
+        <span className="q-label">{level.label}</span>
+        <span className="q-blurb">{level.blurb}</span>
+        <span className="q-meta">Up to {level.limit >= 3600 ? `${level.limit / 3600} hours` : fmtDuration(level.limit * (level.profile === "basic" && s.flow_animation ? 2 : 1))}</span>
+      </button>)}
     </div>
-  );
+    {fine && <p className="field-hint">Detailed wake uses a separate recording budget. Choose a level above to return to standard airflow.</p>}
+  </div>;
 }
 
 function OpenFoamSummary({
