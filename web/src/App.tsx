@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 import { domainFor } from "./solver/setup";
 import type { Vec3 } from "./solver/types";
 import { useStore } from "./store/store";
-import { app, init } from "./store/app";
+import { app, init, toast } from "./store/app";
 import { gridBounds } from "./store/geometry";
 import { assessedAxles, assessedResult } from "./store/axleAnalysis";
 import { DropOverlay, Toasts, TopBar, ViewBar } from "./ui/Chrome";
@@ -52,7 +52,18 @@ export function App() {
   useEffect(() => setSceneFocus(false), [view, design?.id]);
 
   useEffect(() => {
-    init();
+    void init().then(async () => {
+      const url = new URL(window.location.href);
+      if (url.searchParams.get('courseLab') !== 'teaching-car') return;
+      try {
+        const { launchCourseLab } = await import('./course/launcher');
+        await launchCourseLab();
+        url.searchParams.delete('courseLab');
+        window.history.replaceState(null, '', url);
+      } catch (error) {
+        toast(error instanceof Error ? error.message : String(error), 'error');
+      }
+    });
     // Test hook (dev server only): lets the e2e scripts reach the stages and the store.
     if (import.meta.env.DEV) (window as unknown as Record<string, unknown>).__easycfd = { stages, app };
   }, []);

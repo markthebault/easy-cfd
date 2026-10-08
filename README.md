@@ -16,6 +16,12 @@ The public app uses WebGPU. It needs a browser and device with WebGPU support. I
 
 Treat the results as exploratory estimates. They do not establish real vehicle loads or aerodynamic accuracy. Read the [validation notes](web/VALIDATION.md) before you use the numbers for a design decision.
 
+## Learn car aerodynamics
+
+Use **Aero course** in the app's top bar to open a self-contained four-day course. It starts with forces, pressure and boundary layers, then covers wings, splitters, canards, floors and diffusers, controlled CFD comparisons, axle balance and design tradeoffs. It includes 24 lessons, twelve labs, original diagrams, interactive calculations and actual exploratory EasyCFD run evidence. The [Guerrero et al. diffuser study](https://www.mdpi.com/2076-3417/12/8/3763) is a worked research case study.
+
+The reading and calculators work offline and need no WebGPU. The lab button creates a separate teaching-car design; existing designs and runs stay in the library. **Save offline HTML** downloads the course, and **Print / PDF** prints the full reading with answers. The checked-in [review PDF](output/pdf/easycfd-car-aerodynamics.pdf) is generated from the same HTML. See the [course guide](docs/aerodynamics-course/README.md) for its source, reproduction and feature issues.
+
 ## Run locally
 
 Use Node.js 22 and npm.

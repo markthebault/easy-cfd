@@ -1,0 +1,40 @@
+name: Aerodynamics course
+on:
+  pull_request:
+    paths: ['web/**', 'output/**', 'docs/aerodynamics-course/**', '.github/workflows/aerodynamics-course.yml']
+  push:
+    branches: [main]
+    paths: ['web/**', 'output/**', 'docs/aerodynamics-course/**', '.github/workflows/aerodynamics-course.yml']
+permissions:
+  contents: read
+jobs:
+  course:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: web
+    env:
+      VITE_ENABLE_OPENFOAM: 'false'
+      EASYCFD_WEB_TEST_PORT: '5300'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
+      - run: npm run build:webgpu
+      - run: npm run test:e2e -- --config playwright.course.config.ts
+      - run: npm run course:pdf
+      - uses: actions/upload-artifact@v4
+        with:
+          name: car-aerodynamics-course
+          path: |
+            output/pdf/easycfd-car-aerodynamics.pdf
+            web/public/course/index.html
+            web/public/course/easycfd-teaching-car.zip
+          retention-days: 14

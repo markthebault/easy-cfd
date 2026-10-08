@@ -225,13 +225,17 @@ const sourceKey = (s: SourceRef) => JSON.stringify(s);
 
 function scheduleSave() {
   clearTimeout(saveTimer);
-  saveTimer = window.setTimeout(async () => {
-    const d = app.get().design;
-    if (!d) return;
-    await put("designs", d);
-    localStorage.setItem(LAST_DESIGN, d.id);
-    refreshLists();
-  }, 400);
+  saveTimer = window.setTimeout(() => { void flushDesignSave(); }, 400);
+}
+
+/** Persist before a navigation/launcher reports completion, without waiting for the debounce. */
+export async function flushDesignSave() {
+  clearTimeout(saveTimer);
+  const d = app.get().design;
+  if (!d) return;
+  await put("designs", d);
+  localStorage.setItem(LAST_DESIGN, d.id);
+  await refreshLists();
 }
 
 export async function refreshLists() {

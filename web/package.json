@@ -4,6 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "course:build": "node course/build.mjs",
+    "course:pdf": "node course/export-pdf.mjs",
+    "course:examples": "node course/run-examples.mjs",
+    "predev": "npm run course:build",
+    "prebuild": "npm run course:build",
+    "prebuild:webgpu": "npm run course:build",
+    "pretest:e2e": "npm run course:build",
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build && cp VALIDATION.md dist/",
     "build:webgpu": "tsc -b && vite build --outDir dist-webgpu && cp VALIDATION.md dist-webgpu/",

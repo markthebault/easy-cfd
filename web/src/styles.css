@@ -285,6 +285,9 @@ code {
   padding: 0 14px;
 }
 
+.topbar a.btn { text-decoration: none; }
+.course-entry { margin: 20px 0 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+
 .panel {
   position: absolute;
   top: calc(var(--gap) + 56px);

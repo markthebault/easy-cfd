@@ -1,0 +1,165 @@
+{
+  "version": 1,
+  "description": "Synthetic teaching car; metres; nose -X; up +Z. Exactly one body must be active. Wing supports omitted.",
+  "files": [
+    {
+      "file": "body_flat.stl",
+      "name": "Flat-floor body",
+      "base": true,
+      "group": "g:body",
+      "role": "body",
+      "triangles": 32,
+      "sha256": "b600727ce1c167cfd9281e47607432d5dbe4062c5fa298c3cce8a67129bb4a54",
+      "closedMesh": true,
+      "signedVolume_m3": 6.0711930031641685
+    },
+    {
+      "file": "wheel_front_left.stl",
+      "name": "Front left wheel",
+      "base": true,
+      "role": "wheel",
+      "wheel": {
+        "center": [
+          -1.35,
+          1.05,
+          0.33
+        ],
+        "radius": 0.32
+      },
+      "group": "g:wheels",
+      "triangles": 128,
+      "sha256": "441568cbc4f00761efeed61ac6f9a4cad16a20026d5f1e2484b87ded7621a646",
+      "closedMesh": true,
+      "signedVolume_m3": 0.07671261834487471
+    },
+    {
+      "file": "wheel_front_right.stl",
+      "name": "Front right wheel",
+      "base": true,
+      "role": "wheel",
+      "wheel": {
+        "center": [
+          -1.35,
+          -1.05,
+          0.33
+        ],
+        "radius": 0.32
+      },
+      "group": "g:wheels",
+      "triangles": 128,
+      "sha256": "283b8afcaf7be79c1e02e542f0cd8fa242ca2c355d21de9661d443c518381b4a",
+      "closedMesh": true,
+      "signedVolume_m3": 0.07671261834487474
+    },
+    {
+      "file": "wheel_rear_left.stl",
+      "name": "Rear left wheel",
+      "base": true,
+      "role": "wheel",
+      "wheel": {
+        "center": [
+          1.3,
+          1.05,
+          0.33
+        ],
+        "radius": 0.32
+      },
+      "group": "g:wheels",
+      "triangles": 128,
+      "sha256": "63735f3416c6be47411aef4f001f3c4a04ac5fa9fde2a9553a07b26da1a8a7fc",
+      "closedMesh": true,
+      "signedVolume_m3": 0.0767126246153498
+    },
+    {
+      "file": "wheel_rear_right.stl",
+      "name": "Rear right wheel",
+      "base": true,
+      "role": "wheel",
+      "wheel": {
+        "center": [
+          1.3,
+          -1.05,
+          0.33
+        ],
+        "radius": 0.32
+      },
+      "group": "g:wheels",
+      "triangles": 128,
+      "sha256": "7fc79dde3951c56576454fc4feb6d60c0205159aef803b5616a6b52cdc94d333",
+      "closedMesh": true,
+      "signedVolume_m3": 0.07671262461534986
+    },
+    {
+      "file": "body_diffuser_7.stl",
+      "name": "Diffuser body 7 deg",
+      "role": "body",
+      "replaces": "body_flat.stl",
+      "group": "g:file:body_diffuser_7.stl",
+      "triangles": 36,
+      "sha256": "1f6ee7a6f4aadb68cbd5bf85375a1fde1d3b8fcc437775bd6d30d6eac742aa17",
+      "closedMesh": true,
+      "signedVolume_m3": 5.981434434956055
+    },
+    {
+      "file": "body_diffuser_14.stl",
+      "name": "Diffuser body 14 deg",
+      "role": "body",
+      "replaces": "body_flat.stl",
+      "group": "g:file:body_diffuser_14.stl",
+      "triangles": 36,
+      "sha256": "c1bcff81c98d03ad68d243e7c8a1a7790a1d18cf15ded4cd2fe7f76ba1b1d479",
+      "closedMesh": true,
+      "signedVolume_m3": 5.888928014017802
+    },
+    {
+      "file": "rear_wing_6.stl",
+      "name": "Rear wing 6 deg",
+      "role": "body",
+      "group": "g:file:rear_wing_6.stl",
+      "triangles": 508,
+      "sha256": "2734544a0a231970c269322cb3be33a559f45dc852443c49fbc52d3dd48037e2",
+      "closedMesh": true,
+      "signedVolume_m3": 0.014267093607265973
+    },
+    {
+      "file": "rear_wing_12.stl",
+      "name": "Rear wing 12 deg",
+      "role": "body",
+      "group": "g:file:rear_wing_12.stl",
+      "triangles": 508,
+      "sha256": "35eaa348d878709360d622395fddcc4842803e18b1b755c5b5425c28c3a98fb2",
+      "closedMesh": true,
+      "signedVolume_m3": 0.01426709257743928
+    },
+    {
+      "file": "front_splitter.stl",
+      "name": "Front splitter",
+      "role": "body",
+      "group": "g:file:front_splitter.stl",
+      "triangles": 12,
+      "sha256": "070e636778ae84ed2177a0f5bbc5f81910229b9d60bff56f30a1d2800ddb5986",
+      "closedMesh": true,
+      "signedVolume_m3": 0.032760005446076386
+    },
+    {
+      "file": "canard_pair.stl",
+      "name": "Canard pair",
+      "role": "body",
+      "group": "g:file:canard_pair.stl",
+      "triangles": 24,
+      "sha256": "89f24ded381c4bafb477e2d5bf6654f19b8fd4b82981e4135fbe8503c872d7d7",
+      "closedMesh": true,
+      "signedVolume_m3": 0.0013000042259681019
+    },
+    {
+      "file": "side_skirts.stl",
+      "name": "Side skirts",
+      "role": "body",
+      "group": "g:file:side_skirts.stl",
+      "triangles": 24,
+      "sha256": "d24db4a6c4f5e10787292312a806d9c9db73db13f6c775a7839263ac4bdc7ed4",
+      "closedMesh": true,
+      "signedVolume_m3": 0.010229990960060845
+    }
+  ]
+}
