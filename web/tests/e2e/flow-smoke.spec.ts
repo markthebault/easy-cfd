@@ -1,25 +1,25 @@
 import { expect, test } from "@playwright/test";
 
-test("continuous smoke transports dye at the supplied velocity and masks solids", async ({ page }) => {
+for (const planar of [false,true]) test(`continuous smoke transports dye at the supplied velocity and masks solids (${planar ? "native section" : "volume"})`, async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", e => errors.push(e.message));
   page.on("console", m => { if (m.type() === "error") errors.push(m.text()); });
   await page.goto("/");
-  const result = await page.evaluate(async () => {
+  const result = await page.evaluate(async (planar) => {
     const THREE = await import("/node_modules/.vite/deps/three.js");
     const { FlowSmoke } = await import("/src/viz/flowSmoke.ts");
     const { createFieldGPU, disposeFieldGPU } = await import("/src/viz/field.ts");
     const renderer = new THREE.WebGLRenderer();
-    const dims: [number,number,number] = [65,5,17], n=dims[0]*dims[1]*dims[2];
+    const dims: [number,number,number] = [65,planar ? 1 : 5,17], n=dims[0]*dims[1]*dims[2];
     const field:any = { dims, origin:[0,0,0], spacing:[1/16,1/4,1/16],
       u:new Float32Array(n).fill(1), v:new Float32Array(n), w:new Float32Array(n),
       p:new Float32Array(n), k:new Float32Array(n), solid:new Uint8Array(n) };
     // An obstacle in the lower half; check transport in the clear upper half.
-    for(let k=0;k<7;k++) for(let j=0;j<5;j++) for(let i=30;i<35;i++) {
-      const idx=i+65*(j+5*k); field.solid[idx]=1; field.u[idx]=0;
+    for(let k=0;k<7;k++) for(let j=0;j<dims[1];j++) for(let i=30;i<35;i++) {
+      const idx=i+65*(j+dims[1]*k); field.solid[idx]=1; field.u[idx]=0;
     }
     const gpu=createFieldGPU(field), smoke=new FlowSmoke(renderer);
-    smoke.configure(1,0.5,new THREE.Vector3(0,0,0),new THREE.Vector3(4,1,1),1,1);
+    smoke.configure(1,planar ? 0 : 0.5,new THREE.Vector3(0,0,0),new THREE.Vector3(4,1,1),1,1);
     smoke.setField(gpu,null,0);
     renderer.setViewport(3,4,20,30); renderer.setScissor(1,2,10,12); renderer.setScissorTest(true);
     smoke.step(0);
@@ -49,7 +49,7 @@ test("continuous smoke transports dye at the supplied velocity and masks solids"
     const deterministic=reset.pixels.every((v:number,i:number)=>v===first.pixels[i]);
     smoke.dispose(); disposeFieldGPU(gpu); renderer.dispose();
     return {translatedError:translatedError/samples,stationaryError:stationaryError/samples,stopped,solid,viewport,scissor,scissorTest,deterministic};
-  });
+  },planar);
   expect(result.translatedError).toBeLessThan(.01);
   expect(result.translatedError).toBeLessThan(result.stationaryError/4);
   expect(result.stationaryError).toBeGreaterThan(.03);

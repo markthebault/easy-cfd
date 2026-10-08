@@ -14,8 +14,9 @@ import { resolvedAxles } from "../solver/aero";
 import { assessedResult, detectRunAxles } from "./axleAnalysis";
 import { CaseWorker } from "../workers/caseClient";
 import { app, gpuDevice, partsBounds, refreshLists, setSettings, toast, vizForCar, type LiveState } from "./app";
-import { decodeAnimation, encodeAnimation, decodeField, decodeSurface, encodeField, encodeSurface } from "./codec";
-import { collectFiles, get, newId, put, remove, sha256 } from "./db";
+import { decodeField, decodeSurface, encodeField, encodeSurface } from "./codec";
+import { cacheAnimation, restoreAnimation } from "./animationCache";
+import { collectFiles, get, newId, put, remove, removeAnimationFrames, sha256 } from "./db";
 import { recordRun } from "./estimate";
 import { buildDesignParts, partKey, rawFromSource, summarize, toSolverParts, type RawPart } from "./geometry";
 import { animationRanges, computeRanges, mergeRanges } from "./ranges";
@@ -31,16 +32,20 @@ function patchLive(p: Partial<LiveState>) {
 }
 
 /** Save a finished run (either engine) in the browser and show it. */
-export async function saveAndShow(doc: RunDoc, enabled: Part[], field: VizField | null, surface: SurfaceSample[] | null, animation?: FlowAnimation) {
+export async function saveAndShow(doc: RunDoc, enabled: Part[], field: VizField | null, surface: SurfaceSample[] | null, animation?: FlowAnimation, shouldShow: () => boolean = () => true) {
   doc = detectRunAxles(doc, enabled);
   const keys = enabled.map(partKey);
   try {
-    if (field) await put("fields", { id: doc.id, field: encodeField(field), surface: encodeSurface(keys, surface ?? []), animation: animation ? encodeAnimation(animation) : undefined });
+    if (field) {
+      const recording = await cacheAnimation(doc.id,animation);
+      await put("fields", { id: doc.id, field: encodeField(field), surface: encodeSurface(keys, surface ?? []), ...recording });
+    }
     await put("runs", doc);
   } catch (e) {
     toast(`The result could not be saved in the browser (${e instanceof Error ? e.message : String(e)}). It is shown but will be lost on reload.`, "error");
   }
   refreshLists();
+  if (!shouldShow()) return;
   const ranges = computeRanges(field, surface, doc.result.freestream, doc.settings.density);
   app.set({ view: "results", live: null, run: { doc, parts: enabled, field, surface, ranges, animation, animationRanges: animation ? animationRanges(animation, doc.settings.density) : undefined } });
 }
@@ -235,7 +240,7 @@ export async function loadRun(id: string): Promise<LoadedRun> {
     try { await put("runs", doc); } catch { notice ??= "Detected axles could not be saved in this browser."; }
   }
   const field = fdoc ? decodeField(fdoc.field) : null;
-  const animation = fdoc?.animation ? decodeAnimation(fdoc.animation) : undefined;
+  const animation = fdoc ? await restoreAnimation(fdoc) : undefined;
   let surface: (SurfaceSample | null)[] | null = fdoc ? decodeSurface(fdoc.surface) : null;
   if (surface) {
     // Surface values are per soup vertex; only use them when the rebuilt parts match exactly.
@@ -262,6 +267,7 @@ export async function openRun(id: string) {
 export async function deleteRun(id: string) {
   await remove("runs", id);
   await remove("fields", id);
+  await removeAnimationFrames(id);
   const s = app.get();
   if (s.run?.doc.id === id) app.set({ run: null, view: "setup" });
   await collectFiles();

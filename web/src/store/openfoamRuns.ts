@@ -3,6 +3,7 @@
 // were made on the server (for example in the original UI).
 
 import type { Part } from "../geometry/model";
+import { parseSTL } from "../geometry/stl";
 import {
   cancelServerRun,
   domainToUi,
@@ -41,17 +42,20 @@ import {
   summarize,
 } from "./geometry";
 import { saveAndShow } from "./runs";
+import { replaceCachedAnimation } from "./animationCache";
+import { animationRanges } from "./ranges";
 import type { FileRef, PartOverride, RunDoc } from "./types";
 
 const FINAL_POINTS = 900_000;
 export const OPENFOAM_ADAPTER = "OpenFOAM v2412 · local server";
 
-let active: {
+type ActiveRun = {
   runId: string | null;
   cancelled: boolean;
   controller: AbortController;
   fetching: boolean;
-} | null = null;
+};
+let active: ActiveRun | null = null;
 
 const STARTED_KEY = "easycfd.openfoamRuns";
 
@@ -94,6 +98,10 @@ function patchLive(p: Partial<LiveState>) {
   app.set((s) => (s.live ? { live: { ...s.live, ...p } } : {}));
 }
 
+function checkSession(session: ActiveRun | null): asserts session is ActiveRun {
+  if (!session || active !== session || session.cancelled) aborted();
+}
+
 function aborted(): never {
   throw new DOMException("Simulation cancelled", "AbortError");
 }
@@ -109,6 +117,27 @@ export function cancelOpenFoamRun() {
     patchLive({ serverStage: "Stopping the server solver…" });
     cancelServerRun(active.runId).catch((e) => toast(String(e), "error"));
   } else active.cancelled = true;
+}
+
+/** Load one native section at a time; other planes do not consume browser memory. */
+export async function selectRecordedSection(section: string) {
+  const run = app.get().run, animation = run?.animation;
+  if (!run || !animation?.server || animation.section === section) return;
+  app.set({busy:"loading"});
+  try {
+    const record = await getRun(animation.server.run);
+    const next = await fetchAnimation(record, animation.server.offset, undefined, section,
+      (loaded,total)=>app.set({busy:`Loading recorded section (${loaded}/${total})`}));
+    const plane = next?.sections?.find(p=>p.id===section);
+    if (!next || !plane || app.get().run?.doc.id !== run.doc.id) return;
+    app.set(s=>({run:{...s.run!,animation:next,animationRanges:animationRanges(next,run.doc.settings.density)},
+      viz:{...s.viz,sliceAxis:plane.axis,slicePos:plane.position}}));
+    const stored = await get("fields",run.doc.id);
+    if (stored) await replaceCachedAnimation(stored,next);
+    return plane;
+  } catch(e) {
+    toast(`This section could not be loaded from the local server: ${e instanceof Error ? e.message : String(e)}`,"error");
+  } finally { app.set({busy:null}); }
 }
 
 /** Iteration budget of a server preset (Precise solves the Medium mesh first). */
@@ -130,22 +159,25 @@ async function follow(
   total: number,
   started: number,
 ): Promise<ServerRun> {
+  const session = active;
   let done = 0; // iterations of finished tiers (Precise runs two)
   let lastTier = "";
   for (;;) {
     await sleep(1500);
-    if (active?.cancelled) aborted();
+    if (active !== session || session?.cancelled) aborted();
     let lv;
     try {
       lv = await liveReport(runId, 1);
     } catch {
       continue; // transient: keep polling
     }
+    if (active !== session) aborted();
     const tier = (lv.stage ?? "").split(":")[0];
     if (lastTier && tier !== lastTier && lv.iteration < 5)
       done = total - budget(tier);
     lastTier = tier;
     const solving = /solving/i.test(lv.stage ?? "");
+    const recording = /recording/i.test(lv.stage ?? "") && !!lv.recording_duration_seconds;
     const history = historyFromServer(lv.history);
     patchLive({
       serverStage:
@@ -153,8 +185,12 @@ async function follow(
           ? "Waiting for the solver (another run is in the queue)"
           : lv.stage,
       iteration: lv.iteration,
-      stage: solving ? "solving" : "preparing",
-      fraction: Math.min(1, (done + (lv.iteration ?? 0)) / Math.max(1, total)),
+      recordingTime: lv.recording_time_seconds,
+      recordingDuration: lv.recording_duration_seconds,
+      stage: recording ? "recording" : solving ? "solving" : "preparing",
+      fraction: Math.min(1, recording
+        ? (lv.recording_time_seconds ?? 0) / lv.recording_duration_seconds!
+        : (done + (lv.iteration ?? 0)) / Math.max(1, total)),
       history,
       time: lv.iteration,
       targetTime: total,
@@ -181,8 +217,10 @@ async function finish(
   offset: Vec3,
   patches: Record<string, string> = {},
 ) {
-  if (active) active.fetching = true;
-  const signal = active?.controller.signal;
+  const session = active;
+  checkSession(session);
+  session.fetching = true;
+  const signal = session.controller.signal;
   const { low, high } = partsBounds(enabled);
   const lowV = low as Vec3,
     highV = high as Vec3;
@@ -203,8 +241,10 @@ async function finish(
     offset,
     signal,
   );
+  checkSession(session);
   patchLive({ serverStage: "Sampling the car surface" });
   const surface = await fetchSurface(rec, enabled, offset, patches, signal);
+  checkSession(session);
   const result = resultFromRecord(rec, highV[0] - lowV[0], offset, domain);
   if (result.partForces)
     result.partForces = result.partForces.map((f) => {
@@ -232,8 +272,12 @@ async function finish(
     adapter: OPENFOAM_ADAPTER,
     hasField: true,
   };
-  const animation = await fetchAnimation(rec, offset, signal);
-  await saveAndShow(doc, enabled, field, surface, animation);
+  if (rec.result?.flow_animation) patchLive({serverStage:"Loading recorded airflow",fraction:0});
+  const animation = await fetchAnimation(rec, offset, signal, undefined,
+    (loaded,total)=>patchLive({serverStage:`Loading recorded airflow (${loaded}/${total})`,fraction:loaded/total}));
+  checkSession(session);
+  patchLive({serverStage:"Saving the result in this browser",fraction:1});
+  await saveAndShow(doc, enabled, field, surface, animation, () => active === session && !session.cancelled);
 }
 
 export async function startOpenFoamRun() {
@@ -259,13 +303,14 @@ export async function startOpenFoamRun() {
   const geometry = summarize(s.parts, s.report, s.groups);
   const { low, high } = partsBounds(s.parts);
   const total =
-    settings.profile === "advanced2"
+    settings.flow_animation && settings.flow_detail === "fine" ? 500 : settings.profile === "advanced2"
       ? 30000
       : settings.profile === "advanced1"
         ? 6000
         : budget(settings.quality);
   const started = performance.now();
-  active = {
+  active?.controller.abort();
+  const session: ActiveRun = active = {
     runId: null,
     cancelled: false,
     controller: new AbortController(),
@@ -301,17 +346,18 @@ export async function startOpenFoamRun() {
     const link = await ensureProject(
       design.name,
       shaping.map((p) => ({ key: partKey(p), part: p })),
-      (stage) => patchLive({ serverStage: stage }),
+      (stage) => { if (active === session) patchLive({ serverStage: stage }); },
     );
     if (link.labels)
       for (const label of Object.values(link.labels)) {
         const group = s.groups.find((g) => g.id === label.group);
         if (group) label.groupName = group.name;
       }
-    if (active.cancelled) aborted();
+    checkSession(session);
     patchLive({ serverStage: "Queuing the run" });
     const queued = await queueRun(link, enabled.map(partKey), settings);
-    active.runId = queued.id;
+    checkSession(session);
+    session.runId = queued.id;
     rememberRun(queued.id, {
       designId: design.id,
       activeKeys: enabled.map(partKey),
@@ -319,6 +365,7 @@ export async function startOpenFoamRun() {
       settings,
     });
     const rec = await follow(queued.id, total, started);
+    checkSession(session);
     if (rec.status === "cancelled") aborted();
     if (rec.status !== "completed")
       throw new Error(rec.error || `The OpenFOAM run ${rec.status}.`);
@@ -333,6 +380,7 @@ export async function startOpenFoamRun() {
     );
     rememberRun(queued.id, null);
   } catch (e) {
+    if (active !== session) return;
     if (
       active?.cancelled ||
       (e instanceof DOMException && e.name === "AbortError")
@@ -341,7 +389,7 @@ export async function startOpenFoamRun() {
       toast("Simulation cancelled.");
     } else patchLive({ error: e instanceof Error ? e.message : String(e) });
   } finally {
-    active = null;
+    if (active === session) active = null;
   }
 }
 
@@ -358,6 +406,7 @@ function settingsFromServer(s: ServerRun["settings"]): Settings {
   return {
     ...DEFAULT_SETTINGS,
     flow_animation: !!s.flow_animation,
+    flow_detail: s.flow_detail === "fine" ? "fine" : "standard",
     speed_kmh: s.speed_kmh,
     yaw_deg: s.yaw_deg,
     quality: q,
@@ -381,9 +430,12 @@ const safe = (s: string) => s.replace(/[^\w.-]+/g, "_").slice(0, 60) || "part";
 
 /** A run started from this browser, finished while the tab was closed: attach it to its design. */
 async function reattach(rec: ServerRun, info: StartedRun): Promise<boolean> {
+  const session = active;
   const design = await get("designs", info.designId);
+  checkSession(session);
   if (!design) return false;
   const raw = await rawFromSource(design.source);
+  checkSession(session);
   const all = buildDesignParts(
     raw,
     design.importOptions,
@@ -457,19 +509,57 @@ function showFetching(
   }));
 }
 
-/** Open a completed server run: its geometry becomes a design, its results a saved run. */
+/** Reopen server progress, then import its completed geometry and results. */
 export async function importServerRun(id: string) {
-  active = {
-    runId: null,
+  if (active?.runId === id) {
+    app.set({library:false,view:"live"});
+    return;
+  }
+  active?.controller.abort();
+  const session: ActiveRun = active = {
+    runId: id,
     cancelled: false,
     controller: new AbortController(),
     fetching: true,
   };
   app.set({ busy: "Opening the OpenFOAM run…", library: false });
   try {
-    const rec = await getRun(id);
-    if (rec.status !== "completed")
-      throw new Error("Only completed OpenFOAM runs can be opened.");
+    let rec = await getRun(id);
+    if (active !== session) aborted();
+    if (rec.status === "queued" || rec.status === "running") {
+      session.fetching = false;
+      const settings = settingsFromServer(rec.settings);
+      const total = settings.flow_animation && settings.flow_detail === "fine" ? 500
+        : settings.profile === "advanced2" ? 30000 : settings.profile === "advanced1" ? 6000 : budget(settings.quality);
+      const bounds = rec.geometry.bounds ?? [[-2,-1,0],[2,1,1.5]];
+      const elapsed = Math.max(0,(Date.now()-Date.parse(rec.started ?? rec.created))/1000);
+      showFetching(rec, [], settings, rec.name, {low:bounds[0],high:bounds[1]});
+      patchLive({stage:/solving/i.test(rec.stage ?? "") ? "solving" : "preparing",
+        serverStage:rec.status === "queued" ? "Waiting for the solver (another run is in the queue)" : rec.stage,
+        iterations:total,iteration:rec.iteration ?? 0,fraction:Math.min(1,(rec.iteration ?? 0)/total),
+        targetTime:total,time:rec.iteration ?? 0,elapsed});
+      // Geometry is a saved run snapshot and can load while solver polling continues.
+      const previewRecord = rec;
+      void (async()=>{
+        const parts: Part[] = [];
+        for (const p of previewRecord.geometry.parts.filter(p=>p.enabled !== false)) {
+          if (active !== session || session.cancelled) return;
+          const positions = parseSTL(await runGeometry(previewRecord,p.id));
+          parts.push({id:p.id,name:p.name,file:`${p.id}.stl`,role:p.role,enabled:true,positions,wheel:p.wheel ?? null,base:true});
+        }
+        if (active !== session || session.fetching || session.cancelled) return;
+        patchLive({parts});
+        const b = partsBounds(parts);
+        app.set(s=>({viz:vizForCar(s.viz,b.low,b.high)}));
+      })().catch(e=>{
+        if (active === session && !session.fetching) toast(`Car preview could not be loaded: ${e instanceof Error ? e.message : String(e)}`,"error");
+      });
+      rec = await follow(id,total,performance.now()-elapsed*1000);
+    }
+    checkSession(session);
+    if (rec.status === "cancelled") aborted();
+    if (rec.status !== "completed") throw new Error(rec.error || `The OpenFOAM run ${rec.status}.`);
+    session.fetching = true;
     const started = startedRuns()[id];
     if (started && (await reattach(rec, started))) return;
     const serverParts = rec.geometry.parts.filter((p) => p.enabled !== false);
@@ -485,6 +575,7 @@ export async function importServerRun(id: string) {
     >();
     for (const p of serverParts) {
       const bytes = await runGeometry(rec, p.id);
+      checkSession(session);
       const hash = await sha256(bytes);
       const name = `${safe(p.id)}-${safe(p.name)}.stl`;
       if (!(await hasKey("files", hash)))
@@ -511,6 +602,7 @@ export async function importServerRun(id: string) {
         ...(p.wheel ? { radius: p.wheel.radius } : {}),
       };
     }
+    checkSession(session);
     const clearance = Math.max(
       0.005,
       Math.min(...serverParts.map((p) => p.bounds[0][2])),
@@ -534,6 +626,7 @@ export async function importServerRun(id: string) {
     };
     await put("designs", design);
     const raw = await rawFromSource(design.source);
+    checkSession(session);
     const parts = buildDesignParts(
       raw,
       design.importOptions,
@@ -565,13 +658,15 @@ export async function importServerRun(id: string) {
       report,
       applyGroups(parts, design.overrides, design.groups).groups,
     );
+    checkSession(session);
     showFetching(rec, parts, settings, design.name, b);
     await finish(rec, design, settings, parts, geometry, offset, patches);
     refreshLists();
   } catch (e) {
-    if (active?.cancelled) {
+    if (active !== session) return;
+    if (session.cancelled || (e instanceof DOMException && e.name === "AbortError")) {
       app.set({ busy: null, live: null, view: "setup", step: "run" });
-      toast("Results download cancelled.");
+      toast(session.fetching ? "Results download cancelled." : "Simulation cancelled.");
       return;
     }
     app.set({ busy: null });
@@ -579,6 +674,6 @@ export async function importServerRun(id: string) {
     if (cur) patchLive({ error: e instanceof Error ? e.message : String(e) });
     else toast(e instanceof Error ? e.message : String(e), "error");
   } finally {
-    active = null;
+    if (active === session) active = null;
   }
 }

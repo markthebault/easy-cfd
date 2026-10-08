@@ -6,6 +6,7 @@ import type { FlowAnimation } from "../solver/animation";
 import type { VizField } from "../solver/extract";
 import { useStore } from "../store/store";
 import { app, setViz } from "../store/app";
+import { selectRecordedSection } from "../store/openfoamRuns";
 import { fieldBox } from "../viz/field";
 import type { ForceValues, VizSettings } from "../viz/stage";
 import { activeAnalysis, analysisPreset, ANALYSES, type AnalysisLayer, type AnalysisMode } from "../viz/analysis";
@@ -106,6 +107,7 @@ function Options({ layer, viz, field, particles, stageIds, forces, driving, anim
     return (
       <>
         {layer === "animation" && animation && <AnimationTimeline animation={animation} viz={viz} stageIds={stageIds} particles={particles} />}
+        {layer === "animation" && animation?.sections ? <RecordedSectionPicker animation={animation} stageIds={stageIds} /> : <>
         <Segmented<0 | 1 | 2>
           size="sm"
           label="Slice direction"
@@ -118,6 +120,7 @@ function Options({ layer, viz, field, particles, stageIds, forces, driving, anim
           onChange={setAxis}
         />
         <Slider label="Position" min={lo} max={hi} step={(hi - lo) / 400 || 0.01} value={Math.min(hi, Math.max(lo, viz.slicePos))} display={`${"XYZ"[viz.sliceAxis]} = ${viz.slicePos.toFixed(2)} m`} onChange={(v) => setViz({ slicePos: v })} />
+        </>}
         <Segmented<SliceField>
           size="sm"
           label="Slice colour"
@@ -132,7 +135,7 @@ function Options({ layer, viz, field, particles, stageIds, forces, driving, anim
         />
         {particles && layer !== "animation" && <Toggle checked={viz.sliceTracers} onChange={(v) => setViz({ sliceTracers: v })} label="Flow tracers" hint="In-plane motion of the air." />}
         {viz.sliceField === "k" && <p className="muted small">Modelled turbulent kinetic energy. Brighter regions contain more turbulent energy; this is not a noise level.</p>}
-        <p className="tip">Drag the white knob to slide the plane.</p>
+        <p className="tip">{animation?.sections && layer === "animation" ? "Each section is sampled directly from the computed mesh. Your selected section is saved for offline playback." : "Drag the white knob to slide the plane."}</p>
       </>
     );
   }
@@ -151,6 +154,17 @@ function Options({ layer, viz, field, particles, stageIds, forces, driving, anim
   );
 }
 
+function RecordedSectionPicker({animation,stageIds}: {animation:FlowAnimation;stageIds?:string[]}) {
+  const busy = useStore(app,s=>!!s.busy);
+  return <div className="group"><label className="field-label" htmlFor="recorded-section">Recorded section</label>
+    <select id="recorded-section" value={animation.section} disabled={busy} onChange={async e=> {
+      const p=await selectRecordedSection(e.target.value);
+      if(p) for(const id of stageIds ?? ["main"]) stages[id]?.setView(sliceView(p.axis),true,false,true);
+    }}>{animation.sections?.map(p=><option value={p.id} key={p.id}>{p.label}</option>)}</select>
+    <p className="muted small">Other sections load from your local OpenFOAM server.</p>
+  </div>;
+}
+
 function AnimationTimeline({ animation, viz, stageIds, particles }: { animation: FlowAnimation; viz: VizSettings; stageIds?: string[]; particles: boolean }) {
   const ids = stageIds ?? ["main"];
   const [position, setPosition] = useState(0);
@@ -167,7 +181,7 @@ function AnimationTimeline({ animation, viz, stageIds, particles }: { animation:
   const first = animation.frames[0].time, duration = animation.frames.at(-1)!.time - first;
   const seek = (p: number) => { ids.forEach(id => stages[id]?.seekAnimation(p)); setPosition(p); };
   return <div className="flow-timeline">
-    <div className="flow-timeline-heading"><span className="eyebrow">{animation.engine === "openfoam" ? "OpenFOAM" : "WebGPU"} · TRANSIENT FLOW</span><span>{animation.frames.length} frames</span></div>
+    <div className="flow-timeline-heading"><span className="eyebrow">{animation.sections ? "DDES · DETAILED WAKE" : `${animation.engine === "openfoam" ? "OpenFOAM" : "WebGPU"} · TRANSIENT FLOW`}</span><span>{animation.frames.length} frames</span></div>
     <p className="muted small">Smoke follows the recorded air velocity through this section. Colour shows the selected flow measurement.</p>
     {particles && <Segmented<"smoke" | "colours"> size="sm" label="Flow appearance" value={viz.animationAppearance ?? "smoke"}
       options={[{value:"smoke",label:"Flowing smoke"},{value:"colours",label:"Colour field"}]}
@@ -193,8 +207,9 @@ export function VizDock(props: { animation?: FlowAnimation; field: VizField | nu
     const stage = stages[ids[0]];
     if (!stage) return;
     const a = ANALYSES.find(a => a.id === mode)!;
-    setViz(analysisPreset(mode, viz, field, stage.carBounds()));
-    for (const id of ids) stages[id]?.setView(a.view, viz.playing, false, (a.layer === "slice" || a.layer === "animation"), a.layer === "forces");
+    const section = mode === "animation" ? props.animation?.sections?.find(p=>p.id===props.animation?.section) : undefined;
+    setViz({...analysisPreset(mode, viz, field, stage.carBounds()),...(section ? {sliceAxis:section.axis,slicePos:section.position,animationAppearance:"colours"} : {})});
+    for (const id of ids) stages[id]?.setView(section ? sliceView(section.axis) : a.view, viz.playing, false, (a.layer === "slice" || a.layer === "animation"), a.layer === "forces");
     setFocus(window.innerWidth <= 760 ? null : a.layer);
     closePicker();
   };
@@ -207,6 +222,8 @@ export function VizDock(props: { animation?: FlowAnimation; field: VizField | nu
     const next: Partial<VizSettings> = l === "animation"
       ? on ? analysisPreset("animation", viz, field!, stage!.carBounds()) : { animation: false, slice: false }
       : l === "slice" && on ? { slice: true, smoke: false, animation: false } : { [l]: on, animation: false };
+    const section = l === "animation" && on ? props.animation?.sections?.find(p=>p.id===props.animation?.section) : undefined;
+    if(section) Object.assign(next,{sliceAxis:section.axis,slicePos:section.position,animationAppearance:"colours"});
     setViz(next);
     if ((l === "slice" || l === "animation") && on) for (const id of ids) stages[id]?.setView(sliceView(next.sliceAxis ?? viz.sliceAxis), true, false, true);
     setFocus(on ? l : focus === l ? null : focus);

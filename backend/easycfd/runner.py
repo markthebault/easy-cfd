@@ -39,6 +39,7 @@ PIPELINE_HASH = hashlib.sha256(
             "sample_worker.py",
             "animation.py",
             "animation_worker.py",
+            "fineflow.py",
         )
     )
 ).hexdigest()
@@ -208,7 +209,7 @@ def stage(key, case, command, stage_name, memory, cpus=4):
                             raise RuntimeError(
                                 "Resource pressure exceeded the combined 8 GiB job budget or left less than 512 MiB available on the host. Saved checkpoints and logs remain available."
                             )
-                if tool == "simpleFoam":
+                if tool in ("simpleFoam", "pimpleFoam"):
                     if (
                         not checkpoint_requested
                         and DEADLINES.get(key, float("inf")) - time.monotonic() <= reserve
@@ -224,10 +225,17 @@ def stage(key, case, command, stage_name, memory, cpus=4):
                             termination_reason="deadline-checkpoint",
                             stage=f"{stage_name}: writing provisional checkpoint",
                         )
-                    tail = log_path.read_text(errors="replace")[-24000:]
-                    iterations = re.findall(r"^Time = (\d+)", tail, re.MULTILINE)
-                    if iterations:
-                        patch(key, iteration=int(iterations[-1]))
+                    with log_path.open("rb") as stream:
+                        stream.seek(max(0, log_path.stat().st_size - 24000))
+                        tail = stream.read().decode(errors="replace")
+                    if tool == "simpleFoam":
+                        iterations = re.findall(r"^Time = (\d+)", tail, re.MULTILINE)
+                        if iterations:
+                            patch(key, iteration=int(iterations[-1]))
+                    else:
+                        times = re.findall(r"^Time = ([\d.eE+-]+)", tail, re.MULTILINE)
+                        if times:
+                            patch(key, recording_time_seconds=float(times[-1]))
                 time.sleep(0.5)
         except BaseException:
             docker(["rm", "-f", name], timeout=3)
@@ -449,9 +457,21 @@ def execute(key):
         run = storage.get("runs", key)
         if run["status"] == "cancelled":
             return
-        ceiling = run["settings"].get("max_seconds") or profile_time_limit(
-            run["settings"].get("profile"), run["settings"].get("flow_animation", False)
-        ) or 10800
+        ceiling = (
+            run["settings"].get("max_seconds")
+            or profile_time_limit(
+                run["settings"].get("profile"), run["settings"].get("flow_animation", False)
+            )
+            or (
+                43200
+                if run["settings"].get("flow_detail") == "fine" and run["settings"].get("flow_animation")
+                else 1200 if run["settings"].get("quality") == "medium" else 10800
+            )
+        )
+        if run["settings"].get("quality") == "medium" and run["settings"].get("profile") in (None, "regular") and not (
+            run["settings"].get("flow_animation") and run["settings"].get("flow_detail") == "fine"
+        ):
+            ceiling = min(ceiling, 1200)
         DEADLINES[key] = time.monotonic() + ceiling
         patch(
             key,
@@ -464,6 +484,23 @@ def execute(key):
             stage="Preparing",
         )
     try:
+        if run.get("recording_source"):
+            from .animation import continue_recording
+
+            result = continue_recording(key, run)
+            root = storage.directory("runs", key)
+            (root / "results/summary.json").write_text(json.dumps(result, indent=2, allow_nan=False))
+            check_cancelled(key)
+            patch(
+                key,
+                status="completed",
+                stage="Complete",
+                finished=storage.now(),
+                iteration=int(result["iteration"]),
+                result=result,
+                disk_bytes=disk_bytes(root),
+            )
+            return
         if run["settings"].get("profile") == "advanced2":
             levels = []
             for tier in ("advanced2_1", "advanced2_2", "advanced2_3"):
@@ -679,7 +716,11 @@ def enqueue(project):
         raise ValueError(
             f"This preset needs at least {required + 0.5} GB allocated to the container runtime."
         )
-    disk_gb = 16 if settings.profile == "advanced2" else 8
+    disk_gb = (
+        16
+        if settings.profile == "advanced2" or (settings.flow_animation and settings.flow_detail == "fine")
+        else 8
+    )
     if shutil.disk_usage(storage.ROOT).free < disk_gb * 1024**3:
         raise ValueError(f"Keep at least {disk_gb} GB free for this mesh and its results files.")
     ranks = 2 if settings.profile in ("advanced1", "advanced2") else processes()
@@ -692,6 +733,7 @@ def enqueue(project):
         status="queued",
         stage="Queued",
         settings=settings.model_dump(),
+        mesh_preset=resolved_preset(settings),
         geometry=geometry,
         domain=foam.domain_bounds(geometry, settings, project.get("reference_case")),
         image=foam.IMAGE,
@@ -714,6 +756,66 @@ def enqueue(project):
     shutil.copytree(
         storage.directory("projects", project["id"]) / project["geometry_dir"], folder / "geometry"
     )
+    storage.save("runs", run)
+    JOBS.put(key)
+    return run
+
+
+def enqueue_recording_continuation(source_key, max_seconds, restart_from_steady=False):
+    """A separate, traceable recording run using the parent's unchanged physical mesh."""
+    source = storage.get("runs", source_key)
+    root = storage.directory("runs", source_key)
+    if source["status"] not in ("failed", "cancelled") or not (
+        source["settings"].get("flow_animation") and source["settings"].get("flow_detail") == "fine"
+    ):
+        raise ValueError("Continue a stopped detailed recording after its solver has finished stopping.")
+    if (
+        not (root / "animation-case/recording.json").is_file()
+        or not (root / "results/summary.json").is_file()
+    ):
+        raise ValueError("This run has no completed steady solution and detailed recording checkpoint.")
+    if source["image"] != foam.IMAGE:
+        raise ValueError("Continue with the same pinned solver image that produced this checkpoint.")
+    from .animation import physical_checkpoint
+
+    if restart_from_steady:
+        if not (root / "case-medium/metadata.json").is_file():
+            raise ValueError("This run does not retain its original steady mesh and fields.")
+    else:
+        physical_checkpoint(root / "animation-case")
+    status = health()
+    if not status["ready"]:
+        raise ValueError(status["message"])
+    if status.get("memory_gb", 0) < 6.5 or shutil.disk_usage(storage.ROOT).free < 16 * 1024**3:
+        raise ValueError("Continuing detailed flow needs 6.5 GB of runtime memory and 16 GB of free storage.")
+    settings = Settings(**{**source["settings"], "max_seconds": max_seconds})
+    key = storage.identifier()
+    run = dict(
+        id=key,
+        project_id=source["project_id"],
+        name=source["name"][:85] + " · continued",
+        created=storage.now(),
+        status="queued",
+        stage="Queued",
+        settings=settings.model_dump(),
+        geometry=source["geometry"],
+        domain=source["domain"],
+        image=source["image"],
+        pipeline_hash=source["pipeline_hash"],
+        continuation_pipeline_hash=PIPELINE_HASH,
+        processes=source["processes"],
+        cpus=min(source["cpus"], int(status.get("cpus") or source["cpus"])),
+        iteration=source.get("iteration", 0),
+        recording_source=source_key,
+        recording_restart=restart_from_steady,
+        assumptions=source.get("assumptions", {}),
+        configuration=source.get("configuration"),
+        reference_case=source.get("reference_case"),
+    )
+    folder = storage.directory("runs", key)
+    folder.mkdir()
+    for name in ("geometry", "results"):
+        shutil.copytree(root / name, folder / name)
     storage.save("runs", run)
     JOBS.put(key)
     return run

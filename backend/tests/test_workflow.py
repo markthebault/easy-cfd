@@ -19,6 +19,8 @@ from easycfd.models import Settings, ImportOptions
 def client(tmp_path, monkeypatch):
     monkeypatch.setattr(storage, "ROOT", tmp_path)
     monkeypatch.setattr(runner, "health", lambda: {"ready": True, "memory_gb": 8})
+    disk = runner.shutil.disk_usage(tmp_path)
+    monkeypatch.setattr(runner.shutil, "disk_usage", lambda _: disk._replace(free=32 * 1024**3))
     # API persistence is real; the container is exercised by scripts/smoke.py.
     return TestClient(app)
 
@@ -488,7 +490,7 @@ def test_precise_checkpoint_does_not_launch_another_mesh(client, monkeypatch):
 
 
 @pytest.mark.parametrize(
-    "profile, seconds", [("basic", 300), ("regular", 600), ("advanced1", 10800), ("advanced2", 43200)]
+    "profile, seconds", [(None, 1200), ("basic", 300), ("regular", 1200), ("advanced1", 10800), ("advanced2", 43200)]
 )
 def test_profile_deadline_applies_without_client_override(client, monkeypatch, profile, seconds):
     p = project(client)

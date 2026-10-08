@@ -32,7 +32,9 @@ export interface LiveState {
   serverStage?: string;
   iteration?: number;
   iterations?: number;
-  stage: "preparing" | "solving" | "finishing" | "saving";
+  recordingTime?: number;
+  recordingDuration?: number;
+  stage: "preparing" | "solving" | "recording" | "finishing" | "saving";
   fraction: number;
   time: number;
   targetTime: number;

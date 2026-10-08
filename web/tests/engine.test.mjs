@@ -9,7 +9,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 let server, of, types;
 
 before(async () => {
-  server = await createServer({ root, server: { middlewareMode: true, hmr: false }, logLevel: "error", appType: "custom" });
+  server = await createServer({ root, define:{"import.meta.env.VITE_ENABLE_OPENFOAM":JSON.stringify("true")}, server: { middlewareMode: true, hmr: false }, logLevel: "error", appType: "custom" });
   [of, types] = await Promise.all([server.ssrLoadModule("/src/engine/openfoam.ts"), server.ssrLoadModule("/src/solver/types.ts")]);
 });
 after(async () => server?.close());
@@ -32,6 +32,16 @@ test("road and wheel choices reach OpenFOAM independently, including explicit fa
     assert.equal(out.moving_ground, moving_ground);
     assert.equal(out.wheels, wheels);
   }
+});
+
+test("detailed recording requests its native wake mode while legacy settings keep their wire format", () => {
+  const s=of.serverSettings({...types.DEFAULT_SETTINGS,engine:"openfoam",flow_animation:true,flow_detail:"fine",max_seconds:43200});
+  assert.equal(s.flow_animation,true);
+  assert.equal(s.flow_detail,"fine");
+  assert.equal(s.profile,null);
+  assert.equal(s.max_seconds,43200);
+  assert.equal(of.serverSettings(types.DEFAULT_SETTINGS).flow_detail,undefined);
+  assert.equal(of.serverSettings({...types.DEFAULT_SETTINGS,flow_detail:"standard"}).flow_detail,"standard");
 });
 
 test("weight inputs reach the backend and native tyre loads use the saved axle moment", () => {
@@ -121,4 +131,28 @@ test("native refinement retains load sensitivity and translated origins for ever
   assert.equal(of.resultFromRecord(record,4,[5,2,0],[0,0,0,0,0,0]).meshSensitivity.frontLift,undefined);
   assert.equal(result.cdBand,undefined);
   assert.equal(result.clBand,undefined);
+});
+
+
+test("old Medium time limits are capped before reaching OpenFOAM, including standard recording",()=>{
+  for (const profile of [undefined,"regular"]) for(const flow_animation of [false,true]) {
+    const settings={...types.DEFAULT_SETTINGS,quality:"medium",profile,flow_animation,max_seconds:10800};
+    assert.equal(of.serverSettings(settings).max_seconds,1200);
+    assert.equal(of.serverSettings({...settings,max_seconds:120}).max_seconds,120);
+  }
+  assert.equal(of.serverSettings({...types.DEFAULT_SETTINGS,profile:"advanced1",max_seconds:10800}).max_seconds,10800);
+  assert.equal(of.serverSettings({...types.DEFAULT_SETTINGS,flow_animation:true,flow_detail:"fine",max_seconds:43200}).max_seconds,43200);
+});
+
+
+test("Medium timing history excludes detailed wake, advanced and old mesh budgets",async()=>{
+  const fetchBefore=globalThis.fetch;
+  const preset={cell:.6,surface:3,wake:2,layers:3,max_cells:700000,iterations:600,residual:1e-4,label:"Design comparison",memory_gb:4};
+  const run=(seconds,settings,mesh_preset)=>({status:"completed",settings:{quality:"medium",...settings},mesh_preset,started:"2026-10-08T00:00:00Z",finished:new Date(Date.parse("2026-10-08T00:00:00Z")+seconds*1000).toISOString()});
+  globalThis.fetch=async url=>new Response(JSON.stringify(String(url).endsWith('/health')?{ready:true,presets:{medium:preset}}:[
+    run(120,{profile:"regular"},preset),run(12000,{flow_animation:true,flow_detail:"fine"},preset),
+    run(3600,{profile:"advanced1"},preset),run(900,{},undefined),
+  ]),{headers:{'content-type':'application/json'}});
+  try{assert.deepEqual((await of.probeServer()).measured.medium,{seconds:120,runs:1});}
+  finally{globalThis.fetch=fetchBefore;}
 });

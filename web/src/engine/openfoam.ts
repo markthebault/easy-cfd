@@ -41,7 +41,8 @@ export interface ServerRun {
   error?: string;
   started?: string;
   finished?: string;
-  settings: Record<string, unknown> & { speed_kmh: number; yaw_deg: number; quality: string; reference_area: number; density: number };
+  mesh_preset?: Record<string, unknown>;
+  settings: Record<string, unknown> & { profile?: string; speed_kmh: number; yaw_deg: number; quality: string; reference_area: number; density: number };
   domain?: number[];
   geometry: { parts: ServerPart[]; bounds?: [Vec3, Vec3] };
   result?: Record<string, any>;
@@ -104,7 +105,8 @@ export async function probeServer(): Promise<ServerInfo | null> {
       const runs = await api<ServerRun[]>("/runs");
       for (const q of ["fast", "medium", "precise"] as const) {
         const secs = runs
-          .filter((r) => r.status === "completed" && r.settings.quality === q && r.started && r.finished)
+          .filter((r) => r.status === "completed" && r.settings.quality === q && !r.settings.flow_animation && !(r.settings.profile ?? "").startsWith("advanced") &&
+            (q !== "medium" || Object.entries(health.presets.medium).every(([key,value])=>r.mesh_preset?.[key] === value)) && r.started && r.finished)
           .map((r) => (Date.parse(r.finished!) - Date.parse(r.started!)) / 1000)
           .filter((x) => x > 0);
         if (secs.length) measured[q] = { seconds: median(secs), runs: secs.length };
@@ -126,12 +128,13 @@ export async function probeServer(): Promise<ServerInfo | null> {
 export function serverSettings(s: Settings): Record<string, unknown> {
   const quality = s.quality === "custom" ? "medium" : s.quality;
   const b = s.simulation_box;
+  const medium = quality === "medium" && (!s.profile || s.profile === "regular") && !(s.flow_animation && s.flow_detail === "fine");
   return {
-    ...(s.profile ? {profile:s.profile} : {}),
+    ...(s.flow_animation && s.flow_detail === "fine" ? {profile:null} : s.profile ? {profile:s.profile} : {}),
     ...(s.refine_groups ? {refine_groups:s.refine_groups}:{}),
     ...(s.refine_underfloor !== undefined ? {refine_underfloor:s.refine_underfloor}:{}),
     ...(s.axles?.confirmed ? { axles: s.axles } : {}),
-    ...(s.max_seconds ? { max_seconds: s.max_seconds } : {}),
+    ...(s.max_seconds ? { max_seconds: medium ? Math.min(1200,s.max_seconds) : s.max_seconds } : {}),
     ...(s.vehicle_mass_kg !== undefined ? {vehicle_mass_kg:s.vehicle_mass_kg} : {}),
     ...(s.front_weight_percent !== undefined ? {front_weight_percent:s.front_weight_percent} : {}),
     speed_kmh: s.speed_kmh,
@@ -145,6 +148,7 @@ export function serverSettings(s: Settings): Record<string, unknown> {
     moving_ground: s.moving_ground,
     wheels: s.wheels,
     flow_animation: !!s.flow_animation,
+    ...(s.flow_detail !== undefined ? {flow_detail:s.flow_detail} : {}),
     geometry_confirmed: true,
   };
 }
@@ -368,6 +372,8 @@ export interface LiveReport {
   iteration: number;
   error?: string;
   history: { iteration: number; cd: number; cl: number }[];
+  recording_time_seconds?: number;
+  recording_duration_seconds?: number;
 }
 
 export const liveReport = (id: string, every: number) => api<LiveReport>(`/runs/${id}/live?every=${Math.max(1, Math.round(every))}`);
@@ -441,21 +447,36 @@ export async function runGeometry(run: ServerRun, partId: string): Promise<Array
 }
 
 /** Fetch computed physical-time frames, keeping server/UI coordinates aligned. */
-export async function fetchAnimation(run: ServerRun, offset: Vec3, signal?: AbortSignal): Promise<import("../solver/animation").FlowAnimation | undefined> {
+export async function fetchAnimation(run: ServerRun, offset: Vec3, signal?: AbortSignal, section?: string, onProgress?: (loaded:number,total:number)=>void): Promise<import("../solver/animation").FlowAnimation | undefined> {
   if (!run.result?.flow_animation) return undefined;
-  const m = await api<import("../solver/animation").FlowAnimation & { origin: Vec3; spacing: Vec3; dims: [number, number, number]; freestream: number; inlet: Vec3; length: number }>(`/runs/${run.id}/animation`, { signal });
-  if (m.version !== 1 || m.timeUnit !== "s" || m.frames.length < 2 || m.frames.length > 50 || m.dims.some(d => !Number.isInteger(d) || d < 2) || m.dims.reduce((a,b)=>a*b,1) > 150000) throw new ServerError("Invalid flow animation data.");
+  const query = section ? `?section=${encodeURIComponent(section)}` : "";
+  const m = await api<import("../solver/animation").FlowAnimation & { origin: Vec3; spacing: Vec3; dims: [number, number, number]; freestream: number; inlet: Vec3; length: number }>(`/runs/${run.id}/animation${query}`, { signal });
+  const fine = m.version === 2;
+  if ((!fine && m.version !== 1) || m.timeUnit !== "s" || m.frames.length < 2 || m.frames.length > (fine ? 195 : 50) || m.dims.length !== 3 || m.dims.some(d => !Number.isInteger(d) || d < (fine ? 1 : 2) || d > 2048) || m.dims.reduce((a,b)=>a*b,1) > 150000 || m.origin.some(v=>!Number.isFinite(v)) || m.spacing.some(v=>!Number.isFinite(v) || v<=0)) throw new ServerError("Invalid flow animation data.");
   const n = m.dims[0] * m.dims[1] * m.dims[2];
-  const frames: import("../solver/animation").FlowAnimation["frames"] = [];
+  if (n*m.frames.length > 30_000_000 || (fine && (m.dims.filter(d=>d===1).length!==1 || !m.sections?.some(p=>p.id===m.section)))) throw new ServerError("Invalid detailed recording.");
+  const frames: import("../solver/animation").FlowAnimation["frames"] = new Array(m.frames.length);
   for (let i = 0; i < m.frames.length; i++) {
     const time = m.frames[i].time;
     if (!Number.isFinite(time) || (i > 0 && time <= m.frames[i-1].time)) throw new ServerError("Invalid flow animation timestamps.");
-    const buf = await api<ArrayBuffer>(`/runs/${run.id}/animation/${i}`, { signal });
-    if (buf.byteLength !== 21 * n) throw new ServerError("Invalid flow animation frame size.");
-    const valid = new Uint8Array(buf, 20*n, n), solid = valid.map(v => v ? 0 : 1);
-    const f = (c: number) => new Float32Array(buf, 4*n*c, n).slice();
-    frames.push({time, field: { origin: m.origin.map((v,j)=>v-offset[j]) as Vec3, spacing:m.spacing, dims:m.dims,
-      freestream:m.freestream, inlet:m.inlet, length:m.length, u:f(0), v:f(1), w:f(2), p:f(3), k:f(4), solid }});
   }
-  return { version:1, engine:"openfoam", timeUnit:"s", model:m.model, frames };
+  let next = 0, loaded = 0;
+  // A small request pool avoids serial round trips without retaining extra planes.
+  // Slots are filled by native frame index so completion order cannot reorder time.
+  await Promise.all(Array.from({length:Math.min(4,frames.length)}, async () => {
+    for (;;) {
+      const i = next++;
+      if (i >= frames.length) return;
+      const buf = await api<ArrayBuffer>(`/runs/${run.id}/animation/${i}${query}`, { signal });
+      if (buf.byteLength !== 21 * n) throw new ServerError("Invalid flow animation frame size.");
+      const valid = new Uint8Array(buf, 20*n, n), solid = valid.map(v => v ? 0 : 1);
+      const f = (c: number) => new Float32Array(buf, 4*n*c, n);
+      frames[i] = {time:m.frames[i].time, field: { origin: m.origin.map((v,j)=>v-offset[j]) as Vec3, spacing:m.spacing, dims:m.dims,
+        freestream:m.freestream, inlet:m.inlet, length:m.length, u:f(0), v:f(1), w:f(2), p:f(3), k:f(4), solid }};
+      onProgress?.(++loaded,frames.length);
+    }
+  }));
+  const sections = m.sections?.map(p=>({...p, origin:p.origin.map((v,j)=>v-offset[j]) as Vec3, position:p.position-offset[p.axis]}));
+  return { version:m.version, engine:"openfoam", timeUnit:"s", model:m.model, frames,
+    ...(fine ? {sections,section:m.section,server:{run:run.id,offset}} : {}) };
 }

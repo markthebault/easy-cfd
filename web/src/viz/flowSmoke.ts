@@ -142,19 +142,20 @@ export class FlowSmoke {
     updateFieldUniforms(this.fieldU, current); updateFieldUniforms(this.nextU, next);
     this.frameMix.value = next ? mix : 0;
     this.hasField = !!current;
-    if (current) this.minSpacing = Math.min(...current.extent.toArray().map((s,i)=>s/(current.dims.getComponent(i)-1)));
+    if (current) this.minSpacing = Math.min(...current.extent.toArray().map((s,i)=>current.dims.getComponent(i)>1 ? s/(current.dims.getComponent(i)-1) : Infinity));
   }
 
   configure(axis: 0 | 1 | 2, pos: number, min: THREE.Vector3, max: THREE.Vector3, length: number, freestream: number) {
-    const key = `${axis}:${pos}:${min.toArray()}:${max.toArray()}:${length}:${freestream}`;
+    const resolution = this.hasField && this.minSpacing < length/100 ? 1536 : 768;
+    const key = `${axis}:${pos}:${min.toArray()}:${max.toArray()}:${length}:${freestream}:${resolution}`;
     if (key === this.key) return;
     this.key = key;
     const size = new THREE.Vector3().subVectors(max, min);
     this.planeU.uAxis.value = axis; this.planeU.uPlanePos.value = pos;
     this.planeU.uMin.value.copy(min); this.planeU.uSize.value.copy(size);
     const w = axis === 0 ? size.y : size.x, h = axis === 2 ? size.y : size.z;
-    const width = Math.max(64, Math.round(768 * w / Math.max(w,h)));
-    const height = Math.max(64, Math.round(768 * h / Math.max(w,h)));
+    const width = Math.max(64, Math.round(resolution * w / Math.max(w,h)));
+    const height = Math.max(64, Math.round(resolution * h / Math.max(w,h)));
     for (const t of [this.flow, this.dye, this.forward, this.next]) t.setSize(width, height);
     this.advectionMaterial.uniforms.uResolution.value.set(width, height);
     this.advectionMaterial.uniforms.uLength.value = Math.max(length, 0.01);

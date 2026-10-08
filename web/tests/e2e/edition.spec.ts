@@ -21,7 +21,7 @@ test("the public edition disables OpenFOAM and makes no backend requests", async
   await page.evaluate(async () => {
     const app = (window as any).__easycfd.app;
     const design = structuredClone(app.get().design);
-    design.settings = { ...design.settings, engine: "openfoam", profile: "advanced2", max_seconds: 43200 };
+    design.settings = { ...design.settings, engine: "openfoam", profile: "advanced2", max_seconds: 43200, flow_detail: "fine" };
     const db = await new Promise<IDBDatabase>((resolve, reject) => {
       const req = indexedDB.open("easycfd-web");
       req.onsuccess = () => resolve(req.result);
@@ -38,6 +38,7 @@ test("the public edition disables OpenFOAM and makes no backend requests", async
   });
   await page.reload();
   await expect.poll(() => page.evaluate(() => (window as any).__easycfd.app.get().design?.settings.engine)).toBe("webgpu");
+  expect(await page.evaluate(()=>(window as any).__easycfd.app.get().design.settings.flow_detail)).toBe("standard");
   await page.getByRole("button", { name: "Designs & runs" }).click();
   await expect(page.getByTestId("tab-server")).toHaveCount(0);
   expect(apiRequests).toEqual([]);

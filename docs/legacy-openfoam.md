@@ -72,8 +72,8 @@ Confirming geometry is a review step, not a CFD accuracy certificate. Thin parts
 | Preset | Purpose | Solver RAM cap | Iteration budget |
 |---|---|---:|---:|
 | Fast | Geometry/setup checks and coarse flow exploration; no prism layers | 3 GB | 300 |
-| Medium | Finer surfaces and wake, with prism-layer meshing | 5 GB | 1,000 |
-| Precise | Runs Medium followed by a finer mesh with more prism layers | 6 GB | 1,000 + 1,800 |
+| Medium | Finer surfaces and wake, with three prism layers; 20-minute whole-job ceiling | 4 GB | 600 |
+| Precise | Legacy two-mesh preset; the main UI now calls Advanced 1 Precise | 6 GB | 600 + 1,800 |
 
 The app runs one solver job at a time, with a four-CPU container quota. The flow solution uses four MPI processes; meshing and result extraction are separate stages. Actual speedup depends on the case and runtime allocation. A run needs 8 GB of free disk space before it starts. Mesh cell limits are conservative ceilings, not targets. Meshing failures remain visible, with their logs.
 

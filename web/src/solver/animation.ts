@@ -2,11 +2,24 @@ import type { VizField } from "./extract";
 import type { FlowSolver } from "./gpu";
 
 export interface FlowAnimation {
-  version: 1;
+  version: 1 | 2;
   engine: "webgpu" | "openfoam";
   timeUnit: "s";
-  model: "URANS · k–ω SST";
+  model: "URANS · k–ω SST" | "DDES · k–ω SST";
   frames: { time: number; field: VizField }[];
+  sections?: RecordedSection[];
+  section?: string;
+  server?: { run: string; offset: [number, number, number] };
+}
+
+export interface RecordedSection {
+  id: string;
+  label: string;
+  axis: 0 | 1 | 2;
+  position: number;
+  origin: [number, number, number];
+  spacing: [number, number, number];
+  dims: [number, number, number];
 }
 
 export const ANIMATION_POINTS = 120_000;

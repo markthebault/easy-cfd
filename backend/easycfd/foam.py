@@ -122,6 +122,11 @@ mergePatchPairs ();
     selected_groups = settings.refine_groups
     underfloor_geometry = ""
     underfloor_region = ""
+    fine_geometry = ""
+    fine_region = ""
+    if settings.flow_animation and settings.flow_detail == "fine":
+        fine_geometry = f"wakeDetail {{type searchableBox; min {vec([high[0]-.1*length,low[1]-.1*width,.001])}; max {vec([high[0]+1.25*length,high[1]+.1*width,high[2]+.08*length])};}}"
+        fine_region = f"wakeDetail {{mode inside; levels ((1e15 {p['surface']}));}}"
     if advanced and settings.refine_underfloor:
         underfloor_geometry = f"underfloor {{type searchableBox; min {vec([low[0]-.1*length,low[1]-.1*width,.001])}; max {vec([high[0]+.1*length,high[1]+.1*width,min(high[2],max(.2*length/4.2,low[2]+.05*length))])};}}"
         underfloor_region = f"underfloor {{mode inside; levels ((1e15 {p['surface']+1}));}}"
@@ -150,6 +155,7 @@ castellatedMesh true; snap true; addLayers {"true" if p["layers"] else "false"};
 geometry {{
 {surfaces}
 {underfloor_geometry}
+{fine_geometry}
 wake {{type searchableBox; min {vec([low[0] - 0.3 * length, low[1] - 0.35 * width, 0.001])};
 max {vec([high[0] + 2 * length, high[1] + 0.35 * width, high[2] + 0.4 * length])};}}
 }}
@@ -158,7 +164,7 @@ maxLocalCells {p["max_cells"]}; maxGlobalCells {p["max_cells"]}; minRefinementCe
 maxLoadUnbalance .1; nCellsBetweenLevels 3; features ();
 refinementSurfaces {{{refinements}}}
 resolveFeatureAngle 30;
-refinementRegions {{wake {{mode inside; levels ((1e15 {p["wake"]}));}} {underfloor_region}}}
+refinementRegions {{wake {{mode inside; levels ((1e15 {p["wake"]}));}} {underfloor_region} {fine_region}}}
 locationInMesh {vec([xmin + 0.314 * min(cell, low[0] - xmin), ymin + 0.271 * min(cell, low[1] - ymin), 0.419 * cell])};
 allowFreeStandingZoneFaces true;
 }}

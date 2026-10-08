@@ -32,6 +32,7 @@ export class Slice {
         uQ: { value: 1 },
         uSolid: { value: new THREE.Color(0x3a3d44) },
         uOpacity: { value: 0.94 },
+        uCutFace: { value: true },
         uSmoke: { value: null },
         uSmokeEnabled: { value: false },
         uSmokeAxis: { value: 1 },
@@ -54,6 +55,7 @@ export class Slice {
         uniform float uQ;
         uniform vec3 uSolid;
         uniform float uOpacity;
+        uniform bool uCutFace;
         uniform sampler2D uSmoke;
         uniform bool uSmokeEnabled;
         uniform int uSmokeAxis;
@@ -62,7 +64,7 @@ export class Slice {
         varying vec3 vWorld;
         void main() {
           vec4 a = velocityFrameAt(vWorld);
-          if (a.w < 0.5) { gl_FragColor = vec4(uSolid, 0.96);
+          if (a.w < 0.5) { if (!uCutFace) discard; gl_FragColor = vec4(uSolid, 0.96);
             #include <colorspace_fragment>
             return; }
           vec4 b = scalarsAt(vWorld);

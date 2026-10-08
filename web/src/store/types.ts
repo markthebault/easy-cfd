@@ -101,8 +101,17 @@ export interface FieldDoc {
   id: string;
   field: EncodedField;
   animation?: Omit<FlowAnimation, "frames"> & { frames: { time: number; field: EncodedField }[] };
+  /** Dense recordings store each frame separately; animation holds their metadata. */
+  animationFrameKeys?: string[];
   /** One entry per enabled part, in solver order. */
   surface: { key: string; cp: Quantized; shear: Quantized; version?: 2; wallStress?: Float32Array; stressValid?: Uint8Array; snapshot?: SurfaceSample["snapshot"] }[];
+}
+
+export interface AnimationFrameDoc {
+  id: string;
+  runId: string;
+  time: number;
+  field: EncodedField;
 }
 
 export interface FileDoc {

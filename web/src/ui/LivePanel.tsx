@@ -15,6 +15,7 @@ import { boundaryLine, conditionsLine, fmt, fmtCells, fmtDuration, fmtInt } from
 const STAGE: Record<string, string> = {
   preparing: "Preparing the grid",
   solving: "Solving the flow",
+  recording: "Recording the airflow",
   finishing: "Averaging forces",
   saving: "Sampling the flow for display",
 };
@@ -65,6 +66,7 @@ export function LivePanel() {
       {openfoam ? (
         <div className="live-stats">
           <div><b>{fmtInt(live.iteration ?? 0)}<small> / {fmtInt(live.iterations ?? 0)}</small></b><span>iterations</span></div>
+          {live.recordingDuration && <div><b>{fmt(live.recordingTime ?? 0,3)}<small> / {fmt(live.recordingDuration,3)} s</small></b><span>recording physical time</span></div>}
           <div><b>{fmtDuration(live.elapsed)}</b><span>elapsed{Number.isFinite(remaining) ? ` · ~${fmtDuration(remaining)} left` : ""}</span></div>
         </div>
       ) : (

@@ -833,6 +833,8 @@ export class Stage {
       if (f) { const { min, max } = fieldBox(f); this.slice.setField(this.fieldGPU, min, max); this.tracers?.setField(this.fieldGPU, f.freestream); }
     }
     this.slice.mesh.visible = on(v?.slice) && (!v?.animation || !!this.animation);
+    this.slice.uniforms.uCutFace.value = !(v?.animation && this.animation?.sections);
+    this.slice.uniforms.uOpacity.value = v?.animation && this.animation?.sections ? 1 : 0.94;
     if (v && r && f) {
       this.slice.place(v.sliceAxis, v.slicePos);
       const sr = v.animation ? this.animationRanges ?? r : r;
@@ -842,8 +844,8 @@ export class Stage {
     const flowingSmoke = this.slice.mesh.visible && !!v?.animation && v.animationAppearance !== "colours" && this.particlesAvailable;
     if (flowingSmoke && v && f) {
       this.flowSmoke ??= new FlowSmoke(this.renderer);
-      this.flowSmoke.configure(v.sliceAxis, this.slice.pos, this.slice.min, this.slice.max, f.length, f.freestream);
       this.flowSmoke.setField(this.animationGPU[0], this.animationGPU[1], this.slice.uniforms.uFrameMix.value);
+      this.flowSmoke.configure(v.sliceAxis, this.slice.pos, this.slice.min, this.slice.max, f.length, f.freestream);
     } else if (this.flowSmoke) {
       this.flowSmoke.dispose(); this.flowSmoke = null;
     }
@@ -1145,7 +1147,7 @@ export class Stage {
       this.handleGroup.add(line, k);
       this.handles.push({ name: "stream", object: k, axis: null });
     }
-    if (v.slice) {
+    if (v.slice && !(v.animation && this.animation?.sections)) {
       const { min, max } = fieldBox(f);
       const k = knob(this.dark ? 0xffffff : 0x333a44);
       const p = new THREE.Vector3().addVectors(min, max).multiplyScalar(0.5);

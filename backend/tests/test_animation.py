@@ -57,3 +57,14 @@ def test_recording_profile_time_budget_and_explicit_limit():
         Settings(profile="basic", flow_animation=True, max_seconds=601)
     with pytest.raises(ValueError, match="at most 300"):
         Settings(profile="basic", max_seconds=600)
+
+
+def test_medium_budget_includes_recording_and_legacy_settings():
+    assert profile_time_limit("regular") == 1200
+    for recording in (False, True):
+        for profile in (None, "regular"):
+            assert Settings(profile=profile, quality="medium", flow_animation=recording, max_seconds=1200)
+            with pytest.raises(ValueError, match="at most 1200"):
+                Settings(profile=profile, quality="medium", flow_animation=recording, max_seconds=1201)
+    assert Settings(profile="advanced1", max_seconds=10800)
+    assert Settings(flow_animation=True, flow_detail="fine", max_seconds=43200)
