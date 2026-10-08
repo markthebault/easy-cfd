@@ -126,7 +126,7 @@ export async function probeServer(): Promise<ServerInfo | null> {
 
 /** The server's settings for a UI design. Custom quality has no OpenFOAM equivalent: Medium. */
 export function serverSettings(s: Settings): Record<string, unknown> {
-  const quality = s.quality === "custom" ? "medium" : s.quality;
+  const quality = !(s.flow_animation && s.flow_detail === "fine") && s.profile === "regular" ? "medium" : !(s.flow_animation && s.flow_detail === "fine") && s.profile === "basic" ? "fast" : s.quality === "custom" ? "medium" : s.quality;
   const b = s.simulation_box;
   const medium = quality === "medium" && (!s.profile || s.profile === "regular") && !(s.flow_animation && s.flow_detail === "fine");
   return {

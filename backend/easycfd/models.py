@@ -71,6 +71,8 @@ class Settings(BaseModel):
             and (self.profile is not None or self.quality != "medium")
         ):
             raise ValueError("Detailed wake uses its dedicated single-mesh profile with quality medium.")
+        if self.profile in ("basic", "regular"):
+            self.quality = "fast" if self.profile == "basic" else "medium"
         ceiling = profile_time_limit(self.profile, self.flow_animation)
         if self.profile is None and self.quality == "medium" and not (self.flow_animation and self.flow_detail == "fine"):
             ceiling = 1200
@@ -206,6 +208,8 @@ def resolved_preset(settings: Settings, quality=None):
     if settings.profile == "advanced2":
         return dict(ADVANCED["advanced2_3"])
 
+    if settings.profile in ("basic", "regular"):
+        return dict(PRESETS["fast" if settings.profile == "basic" else "medium"])
     tier = quality or settings.quality
     if tier == "custom":
         return {**PRESETS[settings.custom_mesh], "iterations": settings.custom_iterations}

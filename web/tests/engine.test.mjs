@@ -156,3 +156,22 @@ test("Medium timing history excludes detailed wake, advanced and old mesh budget
   try{assert.deepEqual((await of.probeServer()).measured.medium,{seconds:120,runs:1});}
   finally{globalThis.fetch=fetchBefore;}
 });
+
+
+test("the Medium card cannot send a stale precise mesh or longer time budget",()=>{
+  for(const quality of ["precise","custom","fast"]){
+    const out=of.serverSettings({...types.DEFAULT_SETTINGS,profile:"regular",quality,max_seconds:43200});
+    assert.equal(out.quality,"medium");
+    assert.equal(out.max_seconds,1200);
+  }
+});
+
+
+test("OpenFOAM labels distinguish Medium from long detailed and advanced studies",async()=>{
+  const {qualityLabel}=await server.ssrLoadModule("/src/ui/format.ts");
+  const medium={...types.DEFAULT_SETTINGS,engine:"openfoam",profile:"regular",quality:"medium"};
+  assert.equal(qualityLabel(medium),"Medium · up to 20 min");
+  assert.equal(qualityLabel({...medium,profile:undefined,flow_animation:true,flow_detail:"fine"}),"Detailed wake · up to 12 hours");
+  assert.equal(qualityLabel({...medium,profile:"advanced1"}),"Precise");
+  assert.equal(qualityLabel({...medium,profile:"advanced2"}),"Very Precise");
+});
