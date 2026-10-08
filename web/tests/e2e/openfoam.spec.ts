@@ -65,6 +65,7 @@ test("detailed wake selects its dedicated mesh and time budget, and switching en
   await page.getByRole("button",{name:"Continue to run"}).click();
   await page.getByTestId("engine-openfoam").click();
   await page.getByRole("switch",{name:"Record flow animation"}).check();
+  await page.getByRole("radio",{name:/^Precise /}).click();
   await page.getByLabel("Recording detail").selectOption("fine");
   await expect(page.getByText(/Detailed wake mesh/)).toBeVisible();
   await expect(page.getByRole("radiogroup",{name:"Analysis level"}).getByRole("radio")).toHaveCount(4);
@@ -211,6 +212,7 @@ test("four compact levels select the right solver budgets and Medium remains bou
   }
   await levels.getByRole("radio",{name:/^Medium /}).click();
   await page.getByRole("switch",{name:"Record flow animation"}).check();
+  await expect(page.locator("#flow-detail option[value=fine]")).toBeDisabled();
   await expect(page.locator("#elapsed-limit")).toHaveValue("1200");
   await page.getByRole("switch",{name:"Record flow animation"}).uncheck();
   await expect(page.locator("#elapsed-limit")).toHaveValue("1200");

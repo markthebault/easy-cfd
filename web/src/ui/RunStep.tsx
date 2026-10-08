@@ -418,24 +418,25 @@ export function RunStep() {
 
       <div className="group flow-record-option">
         <Toggle checked={!!s.flow_animation} onChange={flow_animation => {
-          if(flow_animation && openfoam && s.flow_detail === "fine") {
+          if(flow_animation && openfoam && s.flow_detail === "fine" && s.profile !== "regular" && s.profile !== "basic") {
             setSettings({flow_animation,profile:undefined,quality:"medium",max_seconds:43200});
             return;
           }
           const normalLimit = s.profile === "basic" ? 300 : 1200;
           const standard = openfoam && (s.profile === "basic" || s.profile === "regular");
           const from = normalLimit * (s.profile === "basic" && s.flow_animation ? 2 : 1), to = normalLimit * (s.profile === "basic" && flow_animation ? 2 : 1);
-          setSettings({flow_animation, ...(standard && (!s.max_seconds || s.max_seconds === from || s.max_seconds > to) ? {max_seconds:to} : {})});
+          setSettings({flow_animation, ...(s.profile === "regular" || s.profile === "basic" ? {flow_detail:"standard" as const} : {}), ...(standard && (!s.max_seconds || s.max_seconds === from || s.max_seconds > to) ? {max_seconds:to} : {})});
         }} label="Record flow animation" hint="Watch the coloured airflow and wake evolve after the run." />
         {s.flow_animation && openfoam && <>
           <label className="field-label" htmlFor="flow-detail">Recording detail</label>
           <select id="flow-detail" value={s.flow_detail ?? "standard"} onChange={e=> {
             const flow_detail = e.target.value as "standard" | "fine";
-            setSettings(flow_detail === "fine" ? {flow_detail, profile:undefined, quality:"medium", max_seconds:43200} : {flow_detail,profile:"advanced1",quality:"medium",max_seconds:10800});
+            setSettings(flow_detail === "fine" ? {flow_detail, profile:undefined, quality:"medium", max_seconds:43200} : {flow_detail,profile:"regular",quality:"medium",max_seconds:1200});
           }}>
             <option value="standard">Standard airflow</option>
-            <option value="fine">Detailed wake</option>
+            <option value="fine" disabled={!fineFlow && !s.profile?.startsWith("advanced")}>Detailed wake · up to 12 hours</option>
           </select>
+          {!fineFlow && !s.profile?.startsWith("advanced") && <p className="field-hint">Medium and Fast use standard recording. Select Precise first to enable the longer detailed wake study.</p>}
         </>}
         {s.flow_animation && <p className="field-hint">{fineFlow
           ? "Resolves wake motion with DDES and records about 192 frames in four detailed sections after the flow develops. This needs substantially more computation than a standard recording."

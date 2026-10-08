@@ -468,7 +468,7 @@ def execute(key):
                 else 1200 if run["settings"].get("quality") == "medium" else 10800
             )
         )
-        if run["settings"].get("quality") == "medium" and run["settings"].get("profile") in (None, "regular") and not (
+        if (run["settings"].get("profile") == "regular" or (run["settings"].get("quality") == "medium" and run["settings"].get("profile") is None)) and not (
             run["settings"].get("flow_animation") and run["settings"].get("flow_detail") == "fine"
         ):
             ceiling = min(ceiling, 1200)
