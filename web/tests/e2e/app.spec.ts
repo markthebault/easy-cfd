@@ -78,7 +78,7 @@ test("sample car, short run, results, layers, reopen after reload", async ({ pag
     await expect(page.getByRole("button", { name: "Explore airflow" })).toHaveAttribute("aria-expanded", "false");
   };
   await page.getByRole("button", { name: "Pause animation" }).click();
-  for (const mode of ["pressure", "vertical", "horizontal", "surfaceFlow", "wake", "turbulence", "forces", "clouds"]) {
+  for (const mode of ["overview", "pressure", "vertical", "horizontal", "surfaceFlow", "wake", "turbulence", "forces", "clouds"]) {
     await choose(mode);
     await expect(page.locator(".analysis-current")).not.toHaveText("Custom layers");
     const stats = await page.evaluate(() => {
@@ -96,6 +96,22 @@ test("sample car, short run, results, layers, reopen after reload", async ({ pag
     if (mode === "vertical" || mode === "horizontal") {
       expect(stats.viz.stream.orientation).toBe(mode);
       expect(stats.streamVertices).toBeGreaterThan(0);
+    }
+    if (mode === "overview") {
+      expect(stats.viz.surface).toBe(true);
+      expect(stats.streamVertices).toBeGreaterThan(0);
+      await expect(page.locator(".legend-title")).toHaveCount(2);
+      await expect(page.locator(".legend-stack")).toContainText("Surface pressure");
+      await expect(page.locator(".legend-stack")).toContainText("Air speed · steady flow");
+      await page.getByText("Local wake seeds", { exact: true }).click();
+      const withoutWake = await page.evaluate(() => (window as any).__easycfd.stages.main.streamMesh.geometry.getAttribute("position").count);
+      expect(withoutWake).toBeLessThan(stats.streamVertices);
+      await page.getByText("Local wake seeds", { exact: true }).click();
+      await page.getByRole("button", { name: "Close options" }).click();
+      await page.screenshot({ path: "test-results/analysis-overview.png" });
+      const exported = page.waitForEvent("download");
+      await page.getByRole("button", { name: "PNG", exact: true }).click();
+      await (await exported).saveAs("test-results/analysis-overview-export.png");
     }
     if (mode === "surfaceFlow") expect(stats.oilVisible).toBe(true);
     if (mode === "forces") {
@@ -126,6 +142,14 @@ test("sample car, short run, results, layers, reopen after reload", async ({ pag
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole("button", { name: "Explore airflow" }).click();
   await expect(page.getByTestId("analysis-clouds")).toBeVisible();
+  await page.getByTestId("analysis-overview").click();
+  await expect(page.getByRole("region", { name: "streamlines options" })).not.toBeVisible();
+  await page.getByRole("button", { name: "View settings" }).click();
+  await expect(page.getByRole("switch", { name: "Local wake seeds" })).toBeVisible();
+  await page.getByRole("button", { name: "Close options" }).click();
+  await page.screenshot({ path: "test-results/analysis-overview-mobile.png" });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByRole("button", { name: "Explore airflow" }).click();
   await page.getByTestId("analysis-forces").click();
   await expect(page.getByRole("region", { name: "forces options" })).not.toBeVisible();
   await page.getByRole("button", { name: "View settings" }).click();

@@ -2,10 +2,11 @@ import type { VizSettings } from "./stage";
 import type { ViewName } from "./helpers";
 import type { VizField } from "../solver/extract";
 
-export type AnalysisMode = "animation" | "pressure" | "friction" | "clouds" | "surfaceFlow" | "vertical" | "horizontal" | "wake" | "turbulence" | "forces";
+export type AnalysisMode = "overview" | "animation" | "pressure" | "friction" | "clouds" | "surfaceFlow" | "vertical" | "horizontal" | "wake" | "turbulence" | "forces";
 export type AnalysisLayer = "animation" | "surface" | "smoke" | "streamlines" | "slice" | "wake" | "pressureCloud" | "forces";
 
 export const ANALYSES: { id: AnalysisMode; title: string; description: string; layer: AnalysisLayer; view: ViewName; needsAnimation?: boolean; needsSurface?: boolean; needsStress?: boolean; needsForces?: boolean }[] = [
+  { id: "overview", title: "Aero overview", description: "Surface pressure with air-speed streamlines around the car and in its wake.", layer: "streamlines", view: "side", needsSurface: true },
   { id: "pressure", title: "Surface pressure", description: "Find suction and high-pressure areas on the car.", layer: "surface", view: "iso", needsSurface: true },
   { id: "friction", title: "Surface friction", description: "Physical wall stress from the solver, in Pa or Cf.", layer: "surface", view: "iso", needsStress: true },
   { id: "clouds", title: "3D pressure clouds", description: "See pressure regions in the air around the car.", layer: "pressureCloud", view: "iso" },
@@ -32,17 +33,24 @@ export function analysisPreset(mode: AnalysisMode, v: VizSettings, f: VizField, 
   if (mode === "wake") return { ...reset, wake: true };
   if (mode === "animation") return { ...reset, animation: true, slice: true, sliceAxis: 1, slicePos: clamp((low[1] + high[1]) / 2, 1), sliceField: "speed", sliceTracers: false, motion: false, windDirection: false };
   if (mode === "turbulence") return { ...reset, slice: true, sliceAxis: 1, slicePos: clamp((low[1] + high[1]) / 2, 1), sliceField: "k", sliceTracers: false };
+  if (mode === "overview") {
+    const bottom = clamp(Math.max(low[2], f.origin[2]) + H * 0.03, 2);
+    const top = clamp(high[2] + H * 0.18, 2);
+    return { ...reset, surface: true, streamlines: true, motion: false, windDirection: false,
+      stream: { ...v.stream, x: clamp(low[0] - L * 0.18, 0), y: clamp((low[1] + high[1]) / 2, 1), z: (bottom + top) / 2, length: top - bottom, count: 40, orientation: "vertical", animate: false, layout: "overview", wakeSeeds: true, thickness: 0.65, color: "flow" } };
+  }
   const horizontal = mode === "horizontal";
   const centerZ = clamp(low[2] + H * 0.5, 2);
   const extent = horizontal ? W * 1.25 : H * 1.15;
   const axis = horizontal ? 1 : 2;
   const center = horizontal ? clamp((low[1] + high[1]) / 2, 1) : centerZ;
   const room = 2 * Math.max(0, Math.min(center - f.origin[axis], f.origin[axis] + f.spacing[axis] * (f.dims[axis] - 1) - center));
-  return { ...reset, streamlines: true, stream: { ...v.stream, x: clamp(low[0] - L * 0.14, 0), y: clamp((low[1] + high[1]) / 2, 1), z: centerZ, length: Math.min(extent, room), orientation: horizontal ? "horizontal" : "vertical" } };
+  return { ...reset, streamlines: true, stream: { ...v.stream, x: clamp(low[0] - L * 0.14, 0), y: clamp((low[1] + high[1]) / 2, 1), z: centerZ, length: Math.min(extent, room), orientation: horizontal ? "horizontal" : "vertical", layout: "single", wakeSeeds: false, thickness: 3.2, color: "speed" } };
 }
 
 export function activeAnalysis(v: VizSettings): AnalysisMode | null {
   const count = [v.smoke, v.streamlines, v.slice, v.wake, v.pressureCloud, v.forces, v.surface || v.friction || v.surfaceFlow].filter(Boolean).length;
+  if (count === 2 && v.surface && !v.friction && !v.surfaceFlow && v.streamlines && v.stream.layout === "overview") return "overview";
   if (count !== 1) return null;
   if (v.pressureCloud) return "clouds";
   if (v.forces) return "forces";

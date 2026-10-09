@@ -9,7 +9,8 @@ function Thumbnail({ mode }: { mode: AnalysisMode }) {
     {mode === "wake" && <path d="M58 24C73 13 93 17 96 26C83 29 96 45 73 43L54 38" fill="#71b9f5" fillOpacity=".25" stroke="#71b9f5" />}
     {mode === "turbulence" && <><path d="M6 9H95V46H6Z" fill="#ad92f9" fillOpacity=".14" /><ellipse cx="75" cy="31" rx="20" ry="11" fill="#ad92f9" fillOpacity=".5" /></>}
     {mode === "horizontal" ? <rect x="30" y="20" width="38" height="19" rx="7" className="thumb-car" /> : <path d="M22 36L26 29L39 27L46 20H62L71 29L80 32V39H22Z" className="thumb-car" />}
-    {mode === "pressure" && <><path d="M26 29L39 27L46 20H62" stroke="#70acff" strokeWidth="4" /><path d="M22 36L26 29" stroke="#fb886a" strokeWidth="4" /></>}
+    {(mode === "pressure" || mode === "overview") && <><path d="M26 29L39 27L46 20H62" stroke="#70acff" strokeWidth="4" /><path d="M22 36L26 29" stroke="#fb886a" strokeWidth="4" /></>}
+    {mode === "overview" && <>{[0, 1, 2].map(i => <path key={i} d={`M4 ${18 + i * 10}C25 ${18 + i * 10} 32 ${7 + i * 10} 52 ${7 + i * 10}S76 ${18 + i * 10} 96 ${20 + i * 10}`} stroke={["#f39839", "#efec59", "#24bad1"][i]} strokeWidth="1" />)}<path d="M79 34C94 24 96 44 85 43S83 32 95 36" stroke="#285bea" strokeWidth="1.3" /></>}
     {mode === "vertical" && [0, 1, 2].map(i => <path key={i} d={`M5 ${15 + i * 8}C25 ${15 + i * 8} 30 ${5 + i * 6} 51 ${5 + i * 5}S75 ${17 + i * 8} 96 ${18 + i * 8}`} stroke="#6cc8df" strokeWidth="1.3" />)}
     {mode === "horizontal" && [-1, 1].map(i => <path key={i} d={`M5 29C24 29 21 ${29 + i * 24} 49 ${29 + i * 24}S75 29 96 29`} stroke="#6cc8df" strokeWidth="1.4" />)}
     {(mode === "surfaceFlow" || mode === "friction") && [0, 1, 2].map(i => <path key={i} d={`M${33 + i * 10} 31l7 -6l7 1`} stroke="#67d6be" strokeWidth="1.5" />)}

@@ -16,6 +16,12 @@ The public app uses WebGPU. It needs a browser and device with WebGPU support. I
 
 Treat the results as exploratory estimates. They do not establish real vehicle loads or aerodynamic accuracy. Read the [validation notes](web/VALIDATION.md) before you use the numbers for a design decision.
 
+## Aero overview
+
+After a run, choose **Explore airflow → Aero overview** to see surface pressure and thin, speed-coloured streamlines around the car and through its wake. Each field has its own scale. Adjust the line density, thickness, colours and local wake seeds in Settings; PNG exports include both legends.
+
+This view uses the saved steady velocity field. Wake detail depends on what the simulation resolves.
+
 ## Run locally
 
 Use Node.js 22 and npm.

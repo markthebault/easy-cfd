@@ -14,7 +14,8 @@ import { oilFlowGeometry, oilFlowMaterial } from "./oilflow";
 import { Particles } from "./particles";
 import { FlowSmoke } from "./flowSmoke";
 import { Slice, type SliceField } from "./slice";
-import { streamlineMaterial, traceStreamlines, tubeGeometry } from "./streamlines";
+import { streamlineMaterial, traceStreamlines, traceOverview, tubeGeometry } from "./streamlines";
+import { mapTexture, sample as mapColor, type MapName } from "./colormap";
 import { totalPressureCoefficient, wakeGeometry, wakeMaterial, type WakeColor } from "./wake";
 import { pressureCloudGeometry, pressureCloudMaterial, pressureCoefficients } from "./pressureCloud";
 import { drivingVelocity, MOTION_TIME_SCALE, rollingAngle, type DrivingConditions } from "./driving";
@@ -64,7 +65,7 @@ export interface VizSettings {
   smokeStyle: "filaments" | "sheet";
   trail: number;
   rake: { x: number; y: number; z: number; width: number; height: number };
-  stream: { x: number; y: number; z: number; length: number; count: number; orientation: "vertical" | "horizontal"; animate: boolean };
+  stream: { x: number; y: number; z: number; length: number; count: number; orientation: "vertical" | "horizontal"; animate: boolean; layout?: "single" | "overview"; wakeSeeds?: boolean; thickness?: number; color?: "speed" | "flow" };
   sliceAxis: 0 | 1 | 2;
   slicePos: number;
   sliceField: SliceField;
@@ -313,7 +314,7 @@ export class Stage {
     this.resizeForceLabels();
   }
 
-  private lastFit: { view: ViewName; fitBox: boolean; flow: boolean; forces: boolean; state: CameraState } | null = null;
+  private lastFit: { view: ViewName; fitBox: boolean; flow: boolean | "overview"; forces: boolean; state: CameraState } | null = null;
 
   private sameCamera(s: CameraState) {
     const c = this.cameraState();
@@ -482,7 +483,7 @@ export class Stage {
     this.dirty = true;
   }
 
-  private viewState(view: ViewName, fitBox = false, flow = false, forces = false): CameraState {
+  private viewState(view: ViewName, fitBox = false, flow: boolean | "overview" = false, forces = false): CameraState {
     let b = fitBox && this.box ? new THREE.Box3().setFromObject(this.box) : this.bounds;
     if (flow) {
       // Car plus the near wake, for section planes.
@@ -491,6 +492,12 @@ export class Stage {
       b.min.x -= 0.25 * L;
       b.max.x += 1.1 * L;
       b.max.z += 0.2 * L;
+      if (flow === "overview") {
+        b = this.bounds.clone();
+        b.min.x -= 0.22 * L;
+        b.max.x += 0.75 * L;
+        b.max.z += 0.2 * (b.max.z - b.min.z);
+      }
     }
     if (forces) {
       const s = this.bounds.getSize(new THREE.Vector3());
@@ -508,7 +515,7 @@ export class Stage {
     const tanV = Math.tan((this.camera.fov * Math.PI) / 360);
     const visV = 2 * Math.atan((tanV * Math.max(1, h - bottom - top)) / (h + bottom + top));
     const visH = 2 * Math.atan((tanV * Math.max(1, w - left)) / (h + bottom + top));
-    const D = (radius * 1.08) / Math.sin(Math.min(visV, visH) / 2);
+    let D = (radius * 1.08) / Math.sin(Math.min(visV, visH) / 2);
     const target: [number, number, number] = [c.x, c.y, fitBox ? c.z * 0.5 : c.z * 0.75];
     const dir: Record<ViewName, [number, number, number]> = {
       front: [-1, 0, 0.1],
@@ -518,11 +525,23 @@ export class Stage {
       bottom: [1, -1, -0.85],
       iso: [-1, -1.25, 0.55],
     };
-    const d = new THREE.Vector3(...dir[view]).normalize().multiplyScalar(D);
+    const d = new THREE.Vector3(...dir[view]).normalize();
+    if (flow === "overview") {
+      // Fit the projected box, rather than a sphere that leaves a wide side view tiny.
+      const right = new THREE.Vector3().crossVectors(d, this.camera.up).normalize();
+      const up = new THREE.Vector3().crossVectors(right, d).normalize();
+      D = 0.3;
+      for (const x of [b.min.x, b.max.x]) for (const y of [b.min.y, b.max.y]) for (const z of [b.min.z, b.max.z]) {
+        const p = new THREE.Vector3(x - target[0], y - target[1], z - target[2]);
+        D = Math.max(D, Math.abs(p.dot(right)) / Math.tan(visH / 2) + p.dot(d), Math.abs(p.dot(up)) / Math.tan(visV / 2) + p.dot(d));
+      }
+      D *= 1.06;
+    }
+    d.multiplyScalar(D);
     return { position: [target[0] + d.x, target[1] + d.y, target[2] + d.z], target };
   }
 
-  setView(view: ViewName, animate = true, fitBox = false, flow = false, forces = false) {
+  setView(view: ViewName, animate = true, fitBox = false, flow: boolean | "overview" = false, forces = false) {
     const to = this.viewState(view, fitBox, flow, forces);
     this.lastFit = { view, fitBox, flow, forces, state: to };
     if (!animate) {
@@ -929,11 +948,12 @@ export class Stage {
       return;
     }
     const s = v!.stream;
-    const key = `${s.x.toFixed(3)},${s.y.toFixed(3)},${s.z.toFixed(3)},${s.length.toFixed(3)},${s.count},${s.orientation}`;
+    const key = `${s.x.toFixed(3)},${s.y.toFixed(3)},${s.z.toFixed(3)},${s.length.toFixed(3)},${s.count},${s.orientation},${s.layout},${s.wakeSeeds},${s.thickness},${this.partsKey}`;
     if (key !== this.streamKey) {
       this.streamKey = key;
-      const lines = traceStreamlines(f!, { center: new THREE.Vector3(s.x, s.y, s.z), length: s.length, count: s.count, orientation: s.orientation });
-      const geo = tubeGeometry(lines, f!.length * 0.0032);
+      const rake = { center: new THREE.Vector3(s.x, s.y, s.z), length: s.length, count: s.count, orientation: s.orientation };
+      const lines = s.layout === "overview" ? traceOverview(f!, rake, this.carBounds(), s.wakeSeeds !== false) : traceStreamlines(f!, rake);
+      const geo = tubeGeometry(lines, f!.length * (s.thickness ?? 3.2) / 1000);
       if (this.streamMesh) {
         this.streamMesh.geometry.dispose();
         this.streamMesh.geometry = geo;
@@ -945,6 +965,8 @@ export class Stage {
     }
     this.streamMesh!.visible = true;
     this.streamMat.uniforms.uSpeedMax.value = r!.speed[1];
+    this.streamMat.uniforms.uMap.value = mapTexture(s.color ?? "speed");
+    this.streamMat.uniforms.uShading.value = s.layout === "overview" ? 0.15 : 1;
     this.streamMat.uniforms.uAnimate.value = s.animate ? 1 : 0;
     this.streamMat.uniforms.uPulse.value = (0.12 * f!.length) / f!.freestream;
   }
@@ -1247,6 +1269,26 @@ export class Stage {
       ctx.fillStyle="rgba(15,20,28,.92)";ctx.fillRect(24,canvas.height-94,520,70);
       ctx.fillStyle="#f3f5f8";ctx.font="18px sans-serif";ctx.fillText(`Surface friction · final snapshot · ${cf?"Cf":"Pa"}`,40,canvas.height-65);
       ctx.font="16px sans-serif";ctx.fillText(`0 → ${max.toFixed(cf?4:2)} ${cf?"Cf":"Pa"}  ·  grey = missing data`,40,canvas.height-37);
+    }
+    if (this.viz?.surface && this.viz.streamlines && this.viz.stream.layout === "overview" && this.ranges) {
+      const ratio = this.renderer.getPixelRatio();
+      ctx.save(); ctx.scale(ratio, ratio);
+      const width = Math.min(480, canvas.width / ratio - 48), left = 24, top = canvas.height / ratio - 170;
+      ctx.fillStyle = "rgba(15,20,28,.94)";
+      ctx.fillRect(left, top, width, 146);
+      const scale = (y: number, title: string, map: MapName, ticks: string[]) => {
+        ctx.fillStyle = "#f3f5f8"; ctx.font = "15px sans-serif"; ctx.textAlign = "left";
+        ctx.fillText(title, left + 14, y);
+        const gradient = ctx.createLinearGradient(left + 14, 0, left + width - 14, 0);
+        for (let i = 0; i <= 16; i++) { const c = mapColor(map, i / 16); gradient.addColorStop(i / 16, `rgb(${c.map(v => Math.round(v * 255)).join(",")})`); }
+        ctx.fillStyle = gradient; ctx.fillRect(left + 14, y + 8, width - 28, 8);
+        ctx.fillStyle = "#f3f5f8"; ctx.font = "13px sans-serif";
+        ticks.forEach((text, i) => { ctx.textAlign = i === 0 ? "left" : i === 2 ? "right" : "center"; ctx.fillText(text, left + 14 + i * (width - 28) / 2, y + 32); });
+        ctx.textAlign = "left";
+      };
+      scale(top + 23, "Surface pressure · Cp · final snapshot", "diverging", [this.ranges.cp[0].toFixed(2), "0", this.ranges.cp[1].toFixed(2)]);
+      scale(top + 91, "Air speed · m/s · steady flow", this.viz.stream.color ?? "speed", ["0", (this.ranges.speed[1] / 2).toFixed(1), this.ranges.speed[1].toFixed(1)]);
+      ctx.restore();
     }
     return new Promise((resolve, reject) =>
       canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("Screenshot failed."))), "image/png"),

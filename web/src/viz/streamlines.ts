@@ -18,25 +18,69 @@ interface Line {
   pts: number[];
   speed: number[];
   tof: number[];
+  closed?: boolean;
 }
 
-export function traceStreamlines(f: VizField, rake: Rake): Line[] {
-  const sampler = new FieldSampler(f);
-  const h = Math.min(...f.spacing) * 0.6;
-  const U = f.freestream;
-  const maxSteps = Math.ceil((4 * f.length) / h);
-  const s = new Float32Array(5);
-  const vel = (x: number, y: number, z: number): [number, number, number] | null =>
-    sampler.sample(x, y, z, s) ? [s[0], s[1], s[2]] : null;
-  const lines: Line[] = [];
-  for (let n = 0; n < rake.count; n++) {
+export interface StreamSeed {
+  position: [number, number, number];
+  both?: boolean;
+  maxLength?: number;
+  xRange?: [number, number];
+}
+
+function rakeSeeds(rake: Rake): StreamSeed[] {
+  return Array.from({ length: rake.count }, (_, n) => {
     const t = rake.count === 1 ? 0 : n / (rake.count - 1) - 0.5;
     const p = rake.center.clone();
     if (rake.orientation === "vertical") p.z += t * rake.length;
     else p.y += t * rake.length;
-    let x = p.x, y = p.y, z = p.z, tof = 0;
+    return { position: p.toArray() as [number, number, number] };
+  });
+}
+
+/** Three upstream rakes plus local seeds that can reach separated wake regions. */
+export function overviewSeeds(f: VizField, rake: Rake, bounds: { low: number[]; high: number[] }, wake = true): StreamSeed[] {
+  const { low, high } = bounds;
+  const L = high[0] - low[0], W = high[1] - low[1], H = high[2] - low[2];
+  const seeds: StreamSeed[] = [];
+  for (const offset of [-0.45, 0, 0.45]) {
+    const center = rake.center.clone();
+    center.y += offset * W;
+    const count = offset === 0 ? rake.count : Math.max(4, Math.round(rake.count / 4));
+    seeds.push(...rakeSeeds({ ...rake, center, count }).map(s => ({ ...s, maxLength: 3 * L })));
+  }
+  if (wake) {
+    for (const x of [0.05, 0.25, 0.55]) for (const y of [-0.45, 0, 0.45]) for (const z of [0.15, 0.45, 0.85]) {
+      seeds.push({ position: [high[0] + x * L, rake.center.y + y * W, low[2] + z * H], both: true, maxLength: L * 0.8 });
+    }
+  }
+  // Do not clamp out-of-domain seeds onto the boundary: that duplicates paths.
+  return seeds.filter(s => s.position.every((v, a) => v >= f.origin[a] && v <= f.origin[a] + f.spacing[a] * (f.dims[a] - 1)))
+    .map(s => ({ ...s, xRange: [Math.min(rake.center.x, low[0] - L * 0.22), high[0] + L * 0.75] }));
+}
+
+export function traceOverview(f: VizField, rake: Rake, bounds: { low: number[]; high: number[] }, wake = true): Line[] {
+  return traceSeeds(f, overviewSeeds(f, rake, bounds, wake));
+}
+
+export function traceStreamlines(f: VizField, rake: Rake): Line[] {
+  return traceSeeds(f, rakeSeeds(rake));
+}
+
+export function traceSeeds(f: VizField, seeds: StreamSeed[]): Line[] {
+  const sampler = new FieldSampler(f);
+  const h = Math.min(...f.spacing) * 0.6;
+  const U = f.freestream;
+  const s = new Float32Array(5);
+  const vel = (x: number, y: number, z: number): [number, number, number] | null =>
+    sampler.sample(x, y, z, s) && s.subarray(0, 3).every(Number.isFinite) ? [s[0], s[1], s[2]] : null;
+  const trace = (seed: StreamSeed, direction: number): Line => {
+    const maxSteps = Math.ceil((seed.maxLength ?? 4 * f.length) / h);
+    let [x, y, z] = seed.position;
+    let tof = 0;
     const line: Line = { pts: [], speed: [], tof: [] };
     for (let i = 0; i < maxSteps; i++) {
+      if (seed.xRange && (x < seed.xRange[0] || x > seed.xRange[1])) break;
       const k1 = vel(x, y, z);
       if (!k1) break;
       const sp = Math.hypot(...k1);
@@ -47,7 +91,7 @@ export function traceStreamlines(f: VizField, rake: Rake): Line[] {
       // Integrate in arc length (unit direction) so the spacing stays even in slow regions.
       const dir = (v: [number, number, number]) => {
         const l = Math.hypot(...v) || 1;
-        return [v[0] / l, v[1] / l, v[2] / l];
+        return [direction * v[0] / l, direction * v[1] / l, direction * v[2] / l];
       };
       const d1 = dir(k1);
       const k2 = vel(x + 0.5 * h * d1[0], y + 0.5 * h * d1[1], z + 0.5 * h * d1[2]);
@@ -62,7 +106,28 @@ export function traceStreamlines(f: VizField, rake: Rake): Line[] {
       x += (h / 6) * (d1[0] + 2 * d2[0] + 2 * d3[0] + d4[0]);
       y += (h / 6) * (d1[1] + 2 * d2[1] + 2 * d3[1] + d4[1]);
       z += (h / 6) * (d1[2] + 2 * d2[2] + 2 * d3[2] + d4[2]);
-      tof += h / Math.max(sp, 1e-3);
+      tof += direction * h / Math.max(sp, 1e-3);
+      // Stop after one closed orbit instead of painting the same vortex repeatedly.
+      if (i > 20 && Math.hypot(x - seed.position[0], y - seed.position[1], z - seed.position[2]) < h * 0.75) {
+        line.pts.push(...seed.position);
+        line.speed.push(line.speed[0]);
+        line.tof.push(tof);
+        line.closed = true;
+        break;
+      }
+    }
+    return line;
+  };
+  const lines: Line[] = [];
+  for (const seed of seeds) {
+    const line = trace(seed, 1);
+    if (seed.both && !line.closed) {
+      const back = trace(seed, -1);
+      const pts: number[] = [];
+      for (let i = back.speed.length - 1; i > 0; i--) pts.push(...back.pts.slice(i * 3, i * 3 + 3));
+      line.pts = pts.concat(line.pts);
+      line.speed = back.speed.slice(1).reverse().concat(line.speed);
+      line.tof = back.tof.slice(1).reverse().concat(line.tof);
     }
     if (line.pts.length >= 6) lines.push(line);
   }
@@ -138,6 +203,7 @@ export function streamlineMaterial(): THREE.ShaderMaterial {
       uTime: { value: 0 },
       uPulse: { value: 0.1 },
       uAnimate: { value: 1 },
+      uShading: { value: 1 },
     },
     vertexShader: /* glsl */ `
       attribute float aSpeed;
@@ -160,6 +226,7 @@ export function streamlineMaterial(): THREE.ShaderMaterial {
       uniform float uTime;
       uniform float uPulse;
       uniform float uAnimate;
+      uniform float uShading;
       varying float vSpeed;
       varying float vTof;
       varying vec3 vN;
@@ -173,7 +240,7 @@ export function streamlineMaterial(): THREE.ShaderMaterial {
         float rim = pow(1.0 - max(dot(n, v), 0.0), 3.0) * 0.25;
         float phase = fract(vTof / uPulse - uTime);
         float pulse = mix(1.0, 0.55 + 1.1 * smoothstep(0.75, 0.97, phase) * (1.0 - smoothstep(0.97, 1.0, phase)), uAnimate);
-        gl_FragColor = vec4(base * diff * pulse + spec + rim, 1.0);
+        gl_FragColor = vec4(mix(base * pulse, base * diff * pulse + spec + rim, uShading), 1.0);
         #include <colorspace_fragment>
       }`,
   });

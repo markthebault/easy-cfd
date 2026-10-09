@@ -90,9 +90,10 @@ export function App() {
   const showPanel = hasPanel && !sceneFocus;
   // Keep the car centred in the part of the screen the panels leave free.
   const narrow = vp.w <= 760;
+  const flowTop = viz.surface && viz.streamlines && viz.stream.layout === "overview" ? 252 : 156;
   const insets = useMemo(
-    () => (!showPanel ? { left: 0, bottom: narrow ? content.field ? 0 : 175 : 0, top: narrow ? content.field ? 156 : 64 : 0 } : narrow ? { left: 0, bottom: Math.round(vp.h * 0.5), top: content.field ? 156 : 64 } : { left: 408, bottom: 0, top: 0 }),
-    [showPanel, narrow, vp.h, !!content.field],
+    () => (!showPanel ? { left: 0, bottom: narrow ? content.field ? 0 : 175 : 0, top: narrow ? content.field ? flowTop : 64 : 0 } : narrow ? { left: 0, bottom: Math.round(vp.h * 0.5), top: content.field ? flowTop : 64 } : { left: 408, bottom: 0, top: 0 }),
+    [showPanel, narrow, vp.h, !!content.field, flowTop],
   );
   const gizmo = useMemo(() => (narrow ? { right: 8, bottom: insets.bottom + 8, size: 76 } : { right: 16, bottom: 16, size: 104 }), [narrow, insets.bottom]);
 

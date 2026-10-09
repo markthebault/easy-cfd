@@ -83,7 +83,12 @@ function Options({ layer, viz, field, particles, stageIds, forces, driving, anim
   if (layer === "streamlines")
     return (
       <>
-        <Slider label="Lines" min={4} max={64} step={1} value={viz.stream.count} onChange={(v) => setViz({ stream: { ...viz.stream, count: v } })} />
+        <p className="muted small">{viz.stream.layout === "overview" ? "Steady air-speed paths from three upstream rakes. Local wake seeds reveal separated flow where it exists in the saved field. Surface colours show pressure, on a separate scale." : "Streamlines follow the saved steady velocity field."}</p>
+        <Segmented<"single" | "overview"> size="sm" label="Seed layout" value={viz.stream.layout ?? "single"} options={[{ value: "single", label: "Single rake" }, { value: "overview", label: "Around car" }]} onChange={layout => setViz({ stream: { ...viz.stream, layout } })} />
+        <Slider label={viz.stream.layout === "overview" ? "Streamline density" : "Lines"} min={4} max={64} step={1} value={viz.stream.count} display={viz.stream.layout === "overview" ? `${viz.stream.count} main · ${Math.max(4, Math.round(viz.stream.count / 4))} per side` : viz.stream.count} onChange={(v) => setViz({ stream: { ...viz.stream, count: v } })} />
+        <Slider label="Line thickness" min={0.3} max={4} step={0.05} value={viz.stream.thickness ?? 3.2} display={`${((viz.stream.thickness ?? 3.2) / 0.65).toFixed(1)}×`} onChange={thickness => setViz({ stream: { ...viz.stream, thickness } })} />
+        <Segmented<"speed" | "flow"> size="sm" label="Speed colours" value={viz.stream.color ?? "speed"} options={[{ value: "speed", label: "Blue–yellow" }, { value: "flow", label: "Blue–red" }]} onChange={color => setViz({ stream: { ...viz.stream, color } })} />
+        {viz.stream.layout === "overview" && <Toggle checked={viz.stream.wakeSeeds !== false} onChange={wakeSeeds => setViz({ stream: { ...viz.stream, wakeSeeds } })} label="Local wake seeds" hint="Trace forward and backward behind the car." />}
         <Slider label="Rake length" min={0.05} max={Math.max(3, viz.stream.length * 2)} step={0.01} value={viz.stream.length} display={`${viz.stream.length.toFixed(2)} m`} onChange={(v) => setViz({ stream: { ...viz.stream, length: v } })} />
         <Segmented<"vertical" | "horizontal">
           size="sm"
@@ -209,7 +214,7 @@ export function VizDock(props: { animation?: FlowAnimation; field: VizField | nu
     const a = ANALYSES.find(a => a.id === mode)!;
     const section = mode === "animation" ? props.animation?.sections?.find(p=>p.id===props.animation?.section) : undefined;
     setViz({...analysisPreset(mode, viz, field, stage.carBounds()),...(section ? {sliceAxis:section.axis,slicePos:section.position,animationAppearance:"colours"} : {})});
-    for (const id of ids) stages[id]?.setView(section ? sliceView(section.axis) : a.view, viz.playing, false, (a.layer === "slice" || a.layer === "animation"), a.layer === "forces");
+    for (const id of ids) stages[id]?.setView(section ? sliceView(section.axis) : a.view, viz.playing, false, mode === "overview" ? "overview" : (a.layer === "slice" || a.layer === "animation"), a.layer === "forces");
     setFocus(window.innerWidth <= 760 ? null : a.layer);
     closePicker();
   };
