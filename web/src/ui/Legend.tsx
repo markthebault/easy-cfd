@@ -41,14 +41,19 @@ export function LegendStack({ viz, ranges, hasSurface, hasField }: { viz: VizSet
   const out: ReactElement[] = [];
   if(hasSurface && viz.friction) { const cf=viz.frictionUnit === "Cf", hi=viz.frictionMax ?? (cf?ranges.cf?.[1]:ranges.friction?.[1]) ?? 1; out.push(<Legend key="friction" title="Surface friction · final snapshot" unit={cf?"Cf":"Pa"} map="speed" ticks={sequential(0,hi,cf?4:2)} />); }
   if (hasField && viz.pressureCloud) out.push(<div className="legend cloud-legend" key="clouds"><div className="legend-title">Pressure clouds <span className="muted">Cp · Pa</span></div>{viz.cloudSign !== "positive" && <div><i className="cloud-dot negative" /><span>Suction</span><b>−{viz.cloudLevel.toFixed(2)}<small>−{n(viz.cloudLevel * ranges.q, 0)} Pa</small></b></div>}{viz.cloudSign !== "negative" && <div><i className="cloud-dot positive" /><span>Positive</span><b>+{viz.cloudLevel.toFixed(2)}<small>+{n(viz.cloudLevel * ranges.q, 0)} Pa</small></b></div>}</div>);
-  const speedShown = hasField && (viz.smoke || viz.streamlines || (viz.wake && viz.wakeColor === "speed") || (viz.slice && viz.sliceField === "speed"));
+  const speedMaps = new Set<MapName>();
+  if (hasField) {
+    if (viz.streamlines) speedMaps.add(viz.stream.color ?? "speed");
+    if (viz.smoke || (viz.wake && viz.wakeColor === "speed")) speedMaps.add("speed");
+    if (viz.slice && viz.sliceField === "speed") speedMaps.add(viz.animation ? "flow" : "speed");
+  }
   const cpShown = (viz.surface && hasSurface) || (hasField && viz.wake && viz.wakeColor === "cp");
   if (cpShown) {
     const [lo, hi] = ranges.cp;
     out.push(
       <Legend
         key="cp"
-        title="Pressure coefficient"
+        title={viz.surface ? "Surface pressure · final snapshot" : "Pressure coefficient"}
         unit="Cp · Pa"
         map="diverging"
         ticks={[
@@ -59,14 +64,14 @@ export function LegendStack({ viz, ranges, hasSurface, hasField }: { viz: VizSet
       />,
     );
   }
-  if (speedShown)
+  for (const map of speedMaps)
     out.push(
       <Legend
-        key="speed"
-        title={viz.animation ? "Air speed · transient flow" : "Air speed"}
+        key={`speed-${map}`}
+        title={speedMaps.size > 1 ? `Air speed · ${map === (viz.stream.color ?? "speed") && viz.streamlines ? "streamlines" : viz.animation && map === "flow" ? "transient flow" : "flow field"}` : viz.animation ? "Air speed · transient flow" : viz.streamlines ? "Air speed · steady flow" : "Air speed"}
         unit="m/s"
-        map={viz.animation ? "flow" : "speed"}
-        ticks={sequential(ranges.speed[0], ranges.speed[1]).map((t) => ({ ...t, sub: `${Math.round(Number(t.label.replace(/,/g, "")) * 3.6)} km/h` }))}
+        map={map}
+        ticks={sequential(0, ranges.speed[1]).map((t) => ({ ...t, sub: `${Math.round(Number(t.label.replace(/,/g, "")) * 3.6)} km/h` }))}
       />,
     );
   if (hasField && viz.slice && viz.sliceField === "pressure") {
@@ -78,5 +83,6 @@ export function LegendStack({ viz, ranges, hasSurface, hasField }: { viz: VizSet
   if (hasField && viz.slice && viz.sliceField === "k")
     out.push(<Legend key="k" title="Turbulent kinetic energy" unit="m²/s²" map="turbulence" ticks={sequential(ranges.k[0], ranges.k[1], 2)} />);
   if (!out.length) return null;
-  return <div className="legend-stack">{out}</div>;
+  const overview = viz.surface && viz.streamlines && viz.stream.layout === "overview" && out.length === 2;
+  return <div className={`legend-stack${overview ? " overview-legends" : ""}`}>{out}</div>;
 }
