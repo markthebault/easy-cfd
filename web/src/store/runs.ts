@@ -1,5 +1,6 @@
 import { computeLease } from "../engine/computeLease";
 import { OPENFOAM_ENABLED, OPENFOAM_COMING_SOON } from "../engine/features";
+import { fetchField, getRun, OPENFOAM_SAMPLING_VERSION } from "../engine/openfoam";
 // Running simulations, saving them, reopening them and exporting them.
 
 import { checkGeometry, type Part } from "../geometry/model";
@@ -8,7 +9,7 @@ import { cancelOpenFoamRun, startOpenFoamRun } from "./openfoamRuns";
 import { recordFlowAnimation, ANIMATION_POINTS, type FlowAnimation } from "../solver/animation";
 import { runSimulation } from "../solver/run";
 import { resolvePreset } from "../solver/types";
-import type { VehicleWeight } from "../solver/types";
+import type { VehicleWeight, Vec3 } from "../solver/types";
 import { estimateTyreLoads, weightInputError } from "../solver/tyreLoads";
 import { resolvedAxles } from "../solver/aero";
 import { assessedResult, detectRunAxles } from "./axleAnalysis";
@@ -38,7 +39,8 @@ export async function saveAndShow(doc: RunDoc, enabled: Part[], field: VizField 
   try {
     if (field) {
       const recording = await cacheAnimation(doc.id,animation);
-      await put("fields", { id: doc.id, field: encodeField(field), surface: encodeSurface(keys, surface ?? []), ...recording });
+      await put("fields", { id: doc.id, field: encodeField(field), surface: encodeSurface(keys, surface ?? []), ...recording,
+        ...(doc.result.openfoam ? {openfoamSamplingVersion: OPENFOAM_SAMPLING_VERSION} : {}) });
     }
     await put("runs", doc);
   } catch (e) {
@@ -241,7 +243,18 @@ export async function loadRun(id: string): Promise<LoadedRun> {
     doc = assessed;
     try { await put("runs", doc); } catch { notice ??= "Detected axles could not be saved in this browser."; }
   }
-  const field = fdoc ? decodeField(fdoc.field) : null;
+  let field = fdoc ? decodeField(fdoc.field) : null;
+  if (OPENFOAM_ENABLED && fdoc && parts.length && doc.result.openfoam &&
+      fdoc.openfoamSamplingVersion !== OPENFOAM_SAMPLING_VERSION) {
+    try {
+      const record = await getRun(doc.result.openfoam.run);
+      const {low, high} = partsBounds(parts);
+      field = await fetchField(record, low as Vec3, high as Vec3, doc.result.domain, FINAL_POINTS, doc.result.openfoam.offset);
+      await put("fields", {...fdoc, field: encodeField(field), openfoamSamplingVersion: OPENFOAM_SAMPLING_VERSION});
+    } catch {
+      notice ??= "Saved airflow is shown. Connect to the OpenFOAM server to refresh road flow.";
+    }
+  }
   const animation = fdoc ? await restoreAnimation(fdoc) : undefined;
   let surface: (SurfaceSample | null)[] | null = fdoc ? decodeSurface(fdoc.surface) : null;
   if (surface) {

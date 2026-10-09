@@ -144,10 +144,10 @@ export function RunStep() {
         </p>
       )}
       {openfoam && <OpenFoamLevels settings={s} />}
-      {openfoam && s.profile?.startsWith("advanced") && (
+      {openfoam && !s.import_test && (
         <div className="group">
           <span className="field-label">Local refinement</span>
-          {groups
+          {s.profile?.startsWith("advanced") && groups
             .filter((g) => g.enabled)
             .map((g) => {
               const selected =
@@ -183,9 +183,8 @@ export function RunStep() {
             Underfloor and road gap
           </label>
           <p className="field-hint">
-            Selected surfaces receive extra local cells. The actual mesh must
-            pass its cell ceiling and layer checks; requested refinement is
-            never silently reduced.
+            Extra cells under the car help show flow near the road. The rest
+            of the mesh keeps the selected precision and the run keeps its time limit.
           </p>
         </div>
       )}

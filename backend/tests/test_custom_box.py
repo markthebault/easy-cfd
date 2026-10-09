@@ -120,6 +120,38 @@ def test_small_part_box_uses_metres_without_changing_mesh_scale():
     assert cell == pytest.approx(0.65 * 0.2 / 4.2)
 
 
+@pytest.mark.parametrize("profile,quality,import_test,enabled,level", [
+    ("basic", "fast", False, True, 4),
+    ("regular", "medium", False, True, 4),
+    ("advanced1", "precise", False, True, 4),
+    ("basic", "fast", False, False, None),
+    (None, "fast", True, True, None),
+])
+def test_underfloor_refinement_is_local_optional_and_preserves_source(tmp_path, profile, quality, import_test, enabled, level):
+    source = tmp_path / "geometry"
+    source.mkdir()
+    data = geometry.sample(source)
+    settings = Settings(profile=profile, quality=quality, import_test=import_test, refine_underfloor=enabled)
+    case = tmp_path / "case"
+    meta = foam.generate(case, source, data, settings)
+    text = (case / "system/snappyHexMeshDict").read_text()
+    band = meta["underfloor_refinement"]
+    if level is None:
+        assert band is None and "underfloor {" not in text
+    else:
+        assert band["level"] == level
+        assert f"underfloor {{mode inside; levels ((1e15 {level}));}}" in text
+        low, high = band["bounds"]
+        length = data["bounds"][1][0] - data["bounds"][0][0]
+        assert high[0]-low[0] == pytest.approx(1.2*length)
+        assert high[2] <= .06*length
+        assert low[2] > 0
+        assert meta["preset"]["max_cells"] == resolved_preset(settings)["max_cells"]
+    for part in data["parts"]:
+        name = f"{part['id']}.stl"
+        assert (source / name).read_bytes() == (case / "constant/triSurface" / name).read_bytes()
+
+
 @pytest.mark.parametrize("quality", ["fast", "medium", "precise", "custom"])
 def test_mesher_limits_match_final_skewness_gate(tmp_path, quality):
     geometry_dir = tmp_path / "geometry"

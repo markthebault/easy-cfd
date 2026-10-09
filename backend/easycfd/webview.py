@@ -30,7 +30,7 @@ from . import storage
 router = APIRouter()
 
 # Bump when sampling or encoding changes, so cached fields are rebuilt.
-VERSION = 2
+VERSION = 3
 MAX_POINTS = 2_500_000
 MAX_VERTICES = 6_000_000
 STRESS_QUERY_CHUNK = 65_536
@@ -146,6 +146,29 @@ def volume_reader(results: Path):
     return reader
 
 
+def restore_road_velocity(volume, results: Path):
+    """Restore the solver's road boundary before interpolating cell-derived point data.
+
+    VTK's cell-to-point averaging ignores fixedValue patches. In particular it can
+    invent vertical velocity at the road and send low streamlines through it.
+    Only boundary vertices are changed; native cell velocities and validity stay
+    untouched. Runs without boundary metadata retain their original sampling.
+    """
+    record = results.parent / "record.json"
+    if not record.exists():
+        return
+    settings = json.loads(record.read_text())["settings"]
+    if "moving_ground" not in settings:
+        return
+    points = vtk_to_numpy(volume.GetPoints().GetData())
+    road = np.abs(points[:, 2]) <= 1e-8
+    velocity = vtk_to_numpy(volume.GetPointData().GetArray("U"))
+    velocity[road] = [settings["speed_kmh"] / 3.6 if settings["moving_ground"] else 0, 0, 0]
+    speed = volume.GetPointData().GetArray("Speed")
+    if speed is not None:
+        vtk_to_numpy(speed)[road] = np.linalg.norm(velocity[road], axis=1)
+
+
 def sample_field(results: Path, request: FieldRequest) -> bytes:
     """Little-endian float32 u, v, w, p (kinematic), k and a uint8 valid mask, x fastest."""
     nx, ny, nz = request.dims
@@ -153,10 +176,13 @@ def sample_field(results: Path, request: FieldRequest) -> bytes:
     grid.SetDimensions(nx, ny, nz)
     grid.SetOrigin(request.origin)
     grid.SetSpacing(request.spacing)
-    reader = volume_reader(results)  # keep a reference: the probe only holds its output port
+    reader = volume_reader(results)
+    reader.Update()
+    volume = reader.GetOutput()
+    restore_road_velocity(volume, results)
     probe = vtk.vtkProbeFilter()
     probe.SetInputData(grid)
-    probe.SetSourceConnection(reader.GetOutputPort())
+    probe.SetSourceData(volume)
     probe.Update()
     data = probe.GetOutput().GetPointData()
     valid = vtk_to_numpy(data.GetArray("vtkValidPointMask")).astype(bool)

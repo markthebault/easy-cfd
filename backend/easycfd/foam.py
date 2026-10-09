@@ -111,14 +111,23 @@ mergePatchPairs ();
     selected_groups = settings.refine_groups
     underfloor_geometry = ""
     underfloor_region = ""
+    underfloor = None
     fine_geometry = ""
     fine_region = ""
     if settings.flow_animation and settings.flow_detail == "fine":
         fine_geometry = f"wakeDetail {{type searchableBox; min {vec([high[0]-.1*length,low[1]-.1*width,.001])}; max {vec([high[0]+1.25*length,high[1]+.1*width,high[2]+.08*length])};}}"
         fine_region = f"wakeDetail {{mode inside; levels ((1e15 {p['surface']}));}}"
-    if advanced and settings.refine_underfloor:
-        underfloor_geometry = f"underfloor {{type searchableBox; min {vec([low[0]-.1*length,low[1]-.1*width,.001])}; max {vec([high[0]+.1*length,high[1]+.1*width,min(high[2],max(.2*length/4.2,low[2]+.05*length))])};}}"
-        underfloor_region = f"underfloor {{mode inside; levels ((1e15 {p['surface']+1}));}}"
+    if settings.refine_underfloor and not settings.import_test:
+        # A shallow footprint band resolves the road gap without refining the
+        # entire tunnel or wake. Fast and Medium cap this region at level four;
+        # retain the existing advanced refinement. Never modify input surfaces.
+        level = p["surface"] + 1 if advanced else min(4, p["surface"] + 2)
+        band_low = [low[0]-.1*length, low[1]-.1*width, .001]
+        band_high = [high[0]+.1*length, high[1]+.1*width,
+                     min(high[2], max(.2*length/4.2, low[2]+.05*length))]
+        underfloor = dict(bounds=[band_low, band_high], level=level, nominal_spacing=cell/2**level)
+        underfloor_geometry = f"underfloor {{type searchableBox; min {vec(band_low)}; max {vec(band_high)};}}"
+        underfloor_region = f"underfloor {{mode inside; levels ((1e15 {level}));}}"
     for part in geometry["parts"]:
         # Resolve an estimated thin dimension with at least two cells. This estimate
         # cannot detect every small local feature, so results still need mesh review.
@@ -316,7 +325,8 @@ relaxationFactors {fields {p .3;} equations {U .7; k .7; omega .7;}}
         preset=p,
         processes=processes,
         local_refinement=local_refinement,
-        underfloor_spacing=cell/2**(p["surface"]+1) if advanced and settings.refine_underfloor else None,
+        underfloor_spacing=underfloor["nominal_spacing"] if underfloor else None,
+        underfloor_refinement=underfloor,
         tunnel_cross_section=cross_section,
         blockage_ratio=blockage_ratio,
     )

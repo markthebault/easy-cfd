@@ -395,6 +395,8 @@ export interface LiveReport {
 
 export const liveReport = (id: string, every: number) => api<LiveReport>(`/runs/${id}/live?every=${Math.max(1, Math.round(every))}`);
 
+export const OPENFOAM_SAMPLING_VERSION = 3;
+
 /** The finished flow on the viewer's grid (UI frame), sampled by the server in its own frame. */
 export async function fetchField(run: ServerRun, carLow: Vec3, carHigh: Vec3, domain: number[], target: number, offset: Vec3, signal?: AbortSignal): Promise<VizField> {
   const L = carHigh[0] - carLow[0];
