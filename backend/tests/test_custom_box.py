@@ -143,8 +143,9 @@ def test_underfloor_refinement_is_local_optional_and_preserves_source(tmp_path, 
         assert f"underfloor {{mode inside; levels ((1e15 {level}));}}" in text
         low, high = band["bounds"]
         length = data["bounds"][1][0] - data["bounds"][0][0]
-        assert high[0]-low[0] == pytest.approx(1.2*length)
-        assert high[2] <= .06*length
+        advanced = profile in ("advanced1", "advanced2")
+        assert high[0]-low[0] == pytest.approx((1.2 if advanced else 1.1)*length)
+        assert high[2] <= (.06 if advanced else .03)*length
         assert low[2] > 0
         assert meta["preset"]["max_cells"] == resolved_preset(settings)["max_cells"]
     for part in data["parts"]:
@@ -206,3 +207,15 @@ def test_failed_mesh_still_blocks_solver_with_specific_reason(client, monkeypatc
         ["snappyHexMesh", "-overwrite"],
         ["checkMesh", "-meshQuality", "-allTopology"],
     ]
+
+
+def test_runtime_estimate_matches_underfloor_setting_and_current_solver(client):
+    project = client.post('/api/projects', json={'sample': True}).json()
+    for key, underfloor, pipeline, seconds in [('a', True, runner.PIPELINE_HASH, 190), ('b', False, runner.PIPELINE_HASH, 77), ('c', True, 'older', 60)]:
+        storage.save('runs', dict(id=key*32, created=storage.now(), status='completed', geometry=project['geometry'],
+                                 settings={**project['settings'], 'quality': 'fast', 'refine_underfloor': underfloor},
+                                 pipeline_hash=pipeline, result=dict(timings={'meshing': seconds})))
+    url = f"/api/projects/{project['id']}/estimate?quality=fast"
+    assert client.get(url).json()['previous_seconds'] == 190
+    client.put(f"/api/projects/{project['id']}/settings", json={**project['settings'], 'refine_underfloor': False})
+    assert client.get(url).json()['previous_seconds'] == 77

@@ -27,6 +27,7 @@ export interface ServerInfo {
   presets: Record<"fast" | "medium" | "precise", ServerPreset>;
   /** Median wall time of completed runs per quality on this server (s). */
   measured: Partial<Record<"fast" | "medium" | "precise", { seconds: number; runs: number }>>;
+  measuredWithoutUnderfloor?: ServerInfo["measured"];
 }
 
 /** Minimal view of a server run record. */
@@ -42,6 +43,7 @@ export interface ServerRun {
   started?: string;
   finished?: string;
   mesh_preset?: Record<string, unknown>;
+  pipeline_hash?: string;
   settings: Record<string, unknown> & { profile?: string; speed_kmh: number; yaw_deg: number; quality: string; reference_area: number; density: number };
   domain?: number[];
   geometry: { parts: ServerPart[]; bounds?: [Vec3, Vec3] };
@@ -101,20 +103,22 @@ export async function probeServer(): Promise<ServerInfo | null> {
     const health = await response.json();
     if (!health || typeof health.ready !== "boolean" || !health.presets) return null;
     const measured: ServerInfo["measured"] = {};
+    const measuredWithoutUnderfloor: ServerInfo["measured"] = {};
     try {
       const runs = await api<ServerRun[]>("/runs");
-      for (const q of ["fast", "medium", "precise"] as const) {
+      for (const underfloor of [true, false]) for (const q of ["fast", "medium", "precise"] as const) {
         const secs = runs
           .filter((r) => r.status === "completed" && r.settings.quality === q && !r.settings.import_test && !r.settings.flow_animation && !(r.settings.profile ?? "").startsWith("advanced") &&
+            (!health.pipeline_hash || r.pipeline_hash === health.pipeline_hash) && (r.settings.refine_underfloor !== false) === underfloor &&
             (q !== "medium" || Object.entries(health.presets.medium).every(([key,value])=>r.mesh_preset?.[key] === value)) && r.started && r.finished)
           .map((r) => (Date.parse(r.finished!) - Date.parse(r.started!)) / 1000)
           .filter((x) => x > 0);
-        if (secs.length) measured[q] = { seconds: median(secs), runs: secs.length };
+        if (secs.length) (underfloor ? measured : measuredWithoutUnderfloor)[q] = { seconds: median(secs), runs: secs.length };
       }
     } catch {
       /* no run list: estimates stay generic */
     }
-    return { ready: health.ready, message: health.message ?? "", cpus: health.cpus, memory_gb: health.memory_gb, presets: health.presets, measured };
+    return { ready: health.ready, message: health.message ?? "", cpus: health.cpus, memory_gb: health.memory_gb, presets: health.presets, measured, measuredWithoutUnderfloor };
   } catch {
     return null;
   }

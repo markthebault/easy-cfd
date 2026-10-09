@@ -199,3 +199,16 @@ test("quick import test reaches the backend without changing ordinary Fast", () 
   assert.equal(settings.max_seconds,180);
   assert.equal(of.serverSettings(types.DEFAULT_SETTINGS).import_test,undefined);
 });
+
+test("runtime history separates underfloor cost and ignores older solver versions",async()=>{
+  const fetchBefore=globalThis.fetch;
+  const run=(seconds,underfloor,pipeline)=>({status:'completed',pipeline_hash:pipeline,settings:{quality:'fast',refine_underfloor:underfloor},started:'2026-10-09T00:00:00Z',finished:new Date(Date.parse('2026-10-09T00:00:00Z')+seconds*1000).toISOString()});
+  globalThis.fetch=async url=>new Response(JSON.stringify(String(url).endsWith('/health')?{ready:true,presets:{fast:{}},pipeline_hash:'current'}:[
+    run(190,true,'current'),run(77,false,'current'),run(60,true,'older'),
+  ]),{headers:{'content-type':'application/json'}});
+  try {
+    const info=await of.probeServer();
+    assert.deepEqual(info.measured.fast,{seconds:190,runs:1});
+    assert.deepEqual(info.measuredWithoutUnderfloor.fast,{seconds:77,runs:1});
+  } finally {globalThis.fetch=fetchBefore;}
+});

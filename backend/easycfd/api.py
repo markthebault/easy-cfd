@@ -58,7 +58,7 @@ async def invalid(request, error):
 
 @app.get("/api/health")
 def health():
-    return {**runner.health(), "presets": PRESETS, "data_directory": str(storage.ROOT)}
+    return {**runner.health(), "presets": PRESETS, "data_directory": str(storage.ROOT), "pipeline_hash": runner.PIPELINE_HASH}
 
 
 @app.get("/api/projects")
@@ -93,6 +93,8 @@ def estimate(key: str, quality: Literal["fast", "medium", "precise", "custom"] =
         if run["status"] != "completed" or run["settings"]["quality"] != quality:
             continue
         saved = Settings(**run["settings"])
+        if run.get("pipeline_hash") != runner.PIPELINE_HASH or saved.refine_underfloor != effective.refine_underfloor:
+            continue
         if saved.simulation_box != effective.simulation_box or (
             quality == "custom"
             and (

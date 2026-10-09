@@ -448,7 +448,7 @@ export function RunStep() {
 
       {openfoam ? (
         !fineFlow && !s.profile?.startsWith("advanced") && (
-          <OpenFoamSummary quality={s.quality} info={server.info} importTest={s.import_test} />
+          <OpenFoamSummary quality={s.quality} info={server.info} importTest={s.import_test} underfloor={s.refine_underfloor !== false} />
         )
       ) : (
         <div className="run-summary">
@@ -572,17 +572,19 @@ function OpenFoamSummary({
   quality,
   info,
   importTest,
+  underfloor,
 }: {
   quality: string;
   info: ServerInfo | null;
   importTest?: boolean;
+  underfloor: boolean;
 }) {
   const q = (quality === "custom" ? "medium" : quality) as
     | "fast"
     | "medium"
     | "precise";
   const p = importTest ? {max_cells:120000,iterations:50,layers:0,label:"Import test"} : info?.presets[q];
-  const m = importTest ? undefined : info?.measured[q];
+  const m = importTest ? undefined : (underfloor ? info?.measured : info?.measuredWithoutUnderfloor)?.[q];
   return (
     <div className="run-summary">
       <div>

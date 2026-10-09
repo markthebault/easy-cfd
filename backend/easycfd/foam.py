@@ -122,9 +122,12 @@ mergePatchPairs ();
         # entire tunnel or wake. Fast and Medium cap this region at level four;
         # retain the existing advanced refinement. Never modify input surfaces.
         level = p["surface"] + 1 if advanced else min(4, p["surface"] + 2)
-        band_low = [low[0]-.1*length, low[1]-.1*width, .001]
-        band_high = [high[0]+.1*length, high[1]+.1*width,
-                     min(high[2], max(.2*length/4.2, low[2]+.05*length))]
+        padding = .1 if advanced else .05
+        road_height = (.2 if advanced else .12)*length/4.2
+        gap_height = low[2] + (.05 if advanced else .025)*length
+        band_low = [low[0]-padding*length, low[1]-padding*width, .001]
+        band_high = [high[0]+padding*length, high[1]+padding*width,
+                     min(high[2], max(road_height, gap_height))]
         underfloor = dict(bounds=[band_low, band_high], level=level, nominal_spacing=cell/2**level)
         underfloor_geometry = f"underfloor {{type searchableBox; min {vec(band_low)}; max {vec(band_high)};}}"
         underfloor_region = f"underfloor {{mode inside; levels ((1e15 {level}));}}"
