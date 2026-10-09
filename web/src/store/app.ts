@@ -1,7 +1,7 @@
 // Application state and the actions the UI calls. Heavy work (parsing, grid preparation, solving)
 // happens here or in workers; components only read state and call these functions.
 
-import { checkGeometry, UNIT_SCALE, DEFAULT_IMPORT, LIMITS, type GeometryReport, type ImportOptions, type Part } from "../geometry/model";
+import { checkGeometry, UNIT_SCALE, DEFAULT_IMPORT, LIMITS, suggestImport, type GeometryReport, type ImportOptions, type Part } from "../geometry/model";
 import type { VizField } from "../solver/extract";
 import { requestDevice, type GpuInfo } from "../solver/gpu";
 import { probeServer, type ServerInfo } from "../engine/openfoam";
@@ -77,6 +77,7 @@ export interface AppState {
   partsVersion: number;
   report: GeometryReport | null;
   busy: string | null;
+  importError: string | null;
   confirmed: boolean;
   step: Step;
   view: View;
@@ -145,6 +146,7 @@ export const app = createStore<AppState>({
   partsVersion: 0,
   report: null,
   busy: null,
+  importError: null,
   confirmed: false,
   step: "car",
   view: "setup",
@@ -269,7 +271,9 @@ async function rebuild(opts: { resetConfirm?: boolean; fit?: boolean } = {}) {
     const grouped = applyGroups(applyOverrides(built, d.overrides), d.overrides, d.groups);
     const parts = grouped.parts;
     const hasStl = d.source.kind === "files" && d.source.files.some((f) => f.name.toLowerCase().endsWith(".stl"));
-    const report = checkGeometry(parts, hasStl);
+    // The local OpenFOAM workflow measures the model without a geometry
+    // acceptance preflight. WebGPU applies its own checks at the Run step.
+    const report = checkGeometry(parts, hasStl, !OPENFOAM_ENABLED);
     app.set((s) => ({
       parts,
       groups: grouped.groups,
@@ -305,13 +309,13 @@ export async function loadSample(wing = false) {
   await setDesign(newDesignDoc(wing ? "Sample car with wing" : "Sample car", { kind: "sample", wing }));
 }
 
-const SUPPORTED = /\.(stl|obj|glb|gltf)$/i;
+const SUPPORTED = /\.(stl|obj|glb|gltf|step|stp|igs|iges)$/i;
 
 export async function importFiles(files: File[], add: boolean) {
   const usable = files.filter((f) => SUPPORTED.test(f.name));
   const skipped = files.length - usable.length;
   if (!usable.length) {
-    toast(skipped ? "Those files are not STL, OBJ, GLB or glTF." : "No files selected.", "error");
+    toast(skipped ? "Those files are not STEP, IGES, STL, OBJ, GLB or glTF." : "No files selected.", "error");
     return;
   }
   const total = usable.reduce((n, f) => n + f.size, 0);
@@ -319,21 +323,53 @@ export async function importFiles(files: File[], add: boolean) {
     toast(`Import up to ${LIMITS.files} files and ${LIMITS.bytes / 1048576} MB at a time.`, "error");
     return;
   }
-  app.set({ busy: "Reading files…" });
-  const cur = app.get().design;
-  const adding = add && cur?.source.kind === "files";
-  const refs: FileRef[] = adding ? [...(cur!.source as { files: FileRef[] }).files] : [];
-  for (const f of usable) {
-    const bytes = await f.arrayBuffer();
-    const hash = await sha256(bytes);
-    if (!(await hasKey("files", hash))) await put("files", { hash, name: f.name, bytes });
-    if (!refs.some((r) => r.hash === hash && r.name === f.name)) refs.push({ hash, name: f.name, base: !adding, size: f.size });
+  if (app.get().busy) return;
+  app.set({ busy: "Reading files…", importError:null });
+  try {
+    const cur = app.get().design;
+    const adding = add && cur?.source.kind === "files";
+    const refs: FileRef[] = adding ? [...(cur!.source as { files: FileRef[] }).files] : [];
+    const data = new Map<string, ArrayBuffer>();
+    for (const f of usable) {
+      const bytes = await f.arrayBuffer();
+      const hash = await sha256(bytes);
+      data.set(hash, bytes);
+      if (!refs.some((r) => r.hash === hash && r.name === f.name)) refs.push({ hash, name: f.name, base: !adding, size: f.size });
+    }
+    const source: SourceRef = { kind: "files", files: refs };
+    app.set({ busy: "Reading geometry…" });
+    const parsed = await rawFromSource(source, data, name => app.set({busy:`Reading ${name}…`}));
+    if (!parsed.length || parsed.some(p => !p.positions.length || p.positions.length % 9 || p.positions.some(v => !Number.isFinite(v))))
+      throw new Error("The file has no usable finite triangle surfaces.");
+    if (parsed.reduce((n, p) => n + p.positions.length / 9, 0) > LIMITS.triangles)
+      throw new Error(`Import at most ${LIMITS.triangles.toLocaleString()} triangles.`);
+    for (const f of refs) {
+      const bytes = data.get(f.hash);
+      if (bytes && !(await hasKey("files", f.hash))) await put("files", { hash: f.hash, name: f.name, bytes });
+    }
+    raw = parsed;
+    rawKey = sourceKey(source);
+    builtKey = "";
+    if (skipped) toast(`${skipped} file${skipped > 1 ? "s" : ""} skipped (unsupported format).`);
+    app.set({ view: "setup", step: "car", run: null });
+    if (adding) await setDesign({ ...cur!, source });
+    else {
+      const d = newDesignDoc(usable[0].name.replace(/\.[^.]+$/, ""), source, cur ? {...cur.settings,axles:undefined} : undefined);
+      d.importOptions = suggestImport(parsed);
+      await setDesign(d);
+    }
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    app.set({ busy: null, importError:message });
+    toast(message, "error");
   }
-  if (skipped) toast(`${skipped} file${skipped > 1 ? "s" : ""} skipped (unsupported format).`);
-  const source: SourceRef = { kind: "files", files: refs };
-  app.set({ view: "setup", step: "car", run: null });
-  if (adding) await setDesign({ ...cur!, source });
-  else await setDesign(newDesignDoc(usable[0].name.replace(/\.[^.]+$/, ""), source, cur ? {...cur.settings,axles:undefined} : undefined));
+}
+
+export async function applyPreparedModel(preview: import("../engine/prepare").PreparationPreview, sourceDesignId: string) {
+  const name = app.get().design?.name ?? "Model";
+  await importFiles([new File([preview.bytes], `${name} prepared.stl`, {type:"model/stl"})], false);
+  const d = app.get().design;
+  if (d && d.id !== sourceDesignId) await setDesign({...d,preparation:{sourceDesignId,report:preview.report},settings:{...d.settings,wheels:false,axles:undefined}});
 }
 
 export async function removeFile(hash: string) {

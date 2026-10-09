@@ -14,6 +14,40 @@ before(async () => {
 });
 after(async () => server?.close());
 
+test("original surface assembly preserves every selected triangle and gap", () => {
+  const first = new Float32Array([0,0,1,1,0,1,0,1,1]);
+  const second = first.map(v=>v+10);
+  const make=(name,positions,enabled=true)=>({id:name,name,file:name+'.stl',positions,role:'body',wheel:null,enabled});
+  const assembly=of.originalSurfaceAssembly([make('body',first),make('wing',second),make('off',first,false)]);
+  assert.deepEqual(Array.from(assembly.positions),[...first,...second]);
+  assert.deepEqual(first,new Float32Array([0,0,1,1,0,1,0,1,1]));
+  assert.equal(assembly.positions.length/9,2);
+});
+
+test("one assembly patch is sampled once and split back onto original parts", async () => {
+  const originalFetch=globalThis.fetch;
+  const points=new Float32Array([0,0,1,1,0,1,0,1,1]);
+  const parts=['body','wing'].map((name,i)=>({id:name,name,file:name+'.stl',positions:points.map(v=>v+i*10),role:'body',wheel:null,enabled:true}));
+  let calls=0;
+  globalThis.fetch=async (url,init)=>{
+    calls++;
+    assert.match(url,/part_id=part0/);
+    assert.deepEqual(Array.from(init.body),[...parts[0].positions,...parts[1].positions]);
+    const bytes=new ArrayBuffer(16+29*6);
+    new Uint32Array(bytes,0,4).set([0x53464345,2,6,50]);
+    new Float32Array(bytes,16,6).set([1,2,3,4,5,6]);
+    new Uint8Array(bytes,16+28*6,6).fill(1);
+    return new Response(bytes,{headers:{'content-type':'application/octet-stream'}});
+  };
+  try {
+    const result=await of.fetchSurface({id:'test',settings:{density:1.225,speed_kmh:100,yaw_deg:0},result:{provenance:{version:'openfoam-wall-integrals-2'}}},parts,[0,0,0],{'body.stl::body':'part0','wing.stl::wing':'part0'});
+    assert.equal(calls,1);
+    assert.deepEqual(Array.from(result[0].cp),[1,2,3]);
+    assert.deepEqual(Array.from(result[1].cp),[4,5,6]);
+    assert.equal(result[1].snapshot.iteration,50);
+  } finally {globalThis.fetch=originalFetch;}
+});
+
 test("UI settings map to the server's settings; Custom quality becomes Medium", () => {
   const s = { ...types.DEFAULT_SETTINGS, quality: "custom", speed_kmh: 130, yaw_deg: 5, simulation_box: { x_min: -10, x_max: 20, y_min: -5, y_max: 5, z_max: 6 } };
   const out = of.serverSettings(s);
@@ -21,7 +55,7 @@ test("UI settings map to the server's settings; Custom quality becomes Medium", 
   assert.equal(out.speed_kmh, 130);
   assert.equal(out.yaw_deg, 5);
   assert.deepEqual(out.simulation_box, s.simulation_box);
-  assert.equal(out.geometry_confirmed, true);
+  assert.equal(out.geometry_confirmed, false);
   // Only fields the server accepts (its model forbids extra ones).
   assert.deepEqual(Object.keys(out).sort(), ["custom_iterations", "custom_mesh", "density", "flow_animation", "geometry_confirmed", "moving_ground", "quality", "reference_area", "simulation_box", "speed_kmh", "wheels", "yaw_deg"]);
 });
@@ -155,4 +189,26 @@ test("Medium timing history excludes detailed wake, advanced and old mesh budget
   ]),{headers:{'content-type':'application/json'}});
   try{assert.deepEqual((await of.probeServer()).measured.medium,{seconds:120,runs:1});}
   finally{globalThis.fetch=fetchBefore;}
+});
+
+test("quick import test reaches the backend without changing ordinary Fast", () => {
+  const settings=of.serverSettings({...types.DEFAULT_SETTINGS,engine:"openfoam",profile:"regular",import_test:true,max_seconds:180});
+  assert.equal(settings.import_test,true);
+  assert.equal(settings.profile,null);
+  assert.equal(settings.quality,"fast");
+  assert.equal(settings.max_seconds,180);
+  assert.equal(of.serverSettings(types.DEFAULT_SETTINGS).import_test,undefined);
+});
+
+test("runtime history separates underfloor cost and ignores older solver versions",async()=>{
+  const fetchBefore=globalThis.fetch;
+  const run=(seconds,underfloor,pipeline)=>({status:'completed',pipeline_hash:pipeline,settings:{quality:'fast',refine_underfloor:underfloor},started:'2026-10-09T00:00:00Z',finished:new Date(Date.parse('2026-10-09T00:00:00Z')+seconds*1000).toISOString()});
+  globalThis.fetch=async url=>new Response(JSON.stringify(String(url).endsWith('/health')?{ready:true,presets:{fast:{}},pipeline_hash:'current'}:[
+    run(190,true,'current'),run(77,false,'current'),run(60,true,'older'),
+  ]),{headers:{'content-type':'application/json'}});
+  try {
+    const info=await of.probeServer();
+    assert.deepEqual(info.measured.fast,{seconds:190,runs:1});
+    assert.deepEqual(info.measuredWithoutUnderfloor.fast,{seconds:77,runs:1});
+  } finally {globalThis.fetch=fetchBefore;}
 });

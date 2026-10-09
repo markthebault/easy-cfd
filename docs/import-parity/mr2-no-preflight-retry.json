@@ -1,0 +1,476 @@
+{
+  "deployed_commit": "177fc854445c9be0fabf2932cd5dce55e057a63b",
+  "source": "MR2 CFD testing.stp",
+  "old_project": "8520ff1d4c3b48c6b4a862d3b829079a",
+  "run": "d9ec04713327409cb79e635092af094a",
+  "project": "32aec03bbb5445f5a1db351040c1c9c8",
+  "status": "completed",
+  "stage": "Complete",
+  "parts": 33,
+  "triangles": 275149,
+  "settings": {
+    "profile": "basic",
+    "axles": null,
+    "vehicle_mass_kg": null,
+    "front_weight_percent": null,
+    "moment_origin": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "part_labels": {
+      "part0": {
+        "id": "MR2 CFD testing.stp::mr2_engine",
+        "name": "mr2_engine",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part1": {
+        "id": "MR2 CFD testing.stp::splitter_stock",
+        "name": "splitter_stock",
+        "group": "g:splitter",
+        "groupName": "Splitter"
+      },
+      "part2": {
+        "id": "MR2 CFD testing.stp::CAD part 3 1",
+        "name": "CAD part 3 1",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part3": {
+        "id": "MR2 CFD testing.stp::CAD part 3 2",
+        "name": "CAD part 3 2",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part4": {
+        "id": "MR2 CFD testing.stp::CAD part 3 3",
+        "name": "CAD part 3 3",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part5": {
+        "id": "MR2 CFD testing.stp::CAD part 4",
+        "name": "CAD part 4",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part6": {
+        "id": "MR2 CFD testing.stp::CAD part 5",
+        "name": "CAD part 5",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part7": {
+        "id": "MR2 CFD testing.stp::CAD part 6",
+        "name": "CAD part 6",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part8": {
+        "id": "MR2 CFD testing.stp::CAD part 7",
+        "name": "CAD part 7",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part9": {
+        "id": "MR2 CFD testing.stp::CAD part 8",
+        "name": "CAD part 8",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part10": {
+        "id": "MR2 CFD testing.stp::CAD part 9",
+        "name": "CAD part 9",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part11": {
+        "id": "MR2 CFD testing.stp::CAD part 10",
+        "name": "CAD part 10",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part12": {
+        "id": "MR2 CFD testing.stp::CAD part 11",
+        "name": "CAD part 11",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part13": {
+        "id": "MR2 CFD testing.stp::CAD part 12",
+        "name": "CAD part 12",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part14": {
+        "id": "MR2 CFD testing.stp::CAD part 13",
+        "name": "CAD part 13",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part15": {
+        "id": "MR2 CFD testing.stp::CAD part 14",
+        "name": "CAD part 14",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part16": {
+        "id": "MR2 CFD testing.stp::CAD part 15",
+        "name": "CAD part 15",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part17": {
+        "id": "MR2 CFD testing.stp::CAD part 16",
+        "name": "CAD part 16",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part18": {
+        "id": "MR2 CFD testing.stp::CAD part 17",
+        "name": "CAD part 17",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part19": {
+        "id": "MR2 CFD testing.stp::CAD part 18",
+        "name": "CAD part 18",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part20": {
+        "id": "MR2 CFD testing.stp::CAD part 19",
+        "name": "CAD part 19",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part21": {
+        "id": "MR2 CFD testing.stp::CAD part 20",
+        "name": "CAD part 20",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part22": {
+        "id": "MR2 CFD testing.stp::CAD part 21",
+        "name": "CAD part 21",
+        "group": "g:wheels",
+        "groupName": "Wheels"
+      },
+      "part23": {
+        "id": "MR2 CFD testing.stp::CAD part 22",
+        "name": "CAD part 22",
+        "group": "g:wheels",
+        "groupName": "Wheels"
+      },
+      "part24": {
+        "id": "MR2 CFD testing.stp::CAD part 23",
+        "name": "CAD part 23",
+        "group": "g:wheels",
+        "groupName": "Wheels"
+      },
+      "part25": {
+        "id": "MR2 CFD testing.stp::CAD part 24",
+        "name": "CAD part 24",
+        "group": "g:wheels",
+        "groupName": "Wheels"
+      },
+      "part26": {
+        "id": "MR2 CFD testing.stp::CAD part 25",
+        "name": "CAD part 25",
+        "group": "g:wheels",
+        "groupName": "Wheels"
+      },
+      "part27": {
+        "id": "MR2 CFD testing.stp::CAD part 26",
+        "name": "CAD part 26",
+        "group": "g:wheels",
+        "groupName": "Wheels"
+      },
+      "part28": {
+        "id": "MR2 CFD testing.stp::CAD part 27",
+        "name": "CAD part 27",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part29": {
+        "id": "MR2 CFD testing.stp::CAD part 28",
+        "name": "CAD part 28",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part30": {
+        "id": "MR2 CFD testing.stp::CAD part 29",
+        "name": "CAD part 29",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part31": {
+        "id": "MR2 CFD testing.stp::CAD part 30",
+        "name": "CAD part 30",
+        "group": "g:wheels",
+        "groupName": "Wheels"
+      },
+      "part32": {
+        "id": "MR2 CFD testing.stp::CAD part 31",
+        "name": "CAD part 31",
+        "group": "g:wheels",
+        "groupName": "Wheels"
+      }
+    },
+    "refine_groups": null,
+    "refine_underfloor": true,
+    "max_seconds": 300,
+    "speed_kmh": 100.0,
+    "yaw_deg": 0.0,
+    "quality": "fast",
+    "simulation_box": null,
+    "custom_mesh": "medium",
+    "custom_iterations": 1000,
+    "reference_area": 2.2,
+    "density": 1.225,
+    "moving_ground": true,
+    "wheels": false,
+    "import_test": false,
+    "flow_animation": false,
+    "flow_detail": "standard",
+    "geometry_confirmed": false
+  },
+  "preserve_coordinates": true,
+  "old_processed_min_z": -0.055524480883032086,
+  "old_upload_min_z": 0.005000000353902578,
+  "new_solver_min_z": 0.005000000353902578,
+  "max_original_upload_position_difference_m": 0.0,
+  "max_transport_position_difference_m": 7.966605153342243e-11,
+  "source_triangles_preserved": true,
+  "solver_input_byte_identical": true,
+  "checkMesh_OK": true,
+  "iteration": 300,
+  "result": {
+    "cells": 34017,
+    "iteration": 300.0,
+    "cd": 0.47815155027320005,
+    "cl": -0.7806579425326001,
+    "residual_converged": true,
+    "force_settled": true,
+    "warnings": [
+      "This run uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+      "Only 0% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review.",
+      "Mesh resolution: 20 parts have fewer than six boundary faces (00-mr2_engine 1: 0; 01-splitter_stock 1: 3; 03-CAD_part_3_2 1: 0; 04-CAD_part_3_3 1: 0; 05-CAD_part_4 1: 0; 06-CAD_part_5 1: 0; 07-CAD_part_6 1: 0; 08-CAD_part_7 1: 0; 10-CAD_part_9 1: 1; 11-CAD_part_10 1: 1; 12-CAD_part_11 1: 1; 13-CAD_part_12 1: 1; 15-CAD_part_14 1: 2; 16-CAD_part_15 1: 2; 19-CAD_part_18 1: 1; 20-CAD_part_19 1: 1; 24-CAD_part_23 1: 5; 29-CAD_part_28 1: 3; 30-CAD_part_29 1: 3; 31-CAD_part_30 1: 5). Small, internal or sheltered parts may have few or no fluid-facing cells. Zero-face parts contribute no forces; sparse-part forces and local flow need resolution review."
+    ],
+    "mesh_part_coverage": [
+      {
+        "id": "part0",
+        "name": "00-mr2_engine 1",
+        "faces": 0,
+        "sparse": true
+      },
+      {
+        "id": "part1",
+        "name": "01-splitter_stock 1",
+        "faces": 3,
+        "sparse": true
+      },
+      {
+        "id": "part2",
+        "name": "02-CAD_part_3_1 1",
+        "faces": 370,
+        "sparse": false
+      },
+      {
+        "id": "part3",
+        "name": "03-CAD_part_3_2 1",
+        "faces": 0,
+        "sparse": true
+      },
+      {
+        "id": "part4",
+        "name": "04-CAD_part_3_3 1",
+        "faces": 0,
+        "sparse": true
+      },
+      {
+        "id": "part5",
+        "name": "05-CAD_part_4 1",
+        "faces": 0,
+        "sparse": true
+      },
+      {
+        "id": "part6",
+        "name": "06-CAD_part_5 1",
+        "faces": 0,
+        "sparse": true
+      },
+      {
+        "id": "part7",
+        "name": "07-CAD_part_6 1",
+        "faces": 0,
+        "sparse": true
+      },
+      {
+        "id": "part8",
+        "name": "08-CAD_part_7 1",
+        "faces": 0,
+        "sparse": true
+      },
+      {
+        "id": "part9",
+        "name": "09-CAD_part_8 1",
+        "faces": 346,
+        "sparse": false
+      },
+      {
+        "id": "part10",
+        "name": "10-CAD_part_9 1",
+        "faces": 1,
+        "sparse": true
+      },
+      {
+        "id": "part11",
+        "name": "11-CAD_part_10 1",
+        "faces": 1,
+        "sparse": true
+      },
+      {
+        "id": "part12",
+        "name": "12-CAD_part_11 1",
+        "faces": 1,
+        "sparse": true
+      },
+      {
+        "id": "part13",
+        "name": "13-CAD_part_12 1",
+        "faces": 1,
+        "sparse": true
+      },
+      {
+        "id": "part14",
+        "name": "14-CAD_part_13 1",
+        "faces": 27,
+        "sparse": false
+      },
+      {
+        "id": "part15",
+        "name": "15-CAD_part_14 1",
+        "faces": 2,
+        "sparse": true
+      },
+      {
+        "id": "part16",
+        "name": "16-CAD_part_15 1",
+        "faces": 2,
+        "sparse": true
+      },
+      {
+        "id": "part17",
+        "name": "17-CAD_part_16 1",
+        "faces": 14,
+        "sparse": false
+      },
+      {
+        "id": "part18",
+        "name": "18-CAD_part_17 1",
+        "faces": 15,
+        "sparse": false
+      },
+      {
+        "id": "part19",
+        "name": "19-CAD_part_18 1",
+        "faces": 1,
+        "sparse": true
+      },
+      {
+        "id": "part20",
+        "name": "20-CAD_part_19 1",
+        "faces": 1,
+        "sparse": true
+      },
+      {
+        "id": "part21",
+        "name": "21-CAD_part_20 1",
+        "faces": 7,
+        "sparse": false
+      },
+      {
+        "id": "part22",
+        "name": "22-CAD_part_21 1",
+        "faces": 11,
+        "sparse": false
+      },
+      {
+        "id": "part23",
+        "name": "23-CAD_part_22 1",
+        "faces": 8,
+        "sparse": false
+      },
+      {
+        "id": "part24",
+        "name": "24-CAD_part_23 1",
+        "faces": 5,
+        "sparse": true
+      },
+      {
+        "id": "part25",
+        "name": "25-CAD_part_24 1",
+        "faces": 12,
+        "sparse": false
+      },
+      {
+        "id": "part26",
+        "name": "26-CAD_part_25 1",
+        "faces": 8,
+        "sparse": false
+      },
+      {
+        "id": "part27",
+        "name": "27-CAD_part_26 1",
+        "faces": 10,
+        "sparse": false
+      },
+      {
+        "id": "part28",
+        "name": "28-CAD_part_27 1",
+        "faces": 45,
+        "sparse": false
+      },
+      {
+        "id": "part29",
+        "name": "29-CAD_part_28 1",
+        "faces": 3,
+        "sparse": true
+      },
+      {
+        "id": "part30",
+        "name": "30-CAD_part_29 1",
+        "faces": 3,
+        "sparse": true
+      },
+      {
+        "id": "part31",
+        "name": "31-CAD_part_30 1",
+        "faces": 5,
+        "sparse": true
+      },
+      {
+        "id": "part32",
+        "name": "32-CAD_part_31 1",
+        "faces": 8,
+        "sparse": false
+      }
+    ],
+    "timings": {
+      "blockMesh": 0.6569527090032352,
+      "snappyHexMesh": 6.470086916000582,
+      "checkMesh": 1.1690035420033382,
+      "decomposePar": 1.3123090830049478,
+      "simpleFoam": 57.46623695800372,
+      "reconstructPar": 0.6528334159957012
+    }
+  },
+  "error": null,
+  "transport_within_serialization_precision": true,
+  "browser_result_opened": true,
+  "screenshot": "mr2-full-original-fast-no-preflight.png",
+  "source_sha256": "aa5a09f4235fb49029af7b33ade43e6a5da8ee23266c956a2aa6629eeb0b08dc"
+}

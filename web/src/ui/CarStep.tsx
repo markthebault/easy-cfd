@@ -1,6 +1,7 @@
 // Step 1: the car. Source files, units and axes, clearance, parts and roles, geometry checks.
 
 import { useRef, useState } from "react";
+import { OPENFOAM_ENABLED } from "../engine/features";
 import { AlertTriangle, ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, CircleAlert, FlipVertical2, Lightbulb, Plus, RotateCw, Upload, X } from "lucide-react";
 import type { AxisName, Units } from "../geometry/model";
 import { useStore } from "../store/store";
@@ -10,6 +11,7 @@ import {
 import { ROAD_CONTACT_ERROR, roadPosition } from "../geometry/roadPosition";
 import { fixAxes, flipUpsideDown, swapNoseTail, turn90 } from "../store/geometry";
 import { Field, NumberField, Segmented, Toggle } from "./controls";
+import { PrepareGeometry } from "./PrepareGeometry";
 import { GroupsPanel } from "./GroupsPanel";
 import { fmt, fmtInt } from "./format";
 
@@ -20,6 +22,7 @@ const nextUp = (forward: AxisName, up: AxisName): AxisName =>
   (["+Z", "+Y", "+X"] as AxisName[]).find((a) => a[1] !== forward[1] && a[1] !== up[1])!;
 
 export function CarStep() {
+  const importError = useStore(app, s => s.importError);
   const design = useStore(app, (s) => s.design)!;
   const report = useStore(app, (s) => s.report);
   const confirmed = useStore(app, (s) => s.confirmed);
@@ -27,11 +30,13 @@ export function CarStep() {
   const busy = useStore(app, (s) => s.busy);
   const addInput = useRef<HTMLInputElement>(null);
   const [allFiles, setAllFiles] = useState(false);
+  const [preparing, setPreparing] = useState(false);
+  const server = useStore(app, s => s.server.status);
   const replaceInput = useRef<HTMLInputElement>(null);
   const o = design.importOptions;
   const sample = design.source.kind === "sample";
   const dims = report?.dimensions ?? [0, 0, 0];
-  const canContinue = !busy && !!report && report.errors.length === 0 && confirmed;
+  const canContinue = !busy && !!report && (OPENFOAM_ENABLED || (report.errors.length === 0 && confirmed));
   const position = roadPosition(parts);
   const height = position.height ?? 0;
   const geometryErrors = report?.errors.filter(e => e !== ROAD_CONTACT_ERROR) ?? [];
@@ -39,6 +44,7 @@ export function CarStep() {
 
   return (
     <div className="step-body">
+      {importError && <p className="inline-error" role="alert">Import failed: {importError}</p>}
       <div className="source-row">
         {sample ? (
           <div className="source-sample">
@@ -80,9 +86,11 @@ export function CarStep() {
             <Upload size={15} /> {sample ? "Use my car" : "Replace"}
           </button>
         </div>
-        <input ref={addInput} type="file" hidden multiple accept=".stl,.obj,.glb,.gltf" onChange={(e) => { importFiles([...(e.target.files ?? [])], true); e.target.value = ""; }} />
-        <input ref={replaceInput} type="file" hidden multiple accept=".stl,.obj,.glb,.gltf" onChange={(e) => { importFiles([...(e.target.files ?? [])], false); e.target.value = ""; }} />
+        <input ref={addInput} type="file" hidden multiple accept=".step,.stp,.igs,.iges,.stl,.obj,.glb,.gltf" onChange={(e) => { importFiles([...(e.target.files ?? [])], true); e.target.value = ""; }} />
+        <input ref={replaceInput} type="file" hidden multiple accept=".step,.stp,.igs,.iges,.stl,.obj,.glb,.gltf" onChange={(e) => { importFiles([...(e.target.files ?? [])], false); e.target.value = ""; }} />
       </div>
+
+      {!sample && design.source.kind === "files" && design.source.files.some(f => /\.(step|stp|igs|iges)$/i.test(f.name)) && <p className="muted small">CAD dimensions use the units stored in the file. File units below apply to mesh files.</p>}
 
       <div className="dims" aria-label="Car dimensions">
         {(["Length", "Width", "Height"] as const).map((label, i) => (
@@ -161,12 +169,15 @@ export function CarStep() {
         </Field>
       </div>
 
+      {!sample && server === "ready" && <div className="group"><button className="btn ghost sm" disabled={!!busy} onClick={() => setPreparing(true)}>Prepare for OpenFOAM</button><small className="field-hint">Preview a closed exterior for open or fragmented models.</small></div>}
+      {design.preparation && <p className="issue warn">Prepared exterior: {design.preparation.report.pitch_mm} mm resolution, gaps up to {design.preparation.report.effective_gap_mm} mm closed. Review wing gaps and small details. Wheels are fixed.</p>}
+      {preparing && <PrepareGeometry close={() => setPreparing(false)} />}
       <GroupsPanel />
       <small className="field-hint">Wheels spin at road speed about their centre when "Rotating wheels" is on.</small>
 
       <label className={`confirm ${confirmed ? "on" : ""}`}>
         <input type="checkbox" disabled={!!busy || !report} checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
-        <span>I checked size, orientation, wheels and clearance.</span>
+        <span>I checked size, orientation, wheels and clearance.{OPENFOAM_ENABLED ? " (Optional for OpenFOAM.)" : ""}</span>
       </label>
       <button className="btn primary block" disabled={!canContinue} onClick={() => goStep("conditions")}>
         Continue to conditions

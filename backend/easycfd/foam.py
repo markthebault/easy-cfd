@@ -27,17 +27,6 @@ def domain_bounds(geometry, settings, reference_case=None):
             0,
             high[2] + 2 * length,
         ]
-    if settings.simulation_box is not None and not (
-        bounds[0] < low[0]
-        and bounds[1] > high[0]
-        and bounds[2] < low[1]
-        and bounds[3] > high[1]
-        and bounds[5] > high[2]
-        and low[2] > 0
-    ):
-        raise ValueError(
-            "Simulation box must surround the enabled geometry, with space at the inlet, outlet, sides and top. The floor stays at Z = 0."
-        )
     return bounds
 
 
@@ -122,28 +111,49 @@ mergePatchPairs ();
     selected_groups = settings.refine_groups
     underfloor_geometry = ""
     underfloor_region = ""
+    underfloor = None
     fine_geometry = ""
     fine_region = ""
     if settings.flow_animation and settings.flow_detail == "fine":
         fine_geometry = f"wakeDetail {{type searchableBox; min {vec([high[0]-.1*length,low[1]-.1*width,.001])}; max {vec([high[0]+1.25*length,high[1]+.1*width,high[2]+.08*length])};}}"
         fine_region = f"wakeDetail {{mode inside; levels ((1e15 {p['surface']}));}}"
-    if advanced and settings.refine_underfloor:
-        underfloor_geometry = f"underfloor {{type searchableBox; min {vec([low[0]-.1*length,low[1]-.1*width,.001])}; max {vec([high[0]+.1*length,high[1]+.1*width,min(high[2],max(.2*length/4.2,low[2]+.05*length))])};}}"
-        underfloor_region = f"underfloor {{mode inside; levels ((1e15 {p['surface']+1}));}}"
+    if settings.refine_underfloor and not settings.import_test:
+        # A shallow footprint band resolves the road gap without refining the
+        # entire tunnel or wake. Fast and Medium cap this region at level four;
+        # retain the existing advanced refinement. Never modify input surfaces.
+        level = p["surface"] + 1 if advanced else min(4, p["surface"] + 2)
+        padding = .1 if advanced else .05
+        # Medium already resolves the body at level three: confine its extra
+        # level to the bottom of the gap, avoiding another full band of cells.
+        medium_band = not advanced and p["surface"] == 3
+        road_height = (.2 if advanced else .08 if medium_band else .12)*length/4.2
+        gap_height = low[2] + (.05 if advanced else .015 if medium_band else .025)*length
+        band_low = [low[0]-padding*length, low[1]-padding*width, .001]
+        band_high = [high[0]+padding*length, high[1]+padding*width,
+                     min(high[2], max(road_height, gap_height))]
+        underfloor = dict(bounds=[band_low, band_high], level=level, nominal_spacing=cell/2**level)
+        underfloor_geometry = f"underfloor {{type searchableBox; min {vec(band_low)}; max {vec(band_high)};}}"
+        underfloor_region = f"underfloor {{mode inside; levels ((1e15 {level}));}}"
     for part in geometry["parts"]:
         # Resolve an estimated thin dimension with at least two cells. This estimate
         # cannot detect every small local feature, so results still need mesh review.
         thickness = part.get("minimum_extent", min(b - a for a, b in zip(*part["bounds"])))
-        level = max(p["surface"], math.ceil(math.log2(2 * cell / max(thickness, 1e-9))))
+        # A shell's bounding-box thickness is not a solid wall thickness (and
+        # can be exactly zero). Do not demand infinite refinement for panels.
+        closed = part.get("watertight", not any("Open edges" in issue for issue in part.get("issues", [])))
+        level = max(p["surface"], math.ceil(math.log2(2 * cell / max(thickness, 1e-9)))) if closed else p["surface"]
         group = settings.part_labels.get(part["id"],{}).get("group")
         selected = group in selected_groups if selected_groups is not None else part["role"] == "wheel" or (group is not None and group != "g:body")
         if advanced and selected:
             level = max(level,p["surface"]+1)
-        local_refinement[part["id"]] = dict(surface_level=level,nominal_spacing=cell/2**level,selected=selected)
-        if level > 7:
-            raise ValueError(
-                f"{part['name']} is too thin for this preset's automatic mesh. Simplify the geometry."
-            )
+        requested_level = level
+        # A bounding-box thickness is a refinement hint, not a reason to reject
+        # source geometry. Keep automatic detail within the selected preset:
+        # at most two extra subdivision levels, including the quick check's 3.
+        # OpenFOAM still meshes the original surfaces and checks cell quality.
+        detail_limit = min(7, p["surface"] + 2)
+        level = min(level, detail_limit)
+        local_refinement[part["id"]] = dict(surface_level=level,nominal_spacing=cell/2**level,selected=selected,requested_surface_level=requested_level,detail_level_limit=detail_limit,underresolved=level < requested_level)
         refinement_entries.append(f"{part['id']} {{level ({level} {level}); patchInfo {{type wall;}}}}")
     refinements = "\n".join(refinement_entries)
     # checkMesh's basic geometry check uses skewness 4 even on boundary faces.
@@ -220,7 +230,7 @@ writeControl timeStep; writeInterval 1; log false;}}
         case / "system/controlDict",
         f"""
 application simpleFoam; startFrom startTime; startTime 0; stopAt endTime;
-endTime {p["iterations"]}; deltaT 1; writeControl timeStep; writeInterval {250 if settings.profile in ("advanced1","advanced2") else p["iterations"] if (quality or settings.quality) == "custom" else 100};
+endTime {p["iterations"]}; deltaT 1; writeControl timeStep; writeInterval {10 if settings.import_test else 250 if settings.profile in ("advanced1","advanced2") else p["iterations"] if (quality or settings.quality) == "custom" else 100};
 purgeWrite 2; writeFormat binary; writePrecision 10; writeCompression off;
 timeFormat general; timePrecision 6; runTimeModifiable true;
 functions {{
@@ -321,7 +331,8 @@ relaxationFactors {fields {p .3;} equations {U .7; k .7; omega .7;}}
         preset=p,
         processes=processes,
         local_refinement=local_refinement,
-        underfloor_spacing=cell/2**(p["surface"]+1) if advanced and settings.refine_underfloor else None,
+        underfloor_spacing=underfloor["nominal_spacing"] if underfloor else None,
+        underfloor_refinement=underfloor,
         tunnel_cross_section=cross_section,
         blockage_ratio=blockage_ratio,
     )

@@ -34,6 +34,7 @@ export interface PartGroup {
 }
 
 export interface DesignDoc {
+  preparation?: { sourceDesignId: string; report: import("../engine/prepare").PreparationReport };
   id: string;
   name: string;
   createdAt: number;
@@ -99,6 +100,8 @@ export interface EncodedField {
 
 export interface FieldDoc {
   id: string;
+  /** Server sampler revision, independent of the saved aerodynamic result. */
+  openfoamSamplingVersion?: number;
   field: EncodedField;
   animation?: Omit<FlowAnimation, "frames"> & { frames: { time: number; field: EncodedField }[] };
   /** Dense recordings store each frame separately; animation holds their metadata. */

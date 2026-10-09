@@ -30,9 +30,10 @@ from . import storage
 router = APIRouter()
 
 # Bump when sampling or encoding changes, so cached fields are rebuilt.
-VERSION = 2
+VERSION = 3
 MAX_POINTS = 2_500_000
 MAX_VERTICES = 6_000_000
+STRESS_QUERY_CHUNK = 65_536
 SAMPLING_LOCK = threading.Lock()
 
 
@@ -145,6 +146,29 @@ def volume_reader(results: Path):
     return reader
 
 
+def restore_road_velocity(volume, results: Path):
+    """Restore the solver's road boundary before interpolating cell-derived point data.
+
+    VTK's cell-to-point averaging ignores fixedValue patches. In particular it can
+    invent vertical velocity at the road and send low streamlines through it.
+    Only boundary vertices are changed; native cell velocities and validity stay
+    untouched. Runs without boundary metadata retain their original sampling.
+    """
+    record = results.parent / "record.json"
+    if not record.exists():
+        return
+    settings = json.loads(record.read_text())["settings"]
+    if "moving_ground" not in settings:
+        return
+    points = vtk_to_numpy(volume.GetPoints().GetData())
+    road = np.abs(points[:, 2]) <= 1e-8
+    velocity = vtk_to_numpy(volume.GetPointData().GetArray("U"))
+    velocity[road] = [settings["speed_kmh"] / 3.6 if settings["moving_ground"] else 0, 0, 0]
+    speed = volume.GetPointData().GetArray("Speed")
+    if speed is not None:
+        vtk_to_numpy(speed)[road] = np.linalg.norm(velocity[road], axis=1)
+
+
 def sample_field(results: Path, request: FieldRequest) -> bytes:
     """Little-endian float32 u, v, w, p (kinematic), k and a uint8 valid mask, x fastest."""
     nx, ny, nz = request.dims
@@ -152,10 +176,13 @@ def sample_field(results: Path, request: FieldRequest) -> bytes:
     grid.SetDimensions(nx, ny, nz)
     grid.SetOrigin(request.origin)
     grid.SetSpacing(request.spacing)
-    reader = volume_reader(results)  # keep a reference: the probe only holds its output port
+    reader = volume_reader(results)
+    reader.Update()
+    volume = reader.GetOutput()
+    restore_road_velocity(volume, results)
     probe = vtk.vtkProbeFilter()
     probe.SetInputData(grid)
-    probe.SetSourceConnection(reader.GetOutputPort())
+    probe.SetSourceData(volume)
     probe.Update()
     data = probe.GetOutput().GetPointData()
     valid = vtk_to_numpy(data.GetArray("vtkValidPointMask")).astype(bool)
@@ -284,17 +311,23 @@ def sample_stress(results: Path, positions: np.ndarray, part_id: str):
     outward = np.repeat(outward, 3, axis=0)
     # VTK boundary polygons preserve the fluid's outward normal (toward the solid).
     tree = cKDTree(points)
-    distance, index = tree.query(positions.reshape(-1, 3), k=min(32, len(points)))
-    distance = np.asarray(distance).reshape(n, -1)
-    index = np.asarray(index).reshape(n, -1)
-    aligned = np.sum(normals[index] * outward[:, None, :], axis=2) < -0.25
-    nearby = distance <= 2 * np.sqrt(np.maximum(area[index], 1e-30))
-    matches = aligned & nearby
     valid.fill(2)
-    good = matches.any(axis=1)
-    chosen = index[np.arange(n), matches.argmax(axis=1)]
-    stress[good] = values[chosen[good]]
-    valid[good] = np.where(np.isfinite(stress[good]).all(axis=1), 1, 3)
+    # A large CAD assembly has millions of soup vertices. Gathering all 32 candidate
+    # normals at once exhausts the worker's RSS limit; keep identical matches in batches.
+    vertices = positions.reshape(-1, 3)
+    for start in range(0, n, STRESS_QUERY_CHUNK):
+        end = min(start + STRESS_QUERY_CHUNK, n)
+        distance, index = tree.query(vertices[start:end], k=min(32, len(points)))
+        distance = np.asarray(distance).reshape(end - start, -1)
+        index = np.asarray(index).reshape(end - start, -1)
+        aligned = np.sum(normals[index] * outward[start:end, None, :], axis=2) < -0.25
+        nearby = distance <= 2 * np.sqrt(np.maximum(area[index], 1e-30))
+        matches = aligned & nearby
+        good = matches.any(axis=1)
+        chosen = index[np.arange(end - start), matches.argmax(axis=1)]
+        stress_chunk = stress[start:end]
+        stress_chunk[good] = values[chosen[good]]
+        valid[start:end][good] = np.where(np.isfinite(stress_chunk[good]).all(axis=1), 1, 3)
     valid[degenerate] = 3
     return stress, valid
 

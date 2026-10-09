@@ -1,0 +1,396 @@
+{
+  "id": "b92e83be660c4da3a5ccadcd82e509f0",
+  "project": "eb984f3b20334bfea98cdd2c18c58502",
+  "failed_run": "c250c840856c412b959ea53ffe6cb5b3",
+  "commit": "584d8c3275f394937d42aca1ee6c61aa0e03c486",
+  "settings": {
+    "profile": "basic",
+    "axles": {
+      "frontX": -1.2054077237844467,
+      "rearX": 1.1912932842969894,
+      "centrelineY": 0.0,
+      "confirmed": true,
+      "source": "wheels"
+    },
+    "vehicle_mass_kg": null,
+    "front_weight_percent": null,
+    "moment_origin": [
+      -1.2054077237844467,
+      0.0,
+      0.0
+    ],
+    "part_labels": {
+      "part0": {
+        "id": "mr2 stock.stp::mr2_radiator",
+        "name": "mr2_radiator",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part1": {
+        "id": "mr2 stock.stp::CAD part 2",
+        "name": "CAD part 2",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part2": {
+        "id": "mr2 stock.stp::CAD part 3",
+        "name": "CAD part 3",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part3": {
+        "id": "mr2 stock.stp::CAD part 4",
+        "name": "CAD part 4",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part4": {
+        "id": "mr2 stock.stp::CAD part 5",
+        "name": "CAD part 5",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part13": {
+        "id": "mr2 stock.stp::mr2_wheel_rebuild",
+        "name": "mr2_wheel_rebuild",
+        "group": "g:wheels",
+        "groupName": "Wheels"
+      },
+      "part7": {
+        "id": "mr2 stock.stp::CAD part 8",
+        "name": "CAD part 8",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part8": {
+        "id": "mr2 stock.stp::CAD part 9",
+        "name": "CAD part 9",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part9": {
+        "id": "mr2 stock.stp::splitter_stock",
+        "name": "splitter_stock",
+        "group": "g:splitter",
+        "groupName": "Splitter"
+      },
+      "part10": {
+        "id": "mr2 stock.stp::mr2_wing_rebuild",
+        "name": "mr2_wing_rebuild",
+        "group": "g:rear-wing",
+        "groupName": "Rear wing"
+      },
+      "part14": {
+        "id": "mr2 stock.stp::axle",
+        "name": "axle",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part15": {
+        "id": "mr2 stock.stp::mr2_rebuild 1",
+        "name": "mr2_rebuild 1",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part16": {
+        "id": "mr2 stock.stp::mr2_rebuild 2",
+        "name": "mr2_rebuild 2",
+        "group": "g:body",
+        "groupName": "Body"
+      },
+      "part17": {
+        "id": "mr2 stock.stp::mr2_rebuild 3",
+        "name": "mr2_rebuild 3",
+        "group": "g:body",
+        "groupName": "Body"
+      }
+    },
+    "refine_groups": null,
+    "refine_underfloor": true,
+    "max_seconds": 300,
+    "speed_kmh": 100.0,
+    "yaw_deg": 0.0,
+    "quality": "fast",
+    "simulation_box": null,
+    "custom_mesh": "medium",
+    "custom_iterations": 1000,
+    "reference_area": 2.2,
+    "density": 1.225,
+    "moving_ground": true,
+    "wheels": false,
+    "import_test": false,
+    "flow_animation": false,
+    "flow_detail": "standard",
+    "geometry_confirmed": true
+  },
+  "same_settings": true,
+  "same_original_stl_bytes": true,
+  "triangles": 24178,
+  "parts": 18,
+  "mesh_ok": true,
+  "cells": 60825,
+  "iterations": 300.0,
+  "local_refinement": {
+    "part0": {
+      "surface_level": 4,
+      "nominal_spacing": 0.04004222473927906,
+      "selected": false,
+      "requested_surface_level": 5,
+      "detail_level_limit": 4,
+      "underresolved": true
+    },
+    "part1": {
+      "surface_level": 4,
+      "nominal_spacing": 0.04004222473927906,
+      "selected": false,
+      "requested_surface_level": 5,
+      "detail_level_limit": 4,
+      "underresolved": true
+    },
+    "part2": {
+      "surface_level": 4,
+      "nominal_spacing": 0.04004222473927906,
+      "selected": false,
+      "requested_surface_level": 5,
+      "detail_level_limit": 4,
+      "underresolved": true
+    },
+    "part3": {
+      "surface_level": 4,
+      "nominal_spacing": 0.04004222473927906,
+      "selected": false,
+      "requested_surface_level": 5,
+      "detail_level_limit": 4,
+      "underresolved": true
+    },
+    "part4": {
+      "surface_level": 4,
+      "nominal_spacing": 0.04004222473927906,
+      "selected": false,
+      "requested_surface_level": 6,
+      "detail_level_limit": 4,
+      "underresolved": true
+    },
+    "part5": {
+      "surface_level": 3,
+      "nominal_spacing": 0.08008444947855813,
+      "selected": true,
+      "requested_surface_level": 3,
+      "detail_level_limit": 4,
+      "underresolved": false
+    },
+    "part6": {
+      "surface_level": 3,
+      "nominal_spacing": 0.08008444947855813,
+      "selected": true,
+      "requested_surface_level": 3,
+      "detail_level_limit": 4,
+      "underresolved": false
+    },
+    "part7": {
+      "surface_level": 4,
+      "nominal_spacing": 0.04004222473927906,
+      "selected": false,
+      "requested_surface_level": 4,
+      "detail_level_limit": 4,
+      "underresolved": false
+    },
+    "part8": {
+      "surface_level": 2,
+      "nominal_spacing": 0.16016889895711625,
+      "selected": false,
+      "requested_surface_level": 2,
+      "detail_level_limit": 4,
+      "underresolved": false
+    },
+    "part9": {
+      "surface_level": 4,
+      "nominal_spacing": 0.04004222473927906,
+      "selected": true,
+      "requested_surface_level": 4,
+      "detail_level_limit": 4,
+      "underresolved": false
+    },
+    "part10": {
+      "surface_level": 4,
+      "nominal_spacing": 0.04004222473927906,
+      "selected": true,
+      "requested_surface_level": 4,
+      "detail_level_limit": 4,
+      "underresolved": false
+    },
+    "part11": {
+      "surface_level": 3,
+      "nominal_spacing": 0.08008444947855813,
+      "selected": true,
+      "requested_surface_level": 3,
+      "detail_level_limit": 4,
+      "underresolved": false
+    },
+    "part12": {
+      "surface_level": 4,
+      "nominal_spacing": 0.04004222473927906,
+      "selected": false,
+      "requested_surface_level": 5,
+      "detail_level_limit": 4,
+      "underresolved": true
+    },
+    "part13": {
+      "surface_level": 3,
+      "nominal_spacing": 0.08008444947855813,
+      "selected": true,
+      "requested_surface_level": 3,
+      "detail_level_limit": 4,
+      "underresolved": false
+    },
+    "part14": {
+      "surface_level": 4,
+      "nominal_spacing": 0.04004222473927906,
+      "selected": false,
+      "requested_surface_level": 5,
+      "detail_level_limit": 4,
+      "underresolved": true
+    },
+    "part15": {
+      "surface_level": 2,
+      "nominal_spacing": 0.16016889895711625,
+      "selected": false,
+      "requested_surface_level": 2,
+      "detail_level_limit": 4,
+      "underresolved": false
+    },
+    "part16": {
+      "surface_level": 4,
+      "nominal_spacing": 0.04004222473927906,
+      "selected": false,
+      "requested_surface_level": 8,
+      "detail_level_limit": 4,
+      "underresolved": true
+    },
+    "part17": {
+      "surface_level": 4,
+      "nominal_spacing": 0.04004222473927906,
+      "selected": false,
+      "requested_surface_level": 8,
+      "detail_level_limit": 4,
+      "underresolved": true
+    }
+  },
+  "mesh_part_coverage": [
+    {
+      "id": "part0",
+      "name": "00-mr2_radiator 1",
+      "faces": 217,
+      "sparse": false
+    },
+    {
+      "id": "part1",
+      "name": "01-CAD_part_2 1",
+      "faces": 22,
+      "sparse": false
+    },
+    {
+      "id": "part2",
+      "name": "02-CAD_part_3 1",
+      "faces": 185,
+      "sparse": false
+    },
+    {
+      "id": "part3",
+      "name": "03-CAD_part_4 1",
+      "faces": 20,
+      "sparse": false
+    },
+    {
+      "id": "part4",
+      "name": "04-CAD_part_5 1",
+      "faces": 181,
+      "sparse": false
+    },
+    {
+      "id": "part5",
+      "name": "05-mr2_wheel_rebuild 1",
+      "faces": 222,
+      "sparse": false
+    },
+    {
+      "id": "part6",
+      "name": "06-mr2_wheel_rebuild 1",
+      "faces": 221,
+      "sparse": false
+    },
+    {
+      "id": "part7",
+      "name": "07-CAD_part_8 1",
+      "faces": 333,
+      "sparse": false
+    },
+    {
+      "id": "part8",
+      "name": "08-CAD_part_9 1",
+      "faces": 217,
+      "sparse": false
+    },
+    {
+      "id": "part9",
+      "name": "09-splitter_stock 1",
+      "faces": 183,
+      "sparse": false
+    },
+    {
+      "id": "part10",
+      "name": "10-mr2_wing_rebuild 1",
+      "faces": 455,
+      "sparse": false
+    },
+    {
+      "id": "part11",
+      "name": "11-mr2_wheel_rebuild 1",
+      "faces": 231,
+      "sparse": false
+    },
+    {
+      "id": "part12",
+      "name": "12-axle 1",
+      "faces": 15,
+      "sparse": false
+    },
+    {
+      "id": "part13",
+      "name": "13-mr2_wheel_rebuild 1",
+      "faces": 218,
+      "sparse": false
+    },
+    {
+      "id": "part14",
+      "name": "14-axle 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part15",
+      "name": "15-mr2_rebuild_1 1",
+      "faces": 5291,
+      "sparse": false
+    },
+    {
+      "id": "part16",
+      "name": "16-mr2_rebuild_2 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part17",
+      "name": "17-mr2_rebuild_3 1",
+      "faces": 0,
+      "sparse": true
+    }
+  ],
+  "warnings": [
+    "Automatic detail refinement was capped for 9 parts to stay within the selected mesh preset. Original surfaces were retained; thin features may be under-resolved. Review local mesh coverage before interpreting their forces or flow.",
+    "This run uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+    "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+    "Only 15% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review.",
+    "Mesh resolution: 3 parts have fewer than six boundary faces (14-axle 1: 0; 16-mr2_rebuild_2 1: 0; 17-mr2_rebuild_3 1: 0). Small, internal or sheltered parts may have few or no fluid-facing cells. Zero-face parts contribute no forces; sparse-part forces and local flow need resolution review."
+  ]
+}

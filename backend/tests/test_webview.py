@@ -105,6 +105,38 @@ def test_viz_field_rejects_unfinished_runs_and_huge_grids(client, tmp_path):
     assert client.post(f"/api/runs/{key}/viz-field", json=dict(origin=[0, 0, 0], spacing=[1, 1, 1], dims=[2000, 2000, 2])).status_code == 400
 
 
+@pytest.mark.parametrize("moving", [True, False])
+def test_road_boundary_is_restored_before_interpolation(client, tmp_path, moving):
+    from easycfd.webview import FieldRequest, sample_field
+    key = saved_run(tmp_path)
+    storage.update("runs", key, settings=dict(speed_kmh=72, moving_ground=moving, yaw_deg=15))
+    results = tmp_path / "runs" / key / "results"
+    reader = vtk.vtkXMLUnstructuredGridReader()
+    reader.SetFileName(str(results / "volume.vtu"))
+    reader.Update()
+    volume = reader.GetOutput()
+    # Reproduce cell-to-point averaging incorrectly carrying W into the road.
+    add(volume.GetPointData(), "U", np.tile([20., 3., -8.], (volume.GetNumberOfPoints(), 1)))
+    add(volume.GetPointData(), "Speed", np.full(volume.GetNumberOfPoints(), 25.))
+    writer = vtk.vtkXMLUnstructuredGridWriter()
+    writer.SetFileName(str(results / "volume.vtu"))
+    writer.SetInputData(volume)
+    writer.Write()
+    original = (results / "volume.vtu").read_bytes()
+    request = FieldRequest(origin=(-1, 0, 0), spacing=(1, .5, .25), dims=(2, 2, 3))
+    raw = sample_field(results, request)
+    values = np.frombuffer(raw[:20*12], dtype="<f4").reshape(5, 3, 4)
+    road_speed = 20 if moving else 0
+    assert np.allclose(values[:3, 0], [[road_speed]*4, [0]*4, [0]*4])
+    assert np.allclose(values[:3, 1], [[(road_speed+20)/2]*4, [1.5]*4, [-4]*4])
+    assert np.allclose(values[:3, 2], [[20]*4, [3]*4, [-8]*4])
+    assert np.frombuffer(raw[20*12:], dtype=np.uint8).all()
+    # No writeback to the solver's saved data, and no invented fluid below it.
+    assert (results / "volume.vtu").read_bytes() == original
+    outside = sample_field(results, FieldRequest(origin=(-1, 0, -.25), spacing=(1, .5, .25), dims=(2, 2, 2)))
+    assert not np.frombuffer(outside[20*8:], dtype=np.uint8)[:4].any()
+
+
 def test_surface_samples_take_wall_pressure_and_tangential_flow(client, tmp_path):
     key = saved_run(tmp_path)
     # One triangle on the wall plane, normal +z; flow is along +x, so tangential velocity is U.
@@ -125,7 +157,7 @@ def test_run_geometry_is_served_as_stl(client, tmp_path):
     assert client.get(f"/api/runs/{key}/geometry/part9.stl").status_code == 404
 
 
-def test_native_stress_keeps_thin_sides_and_zero_distinct_from_missing(client, tmp_path):
+def test_native_stress_keeps_thin_sides_and_zero_distinct_from_missing(client, tmp_path, monkeypatch):
     from easycfd.webview import sample_stress
     key = saved_run(tmp_path)
     results = tmp_path / 'runs' / key / 'results'
@@ -158,6 +190,11 @@ def test_native_stress_keeps_thin_sides_and_zero_distinct_from_missing(client, t
     assert np.all(valid == 1)
     assert np.allclose(stress[:3],[3,4,0])
     assert np.allclose(stress[3:],0)
+    # Batches may split a triangle, but must retain exactly the same side and ordering.
+    monkeypatch.setattr('easycfd.webview.STRESS_QUERY_CHUNK', 2)
+    chunked_stress, chunked_valid = sample_stress(results,np.concatenate([top,bottom]).ravel(),'part0')
+    assert np.array_equal(chunked_stress, stress)
+    assert np.array_equal(chunked_valid, valid)
     far = top.copy()
     far[:,0] += 100
     missing, mask = sample_stress(results,far.ravel(),'part0')

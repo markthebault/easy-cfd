@@ -2,6 +2,7 @@
 // one-line summary that reopens them.
 
 import { Check, ChevronRight } from "lucide-react";
+import { OPENFOAM_ENABLED } from "../engine/features";
 import { useStore } from "../store/store";
 import { app, goStep, type Step } from "../store/app";
 import { CarStep } from "./CarStep";
@@ -17,7 +18,7 @@ export function SetupPanel() {
   const confirmed = useStore(app, (s) => s.confirmed);
   if (!design) return null;
   const s = design.settings;
-  const carDone = confirmed && !!report && report.errors.length === 0;
+  const carDone = !!report && parts.some(p => p.enabled) && (OPENFOAM_ENABLED || (confirmed && report.errors.length === 0));
   const d = report?.dimensions ?? [0, 0, 0];
   const order: Step[] = ["car", "conditions", "run"];
   const idx = order.indexOf(step);

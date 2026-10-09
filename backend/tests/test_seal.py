@@ -29,10 +29,12 @@ def test_group_import_over_100_components_is_lossless(tmp_path):
         geometry.import_files([source], tmp_path, ImportOptions())
     grouped = geometry.import_files([source], tmp_path, ImportOptions(components="group"))
     assert len(grouped["parts"]) == 1
-    assert grouped["parts"][0]["grouped_components"] == 110
+    assert "grouped_components" not in grouped["parts"][0]
+    assert grouped["parts"][0]["issues"] == []
     assert grouped["triangles"] == len(original.faces)
     assert grouped["dimensions"] == pytest.approx(original.extents, abs=1e-6)
-    assert any("Merge & seal" in e for e in grouped["errors"])
+    assert not grouped["errors"]
+    assert not any("Grouped STL" in e for e in grouped["warnings"])
 
 
 def test_gap_bridging_and_remote_islands_not_discarded():
@@ -103,6 +105,10 @@ def test_merge_preview_apply_export_preserve_other_parts(tmp_path, monkeypatch):
     assert storage.get("projects", key) == before
     token = preview["token"]
     assert client.get(f"/api/projects/{key}/seal-previews/{token}/geometry/part0.vtp").status_code == 200
+    stl = client.get(f"/api/projects/{key}/seal-previews/{token}/geometry/part0.stl")
+    assert stl.status_code == 200
+    assert trimesh.load_mesh(io.BytesIO(stl.content), file_type="stl").is_watertight
+    assert client.get(f"/api/projects/{key}/seal-previews/{token}/geometry/unknown.stl").status_code == 404
     response = client.post(f"/api/projects/{key}/seal/apply", json={"token": token})
     assert response.status_code == 200, response.text
     after = response.json()

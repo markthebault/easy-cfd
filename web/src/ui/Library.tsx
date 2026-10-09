@@ -58,7 +58,7 @@ function ServerRuns() {
             <li key={r.id}>
               <button className="lib-main" disabled={(!done && !pending) || have} onClick={() => importServerRun(r.id)} data-testid="server-run">
                 <b>{r.name}</b>
-                <span><span className="engine-tag">OpenFOAM</span> {Math.round(r.settings.speed_kmh)} km/h · {r.settings.yaw_deg}° yaw · {String(r.settings.quality)} · {fmtDate(Date.parse(r.created))}</span>
+                <span><span className="engine-tag">OpenFOAM</span> {Math.round(r.settings.speed_kmh)} km/h · {r.settings.yaw_deg}° yaw · {r.settings.import_test ? "Quick import test" : String(r.settings.quality)} · {fmtDate(Date.parse(r.created))}</span>
                 <span className="lib-nums">
                   {done && r.result ? `Cd ${Number(r.result.cd).toFixed(3)} · Cl ${Number(r.result.cl).toFixed(3)}` : `${r.status}${r.stage ? ` · ${r.stage}` : ""}`}
                   {have ? " · already in this browser" : pending ? " · click to view progress" : done ? " · click to open" : ""}

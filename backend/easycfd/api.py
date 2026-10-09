@@ -58,7 +58,7 @@ async def invalid(request, error):
 
 @app.get("/api/health")
 def health():
-    return {**runner.health(), "presets": PRESETS, "data_directory": str(storage.ROOT)}
+    return {**runner.health(), "presets": PRESETS, "data_directory": str(storage.ROOT), "pipeline_hash": runner.PIPELINE_HASH}
 
 
 @app.get("/api/projects")
@@ -93,6 +93,8 @@ def estimate(key: str, quality: Literal["fast", "medium", "precise", "custom"] =
         if run["status"] != "completed" or run["settings"]["quality"] != quality:
             continue
         saved = Settings(**run["settings"])
+        if run.get("pipeline_hash") != runner.PIPELINE_HASH or saved.refine_underfloor != effective.refine_underfloor:
+            continue
         if saved.simulation_box != effective.simulation_box or (
             quality == "custom"
             and (
@@ -171,10 +173,6 @@ def settings_reference(project, body):
 def settings(key: str, body: Settings):
     current = storage.get("projects", key)
     reference = settings_reference(current, body)
-    if current.get("geometry") and not current["geometry"]["errors"]:
-        from .foam import mesh_layout
-
-        mesh_layout(current["geometry"], body, reference_case=reference)
     return storage.update("projects", key, settings=body.model_dump(), reference_case=reference)
 
 
@@ -585,6 +583,14 @@ def seal_asset(key: str, token: str, part_id: str):
     if part_id not in [p["id"] for p in preview["geometry"]["parts"]]:
         raise FileNotFoundError()
     return FileResponse(folder / "geometry" / f"{part_id}.vtp")
+
+@app.get("/api/projects/{key}/seal-previews/{token}/geometry/{part_id}.stl")
+def seal_stl_asset(key: str, token: str, part_id: str):
+    folder = seal_folder(key, token)
+    preview = json.loads((folder / "preview.json").read_text())
+    if part_id not in [p["id"] for p in preview["geometry"]["parts"]]:
+        raise FileNotFoundError()
+    return FileResponse(folder / "geometry" / f"{part_id}.stl")
 
 
 @app.delete("/api/projects/{key}/seal-previews/{token}")

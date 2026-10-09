@@ -59,12 +59,22 @@ class Settings(BaseModel):
     density: float = Field(default=1.225, ge=0.8, le=1.5)
     moving_ground: bool = True
     wheels: bool = True
+    import_test: bool = False
     flow_animation: bool = False
     flow_detail: Literal["standard", "fine"] = "standard"
     geometry_confirmed: bool = False
 
     @model_validator(mode="after")
     def profile_deadline(self):
+        if self.import_test:
+            if self.flow_animation or self.profile in ("advanced1", "advanced2"):
+                raise ValueError("Import test cannot record animation or use an advanced profile.")
+            self.quality = "fast"
+            self.profile = None
+            if self.max_seconds is None:
+                self.max_seconds = 180
+            elif self.max_seconds > 180:
+                raise ValueError("Import test permits at most 180 seconds for the whole job.")
         if (
             self.flow_animation
             and self.flow_detail == "fine"
@@ -90,7 +100,10 @@ class ImportOptions(BaseModel):
     units: Literal["m", "mm", "cm", "in"] = "m"
     forward: Literal["+X", "-X", "+Y", "-Y", "+Z", "-Z"] = "-X"
     up: Literal["+X", "-X", "+Y", "-Y", "+Z", "-Z"] = "+Z"
-    clearance: float = Field(default=0.01, ge=0.005, le=2)
+    clearance: float = Field(default=0.01, allow_inf_nan=False)
+    # Browser exports are already in the chosen tunnel frame. Batch boundaries
+    # must never introduce a second centring or road-height transform.
+    preserve_coordinates: bool = False
 
     @model_validator(mode="after")
     def independent_axes(self):
@@ -186,6 +199,8 @@ ADVANCED = {
 
 
 def resolved_preset(settings: Settings, quality=None):
+    if settings.import_test:
+        return dict(cell=0.95, surface=1, wake=0, layers=0, max_cells=120000, iterations=50, residual=1e-2, label="Import test", memory_gb=2)
     if settings.flow_animation and settings.flow_detail == "fine":
         # The transient wake needs its own mesh, independently of the force preset.
         return dict(

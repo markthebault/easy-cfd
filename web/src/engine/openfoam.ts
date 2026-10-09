@@ -27,6 +27,7 @@ export interface ServerInfo {
   presets: Record<"fast" | "medium" | "precise", ServerPreset>;
   /** Median wall time of completed runs per quality on this server (s). */
   measured: Partial<Record<"fast" | "medium" | "precise", { seconds: number; runs: number }>>;
+  measuredWithoutUnderfloor?: ServerInfo["measured"];
 }
 
 /** Minimal view of a server run record. */
@@ -42,6 +43,7 @@ export interface ServerRun {
   started?: string;
   finished?: string;
   mesh_preset?: Record<string, unknown>;
+  pipeline_hash?: string;
   settings: Record<string, unknown> & { profile?: string; speed_kmh: number; yaw_deg: number; quality: string; reference_area: number; density: number };
   domain?: number[];
   geometry: { parts: ServerPart[]; bounds?: [Vec3, Vec3] };
@@ -60,7 +62,7 @@ export interface ServerPart {
 
 export class ServerError extends Error {}
 
-async function api<T>(path: string, init?: RequestInit): Promise<T> {
+export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   if (!OPENFOAM_ENABLED) throw new ServerError(OPENFOAM_COMING_SOON);
   let response: Response;
   try {
@@ -101,20 +103,22 @@ export async function probeServer(): Promise<ServerInfo | null> {
     const health = await response.json();
     if (!health || typeof health.ready !== "boolean" || !health.presets) return null;
     const measured: ServerInfo["measured"] = {};
+    const measuredWithoutUnderfloor: ServerInfo["measured"] = {};
     try {
       const runs = await api<ServerRun[]>("/runs");
-      for (const q of ["fast", "medium", "precise"] as const) {
+      for (const underfloor of [true, false]) for (const q of ["fast", "medium", "precise"] as const) {
         const secs = runs
-          .filter((r) => r.status === "completed" && r.settings.quality === q && !r.settings.flow_animation && !(r.settings.profile ?? "").startsWith("advanced") &&
+          .filter((r) => r.status === "completed" && r.settings.quality === q && !r.settings.import_test && !r.settings.flow_animation && !(r.settings.profile ?? "").startsWith("advanced") &&
+            (!health.pipeline_hash || r.pipeline_hash === health.pipeline_hash) && (r.settings.refine_underfloor !== false) === underfloor &&
             (q !== "medium" || Object.entries(health.presets.medium).every(([key,value])=>r.mesh_preset?.[key] === value)) && r.started && r.finished)
           .map((r) => (Date.parse(r.finished!) - Date.parse(r.started!)) / 1000)
           .filter((x) => x > 0);
-        if (secs.length) measured[q] = { seconds: median(secs), runs: secs.length };
+        if (secs.length) (underfloor ? measured : measuredWithoutUnderfloor)[q] = { seconds: median(secs), runs: secs.length };
       }
     } catch {
       /* no run list: estimates stay generic */
     }
-    return { ready: health.ready, message: health.message ?? "", cpus: health.cpus, memory_gb: health.memory_gb, presets: health.presets, measured };
+    return { ready: health.ready, message: health.message ?? "", cpus: health.cpus, memory_gb: health.memory_gb, presets: health.presets, measured, measuredWithoutUnderfloor };
   } catch {
     return null;
   }
@@ -126,11 +130,11 @@ export async function probeServer(): Promise<ServerInfo | null> {
 
 /** The server's settings for a UI design. Custom quality has no OpenFOAM equivalent: Medium. */
 export function serverSettings(s: Settings): Record<string, unknown> {
-  const quality = s.quality === "custom" ? "medium" : s.quality;
+  const quality = s.import_test ? "fast" : s.quality === "custom" ? "medium" : s.quality;
   const b = s.simulation_box;
   const medium = quality === "medium" && (!s.profile || s.profile === "regular") && !(s.flow_animation && s.flow_detail === "fine");
   return {
-    ...(s.flow_animation && s.flow_detail === "fine" ? {profile:null} : s.profile ? {profile:s.profile} : {}),
+    ...(s.import_test ? { import_test:true, profile:null } : s.flow_animation && s.flow_detail === "fine" ? {profile:null} : s.profile ? {profile:s.profile} : {}),
     ...(s.refine_groups ? {refine_groups:s.refine_groups}:{}),
     ...(s.refine_underfloor !== undefined ? {refine_underfloor:s.refine_underfloor}:{}),
     ...(s.axles?.confirmed ? { axles: s.axles } : {}),
@@ -149,7 +153,7 @@ export function serverSettings(s: Settings): Record<string, unknown> {
     wheels: s.wheels,
     flow_animation: !!s.flow_animation,
     ...(s.flow_detail !== undefined ? {flow_detail:s.flow_detail} : {}),
-    geometry_confirmed: true,
+    geometry_confirmed: false,
   };
 }
 
@@ -263,7 +267,7 @@ export function resultFromRecord(run: ServerRun, carLength: number, offset: Vec3
 // Server projects for UI designs
 // ---------------------------------------------------------------------------------------------
 
-const PROJECTS_KEY = "easycfd.openfoamProjects";
+const PROJECTS_KEY = "easycfd.openfoamProjects.coordinates-v2";
 const MAX_FILES = 20;
 const MAX_BYTES = 90 * 1024 * 1024;
 
@@ -313,7 +317,7 @@ export async function ensureProject(name: string, parts: { key: string; part: Pa
   }
   onStage("Uploading the car to the OpenFOAM server");
   const project = await api<{ id: string }>("/projects", json({ name: `${name} · from EasyCFD Web`.slice(0, 100), sample: false }));
-  // Batches within the server's per-request limits; the first defines the car's position.
+  // Batch only for request size limits; every part stays in the browser's shared frame.
   const files = parts.map(({ key, part }, i) => ({ key, part, name: `${String(i).padStart(2, "0")}-${safeName(part.name)}.stl`, bytes: writeSTL(part.positions, "EasyCFD Web part") }));
   const batches: (typeof files)[] = [];
   for (const f of files) {
@@ -326,11 +330,10 @@ export async function ensureProject(name: string, parts: { key: string; part: Pa
   for (let b = 0; b < batches.length; b++) {
     const form = new FormData();
     for (const f of batches[b]) form.append("files", new Blob([f.bytes], { type: "model/stl" }), f.name);
-    if (b === 0) form.append("options", JSON.stringify({ components: "group", units: "m", forward: "-X", up: "+Z", clearance: Math.round(Math.min(2, Math.max(0.005, clearance)) * 1e4) / 1e4 }));
+    if (b === 0) form.append("options", JSON.stringify({ components: "group", units: "m", forward: "-X", up: "+Z", clearance, preserve_coordinates: true }));
     record = await api(`/projects/${project.id}/${b === 0 ? "import" : "parts"}`, { method: "POST", body: form });
   }
   const serverParts = record!.geometry.parts;
-  if (record!.geometry.errors?.length) throw new ServerError(record!.geometry.errors.join(" "));
   if (serverParts.length !== files.length) throw new ServerError(`The server read ${serverParts.length} parts from ${files.length} files.`);
   // Server parts follow the upload order (one part per file with components grouped).
   const order = [...serverParts].sort((a, b) => (a.source ?? 0) - (b.source ?? 0));
@@ -349,6 +352,24 @@ export async function ensureProject(name: string, parts: { key: string; part: Pa
   const link: ProjectLink = { project: project.id, parts: map, offset, labels };
   localStorage.setItem(PROJECTS_KEY, JSON.stringify({ ...links(), [fp]: link }));
   return link;
+}
+
+/** Concatenate existing surfaces without welding, filling, moving or remeshing. */
+export function originalSurfaceAssembly(parts: Part[]): Part {
+  const chosen = parts.filter(p => p.enabled);
+  if (!chosen.length) throw new ServerError("Switch at least one part on.");
+  const positions = new Float32Array(chosen.reduce((n,p)=>n+p.positions.length,0));
+  let offset=0;
+  for (const p of chosen) {positions.set(p.positions,offset);offset+=p.positions.length;}
+  return {...chosen[0],id:"original-surface-assembly",name:"Original surfaces",file:"original-surfaces.stl",positions,role:"body",wheel:null,group:"g:body",enabled:true};
+}
+
+/** A quick assembly check avoids a separate mandatory mesh patch per fragment. */
+export async function ensureOriginalSurfaceProject(name: string, parts: Part[], onStage: (s: string) => void): Promise<ProjectLink> {
+  const assembly=originalSurfaceAssembly(parts);
+  const link=await ensureProject(name,[{key:assembly.id,part:assembly}],onStage);
+  const patch=link.parts[assembly.id];
+  return {...link,parts:Object.fromEntries(parts.filter(p=>p.enabled).map(p=>[`${p.file}::${p.name}`,patch])),labels:{[patch]:{id:assembly.id,name:assembly.name,group:"g:body"}}};
 }
 
 /** Switch the simulated parts on, set the conditions and queue the run. */
@@ -378,6 +399,8 @@ export interface LiveReport {
 
 export const liveReport = (id: string, every: number) => api<LiveReport>(`/runs/${id}/live?every=${Math.max(1, Math.round(every))}`);
 
+export const OPENFOAM_SAMPLING_VERSION = 3;
+
 /** The finished flow on the viewer's grid (UI frame), sampled by the server in its own frame. */
 export async function fetchField(run: ServerRun, carLow: Vec3, carHigh: Vec3, domain: number[], target: number, offset: Vec3, signal?: AbortSignal): Promise<VizField> {
   const L = carHigh[0] - carLow[0];
@@ -402,6 +425,19 @@ export async function fetchField(run: ServerRun, carLow: Vec3, carHigh: Vec3, do
 
 /** Surface pressure coefficient and near-wall flow direction at each part's soup vertices. */
 export async function fetchSurface(run: ServerRun, parts: Part[], offset: Vec3, patches: Record<string,string> = {}, signal?: AbortSignal): Promise<SurfaceSample[]> {
+  const sharedPatch=parts.map(p=>patches[`${p.file}::${p.name}`]);
+  if (parts.length > 1 && sharedPatch.every(p=>p && p===sharedPatch[0])) {
+    // An assembly has one wall patch. Sample once, then split in the source
+    // order instead of launching a native sampling process per OBJ fragment.
+    const assembly=originalSurfaceAssembly(parts);
+    const [sample]=await fetchSurface(run,[assembly],offset,{[`${assembly.file}::${assembly.name}`]:sharedPatch[0]},signal);
+    let at=0;
+    return parts.map(p=>{
+      const end=at+p.positions.length/3;
+      const value:SurfaceSample={cp:sample.cp.slice(at,end),shear:sample.shear.slice(3*at,3*end),...(sample.wallStress ? {wallStress:sample.wallStress.slice(3*at,3*end)}:{}),...(sample.stressValid ? {stressValid:sample.stressValid.slice(at,end)}:{}),...(sample.snapshot ? {snapshot:sample.snapshot}:{})};
+      at=end;return value;
+    });
+  }
   if (run.result?.provenance?.version === "openfoam-wall-integrals-2") {
     const result: SurfaceSample[] = [];
     for(const p of parts) {

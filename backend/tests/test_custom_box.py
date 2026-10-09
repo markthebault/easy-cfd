@@ -26,8 +26,9 @@ def test_custom_box_validation_and_budget(tmp_path):
         with pytest.raises(ValueError):
             SimulationBox(**bad)
     for bad in [dict(box(), x_min=0), dict(box(), y_max=1), dict(box(), z_max=1)]:
-        with pytest.raises(ValueError, match="surround"):
-            foam.domain_bounds(data, Settings(simulation_box=bad))
+        assert foam.domain_bounds(data, Settings(simulation_box=bad)) == [
+            bad["x_min"], bad["x_max"], bad["y_min"], bad["y_max"], 0, bad["z_max"]
+        ]
     with pytest.raises(ValueError, match="budget"):
         foam.mesh_layout(
             data, Settings(simulation_box=dict(x_min=-100, x_max=100, y_min=-100, y_max=100, z_max=100))
@@ -90,8 +91,8 @@ def test_preview_solver_snapshot_and_comparison(client, tmp_path):
     assert not compared["comparable"]
     assert "simulation box" in compared["warnings"][0] and "iteration limit" in compared["warnings"][0]
     bad = {**updated, "simulation_box": dict(box(), x_max=0)}
-    assert client.put(f"/api/projects/{p['id']}/settings", json=bad).status_code == 400
-    assert storage.get("projects", p["id"])["settings"] == updated
+    assert client.put(f"/api/projects/{p['id']}/settings", json=bad).status_code == 200
+    assert storage.get("projects", p["id"])["settings"] == bad
 
 
 def test_custom_precise_is_one_mesh_and_legacy_defaults():
@@ -117,6 +118,39 @@ def test_small_part_box_uses_metres_without_changing_mesh_scale():
     assert bounds == [-0.4, 0.8, -0.3, 0.3, 0, 0.5]
     assert counts == [39, 20, 17]
     assert cell == pytest.approx(0.65 * 0.2 / 4.2)
+
+
+@pytest.mark.parametrize("profile,quality,import_test,enabled,level", [
+    ("basic", "fast", False, True, 4),
+    ("regular", "medium", False, True, 4),
+    ("advanced1", "precise", False, True, 4),
+    ("basic", "fast", False, False, None),
+    (None, "fast", True, True, None),
+])
+def test_underfloor_refinement_is_local_optional_and_preserves_source(tmp_path, profile, quality, import_test, enabled, level):
+    source = tmp_path / "geometry"
+    source.mkdir()
+    data = geometry.sample(source)
+    settings = Settings(profile=profile, quality=quality, import_test=import_test, refine_underfloor=enabled)
+    case = tmp_path / "case"
+    meta = foam.generate(case, source, data, settings)
+    text = (case / "system/snappyHexMeshDict").read_text()
+    band = meta["underfloor_refinement"]
+    if level is None:
+        assert band is None and "underfloor {" not in text
+    else:
+        assert band["level"] == level
+        assert f"underfloor {{mode inside; levels ((1e15 {level}));}}" in text
+        low, high = band["bounds"]
+        length = data["bounds"][1][0] - data["bounds"][0][0]
+        advanced = profile in ("advanced1", "advanced2")
+        assert high[0]-low[0] == pytest.approx((1.2 if advanced else 1.1)*length)
+        assert high[2] <= (.06 if advanced else .02 if quality == "medium" else .03)*length
+        assert low[2] > 0
+        assert meta["preset"]["max_cells"] == resolved_preset(settings)["max_cells"]
+    for part in data["parts"]:
+        name = f"{part['id']}.stl"
+        assert (source / name).read_bytes() == (case / "constant/triSurface" / name).read_bytes()
 
 
 @pytest.mark.parametrize("quality", ["fast", "medium", "precise", "custom"])
@@ -173,3 +207,15 @@ def test_failed_mesh_still_blocks_solver_with_specific_reason(client, monkeypatc
         ["snappyHexMesh", "-overwrite"],
         ["checkMesh", "-meshQuality", "-allTopology"],
     ]
+
+
+def test_runtime_estimate_matches_underfloor_setting_and_current_solver(client):
+    project = client.post('/api/projects', json={'sample': True}).json()
+    for key, underfloor, pipeline, seconds in [('a', True, runner.PIPELINE_HASH, 190), ('b', False, runner.PIPELINE_HASH, 77), ('c', True, 'older', 60)]:
+        storage.save('runs', dict(id=key*32, created=storage.now(), status='completed', geometry=project['geometry'],
+                                 settings={**project['settings'], 'quality': 'fast', 'refine_underfloor': underfloor},
+                                 pipeline_hash=pipeline, result=dict(timings={'meshing': seconds})))
+    url = f"/api/projects/{project['id']}/estimate?quality=fast"
+    assert client.get(url).json()['previous_seconds'] == 190
+    client.put(f"/api/projects/{project['id']}/settings", json={**project['settings'], 'refine_underfloor': False})
+    assert client.get(url).json()['previous_seconds'] == 77

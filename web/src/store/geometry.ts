@@ -13,11 +13,12 @@ export const SAMPLE_FILE = "Sample car";
 
 export const partKey = (p: { file: string; name: string }) => `${p.file}::${p.name}`;
 
-export async function rawFromSource(source: SourceRef, bytes?: Map<string, ArrayBuffer>): Promise<RawPart[]> {
+export async function rawFromSource(source: SourceRef, bytes?: Map<string, ArrayBuffer>, onFile?: (name:string) => void): Promise<RawPart[]> {
   if (source.kind === "sample")
     return sampleCar(source.wing).map((p) => ({ name: p.name, file: SAMPLE_FILE, positions: p.positions, base: true }));
   const out: RawPart[] = [];
   for (const f of source.files) {
+    onFile?.(f.name);
     const data = bytes?.get(f.hash) ?? (await get("files", f.hash))?.bytes;
     if (!data) throw new Error(`${f.name} is missing from the browser storage.`);
     const meshes = await readFile({ name: f.name, bytes: data, base: f.base });

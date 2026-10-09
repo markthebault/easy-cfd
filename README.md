@@ -41,3 +41,11 @@ Enable **Record flow animation** to replay computed airflow in the 3D view. Stan
 OpenFOAM analysis uses four cards: **Fast**, **Medium**, **Precise** (Advanced 1) and **Very Precise** (Advanced 2). Medium has a 20-minute whole-job ceiling including standard recording; unfinished results remain provisional or incomplete. The [measured Medium run](docs/medium-runtime.md) completed in 9 minutes on the tested model and machine. Detailed wake has a separate, longer budget.
 
 In the library's **OpenFOAM server** tab, click a running or queued run to reopen its progress and saved car geometry. The run continues on the server when you close the browser.
+
+## Original model imports
+
+Import STEP/STP, IGES/IGS, STL, OBJ, GLB or glTF directly in the browser. CAD files use their embedded units; confirm orientation and road clearance before running. Failed imports preserve the current design.
+
+In OpenFOAM, **Quick import test** uses original surfaces with fixed wheels, a coarse mesh, no layers, 50 iterations and a three-minute ceiling. It does not reconstruct the car. Open panels and inconsistent normals are review warnings; mesh quality checks still apply. Forces from this preset are diagnostic. **Prepare for OpenFOAM** remains optional and saves a separate, explicitly approximate copy.
+
+[AirShaper comparison: all six original cars and the supplied endplate](docs/import-parity/README.md).

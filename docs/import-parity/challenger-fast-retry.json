@@ -1,0 +1,307 @@
+{
+  "failed_run": "8f05d83433b0476ea414d50590768a37",
+  "retry_run": "547b82619a57407cba75f3e42f56ed21",
+  "commit": "e075195f4501fb23cd955aa448e89bf0b82b406c",
+  "same_settings": true,
+  "same_original_stl_bytes": true,
+  "mesh_ok": true,
+  "cells": 35097,
+  "iterations": 300.0,
+  "sparse_parts": [
+    {
+      "id": "part6",
+      "name": "06-CAD_part_2_6 1",
+      "faces": 1,
+      "sparse": true
+    },
+    {
+      "id": "part7",
+      "name": "07-CAD_part_2_7 1",
+      "faces": 1,
+      "sparse": true
+    },
+    {
+      "id": "part8",
+      "name": "08-CAD_part_2_8 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part9",
+      "name": "09-CAD_part_2_9 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part12",
+      "name": "12-CAD_part_2_12 1",
+      "faces": 4,
+      "sparse": true
+    },
+    {
+      "id": "part14",
+      "name": "14-CAD_part_1_2 1",
+      "faces": 2,
+      "sparse": true
+    },
+    {
+      "id": "part15",
+      "name": "15-CAD_part_2_14 1",
+      "faces": 3,
+      "sparse": true
+    },
+    {
+      "id": "part17",
+      "name": "17-CAD_part_1_3 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part18",
+      "name": "18-CAD_part_2_16 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part19",
+      "name": "19-CAD_part_1_4 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part20",
+      "name": "20-CAD_part_2_17 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part21",
+      "name": "21-CAD_part_1_5 1",
+      "faces": 4,
+      "sparse": true
+    },
+    {
+      "id": "part22",
+      "name": "22-CAD_part_1_6 1",
+      "faces": 1,
+      "sparse": true
+    },
+    {
+      "id": "part24",
+      "name": "24-CAD_part_1_7 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part25",
+      "name": "25-CAD_part_1_8 1",
+      "faces": 3,
+      "sparse": true
+    },
+    {
+      "id": "part26",
+      "name": "26-CAD_part_1_9 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part28",
+      "name": "28-CAD_part_2_19 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part29",
+      "name": "29-CAD_part_2_20 1",
+      "faces": 1,
+      "sparse": true
+    },
+    {
+      "id": "part30",
+      "name": "30-CAD_part_2_21 1",
+      "faces": 2,
+      "sparse": true
+    },
+    {
+      "id": "part31",
+      "name": "31-CAD_part_2_22 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part32",
+      "name": "32-CAD_part_2_23 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part33",
+      "name": "33-CAD_part_2_24 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part34",
+      "name": "34-CAD_part_2_25 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part35",
+      "name": "35-CAD_part_2_26 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part36",
+      "name": "36-CAD_part_2_27 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part37",
+      "name": "37-CAD_part_2_28 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part38",
+      "name": "38-CAD_part_2_29 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part39",
+      "name": "39-CAD_part_2_30 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part40",
+      "name": "40-CAD_part_2_31 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part41",
+      "name": "41-CAD_part_2_32 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part42",
+      "name": "42-CAD_part_2_33 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part43",
+      "name": "43-CAD_part_2_34 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part44",
+      "name": "44-CAD_part_2_35 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part45",
+      "name": "45-CAD_part_2_36 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part46",
+      "name": "46-CAD_part_2_37 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part47",
+      "name": "47-CAD_part_2_38 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part48",
+      "name": "48-CAD_part_2_39 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part49",
+      "name": "49-CAD_part_2_40 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part50",
+      "name": "50-CAD_part_2_41 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part51",
+      "name": "51-CAD_part_2_42 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part52",
+      "name": "52-CAD_part_2_43 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part53",
+      "name": "53-CAD_part_2_44 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part54",
+      "name": "54-CAD_part_1_11 1",
+      "faces": 2,
+      "sparse": true
+    },
+    {
+      "id": "part55",
+      "name": "55-CAD_part_2_45 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part56",
+      "name": "56-CAD_part_2_46 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part57",
+      "name": "57-CAD_part_1_12 1",
+      "faces": 1,
+      "sparse": true
+    },
+    {
+      "id": "part58",
+      "name": "58-CAD_part_2_47 1",
+      "faces": 0,
+      "sparse": true
+    },
+    {
+      "id": "part59",
+      "name": "59-Small_fragments_merged_ 1",
+      "faces": 3,
+      "sparse": true
+    }
+  ],
+  "warnings": [
+    "Original surfaces were meshed without sealing or reconstructing 60 open parts. Inspect the volume mesh for leakage and missing features before interpreting forces.",
+    "This run uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+    "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+    "Only 0% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review.",
+    "Mesh resolution: 48 parts have fewer than six boundary faces (06-CAD_part_2_6 1: 1; 07-CAD_part_2_7 1: 1; 08-CAD_part_2_8 1: 0; 09-CAD_part_2_9 1: 0; 12-CAD_part_2_12 1: 4; 14-CAD_part_1_2 1: 2; 15-CAD_part_2_14 1: 3; 17-CAD_part_1_3 1: 0; 18-CAD_part_2_16 1: 0; 19-CAD_part_1_4 1: 0; 20-CAD_part_2_17 1: 0; 21-CAD_part_1_5 1: 4; 22-CAD_part_1_6 1: 1; 24-CAD_part_1_7 1: 0; 25-CAD_part_1_8 1: 3; 26-CAD_part_1_9 1: 0; 28-CAD_part_2_19 1: 0; 29-CAD_part_2_20 1: 1; 30-CAD_part_2_21 1: 2; 31-CAD_part_2_22 1: 0; 32-CAD_part_2_23 1: 0; 33-CAD_part_2_24 1: 0; 34-CAD_part_2_25 1: 0; 35-CAD_part_2_26 1: 0; 36-CAD_part_2_27 1: 0; 37-CAD_part_2_28 1: 0; 38-CAD_part_2_29 1: 0; 39-CAD_part_2_30 1: 0; 40-CAD_part_2_31 1: 0; 41-CAD_part_2_32 1: 0; 42-CAD_part_2_33 1: 0; 43-CAD_part_2_34 1: 0; 44-CAD_part_2_35 1: 0; 45-CAD_part_2_36 1: 0; 46-CAD_part_2_37 1: 0; 47-CAD_part_2_38 1: 0; 48-CAD_part_2_39 1: 0; 49-CAD_part_2_40 1: 0; 50-CAD_part_2_41 1: 0; 51-CAD_part_2_42 1: 0; 52-CAD_part_2_43 1: 0; 53-CAD_part_2_44 1: 0; 54-CAD_part_1_11 1: 2; 55-CAD_part_2_45 1: 0; 56-CAD_part_2_46 1: 0; 57-CAD_part_1_12 1: 1; 58-CAD_part_2_47 1: 0; 59-Small_fragments_merged_ 1: 3). Small, internal or sheltered parts may have few or no fluid-facing cells. Zero-face parts contribute no forces; sparse-part forces and local flow need resolution review."
+  ]
+}

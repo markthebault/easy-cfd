@@ -1,0 +1,728 @@
+{
+  "deployed_code": "71a4f0a55d8305974d17e8a437076ba403323b26",
+  "source_run": "2f9ad7ffb7ec4c7a9c431ea42664a4b0",
+  "geometry": "MR2 CFD testing, 33 original parts, 275149 triangles",
+  "conditions": {
+    "speed_kmh": 100,
+    "yaw_deg": 0,
+    "moving_ground": true,
+    "wheels": false
+  },
+  "sampling_fix": {
+    "native_road_U": [
+      27.77777777777778,
+      0,
+      0
+    ],
+    "changes": "Restore point velocities at road boundary vertices before interpolation; preserve cell data, geometry, fluid validity and saved aerodynamic results.",
+    "cache_revision": 3,
+    "probe_seed_z_m": [
+      0.015,
+      0.035,
+      0.055,
+      0.075,
+      0.1
+    ],
+    "seed_x_m": -2.83,
+    "old_traces_end_x_m": [
+      -2.159,
+      -2.082,
+      -2.006,
+      -1.93,
+      -1.854
+    ],
+    "corrected_old_traces_end_x_m": [
+      11.926,
+      11.925,
+      11.924,
+      11.922,
+      11.92
+    ],
+    "refined_fast_traces_end_x_m": [
+      11.916249136240884,
+      11.89701043882507,
+      11.918680210141108,
+      11.923585610955003,
+      11.921496204967067
+    ],
+    "old_export_road_vertical_velocity_range_under_car_mps": [
+      -9.464,
+      -3.372
+    ],
+    "refined_fast_traces": [
+      {
+        "seedZ": 0.015,
+        "points": 373,
+        "underfloor": [
+          [
+            -1.997111435035847,
+            -0.0002864693993016856,
+            0.009052161334290883
+          ],
+          [
+            -1.005464931006003,
+            0.00015780302262851062,
+            0.00966145882521799
+          ],
+          [
+            -0.013815328598493784,
+            0.000744470373971131,
+            0.01106067970759316
+          ],
+          [
+            1.0174982232669425,
+            0.002384925073993896,
+            0.012755935889953673
+          ],
+          [
+            2.008838854489732,
+            0.020528807016927053,
+            0.023677171142677256
+          ]
+        ],
+        "end": [
+          11.916249136240884,
+          0.01172287928993044,
+          0.40069465781682684
+        ],
+        "maxX": 11.916249136240884
+      },
+      {
+        "seedZ": 0.035,
+        "points": 375,
+        "underfloor": [
+          [
+            -1.9975781577107323,
+            -0.0006669759346794554,
+            0.020686234378540225
+          ],
+          [
+            -1.005950658632092,
+            0.00034777910857252835,
+            0.022100812543159352
+          ],
+          [
+            -0.014306291896756189,
+            0.001675494805032203,
+            0.025313061722983324
+          ],
+          [
+            1.0169938458127248,
+            0.005300299271131522,
+            0.029215731076488533
+          ],
+          [
+            2.0070440815945143,
+            0.044408790417968795,
+            0.05727582837315717
+          ]
+        ],
+        "end": [
+          11.89701043882507,
+          0.009557532526290127,
+          1.3980222444060366
+        ],
+        "maxX": 11.89701043882507
+      },
+      {
+        "seedZ": 0.055,
+        "points": 378,
+        "underfloor": [
+          [
+            -1.9984939534963684,
+            -0.001045451637132679,
+            0.031724280373520784
+          ],
+          [
+            -1.0068998097333346,
+            0.0005035605557550036,
+            0.033932466192079395
+          ],
+          [
+            -0.015264263807566646,
+            0.0025214787461542267,
+            0.038880631935769405
+          ],
+          [
+            1.0160145816341681,
+            0.007905118122527156,
+            0.04489684369757823
+          ],
+          [
+            2.0049311909652596,
+            0.05496552244550707,
+            0.09100697225670923
+          ]
+        ],
+        "end": [
+          11.918680210141108,
+          -0.0013139543722359662,
+          1.944690514519222
+        ],
+        "maxX": 11.918680210141108
+      },
+      {
+        "seedZ": 0.075,
+        "points": 379,
+        "underfloor": [
+          [
+            -1.999948940180199,
+            -0.0014218833149914406,
+            0.04293695795415921
+          ],
+          [
+            -1.0084057595180187,
+            0.0006555505689288025,
+            0.0459926414905787
+          ],
+          [
+            -0.016783079995983587,
+            0.0033612802322413545,
+            0.05272097646689345
+          ],
+          [
+            1.01446658936839,
+            0.01041300791769171,
+            0.06089639154033803
+          ],
+          [
+            2.002524941196969,
+            0.049122323850074714,
+            0.12731637758961517
+          ]
+        ],
+        "end": [
+          11.923585610955003,
+          -0.042002558914528566,
+          2.036137075196587
+        ],
+        "maxX": 11.923585610955003
+      },
+      {
+        "seedZ": 0.1,
+        "points": 380,
+        "underfloor": [
+          [
+            -2.001638270592697,
+            -0.00219579981770056,
+            0.0614951988886147
+          ],
+          [
+            -1.0102203597600714,
+            0.0006850408147807801,
+            0.06599020417784857
+          ],
+          [
+            -0.018622259975179037,
+            0.004272522496966292,
+            0.07519368911741438
+          ],
+          [
+            1.0126057954876313,
+            0.012387426414259491,
+            0.08491540123602577
+          ],
+          [
+            1.9990791611530974,
+            0.035781938511205855,
+            0.1737999619801298
+          ]
+        ],
+        "end": [
+          11.921496204967067,
+          -0.12699850229823964,
+          2.038173062289248
+        ],
+        "maxX": 11.921496204967067
+      }
+    ],
+    "refined_medium_traces_end_x_m": [
+      11.924371933201837,
+      11.900856054793763,
+      11.894679502311217,
+      11.901683355111215,
+      11.923627365178142
+    ],
+    "refined_medium_traces": [
+      {
+        "seedZ": 0.015,
+        "points": 373,
+        "underfloor": [
+          [
+            -1.9971940371264845,
+            -3.796778448276042e-05,
+            0.0065948977516255055
+          ],
+          [
+            -1.0055450200667955,
+            -0.00043877759294220917,
+            0.006455153028318587
+          ],
+          [
+            -0.013895012641067718,
+            -0.0016170458387772262,
+            0.006876670463473807
+          ],
+          [
+            1.0174174537796425,
+            -0.004330623604515646,
+            0.007602174676464685
+          ],
+          [
+            2.008864448211265,
+            -0.021492907288356317,
+            0.012451065631779674
+          ]
+        ],
+        "end": [
+          11.924371933201837,
+          0.03174625778883213,
+          0.0708393785318423
+        ],
+        "maxX": 11.924371933201837
+      },
+      {
+        "seedZ": 0.035,
+        "points": 373,
+        "underfloor": [
+          [
+            -1.9980690658383227,
+            -8.204584218928239e-05,
+            0.014667761441267283
+          ],
+          [
+            -1.0064276339843463,
+            -0.0009918691473347787,
+            0.014353515469325132
+          ],
+          [
+            -0.014780952214914003,
+            -0.0036296998532377987,
+            0.015300875016491343
+          ],
+          [
+            1.0165148920545812,
+            -0.009575734216135574,
+            0.016901459868456037
+          ],
+          [
+            2.007045304680516,
+            -0.04860448694752399,
+            0.030761898246954116
+          ]
+        ],
+        "end": [
+          11.900856054793763,
+          0.08257457673344276,
+          0.5609906123400389
+        ],
+        "maxX": 11.900856054793763
+      },
+      {
+        "seedZ": 0.055,
+        "points": 376,
+        "underfloor": [
+          [
+            -1.9998052003243518,
+            -0.00011426322947319744,
+            0.021829304717132392
+          ],
+          [
+            -1.0081760717535038,
+            -0.001493197850604406,
+            0.021362377860702494
+          ],
+          [
+            -0.01653455053445202,
+            -0.00544019652086776,
+            0.022785331318954567
+          ],
+          [
+            1.0147373212375004,
+            -0.014162047404344383,
+            0.025145924118858853
+          ],
+          [
+            2.004079041848286,
+            -0.0694951255862218,
+            0.04867412799955204
+          ]
+        ],
+        "end": [
+          11.894679502311217,
+          -0.06697693128824689,
+          1.5151042093720661
+        ],
+        "maxX": 11.894679502311217
+      },
+      {
+        "seedZ": 0.075,
+        "points": 377,
+        "underfloor": [
+          [
+            -2.002735693856859,
+            -0.00017464900006999626,
+            0.028801640732289406
+          ],
+          [
+            -1.0111243864343562,
+            -0.0020280342366888393,
+            0.028193767511231167
+          ],
+          [
+            -0.019489937407405976,
+            -0.007257825556068784,
+            0.03008754750238175
+          ],
+          [
+            1.0117515226679614,
+            -0.018583093009925365,
+            0.03316474259027015
+          ],
+          [
+            1.9997784516031327,
+            -0.08648324951771505,
+            0.06728888928001149
+          ]
+        ],
+        "end": [
+          11.901683355111215,
+          -0.024898800324319514,
+          1.6354995121582874
+        ],
+        "maxX": 11.901683355111215
+      },
+      {
+        "seedZ": 0.1,
+        "points": 378,
+        "underfloor": [
+          [
+            -2.0070110176092415,
+            -0.00036652323916378817,
+            0.041847384937276674
+          ],
+          [
+            -1.0154511004966462,
+            -0.0031661228710182466,
+            0.04096569498112499
+          ],
+          [
+            0.01582819527042153,
+            -0.011227201950291034,
+            0.04389727710387287
+          ],
+          [
+            1.0073331101414809,
+            -0.026782117723840867,
+            0.04813301607859226
+          ],
+          [
+            1.9939805277710139,
+            -0.10086008388779394,
+            0.10288234259326969
+          ]
+        ],
+        "end": [
+          11.923627365178142,
+          0.10694404628282977,
+          1.6683092095052565
+        ],
+        "maxX": 11.923627365178142
+      }
+    ],
+    "browser_cache_roundtrip_end_x_m": {
+      "old_corrected": [
+        11.925631473986991,
+        11.925031795925218,
+        11.923926091386868,
+        11.922264076064076,
+        11.919612044492817
+      ],
+      "refined_fast": [
+        11.91620050716321,
+        11.896853356722682,
+        11.918644875461178,
+        11.923574381433003,
+        11.921498899094868
+      ],
+      "refined_medium": [
+        11.924366918987944,
+        11.90076026205172,
+        11.894628873125262,
+        11.901669136490389,
+        11.923626594001847
+      ]
+    }
+  },
+  "runs": [
+    {
+      "run": "440b6eb2cc39418c9590b419c52a0c67",
+      "project": "a5d52681164a4ddea752e7ba7fb0dcb0",
+      "quality": "fast",
+      "refine_underfloor": false,
+      "status": "completed",
+      "error": null,
+      "seconds": 56.801493,
+      "cells": 34017,
+      "iterations": 300,
+      "underfloor": null,
+      "geometry_identical_to_source": true,
+      "solver_input_identical": true,
+      "parts": 33,
+      "pipeline_hash": "85da819d3623c6f699f0f7ff1440a7e0c953a5e97b5f3f8e72b2a8b7093dbae4"
+    },
+    {
+      "run": "3fc1e1391a6247d8be8070c050a7c400",
+      "project": "889fbe84847d410e8d5ecbe5c5313bce",
+      "quality": "fast",
+      "refine_underfloor": true,
+      "status": "completed",
+      "error": null,
+      "seconds": 146.121122,
+      "cells": 63239,
+      "iterations": 300,
+      "underfloor": {
+        "bounds": [
+          [
+            -2.430414414405823,
+            -0.96882945895195,
+            0.001
+          ],
+          [
+            2.430414414405823,
+            0.96882945895195,
+            0.12625529425484794
+          ]
+        ],
+        "level": 4,
+        "nominal_spacing": 0.042742677742526644
+      },
+      "geometry_identical_to_source": true,
+      "solver_input_identical": true,
+      "parts": 33,
+      "pipeline_hash": "85da819d3623c6f699f0f7ff1440a7e0c953a5e97b5f3f8e72b2a8b7093dbae4"
+    },
+    {
+      "run": "8cf19fdc3c034fed9def945226c12111",
+      "project": "b7894d63607b4f6f952fe647428bc9a3",
+      "quality": "medium",
+      "refine_underfloor": false,
+      "status": "completed",
+      "error": null,
+      "seconds": 292.052747,
+      "cells": 83797,
+      "iterations": 600,
+      "underfloor": null,
+      "geometry_identical_to_source": true,
+      "solver_input_identical": true,
+      "parts": 33,
+      "pipeline_hash": "85da819d3623c6f699f0f7ff1440a7e0c953a5e97b5f3f8e72b2a8b7093dbae4"
+    },
+    {
+      "run": "a8b879b3e9ba4d6e813a71ec3486a041",
+      "project": "dfd57f7f43f8421699ed487a4a3de98b",
+      "quality": "medium",
+      "refine_underfloor": true,
+      "status": "completed",
+      "error": null,
+      "seconds": 387.828958,
+      "cells": 101767,
+      "iterations": 600,
+      "underfloor": {
+        "bounds": [
+          [
+            -2.430414414405823,
+            -0.96882945895195,
+            0.001
+          ],
+          [
+            2.430414414405823,
+            0.96882945895195,
+            0.08417019616989863
+          ]
+        ],
+        "level": 4,
+        "nominal_spacing": 0.039454779454639974
+      },
+      "geometry_identical_to_source": true,
+      "solver_input_identical": true,
+      "parts": 33,
+      "pipeline_hash": "c0080b3bd830e33da15e00c089461725e1b506a4bc6caa02e20e9a82e051367c"
+    }
+  ],
+  "limits": "One model and one timing pair per preset on this local server, not a guaranteed runtime or aerodynamic qualification for all models.",
+  "timing_scope": "Sequential full-preset runs, started-to-finished including meshing, solution and backend extraction. Excludes browser downloads and rendering. No concurrent solver, test suite or result sampling during final timing pairs.",
+  "refinement": "Level four only in a shallow footprint band, 5% footprint padding; height approximately 120 mm (Fast) / 80 mm (Medium) per 4.2 m car length, with a low-point offset for raised cars. Advanced region and Quick import test unchanged. Original STL surfaces retained.",
+  "input_equivalence": [
+    {
+      "run": "440b6eb2cc39418c9590b419c52a0c67",
+      "quality": "fast",
+      "underfloor": false,
+      "generated_input_files": 47,
+      "mismatches": []
+    },
+    {
+      "run": "3fc1e1391a6247d8be8070c050a7c400",
+      "quality": "fast",
+      "underfloor": true,
+      "generated_input_files": 47,
+      "mismatches": []
+    },
+    {
+      "run": "8cf19fdc3c034fed9def945226c12111",
+      "quality": "medium",
+      "underfloor": false,
+      "generated_input_files": 47,
+      "mismatches": []
+    }
+  ],
+  "diagnostics": {
+    "second_candidate": {
+      "run": "7f8a9cf8ac32437681c4189e21486eec",
+      "project": "0bb52952df5141948ce7b43f5203e98b",
+      "quality": "medium",
+      "refine_underfloor": true,
+      "status": "cancelled",
+      "error": null,
+      "seconds": 369.224857,
+      "cells": null,
+      "iterations": 465,
+      "underfloor": {
+        "bounds": [
+          [
+            -2.430414414405823,
+            -0.96882945895195,
+            0.001
+          ],
+          [
+            2.430414414405823,
+            0.96882945895195,
+            0.12625529425484794
+          ]
+        ],
+        "level": 4,
+        "nominal_spacing": 0.039454779454639974
+      },
+      "geometry_identical_to_source": true,
+      "solver_input_identical": true,
+      "parts": 33,
+      "pipeline_hash": "85da819d3623c6f699f0f7ff1440a7e0c953a5e97b5f3f8e72b2a8b7093dbae4"
+    },
+    "second_medium_cells": 118451,
+    "initial_candidate": [
+      {
+        "run": "8e2c98c292b54e82b89413a6b34a44db",
+        "project": "39ce081c2c154f03b73d1e9542aa1179",
+        "quality": "fast",
+        "refine_underfloor": false,
+        "status": "completed",
+        "error": null,
+        "seconds": 76.761724,
+        "cells": 34017,
+        "iterations": 300,
+        "underfloor": null,
+        "geometry_identical_to_source": true,
+        "solver_input_identical": true,
+        "parts": 33,
+        "pipeline_hash": "465671aabb83e5f57d4e9cb02d216f7afff2502d8c903c868f79df88b474dbd2"
+      },
+      {
+        "run": "81e4d5ca3d7a45d8ba080221357a5e44",
+        "project": "8b9a742c0382404199ce8ee4857b5062",
+        "quality": "fast",
+        "refine_underfloor": true,
+        "status": "completed",
+        "error": null,
+        "seconds": 189.213555,
+        "cells": 76988,
+        "iterations": 300,
+        "underfloor": {
+          "bounds": [
+            [
+              -2.651361179351807,
+              -1.0569048643112182,
+              0.001
+            ],
+            [
+              2.651361179351807,
+              1.0569048643112182,
+              0.22594676529988647
+            ]
+          ],
+          "level": 4,
+          "nominal_spacing": 0.042742677742526644
+        },
+        "geometry_identical_to_source": true,
+        "solver_input_identical": true,
+        "parts": 33,
+        "pipeline_hash": "465671aabb83e5f57d4e9cb02d216f7afff2502d8c903c868f79df88b474dbd2"
+      },
+      {
+        "run": "ba7b422fd7c047a1946c3877d5d11064",
+        "project": "a70a704daeb94dfc803f8c3467a0723e",
+        "quality": "medium",
+        "refine_underfloor": false,
+        "status": "completed",
+        "error": null,
+        "seconds": 349.303734,
+        "cells": 83797,
+        "iterations": 600,
+        "underfloor": null,
+        "geometry_identical_to_source": true,
+        "solver_input_identical": true,
+        "parts": 33,
+        "pipeline_hash": "465671aabb83e5f57d4e9cb02d216f7afff2502d8c903c868f79df88b474dbd2"
+      },
+      {
+        "run": "8dbb1a0c14bb441c99ead5f539e426df",
+        "project": "26adda13cb914056be6eb819db08a265",
+        "quality": "medium",
+        "refine_underfloor": true,
+        "status": "cancelled",
+        "error": null,
+        "seconds": 334.240522,
+        "cells": null,
+        "iterations": 295,
+        "underfloor": {
+          "bounds": [
+            [
+              -2.651361179351807,
+              -1.0569048643112182,
+              0.001
+            ],
+            [
+              2.651361179351807,
+              1.0569048643112182,
+              0.22594676529988647
+            ]
+          ],
+          "level": 4,
+          "nominal_spacing": 0.039454779454639974
+        },
+        "geometry_identical_to_source": true,
+        "solver_input_identical": true,
+        "parts": 33,
+        "pipeline_hash": "465671aabb83e5f57d4e9cb02d216f7afff2502d8c903c868f79df88b474dbd2"
+      }
+    ],
+    "initial_medium_cells": 131743,
+    "initial_medium_cancelled_by_agent": "Own test cancelled after 295 of 600 iterations to replace an unnecessarily large region. Not a solver failure."
+  },
+  "checks": {
+    "backend_tests": 141,
+    "web_tests": 63,
+    "ruff": "passed",
+    "openfoam_build": "passed",
+    "webgpu_build": "passed",
+    "GitGuardian": "success on deployed code"
+  },
+  "browser_proof": {
+    "run": "3fc1e1391a6247d8be8070c050a7c400",
+    "view": "Vertical streamlines / Underbody camera",
+    "display_lines": 64,
+    "line_thickness": 0.8,
+    "road_overlay": false,
+    "screenshot": "mr2-refined-fast-underflow.png",
+    "note": "Seed density changes visualization only; every path integrates the saved computed field."
+  }
+}

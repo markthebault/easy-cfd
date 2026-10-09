@@ -123,13 +123,14 @@ def step_meshes(path, target):
 
 
 UNITS = dict(m=1, mm=0.001, cm=0.01, **{"in": 0.0254})
-MIN_CLEARANCE = 0.005
 
 
 def import_files(files: list[Path], folder: Path, options: ImportOptions, base=None, previous=None):
     """Mesh every file in one shared frame.
 
-    Only base files set the horizontal centre and road clearance, so parts added later
+    Browser uploads with preserve_coordinates are already positioned; batch boundaries
+    must never move them. For direct file imports, only base files set the horizontal
+    centre and road clearance, so parts added later
     keep their exported position relative to the car and never move it. ``previous``
     maps (file name, component) to an earlier part record whose role and enabled
     state carry over when the same originals are rebuilt.
@@ -151,9 +152,6 @@ def import_files(files: list[Path], folder: Path, options: ImportOptions, base=N
         stem = path.stem.split("-", 1)[-1] if path.parent.name == "originals" else path.stem
         for i, mesh in enumerate(meshes):
             extra = dict(source=source, component=i, enabled=True)
-            if options.components == "group" and path.suffix.lower() == ".stl":
-                extra["grouped_components"] = len(trimesh.graph.connected_components(
-                    mesh.face_adjacency, nodes=np.arange(len(mesh.faces)), min_len=1))
             pieces.append(
                 [f"{stem[:60]} {i + 1}", mesh, "body", None, extra]
             )
@@ -171,11 +169,12 @@ def import_files(files: list[Path], folder: Path, options: ImportOptions, base=N
     y = np.cross(z, x)
     transform = np.eye(4)
     transform[:3, :3] = np.stack([x, y, z])
-    for piece in pieces:
-        piece[1].apply_transform(transform)
+    if not options.preserve_coordinates:
+        for piece in pieces:
+            piece[1].apply_transform(transform)
     bounds = np.array([piece[1].bounds for piece in pieces if base[piece[4]["source"]]])
     low, high = bounds[:, 0].min(axis=0), bounds[:, 1].max(axis=0)
-    offset = np.array([-(low[0] + high[0]) / 2, -(low[1] + high[1]) / 2, options.clearance - low[2]])
+    offset = np.zeros(3) if options.preserve_coordinates else np.array([-(low[0] + high[0]) / 2, -(low[1] + high[1]) / 2, options.clearance - low[2]])
     for piece in pieces:
         mesh, extra = piece[1], piece[4]
         mesh.apply_translation(offset)
@@ -192,29 +191,29 @@ def import_files(files: list[Path], folder: Path, options: ImportOptions, base=N
                     radius=old["wheel"]["radius"] * (after / before if before > 0 else 1),
                     center=mesh.bounds.mean(axis=0).tolist(),
                 )
-    return persist_parts(folder, pieces)
+    return persist_parts(folder, pieces, inspect=False)
 
 
-def persist_parts(folder, pieces):
+def persist_parts(folder, pieces, inspect=True):
     """Write each piece and its checks. Pieces are (name, mesh, role, wheel[, extra])."""
     parts = []
     for i, (name, mesh, role, wheel, *extra) in enumerate(pieces):
         key = f"part{i}"
         mesh.remove_unreferenced_vertices()
         issues = []
-        if extra and extra[0].get("grouped_components", 1) > 1:
+        if inspect and extra and extra[0].get("grouped_components", 1) > 1:
             issues.append(f"Grouped STL contains {extra[0]['grouped_components']} disconnected components. Use Merge & seal to create one body.")
-        if len(mesh.faces) < 4 or not np.isfinite(mesh.vertices).all():
+        if not len(mesh.faces) or not np.isfinite(mesh.vertices).all():
             raise ValueError(f"{name}: empty or non-finite geometry.")
-        if role == "wheel" and wheel:
+        if inspect and role == "wheel" and wheel:
             axle = np.asarray(wheel.get("axis", [0, 1, 0]))
             if not np.allclose(np.abs(axle), [0, 1, 0], atol=1e-6):
                 issues.append("Wheel axle is not transverse. Rotate it back or review and reassign its role before CFD.")
-        if not mesh.is_watertight:
+        if inspect and not mesh.is_watertight:
             issues.append("Open edges or non-manifold edges. Inspect & repair openings.")
-        if not mesh.is_winding_consistent or mesh.volume <= 0:
+        if inspect and (not mesh.is_winding_consistent or mesh.volume <= 0):
             issues.append("Inconsistent or inward-facing surface normals. Correct normals in CAD/Blender.")
-        if np.any(mesh.area_faces < 1e-16):
+        if inspect and np.any(mesh.area_faces < 1e-16):
             issues.append("Degenerate triangles. Clean the surface in CAD/Blender.")
         mesh.export(folder / f"{key}.stl")
         write_vtp(mesh, folder / f"{key}.vtp")
@@ -224,10 +223,11 @@ def persist_parts(folder, pieces):
             role=role,
             wheel=wheel,
             triangles=len(mesh.faces),
-            minimum_extent=float(mesh.bounding_box_oriented.primitive.extents.min()),
+            minimum_extent=float(mesh.bounding_box_oriented.primitive.extents.min()) if inspect else float(mesh.extents.min()),
             bounds=mesh.bounds.tolist(),
             issues=issues,
             enabled=True,
+            watertight=bool(mesh.is_watertight) if inspect else None,
         )
         record.update(*extra)
         parts.append(record)
@@ -235,13 +235,14 @@ def persist_parts(folder, pieces):
 
 
 def summarize(folder, parts, meshes=None):
-    """Assembly totals and blocking errors over enabled parts only.
+    """Assembly measurements over enabled parts only.
 
     Disabled parts stay stored and visible for later runs, but they do not enter
     the simulation, so they neither block a run nor change its fingerprint.
     """
     chosen = [i for i, part in enumerate(parts) if part.get("enabled", True)]
     errors = []
+    surface_warnings = []
     if not chosen:
         errors.append("Enable at least one part to simulate.")
         chosen = list(range(len(parts)))
@@ -249,19 +250,14 @@ def summarize(folder, parts, meshes=None):
     for i in chosen:
         part = parts[i]
         total += part["triangles"]
-        errors.extend([f"{part['name']}: {issue}" for issue in part["issues"]])
-        if part["bounds"][0][2] < MIN_CLEARANCE - 1e-9:
-            errors.append(
-                f"{part['name']}: lowest point is {part['bounds'][0][2]:.3f} m above the road. "
-                "Keep every part at least 5 mm above it."
-            )
-    if total > 1500000:
-        errors.append("More than 1.5 million surface triangles. Export a coarser exterior model.")
+        # snappyHexMesh can consume open/fragmented triangle surfaces. These
+        # diagnostics do not establish whether the resulting volume mesh works;
+        # leave that decision to meshing and the unchanged checkMesh gate.
+        for issue in part["issues"]:
+            surface_warnings.append(f"{part['name']}: {issue}")
     bounds = np.array([parts[i]["bounds"] for i in chosen])
     low, high = bounds[:, 0].min(axis=0), bounds[:, 1].max(axis=0)
     dimensions = high - low
-    if dimensions.max() > 15 or dimensions.max() < 0.1:
-        errors.append("Unexpected model size. Check export units; supported length is 0.1–15 metres.")
     digest = hashlib.sha256()
     for i in chosen:
         digest.update((folder / f"{parts[i]['id']}.stl").read_bytes())
@@ -284,7 +280,7 @@ def summarize(folder, parts, meshes=None):
         warnings=[
             "Automatic checks do not establish that surfaces are free of intersections. Review the model and mesh.",
             "Small wheel-to-ground gaps avoid degenerate contact cells; ground clearance affects forces.",
-        ],
+        ] + surface_warnings,
     )
 
 

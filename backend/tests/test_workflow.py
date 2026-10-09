@@ -67,11 +67,17 @@ def test_high_speed_settings():
         Settings(speed_kmh=301)
 
 
-def test_open_surface_is_retained_for_review_but_blocked(tmp_path):
+def test_open_surface_is_retained_without_reconstruction_and_warned(tmp_path):
     mesh = trimesh.creation.box()
     mesh.update_faces(np.arange(len(mesh.faces) - 1))
+    mesh.apply_translation([0, 0, .505])
+    vertices, faces = mesh.vertices.copy(), mesh.faces.copy()
     data = geometry.persist_parts(tmp_path, [("Open car", mesh, "body", None)])
-    assert any("Open edges" in e for e in data["errors"])
+    assert not data["errors"]
+    assert any("Open edges" in e for e in data["warnings"])
+    assert not data["parts"][0]["watertight"]
+    assert np.array_equal(mesh.vertices, vertices)
+    assert np.array_equal(mesh.faces, faces)
     assert (tmp_path / "part0.vtp").exists()
 
 
@@ -91,7 +97,7 @@ def test_step_embedded_units(tmp_path):
 
 def test_confirmation_and_snapshot(client):
     p = project(client)
-    assert client.post(f"/api/projects/{p['id']}/runs").status_code == 400
+    assert client.post(f"/api/projects/{p['id']}/runs").status_code == 202
     settings = {
         **p["settings"],
         "geometry_confirmed": True,
@@ -742,7 +748,8 @@ def test_solver_ranks_and_cpu_limit_fit_the_runtime(client, monkeypatch):
     assert "numberOfSubdomains 8;" in (storage.ROOT / "case/system/decomposeParDict").read_text()
 
 
-def test_solve_passes_ranks_and_removes_processor_copies(client, monkeypatch):
+@pytest.mark.parametrize("part_faces", [0, 1, 5, 6, 50])
+def test_solve_passes_ranks_and_removes_processor_copies(client, monkeypatch, part_faces):
     p = project(client)
     client.put(
         f"/api/projects/{p['id']}/settings",
@@ -758,7 +765,7 @@ def test_solve_passes_ranks_and_removes_processor_copies(client, monkeypatch):
         if command[0] == "snappyHexMesh":
             (case / "constant/polyMesh").mkdir(parents=True)
             (case / "constant/polyMesh/boundary").write_text(
-                " ".join(f"{part['id']} {{ nFaces 50; }}" for part in run["geometry"]["parts"])
+                " ".join(f"{part['id']} {{ nFaces {part_faces}; }}" for part in run["geometry"]["parts"])
             )
             (case / "log.snappyHexMesh").write_text("Finished meshing")
         if command[0] == "checkMesh":
@@ -782,7 +789,12 @@ def test_solve_passes_ranks_and_removes_processor_copies(client, monkeypatch):
         return dict(warnings=[])
 
     monkeypatch.setattr(runner, "extract_case", process)
-    runner.solve(run["id"], "fast")
+    result = runner.solve(run["id"], "fast")
+    assert all(part["faces"] == part_faces for part in result["mesh_part_coverage"])
+    assert any("Mesh resolution:" in warning for warning in result["warnings"]) == (part_faces < 6)
+    saved = json.loads((storage.directory("runs", run["id"]) / "results/summary.json").read_text())
+    assert saved["mesh_part_coverage"] == result["mesh_part_coverage"]
+    assert saved["warnings"] == result["warnings"]
     solver = next(command for command, _ in calls if command[0] == "mpirun")
     assert solver[solver.index("-np") + 1] == "6"
     assert {cpus for _, cpus in calls} == {6}
@@ -790,6 +802,13 @@ def test_solve_passes_ranks_and_removes_processor_copies(client, monkeypatch):
     case = storage.directory("runs", run["id"]) / "case-fast"
     assert not list(case.glob("processor*"))
     assert (case / "200/U").exists() and (case / "300/U").exists()
+
+
+@pytest.mark.parametrize("boundary", ["part0 { nFaces 0; }", "part01 { nFaces 50; }"])
+def test_missing_mesh_part_is_reported_without_rejecting_openfoam_mesh(boundary):
+    assert runner.mesh_part_coverage(boundary, [{"id": "part0", "name": "Original panel"}]) == [
+        dict(id="part0", name="Original panel", faces=0, sparse=True)
+    ]
 
 
 def test_processor_copies_are_removable_only_when_every_time_was_reconstructed(tmp_path):
@@ -937,17 +956,19 @@ def test_reorient_rebuilds_from_originals_and_keeps_roles(client):
     # Centimetres instead of millimetres: 10x larger, wheel radius scales with the part.
     scaled = client.put(f"/api/projects/{p['id']}/import-options", json={**options, "units": "cm"}).json()
     assert scaled["geometry"]["parts"][1]["wheel"]["radius"] == pytest.approx(3.0)
-    assert any("Unexpected model size" in e for e in scaled["geometry"]["errors"])
+    assert not scaled["geometry"]["errors"]
 
 
-def test_added_part_below_road_blocks_and_base_files_cannot_be_removed(client):
+def test_added_part_below_road_is_sent_to_openfoam_and_base_files_cannot_be_removed(client):
     p = imported_car(client)
     splitter = trimesh.creation.box(extents=[1600, 200, 20])
     splitter.apply_translation([0, -2100, -30])
     data = client.post(
         f"/api/projects/{p['id']}/parts", files=[("files", ("splitter.stl", stl(splitter)))]
     ).json()
-    assert any("above the road" in e for e in data["geometry"]["errors"])
+    assert not data["geometry"]["errors"]
+    assert data["geometry"]["parts"][-1]["bounds"][0][2] < 0
+    assert client.post(f"/api/projects/{p['id']}/runs").status_code == 202
     part = data["geometry"]["parts"][-1]["id"]
     off = client.put(
         f"/api/projects/{p['id']}/parts-enabled", json=dict(part_ids=[part], enabled=False)
@@ -1120,3 +1141,37 @@ def test_plane_masks_extrapolated_probe_values():
     # |U| = 5 within the speed; 30 above the interpolated speed of 12; negative speed.
     speed = np.array([5.2, 12.0, -1.0])
     assert plane.interpolated(velocity, speed).tolist() == [True, False, False]
+
+
+def test_browser_batches_preserve_all_original_coordinates_without_preflight(client):
+    p = project(client)
+    # First batch does not contain the lowest part. Recentring it would shift the
+    # later wheel below the road; transport must use the browser's shared frame.
+    body = trimesh.creation.box(extents=[4, 2, 1])
+    body.apply_translation([3, 1, .565])
+    wheel = trimesh.creation.box(extents=[.3, .2, .6])
+    wheel.apply_translation([2, .2, .305])
+    first = client.post(
+        f"/api/projects/{p['id']}/import",
+        files=[("files", ("body.stl", stl(body)))],
+        data={"options": json.dumps(dict(components="group", preserve_coordinates=True))},
+    )
+    assert first.status_code == 200, first.text
+    second = client.post(
+        f"/api/projects/{p['id']}/parts", files=[("files", ("wheel.stl", stl(wheel)))]
+    )
+    assert second.status_code == 201, second.text
+    current = second.json()
+    for part, source in zip(current["geometry"]["parts"], [body, wheel]):
+        assert np.asarray(part["bounds"]) == pytest.approx(source.bounds, abs=1e-7)
+        assert part["triangles"] == len(source.faces)
+        assert part["watertight"] is None
+        assert part["issues"] == []
+    assert current["geometry"]["bounds"][0][2] == pytest.approx(.005, abs=1e-7)
+    # Cached legacy diagnostics and an unchecked confirmation cannot block OF.
+    current["geometry"]["errors"] = ["Legacy clearance / thin-part error"]
+    current["settings"]["geometry_confirmed"] = False
+    storage.save("projects", current)
+    response = client.post(f"/api/projects/{p['id']}/runs")
+    assert response.status_code == 202, response.text
+    assert response.json()["settings"]["geometry_confirmed"] is False
