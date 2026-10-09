@@ -70,6 +70,28 @@ Computer Use imported the unchanged original STEP, kept all 33 parts and 275,149
 
 Deployed code `177fc85` passed `checkMesh` on 34,017 cells and completed all 300 iterations as run `d9ec04713327409cb79e635092af094a`. The UI opened the computed result. These are coarse setup results, with sparse/absent part coverage still reported. The original failed-run settings were not saved because it failed before queueing; this is a normal Fast retry of the same original surfaces, rather than an assertion of identical unavailable settings. See [coordinate and run evidence](mr2-no-preflight-retry.json).
 
-Current validation: 133 backend tests, 62 browser unit tests, Ruff, OpenFOAM and WebGPU production builds, and working-diff whitespace checks passed. The deployed code's GitGuardian check reports success.
+Validation at that revision: 133 backend tests, 62 browser unit tests, Ruff, OpenFOAM and WebGPU production builds, and working-diff whitespace checks passed. The deployed code's GitGuardian check reports success.
 
 ![Full original MR2 after normal Fast without geometry preflight](mr2-full-original-fast-no-preflight.png)
+
+
+## Underfloor and road flow — 9 October 2026
+
+Low streamlines were falling through the road because volume cell-to-point averaging exported a downward velocity at road vertices. OpenFOAM's actual road boundary sets vertical velocity to zero. The viewer now restores that boundary before interpolation, including moving and stationary roads; it changes neither native cell values nor saved forces or fluid validity. Server field caches and old browser field caches refresh independently of the original simulation.
+
+Fast and Medium now refine a shallow band under the original car footprint at level four. On this MR2 the final region is 126 mm high in Fast and 84 mm in Medium, with 5% footprint padding and nominal cell spacing of 43 mm / 39 mm respectively. There is no geometry repair, new geometry rejection, added iteration count or larger run budget. The UI exposes **Underfloor and road gap**, enabled by default; advanced refinement and Quick import test retain their earlier behavior. Timing estimates separate enabled/disabled refinement and exclude older solver versions.
+
+Full-preset timing comparisons used the unchanged 33-part, 275,149-triangle MR2 at 100 km/h, zero yaw, moving road and fixed wheels:
+
+| Preset | Refinement off | Refinement on | Added time |
+| --- | --- | --- | --- |
+| Fast | 0 min 57 s / 34,017 cells | 2 min 26 s / 63,239 cells | 1 min 29 s |
+| Medium | 4 min 52 s / 83,797 cells | 6 min 28 s / 101,767 cells | 1 min 36 s |
+
+These are complete normal Fast (300 iterations) and Medium (600 iterations) runs, including meshing and backend result extraction. Browser downloads/rendering are excluded. No test suite, result sampler or competing solver ran during these final timing pairs. The last change only narrowed the enabled Medium region: regeneration confirmed all 47 static input files for each earlier Fast run and the Medium baseline still match the final code byte-for-byte. All four passed OpenFOAM's checkMesh and retained byte-identical original geometry and solver-input STLs. Two larger Medium regions were cancelled by the agent during timing experiments and replaced by the shallow final region. Neither cancellation was a solver failure.
+
+Computed low streamlines now pass under the body and continue into the wake. The screenshot uses 64 display seeds; density only resamples the saved computed velocity. Use **Vertical streamlines** and the **Underbody** camera to see paths hidden by the side panels. These remain rough flow explorations: the test establishes mesh/run/display behavior and measured cost on one original model, not accurate underfloor forces or a guaranteed runtime on every internet model.
+
+Validation: 141 backend tests, 63 browser unit tests, Ruff, both production builds and working-diff whitespace checks passed. [Detailed run and sampling evidence](underfloor-validation.json).
+
+![Original MR2 with computed underfloor streamlines after normal Fast](mr2-refined-fast-underflow.png)
