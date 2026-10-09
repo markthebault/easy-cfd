@@ -143,15 +143,13 @@ mergePatchPairs ();
         if advanced and selected:
             level = max(level,p["surface"]+1)
         requested_level = level
-        if settings.import_test:
-            # This deliberately coarse diagnostic must not refine tiny badges
-            # to a production mesh. Preserve surfaces and record unresolved size.
-            level = min(level, 3)
-        local_refinement[part["id"]] = dict(surface_level=level,nominal_spacing=cell/2**level,selected=selected,requested_surface_level=requested_level,underresolved=level < requested_level)
-        if level > 7:
-            raise ValueError(
-                f"{part['name']} is too thin for this preset's automatic mesh. Simplify the geometry."
-            )
+        # A bounding-box thickness is a refinement hint, not a reason to reject
+        # source geometry. Keep automatic detail within the selected preset:
+        # at most two extra subdivision levels, including the quick check's 3.
+        # OpenFOAM still meshes the original surfaces and checks cell quality.
+        detail_limit = min(7, p["surface"] + 2)
+        level = min(level, detail_limit)
+        local_refinement[part["id"]] = dict(surface_level=level,nominal_spacing=cell/2**level,selected=selected,requested_surface_level=requested_level,detail_level_limit=detail_limit,underresolved=level < requested_level)
         refinement_entries.append(f"{part['id']} {{level ({level} {level}); patchInfo {{type wall;}}}}")
     refinements = "\n".join(refinement_entries)
     # checkMesh's basic geometry check uses skewness 4 even on boundary faces.

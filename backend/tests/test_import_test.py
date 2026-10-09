@@ -51,3 +51,27 @@ def test_import_check_preserves_tiny_solid_and_records_underresolution(tmp_path)
     assert data["parts"][0]["triangles"] == 12
     assert metadata["local_refinement"]["part0"]["underresolved"]
     assert metadata["local_refinement"]["part0"]["surface_level"] == 3
+
+
+@pytest.mark.parametrize("quality,expected_limit", [("fast", 4), ("medium", 5), ("precise", 5)])
+@pytest.mark.parametrize("thickness", [.0075, .000001])
+def test_normal_presets_mesh_original_thin_parts_without_thickness_rejection(tmp_path, quality, expected_limit, thickness):
+    source = tmp_path / "geometry"
+    source.mkdir()
+    body = trimesh.creation.box(extents=[4.2,1.8,1.2])
+    body.apply_translation([0,0,.61])
+    detail = trimesh.creation.box(extents=[.1,thickness,.2])
+    detail.apply_translation([0,1,.5])
+    data = geometry.persist_parts(source, [("Body",body,"body",None), ("Original thin detail",detail,"body",None)])
+    original = (source / "part1.stl").read_bytes()
+    case = tmp_path / "case"
+    metadata = foam.generate(case, source, data, Settings(quality=quality,geometry_confirmed=True))
+    recipe = metadata["local_refinement"]["part1"]
+    assert recipe["requested_surface_level"] > expected_limit
+    if quality == "fast":
+        assert recipe["requested_surface_level"] > 7
+    assert recipe["surface_level"] == recipe["detail_level_limit"] == expected_limit
+    assert recipe["underresolved"]
+    assert (case / "constant/triSurface/part1.stl").read_bytes() == original
+    assert (source / "part1.stl").read_bytes() == original
+    assert f"part1 {{level ({expected_limit} {expected_limit});" in (case / "system/snappyHexMeshDict").read_text()

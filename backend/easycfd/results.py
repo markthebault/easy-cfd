@@ -346,6 +346,13 @@ def process(case, output, run, metadata):
         warnings.append("Quick import test: coarse mesh and 50 iterations. Diagnostic forces only; this run does not qualify aerodynamics.")
         if any(part.get("underresolved") for part in metadata.get("local_refinement", {}).values()):
             warnings.append("Quick import test retains the original surfaces but caps detail refinement at level 3. Thin or small features are under-resolved; use a finer mesh to assess them.")
+    else:
+        unresolved = sum(bool(part.get("underresolved")) for part in metadata.get("local_refinement", {}).values())
+        if unresolved:
+            warnings.append(
+                f"Automatic detail refinement was capped for {unresolved} parts to stay within the selected mesh preset. "
+                "Original surfaces were retained; thin features may be under-resolved. Review local mesh coverage before interpreting their forces or flow."
+            )
     if not converged:
         warnings.append("Residuals have not reached this preset's target. Forces are provisional.")
     if not values["force_settled"]:
