@@ -228,6 +228,7 @@ def persist_parts(folder, pieces):
             bounds=mesh.bounds.tolist(),
             issues=issues,
             enabled=True,
+            watertight=bool(mesh.is_watertight),
         )
         record.update(*extra)
         parts.append(record)
@@ -242,6 +243,7 @@ def summarize(folder, parts, meshes=None):
     """
     chosen = [i for i, part in enumerate(parts) if part.get("enabled", True)]
     errors = []
+    surface_warnings = []
     if not chosen:
         errors.append("Enable at least one part to simulate.")
         chosen = list(range(len(parts)))
@@ -249,7 +251,12 @@ def summarize(folder, parts, meshes=None):
     for i in chosen:
         part = parts[i]
         total += part["triangles"]
-        errors.extend([f"{part['name']}: {issue}" for issue in part["issues"]])
+        # snappyHexMesh can consume open/fragmented triangle surfaces. These
+        # diagnostics do not establish whether the resulting volume mesh works;
+        # leave that decision to meshing and the unchanged checkMesh gate.
+        for issue in part["issues"]:
+            target = errors if issue.startswith("Wheel axle") else surface_warnings
+            target.append(f"{part['name']}: {issue}")
         if part["bounds"][0][2] < MIN_CLEARANCE - 1e-9:
             errors.append(
                 f"{part['name']}: lowest point is {part['bounds'][0][2]:.3f} m above the road. "
@@ -284,7 +291,7 @@ def summarize(folder, parts, meshes=None):
         warnings=[
             "Automatic checks do not establish that surfaces are free of intersections. Review the model and mesh.",
             "Small wheel-to-ground gaps avoid degenerate contact cells; ground clearance affects forces.",
-        ],
+        ] + surface_warnings,
     )
 
 

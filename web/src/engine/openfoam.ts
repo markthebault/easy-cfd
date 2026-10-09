@@ -60,7 +60,7 @@ export interface ServerPart {
 
 export class ServerError extends Error {}
 
-async function api<T>(path: string, init?: RequestInit): Promise<T> {
+export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   if (!OPENFOAM_ENABLED) throw new ServerError(OPENFOAM_COMING_SOON);
   let response: Response;
   try {
@@ -105,7 +105,7 @@ export async function probeServer(): Promise<ServerInfo | null> {
       const runs = await api<ServerRun[]>("/runs");
       for (const q of ["fast", "medium", "precise"] as const) {
         const secs = runs
-          .filter((r) => r.status === "completed" && r.settings.quality === q && !r.settings.flow_animation && !(r.settings.profile ?? "").startsWith("advanced") &&
+          .filter((r) => r.status === "completed" && r.settings.quality === q && !r.settings.import_test && !r.settings.flow_animation && !(r.settings.profile ?? "").startsWith("advanced") &&
             (q !== "medium" || Object.entries(health.presets.medium).every(([key,value])=>r.mesh_preset?.[key] === value)) && r.started && r.finished)
           .map((r) => (Date.parse(r.finished!) - Date.parse(r.started!)) / 1000)
           .filter((x) => x > 0);
@@ -126,11 +126,11 @@ export async function probeServer(): Promise<ServerInfo | null> {
 
 /** The server's settings for a UI design. Custom quality has no OpenFOAM equivalent: Medium. */
 export function serverSettings(s: Settings): Record<string, unknown> {
-  const quality = s.quality === "custom" ? "medium" : s.quality;
+  const quality = s.import_test ? "fast" : s.quality === "custom" ? "medium" : s.quality;
   const b = s.simulation_box;
   const medium = quality === "medium" && (!s.profile || s.profile === "regular") && !(s.flow_animation && s.flow_detail === "fine");
   return {
-    ...(s.flow_animation && s.flow_detail === "fine" ? {profile:null} : s.profile ? {profile:s.profile} : {}),
+    ...(s.import_test ? { import_test:true, profile:null } : s.flow_animation && s.flow_detail === "fine" ? {profile:null} : s.profile ? {profile:s.profile} : {}),
     ...(s.refine_groups ? {refine_groups:s.refine_groups}:{}),
     ...(s.refine_underfloor !== undefined ? {refine_underfloor:s.refine_underfloor}:{}),
     ...(s.axles?.confirmed ? { axles: s.axles } : {}),
@@ -351,6 +351,24 @@ export async function ensureProject(name: string, parts: { key: string; part: Pa
   return link;
 }
 
+/** Concatenate existing surfaces without welding, filling, moving or remeshing. */
+export function originalSurfaceAssembly(parts: Part[]): Part {
+  const chosen = parts.filter(p => p.enabled);
+  if (!chosen.length) throw new ServerError("Switch at least one part on.");
+  const positions = new Float32Array(chosen.reduce((n,p)=>n+p.positions.length,0));
+  let offset=0;
+  for (const p of chosen) {positions.set(p.positions,offset);offset+=p.positions.length;}
+  return {...chosen[0],id:"original-surface-assembly",name:"Original surfaces",file:"original-surfaces.stl",positions,role:"body",wheel:null,group:"g:body",enabled:true};
+}
+
+/** A quick assembly check avoids a separate mandatory mesh patch per fragment. */
+export async function ensureOriginalSurfaceProject(name: string, parts: Part[], onStage: (s: string) => void): Promise<ProjectLink> {
+  const assembly=originalSurfaceAssembly(parts);
+  const link=await ensureProject(name,[{key:assembly.id,part:assembly}],onStage);
+  const patch=link.parts[assembly.id];
+  return {...link,parts:Object.fromEntries(parts.filter(p=>p.enabled).map(p=>[`${p.file}::${p.name}`,patch])),labels:{[patch]:{id:assembly.id,name:assembly.name,group:"g:body"}}};
+}
+
 /** Switch the simulated parts on, set the conditions and queue the run. */
 export async function queueRun(link: ProjectLink, activeKeys: string[], settings: Settings): Promise<ServerRun> {
   const all = Object.values(link.parts);
@@ -402,6 +420,19 @@ export async function fetchField(run: ServerRun, carLow: Vec3, carHigh: Vec3, do
 
 /** Surface pressure coefficient and near-wall flow direction at each part's soup vertices. */
 export async function fetchSurface(run: ServerRun, parts: Part[], offset: Vec3, patches: Record<string,string> = {}, signal?: AbortSignal): Promise<SurfaceSample[]> {
+  const sharedPatch=parts.map(p=>patches[`${p.file}::${p.name}`]);
+  if (parts.length > 1 && sharedPatch.every(p=>p && p===sharedPatch[0])) {
+    // An assembly has one wall patch. Sample once, then split in the source
+    // order instead of launching a native sampling process per OBJ fragment.
+    const assembly=originalSurfaceAssembly(parts);
+    const [sample]=await fetchSurface(run,[assembly],offset,{[`${assembly.file}::${assembly.name}`]:sharedPatch[0]},signal);
+    let at=0;
+    return parts.map(p=>{
+      const end=at+p.positions.length/3;
+      const value:SurfaceSample={cp:sample.cp.slice(at,end),shear:sample.shear.slice(3*at,3*end),...(sample.wallStress ? {wallStress:sample.wallStress.slice(3*at,3*end)}:{}),...(sample.stressValid ? {stressValid:sample.stressValid.slice(at,end)}:{}),...(sample.snapshot ? {snapshot:sample.snapshot}:{})};
+      at=end;return value;
+    });
+  }
   if (run.result?.provenance?.version === "openfoam-wall-integrals-2") {
     const result: SurfaceSample[] = [];
     for(const p of parts) {

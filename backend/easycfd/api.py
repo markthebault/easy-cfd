@@ -586,6 +586,14 @@ def seal_asset(key: str, token: str, part_id: str):
         raise FileNotFoundError()
     return FileResponse(folder / "geometry" / f"{part_id}.vtp")
 
+@app.get("/api/projects/{key}/seal-previews/{token}/geometry/{part_id}.stl")
+def seal_stl_asset(key: str, token: str, part_id: str):
+    folder = seal_folder(key, token)
+    preview = json.loads((folder / "preview.json").read_text())
+    if part_id not in [p["id"] for p in preview["geometry"]["parts"]]:
+        raise FileNotFoundError()
+    return FileResponse(folder / "geometry" / f"{part_id}.stl")
+
 
 @app.delete("/api/projects/{key}/seal-previews/{token}")
 def discard_seal_preview(key: str, token: str):

@@ -131,12 +131,12 @@ export function applyPressureColors(pos: Float32Array, cp: Float32Array | null, 
 
 export function clayMaterial(role: "body" | "wheel"): THREE.MeshPhysicalMaterial {
   return role === "wheel"
-    ? new THREE.MeshPhysicalMaterial({ color: 0x24262b, roughness: 0.72, metalness: 0.0, clearcoat: 0.05 })
-    : new THREE.MeshPhysicalMaterial({ color: 0xd9d6cf, roughness: 0.38, metalness: 0.0, clearcoat: 0.7, clearcoatRoughness: 0.18 });
+    ? new THREE.MeshPhysicalMaterial({ color: 0x24262b, roughness: 0.72, metalness: 0.0, clearcoat: 0.05, side: THREE.DoubleSide })
+    : new THREE.MeshPhysicalMaterial({ color: 0xd9d6cf, roughness: 0.38, metalness: 0.0, clearcoat: 0.7, clearcoatRoughness: 0.18, side: THREE.DoubleSide });
 }
 
 export function pressureMaterial(): THREE.MeshStandardMaterial {
-  return new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.62, metalness: 0.0 });
+  return new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.62, metalness: 0.0, side: THREE.DoubleSide });
 }
 
 /** Keep triangle sides separate: welding would average opposite sides of a thin wing. */

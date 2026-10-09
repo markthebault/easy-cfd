@@ -706,7 +706,7 @@ def enqueue(project):
         raise ValueError("Confirm model dimensions, orientation, and ground clearance before running.")
     geometry = project.get("geometry")
     if not geometry or geometry["errors"]:
-        raise ValueError("Import valid closed geometry before running.")
+        raise ValueError("Import usable surface geometry and resolve its blocking errors before running.")
     if settings.axles is None or settings.axles.source == "wheels":
         inferred = detected_axles(geometry["parts"])
         settings.axles = Axles(**inferred) if inferred else None

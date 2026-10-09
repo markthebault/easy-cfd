@@ -4,6 +4,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
+import { readCAD } from "./cad";
 import { parseSTL } from "./stl";
 import type { Vec3 } from "../solver/types";
 import { ROAD_CONTACT_ERROR } from "./roadPosition";
@@ -48,6 +49,8 @@ export interface Part {
 }
 
 export interface RawMesh {
+  /** CAD readers normalize the file's embedded units to metres. */
+  units?: Units;
   name: string;
   file: string;
   positions: Float32Array; // file coordinates
@@ -76,9 +79,14 @@ function soupFromGeometry(g: THREE.BufferGeometry, matrix?: THREE.Matrix4): Floa
 export async function readFile(file: SourceFile): Promise<RawMesh[]> {
   const ext = file.name.toLowerCase().split(".").pop() ?? "";
   const stem = file.name.replace(/\.[^.]+$/, "");
+  if (["step", "stp", "igs", "iges"].includes(ext)) return readCAD(file);
   if (ext === "stl") return [{ name: stem, file: file.name, positions: parseSTL(file.bytes) }];
   if (ext === "obj") {
-    const obj = new OBJLoader().parse(new TextDecoder().decode(file.bytes));
+    // OBJLoader marks the whole object as lines/points when it contains a
+    // decorative l/p record after faces, hiding even its valid body panels.
+    // CFD imports only surfaces; omit those non-surface records before parsing.
+    const text = new TextDecoder().decode(file.bytes).replace(/^[ \t]*(?:l|p)[ \t]+.*$/gm, "");
+    const obj = new OBJLoader().parse(text);
     const out: RawMesh[] = [];
     obj.updateMatrixWorld(true);
     obj.traverse((o) => {
@@ -97,7 +105,19 @@ export async function readFile(file: SourceFile): Promise<RawMesh[]> {
     });
     return out;
   }
-  throw new Error(`${file.name}: unsupported format. Use STL, OBJ, GLB or glTF.`);
+  throw new Error(`${file.name}: unsupported format. Use STEP, IGES, STL, OBJ, GLB or glTF.`);
+}
+
+/** Starting axes and mesh units from proportions; the user still checks nose and road height. */
+export function suggestImport(raw: RawMesh[]): ImportOptions {
+  const { low, high } = soupBounds(raw.map(p => p.positions));
+  const dims = high.map((v, i) => v - low[i]);
+  const order = [0, 1, 2].sort((a, b) => dims[b] - dims[a]);
+  const forward = `-${"XYZ"[order[0]]}` as AxisName;
+  const up = `+${"XYZ"[order[2]]}` as AxisName;
+  const longest = dims[order[0]];
+  const units: Units = raw.every(p => p.units === "m") ? "m" : longest > 100 ? "mm" : longest > 15 ? "cm" : "m";
+  return { ...DEFAULT_IMPORT, forward, up, units };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -216,7 +236,7 @@ export function buildParts(raw: (RawMesh & { base: boolean })[], opts: ImportOpt
   const s = UNIT_SCALE[opts.units];
   const pieces: { name: string; file: string; base: boolean; positions: Float32Array }[] = [];
   for (const r of raw) {
-    const rotated = transformSoup(r.positions, m, s);
+    const rotated = transformSoup(r.positions, m, r.units ? UNIT_SCALE[r.units] : s);
     const comps = opts.split ? splitComponents(rotated) : [rotated];
     comps.forEach((c, i) => pieces.push({ name: comps.length > 1 ? `${r.name} ${i + 1}` : r.name, file: r.file, base: r.base, positions: c }));
   }

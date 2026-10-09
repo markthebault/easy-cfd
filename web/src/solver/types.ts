@@ -75,6 +75,8 @@ export interface Settings extends VehicleWeight {
   axles?: Axles;
   refine_groups?: string[];
   refine_underfloor?: boolean;
+  /** Coarse OpenFOAM import check; forces are diagnostic only. */
+  import_test?: boolean;
   profile?: "basic" | "regular" | "advanced1" | "advanced2";
   /** Device-specific preflight limit, populated at runtime, not a quality adjustment. */
   gpu_buffer_limit?: number;

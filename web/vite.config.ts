@@ -7,6 +7,7 @@ export default defineConfig({
   plugins: [react()],
   base: "./",
   worker: { format: "es" },
+  server: { proxy: { "/api": process.env.EASYCFD_API_URL ?? "http://127.0.0.1:8000" } },
   build: {
     target: "es2022",
     chunkSizeWarningLimit: 1500,

@@ -226,7 +226,7 @@ export function ConditionsStep() {
         </div>
         <div className="boundary-options" role="group" aria-label="Road and wheel motion">
           <Checkbox checked={s.moving_ground} onChange={(v) => setSettings({ moving_ground: v })} label="Moving road" hint="Road surface moves at the selected speed. Uncheck for a fixed road." />
-          <Checkbox checked={s.wheels} onChange={(v) => setSettings({ wheels: v })} label="Rotating wheels" hint="Parts marked Wheel turn at the selected speed. Uncheck to hold them still." />
+          <Checkbox checked={s.wheels} onChange={(v) => setSettings({ wheels: v, ...(v && s.import_test ? {import_test:false}: {}) })} label="Rotating wheels" hint={s.import_test ? "Quick import test holds wheels fixed. Enabling rotation selects the normal mesh." : "Parts marked Wheel turn at the selected speed. Uncheck to hold them still."} />
         </div>
         <small className="field-hint" role="status">{!s.moving_ground && !s.wheels ? "Road and wheels stay fixed. Air still flows at the selected wind speed." : "These settings apply to the preview and to both simulation engines. Airflow stays on."}</small>
       </div>

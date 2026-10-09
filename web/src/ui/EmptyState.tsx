@@ -9,6 +9,7 @@ import { Toggle } from "./controls";
 import { fmtDate, verticalLoad } from "./format";
 
 export function EmptyState() {
+  const importError = useStore(app, s => s.importError);
   const input = useRef<HTMLInputElement>(null);
   const [wing, setWing] = useState(false);
   const [over, setOver] = useState(false);
@@ -40,10 +41,11 @@ export function EmptyState() {
         >
           <FileUp size={30} />
           <b>Drop your car here</b>
-          <span>STL, OBJ, GLB or glTF · several files for body and wheels</span>
+          <span>STEP, IGES, STL, OBJ, GLB or glTF · several files for body and wheels</span>
           <span className="btn primary sm">Choose files</span>
-          <input ref={input} type="file" hidden multiple accept=".stl,.obj,.glb,.gltf" onChange={(e) => { importFiles([...(e.target.files ?? [])], false); e.target.value = ""; }} />
+          <input ref={input} type="file" hidden multiple accept=".step,.stp,.igs,.iges,.stl,.obj,.glb,.gltf" onChange={(e) => { importFiles([...(e.target.files ?? [])], false); e.target.value = ""; }} />
         </div>
+        {importError && <p className="inline-error" role="alert">Import failed: {importError}</p>}
         <div className="or"><span>or</span></div>
         <div className="sample-row">
           <button className="btn secondary" onClick={() => loadSample(wing)} data-testid="try-sample">

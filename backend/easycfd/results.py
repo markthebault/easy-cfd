@@ -339,6 +339,13 @@ def process(case, output, run, metadata):
         for v in ("p", "Ux", "Uy", "Uz", "k", "omega")
     )
     warnings = []
+    open_parts = sum(not part.get("watertight", not any("Open edges" in issue for issue in part.get("issues", []))) for part in run["geometry"]["parts"])
+    if open_parts:
+        warnings.append(f"Original surfaces were meshed without sealing or reconstructing {open_parts} open parts. Inspect the volume mesh for leakage and missing features before interpreting forces.")
+    if run["settings"].get("import_test"):
+        warnings.append("Quick import test: coarse mesh and 50 iterations. Diagnostic forces only; this run does not qualify aerodynamics.")
+        if any(part.get("underresolved") for part in metadata.get("local_refinement", {}).values()):
+            warnings.append("Quick import test retains the original surfaces but caps detail refinement at level 3. Thin or small features are under-resolved; use a finer mesh to assess them.")
     if not converged:
         warnings.append("Residuals have not reached this preset's target. Forces are provisional.")
     if not values["force_settled"]:

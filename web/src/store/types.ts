@@ -34,6 +34,7 @@ export interface PartGroup {
 }
 
 export interface DesignDoc {
+  preparation?: { sourceDesignId: string; report: import("../engine/prepare").PreparationReport };
   id: string;
   name: string;
   createdAt: number;

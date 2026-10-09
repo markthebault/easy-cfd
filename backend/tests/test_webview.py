@@ -125,7 +125,7 @@ def test_run_geometry_is_served_as_stl(client, tmp_path):
     assert client.get(f"/api/runs/{key}/geometry/part9.stl").status_code == 404
 
 
-def test_native_stress_keeps_thin_sides_and_zero_distinct_from_missing(client, tmp_path):
+def test_native_stress_keeps_thin_sides_and_zero_distinct_from_missing(client, tmp_path, monkeypatch):
     from easycfd.webview import sample_stress
     key = saved_run(tmp_path)
     results = tmp_path / 'runs' / key / 'results'
@@ -158,6 +158,11 @@ def test_native_stress_keeps_thin_sides_and_zero_distinct_from_missing(client, t
     assert np.all(valid == 1)
     assert np.allclose(stress[:3],[3,4,0])
     assert np.allclose(stress[3:],0)
+    # Batches may split a triangle, but must retain exactly the same side and ordering.
+    monkeypatch.setattr('easycfd.webview.STRESS_QUERY_CHUNK', 2)
+    chunked_stress, chunked_valid = sample_stress(results,np.concatenate([top,bottom]).ravel(),'part0')
+    assert np.array_equal(chunked_stress, stress)
+    assert np.array_equal(chunked_valid, valid)
     far = top.copy()
     far[:,0] += 100
     missing, mask = sample_stress(results,far.ravel(),'part0')

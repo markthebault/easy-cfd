@@ -1,0 +1,1351 @@
+{
+  "airshaper": {
+    "status": "All seven original files imported and rendered through Computer Use after user signed in. No AirShaper simulations started or ordered.",
+    "drafts": {
+      "Cayman": "https://app.airshaper.com/simulations/sim_6kgAQEGrO6VtpddVlzv7YxwO/step/upload",
+      "Challenger": "https://app.airshaper.com/simulations/sim_qZMnbJ738W5fOaa0rO9LeAER/step/upload",
+      "Audi": "https://app.airshaper.com/simulations/sim_XWexm213MMEIOmmo3pYN6kRJ/step/upload",
+      "Tesla": "https://app.airshaper.com/simulations/sim_zOKv6gDBm0pHjyyq31E8qdba/step/upload",
+      "Porsche919": "https://app.airshaper.com/simulations/sim_6kgAQEGrO6Vtpddklzv7YxwO/step/upload",
+      "Mazda": "https://app.airshaper.com/simulations/sim_EOgkaQR37oyhnYYE38xv9mw1/step/upload",
+      "Endplate": "https://app.airshaper.com/simulations/sim_oQP26Kp3b2bSXYYP3NWYXyAw/step/upload"
+    },
+    "observations": "Green file check, rendered 3D preview and editable unit/rotation controls. AirShaper approximate dimensions checked; only units and rigid rotations changed."
+  },
+  "runs": [
+    {
+      "run": "485aaa67232043a9b4ef06bc0da0d787",
+      "name": "Browser CAD check - audi-a4-2017-simplified-model-for-cfd-1",
+      "status": "completed",
+      "started": "2026-10-09T09:51:52.474437+00:00",
+      "finished": "2026-10-09T09:52:05.974140+00:00",
+      "elapsed_seconds": 13.499703,
+      "settings": {
+        "profile": null,
+        "axles": null,
+        "vehicle_mass_kg": null,
+        "front_weight_percent": null,
+        "moment_origin": null,
+        "part_labels": {},
+        "refine_groups": null,
+        "refine_underfloor": true,
+        "max_seconds": 180,
+        "speed_kmh": 100.0,
+        "yaw_deg": 0.0,
+        "quality": "fast",
+        "simulation_box": null,
+        "custom_mesh": "medium",
+        "custom_iterations": 1000,
+        "reference_area": 2.2,
+        "density": 1.225,
+        "moving_ground": false,
+        "wheels": false,
+        "import_test": true,
+        "flow_animation": false,
+        "flow_detail": "standard",
+        "geometry_confirmed": true
+      },
+      "mesh_preset": {
+        "cell": 0.95,
+        "surface": 1,
+        "wake": 0,
+        "layers": 0,
+        "max_cells": 120000,
+        "iterations": 50,
+        "residual": 0.01,
+        "label": "Import test",
+        "memory_gb": 2
+      },
+      "geometry_triangles": 93210,
+      "geometry_dimensions_m": [
+        4.709725076332688,
+        1.9841549396514893,
+        1.2493374347686768
+      ],
+      "geometry_used": "Original source surfaces; mesh triangulation for CAD, units/orientation/road placement only. No sealing or voxel reconstruction.",
+      "cells": 10302,
+      "mesh_ok": true,
+      "iterations": 50.0,
+      "force_settled": false,
+      "residual_converged": false,
+      "warnings": [
+        "Quick import test: coarse mesh and 50 iterations. Diagnostic forces only; this run does not qualify aerodynamics.",
+        "Residuals have not reached this preset's target. Forces are provisional.",
+        "Forces or pitching/axle balance are still changing. Do not rank designs from this run.",
+        "This run uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+        "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+        "Only 0% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+      ],
+      "timings": {
+        "blockMesh": 0.5191666250029812,
+        "snappyHexMesh": 2.540133375005098,
+        "checkMesh": 1.0291092090046732,
+        "decomposePar": 1.1276394169981359,
+        "simpleFoam": 5.144872332995874,
+        "reconstructPar": 1.01617545899353
+      },
+      "mesh_recipe": {
+        "domain": [
+          -16.48403776716441,
+          30.613212996162474,
+          -10.411527622491121,
+          10.411527622491121,
+          0,
+          10.678787587434053
+        ],
+        "velocity": [
+          27.77777777777778,
+          0.0,
+          0
+        ],
+        "freestream": 27.77777777777778,
+        "base_cells": 9900,
+        "preset": {
+          "cell": 0.95,
+          "surface": 1,
+          "wake": 0,
+          "layers": 0,
+          "max_cells": 120000,
+          "iterations": 50,
+          "residual": 0.01,
+          "label": "Import test",
+          "memory_gb": 2
+        },
+        "processes": 4,
+        "local_refinement": {
+          "part0": {
+            "surface_level": 1,
+            "nominal_spacing": 0.5326474788709588,
+            "selected": false
+          }
+        },
+        "underfloor_spacing": null,
+        "tunnel_cross_section": 222.36498388256993,
+        "blockage_ratio": 0.009893644051267584
+      },
+      "airshaper": {
+        "status": "original file accepted and preview rendered",
+        "draft": "https://app.airshaper.com/simulations/sim_XWexm213MMEIOmmo3pYN6kRJ/step/upload",
+        "screenshot": "airshaper-audi.jpg"
+      }
+    },
+    {
+      "run": "593f1c37d67841dab5d5291fcdc8cdd4",
+      "name": "Browser CAD check - tesla-model-s-2015-simplified-model-for-cfd-1",
+      "status": "completed",
+      "started": "2026-10-09T09:52:46.292973+00:00",
+      "finished": "2026-10-09T09:53:09.596935+00:00",
+      "elapsed_seconds": 23.303962,
+      "settings": {
+        "profile": null,
+        "axles": null,
+        "vehicle_mass_kg": null,
+        "front_weight_percent": null,
+        "moment_origin": null,
+        "part_labels": {},
+        "refine_groups": null,
+        "refine_underfloor": true,
+        "max_seconds": 180,
+        "speed_kmh": 100.0,
+        "yaw_deg": 0.0,
+        "quality": "fast",
+        "simulation_box": null,
+        "custom_mesh": "medium",
+        "custom_iterations": 1000,
+        "reference_area": 2.2,
+        "density": 1.225,
+        "moving_ground": false,
+        "wheels": false,
+        "import_test": true,
+        "flow_animation": false,
+        "flow_detail": "standard",
+        "geometry_confirmed": true
+      },
+      "mesh_preset": {
+        "cell": 0.95,
+        "surface": 1,
+        "wake": 0,
+        "layers": 0,
+        "max_cells": 120000,
+        "iterations": 50,
+        "residual": 0.01,
+        "label": "Import test",
+        "memory_gb": 2
+      },
+      "geometry_triangles": 157308,
+      "geometry_dimensions_m": [
+        4.969438960775733,
+        2.166251301765442,
+        1.2806111425161362
+      ],
+      "geometry_used": "Original source surfaces; mesh triangulation for CAD, units/orientation/road placement only. No sealing or voxel reconstruction.",
+      "cells": 9514,
+      "mesh_ok": true,
+      "iterations": 50.0,
+      "force_settled": false,
+      "residual_converged": false,
+      "warnings": [
+        "Quick import test: coarse mesh and 50 iterations. Diagnostic forces only; this run does not qualify aerodynamics.",
+        "Residuals have not reached this preset's target. Forces are provisional.",
+        "Forces or pitching/axle balance are still changing. Do not rank designs from this run.",
+        "This run uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+        "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+        "Only 0% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+      ],
+      "timings": {
+        "blockMesh": 1.0143669999961276,
+        "snappyHexMesh": 4.5642730410036165,
+        "checkMesh": 1.5317995419900399,
+        "decomposePar": 1.5205363749992102,
+        "simpleFoam": 9.722953833988868,
+        "reconstructPar": 1.5365858339937404
+      },
+      "mesh_recipe": {
+        "domain": [
+          -17.393036362715065,
+          32.301353245042264,
+          -11.022003572434187,
+          11.022003572434187,
+          0,
+          11.229489064067602
+        ],
+        "velocity": [
+          27.77777777777778,
+          0.0,
+          0
+        ],
+        "freestream": 27.77777777777778,
+        "base_cells": 9000,
+        "preset": {
+          "cell": 0.95,
+          "surface": 1,
+          "wake": 0,
+          "layers": 0,
+          "max_cells": 120000,
+          "iterations": 50,
+          "residual": 0.01,
+          "label": "Import test",
+          "memory_gb": 2
+        },
+        "processes": 4,
+        "local_refinement": {
+          "part0": {
+            "surface_level": 1,
+            "nominal_spacing": 0.5620198824686841,
+            "selected": false
+          }
+        },
+        "underfloor_spacing": null,
+        "tunnel_cross_section": 247.54293716152748,
+        "blockage_ratio": 0.008887347080981146
+      },
+      "airshaper": {
+        "status": "original file accepted and preview rendered",
+        "draft": "https://app.airshaper.com/simulations/sim_zOKv6gDBm0pHjyyq31E8qdba/step/upload",
+        "screenshot": "airshaper-tesla.jpg"
+      }
+    },
+    {
+      "run": "44f649257bd14f5fbe84ca02c7761edf",
+      "name": "Browser CAD check - porsche-919-evo-simplified-model-for-cfd-1",
+      "status": "completed",
+      "started": "2026-10-09T09:52:05.978719+00:00",
+      "finished": "2026-10-09T09:52:18.827534+00:00",
+      "elapsed_seconds": 12.848815,
+      "settings": {
+        "profile": null,
+        "axles": null,
+        "vehicle_mass_kg": null,
+        "front_weight_percent": null,
+        "moment_origin": null,
+        "part_labels": {},
+        "refine_groups": null,
+        "refine_underfloor": true,
+        "max_seconds": 180,
+        "speed_kmh": 100.0,
+        "yaw_deg": 0.0,
+        "quality": "fast",
+        "simulation_box": null,
+        "custom_mesh": "medium",
+        "custom_iterations": 1000,
+        "reference_area": 2.2,
+        "density": 1.225,
+        "moving_ground": false,
+        "wheels": false,
+        "import_test": true,
+        "flow_animation": false,
+        "flow_detail": "standard",
+        "geometry_confirmed": true
+      },
+      "mesh_preset": {
+        "cell": 0.95,
+        "surface": 1,
+        "wake": 0,
+        "layers": 0,
+        "max_cells": 120000,
+        "iterations": 50,
+        "residual": 0.01,
+        "label": "Import test",
+        "memory_gb": 2
+      },
+      "geometry_triangles": 364108,
+      "geometry_dimensions_m": [
+        5.2177147744223475,
+        2.075640916824341,
+        1.1238674446940422
+      ],
+      "geometry_used": "Original source surfaces; mesh triangulation for CAD, units/orientation/road placement only. No sealing or voxel reconstruction.",
+      "cells": 11057,
+      "mesh_ok": true,
+      "iterations": 50.0,
+      "force_settled": false,
+      "residual_converged": false,
+      "warnings": [
+        "Quick import test: coarse mesh and 50 iterations. Diagnostic forces only; this run does not qualify aerodynamics.",
+        "Residuals have not reached this preset's target. Forces are provisional.",
+        "Forces or pitching/axle balance are still changing. Do not rank designs from this run.",
+        "This run uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+        "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+        "Only 0% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+      ],
+      "timings": {
+        "blockMesh": 0.5170352919958532,
+        "snappyHexMesh": 4.07050570800493,
+        "checkMesh": 0.510959916995489,
+        "decomposePar": 1.021246832999168,
+        "simpleFoam": 3.057646291999845,
+        "reconstructPar": 1.5474445409927284
+      },
+      "mesh_recipe": {
+        "domain": [
+          -18.262001710478216,
+          33.91514603374526,
+          -11.473250007256866,
+          11.473250007256866,
+          0,
+          11.569296993538737
+        ],
+        "velocity": [
+          27.77777777777778,
+          0.0,
+          0
+        ],
+        "freestream": 27.77777777777778,
+        "base_cells": 9000,
+        "preset": {
+          "cell": 0.95,
+          "surface": 1,
+          "wake": 0,
+          "layers": 0,
+          "max_cells": 120000,
+          "iterations": 50,
+          "residual": 0.01,
+          "label": "Import test",
+          "memory_gb": 2
+        },
+        "processes": 4,
+        "local_refinement": {
+          "part0": {
+            "surface_level": 2,
+            "nominal_spacing": 0.29504934736316846,
+            "selected": false
+          }
+        },
+        "underfloor_spacing": null,
+        "tunnel_cross_section": 265.4748736301503,
+        "blockage_ratio": 0.008287036622023063
+      },
+      "airshaper": {
+        "status": "original file accepted and preview rendered",
+        "draft": "https://app.airshaper.com/simulations/sim_6kgAQEGrO6Vtpddklzv7YxwO/step/upload",
+        "screenshot": "airshaper-porsche919.jpg"
+      }
+    },
+    {
+      "run": "4a0b4b47c1494ae3bccdd38f71f86460",
+      "name": "Import test - mazda-rx-8-racecar-model-high-performance-3d-printable-cad-model-solidworks",
+      "status": "completed",
+      "started": "2026-10-09T09:46:27.646044+00:00",
+      "finished": "2026-10-09T09:46:36.515560+00:00",
+      "elapsed_seconds": 8.869516,
+      "settings": {
+        "profile": null,
+        "axles": null,
+        "vehicle_mass_kg": null,
+        "front_weight_percent": null,
+        "moment_origin": null,
+        "part_labels": {},
+        "refine_groups": null,
+        "refine_underfloor": true,
+        "max_seconds": 180,
+        "speed_kmh": 100.0,
+        "yaw_deg": 0.0,
+        "quality": "fast",
+        "simulation_box": null,
+        "custom_mesh": "medium",
+        "custom_iterations": 1000,
+        "reference_area": 2.2,
+        "density": 1.225,
+        "moving_ground": false,
+        "wheels": false,
+        "import_test": true,
+        "flow_animation": false,
+        "flow_detail": "standard",
+        "geometry_confirmed": true
+      },
+      "mesh_preset": {
+        "cell": 0.95,
+        "surface": 1,
+        "wake": 0,
+        "layers": 0,
+        "max_cells": 120000,
+        "iterations": 50,
+        "residual": 0.01,
+        "label": "Import test",
+        "memory_gb": 2
+      },
+      "geometry_triangles": 299998,
+      "geometry_dimensions_m": [
+        1.15695321559906,
+        0.512364536523819,
+        0.3441440465285268
+      ],
+      "geometry_used": "Original source surfaces; mesh triangulation for CAD, units/orientation/road placement only. No sealing or voxel reconstruction.",
+      "cells": 10330,
+      "mesh_ok": true,
+      "iterations": 50.0,
+      "force_settled": false,
+      "residual_converged": false,
+      "warnings": [
+        "Quick import test: coarse mesh and 50 iterations. Diagnostic forces only; this run does not qualify aerodynamics.",
+        "Residuals have not reached this preset's target. Forces are provisional.",
+        "Forces or pitching/axle balance are still changing. Do not rank designs from this run.",
+        "This run uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+        "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+        "Tunnel blockage is 16.0%, above the ~5% guideline. Confinement may inflate forces; use a larger domain or correct for blockage.",
+        "Only 2% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+      ],
+      "timings": {
+        "blockMesh": 0.5114855830033775,
+        "snappyHexMesh": 3.0418459579959745,
+        "checkMesh": 0.5152352500008419,
+        "decomposePar": 0.5151332499954151,
+        "simpleFoam": 2.041749042007723,
+        "reconstructPar": 0.5185493330063764
+      },
+      "mesh_recipe": {
+        "domain": [
+          -4.04933625459671,
+          7.52019590139389,
+          -2.5700886994600296,
+          2.5700886994600296,
+          0,
+          2.6680504777266467
+        ],
+        "velocity": [
+          27.77777777777778,
+          0.0,
+          0
+        ],
+        "freestream": 27.77777777777778,
+        "base_cells": 9900,
+        "preset": {
+          "cell": 0.95,
+          "surface": 1,
+          "wake": 0,
+          "layers": 0,
+          "max_cells": 120000,
+          "iterations": 50,
+          "residual": 0.01,
+          "label": "Import test",
+          "memory_gb": 2
+        },
+        "processes": 4,
+        "local_refinement": {
+          "part0": {
+            "surface_level": 1,
+            "nominal_spacing": 0.13084589938322702,
+            "selected": false
+          }
+        },
+        "underfloor_spacing": null,
+        "tunnel_cross_section": 13.714252764788377,
+        "blockage_ratio": 0.16041705207946472
+      },
+      "airshaper": {
+        "status": "original file accepted and preview rendered",
+        "draft": "https://app.airshaper.com/simulations/sim_EOgkaQR37oyhnYYE38xv9mw1/step/upload",
+        "screenshot": "airshaper-mazda.jpg"
+      }
+    },
+    {
+      "run": "ede03eb455a74a5b86fcd06ede0e0f17",
+      "name": "2020 Porsche 718 Cayman GT4 \u00b7 from EasyCFD Web",
+      "status": "completed",
+      "started": "2026-10-09T10:37:27.946736+00:00",
+      "finished": "2026-10-09T10:37:37.772521+00:00",
+      "elapsed_seconds": 9.825785,
+      "settings": {
+        "profile": null,
+        "axles": null,
+        "vehicle_mass_kg": null,
+        "front_weight_percent": null,
+        "moment_origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "part_labels": {
+          "part0": {
+            "id": "original-surface-assembly",
+            "name": "Original surfaces",
+            "group": "g:body",
+            "groupName": "Body"
+          }
+        },
+        "refine_groups": null,
+        "refine_underfloor": true,
+        "max_seconds": 180,
+        "speed_kmh": 100.0,
+        "yaw_deg": 0.0,
+        "quality": "fast",
+        "simulation_box": null,
+        "custom_mesh": "medium",
+        "custom_iterations": 1000,
+        "reference_area": 2.2,
+        "density": 1.225,
+        "moving_ground": true,
+        "wheels": false,
+        "import_test": true,
+        "flow_animation": false,
+        "flow_detail": "standard",
+        "geometry_confirmed": true
+      },
+      "mesh_preset": {
+        "cell": 0.95,
+        "surface": 1,
+        "wake": 0,
+        "layers": 0,
+        "max_cells": 120000,
+        "iterations": 50,
+        "residual": 0.01,
+        "label": "Import test",
+        "memory_gb": 2
+      },
+      "geometry_triangles": 405053,
+      "geometry_dimensions_m": [
+        4.345729827880859,
+        1.9493860006332397,
+        1.1740519949235022
+      ],
+      "geometry_used": "Original source surfaces; mesh triangulation for CAD, units/orientation/road placement only. No sealing or voxel reconstruction.",
+      "cells": 10326,
+      "mesh_ok": true,
+      "iterations": 50.0,
+      "force_settled": false,
+      "residual_converged": false,
+      "warnings": [
+        "Original surfaces were meshed without sealing or reconstructing 1 open parts. Inspect the volume mesh for leakage and missing features before interpreting forces.",
+        "Quick import test: coarse mesh and 50 iterations. Diagnostic forces only; this run does not qualify aerodynamics.",
+        "Residuals have not reached this preset's target. Forces are provisional.",
+        "Forces or pitching/axle balance are still changing. Do not rank designs from this run.",
+        "This run uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+        "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+        "Only 0% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+      ],
+      "timings": {
+        "blockMesh": 0.5119745830015745,
+        "snappyHexMesh": 3.5615925840102136,
+        "checkMesh": 0.5207544169970788,
+        "decomposePar": 0.5155490000033751,
+        "simpleFoam": 2.032246542003122,
+        "reconstructPar": 0.5191980000090552
+      },
+      "mesh_recipe": {
+        "domain": [
+          -15.210054397583008,
+          28.247243881225586,
+          -9.666152656078339,
+          9.666152656078339,
+          0,
+          9.870511651039124
+        ],
+        "velocity": [
+          27.77777777777778,
+          0.0,
+          0
+        ],
+        "freestream": 27.77777777777778,
+        "base_cells": 9900,
+        "preset": {
+          "cell": 0.95,
+          "surface": 1,
+          "wake": 0,
+          "layers": 0,
+          "max_cells": 120000,
+          "iterations": 50,
+          "residual": 0.01,
+          "label": "Import test",
+          "memory_gb": 2
+        },
+        "processes": 4,
+        "local_refinement": {
+          "part0": {
+            "surface_level": 1,
+            "nominal_spacing": 0.4914813495817638,
+            "selected": false,
+            "requested_surface_level": 1,
+            "underresolved": false
+          }
+        },
+        "underfloor_spacing": null,
+        "tunnel_cross_section": 190.81974482508804,
+        "blockage_ratio": 0.011529205229870715
+      },
+      "airshaper": {
+        "status": "original file accepted and preview rendered",
+        "draft": "https://app.airshaper.com/simulations/sim_6kgAQEGrO6VtpddVlzv7YxwO/step/upload",
+        "screenshot": "airshaper-cayman.jpg"
+      }
+    },
+    {
+      "run": "36e42b48de81400fa512fe5663d0625a",
+      "name": "challenger3 \u00b7 from EasyCFD Web",
+      "status": "completed",
+      "started": "2026-10-09T10:38:45.546124+00:00",
+      "finished": "2026-10-09T10:38:59.171655+00:00",
+      "elapsed_seconds": 13.625531,
+      "settings": {
+        "profile": null,
+        "axles": null,
+        "vehicle_mass_kg": null,
+        "front_weight_percent": null,
+        "moment_origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "part_labels": {
+          "part0": {
+            "id": "original-surface-assembly",
+            "name": "Original surfaces",
+            "group": "g:body",
+            "groupName": "Body"
+          }
+        },
+        "refine_groups": null,
+        "refine_underfloor": true,
+        "max_seconds": 180,
+        "speed_kmh": 100.0,
+        "yaw_deg": 0.0,
+        "quality": "fast",
+        "simulation_box": null,
+        "custom_mesh": "medium",
+        "custom_iterations": 1000,
+        "reference_area": 2.2,
+        "density": 1.225,
+        "moving_ground": true,
+        "wheels": false,
+        "import_test": true,
+        "flow_animation": false,
+        "flow_detail": "standard",
+        "geometry_confirmed": true
+      },
+      "mesh_preset": {
+        "cell": 0.95,
+        "surface": 1,
+        "wake": 0,
+        "layers": 0,
+        "max_cells": 120000,
+        "iterations": 50,
+        "residual": 0.01,
+        "label": "Import test",
+        "memory_gb": 2
+      },
+      "geometry_triangles": 872812,
+      "geometry_dimensions_m": [
+        4.9842023849487305,
+        2.1768345832824707,
+        1.418243879918009
+      ],
+      "geometry_used": "Original source surfaces; mesh triangulation for CAD, units/orientation/road placement only. No sealing or voxel reconstruction.",
+      "cells": 10364,
+      "mesh_ok": true,
+      "iterations": 50.0,
+      "force_settled": false,
+      "residual_converged": false,
+      "warnings": [
+        "Original surfaces were meshed without sealing or reconstructing 1 open parts. Inspect the volume mesh for leakage and missing features before interpreting forces.",
+        "Quick import test: coarse mesh and 50 iterations. Diagnostic forces only; this run does not qualify aerodynamics.",
+        "Residuals have not reached this preset's target. Forces are provisional.",
+        "Forces or pitching/axle balance are still changing. Do not rank designs from this run.",
+        "This run uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+        "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+        "Only 0% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+      ],
+      "timings": {
+        "blockMesh": 1.0204595830000471,
+        "snappyHexMesh": 6.368861916009337,
+        "checkMesh": 0.5163155000045663,
+        "decomposePar": 0.5124625419994118,
+        "simpleFoam": 2.5436756249982864,
+        "reconstructPar": 0.5091262500063749
+      },
+      "mesh_recipe": {
+        "domain": [
+          -17.444708347320557,
+          32.39731550216675,
+          -11.056822061538696,
+          11.056822061538696,
+          0,
+          11.391648650169373
+        ],
+        "velocity": [
+          27.77777777777778,
+          0.0,
+          0
+        ],
+        "freestream": 27.77777777777778,
+        "base_cells": 9900,
+        "preset": {
+          "cell": 0.95,
+          "surface": 1,
+          "wake": 0,
+          "layers": 0,
+          "max_cells": 120000,
+          "iterations": 50,
+          "residual": 0.01,
+          "label": "Import test",
+          "memory_gb": 2
+        },
+        "processes": 4,
+        "local_refinement": {
+          "part0": {
+            "surface_level": 1,
+            "nominal_spacing": 0.5636895554406302,
+            "selected": false,
+            "requested_surface_level": 1,
+            "underresolved": false
+          }
+        },
+        "underfloor_spacing": null,
+        "tunnel_cross_section": 251.91086422498046,
+        "blockage_ratio": 0.0087332477968683
+      },
+      "airshaper": {
+        "status": "original file accepted and preview rendered",
+        "draft": "https://app.airshaper.com/simulations/sim_qZMnbJ738W5fOaa0rO9LeAER/step/upload",
+        "screenshot": "airshaper-challenger.jpg"
+      }
+    },
+    {
+      "run": "5f8deefdbc5b422590552a3e2ceae318",
+      "name": "Browser CAD check - porsche-987-cayman-aero-package-1",
+      "status": "completed",
+      "started": "2026-10-09T10:49:56.733532+00:00",
+      "finished": "2026-10-09T10:50:08.244937+00:00",
+      "elapsed_seconds": 11.511405,
+      "settings": {
+        "profile": null,
+        "axles": null,
+        "vehicle_mass_kg": null,
+        "front_weight_percent": null,
+        "moment_origin": null,
+        "part_labels": {},
+        "refine_groups": null,
+        "refine_underfloor": true,
+        "max_seconds": 180,
+        "speed_kmh": 100.0,
+        "yaw_deg": 0.0,
+        "quality": "fast",
+        "simulation_box": null,
+        "custom_mesh": "fast",
+        "custom_iterations": 50,
+        "reference_area": 0.01,
+        "density": 1.225,
+        "moving_ground": false,
+        "wheels": false,
+        "import_test": true,
+        "flow_animation": false,
+        "flow_detail": "standard",
+        "geometry_confirmed": true
+      },
+      "mesh_preset": {
+        "cell": 0.95,
+        "surface": 1,
+        "wake": 0,
+        "layers": 0,
+        "max_cells": 120000,
+        "iterations": 50,
+        "residual": 0.01,
+        "label": "Import test",
+        "memory_gb": 2
+      },
+      "geometry_triangles": 340,
+      "geometry_dimensions_m": [
+        0.3810000419616699,
+        0.007619991898536682,
+        0.2540000081062317
+      ],
+      "geometry_used": "Original source surfaces; mesh triangulation for CAD, units/orientation/road placement only. No sealing or voxel reconstruction.",
+      "cells": 19751,
+      "mesh_ok": true,
+      "iterations": 50.0,
+      "force_settled": false,
+      "residual_converged": false,
+      "warnings": [
+        "Quick import test: coarse mesh and 50 iterations. Diagnostic forces only; this run does not qualify aerodynamics.",
+        "Quick import test retains the original surfaces but caps detail refinement at level 3. Thin or small features are under-resolved; use a finer mesh to assess them.",
+        "Residuals have not reached this preset's target. Forces are provisional.",
+        "Forces or pitching/axle balance are still changing. Do not rank designs from this run.",
+        "This run uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+        "No experimental validation for this car. Mesh refinement and physical testing are still needed."
+      ],
+      "timings": {
+        "blockMesh": 1.017702333003399,
+        "snappyHexMesh": 2.0297624169907067,
+        "checkMesh": 0.5169831249950221,
+        "decomposePar": 0.5093930000002729,
+        "simpleFoam": 4.081534082986764,
+        "reconstructPar": 1.0194007079990115
+      },
+      "mesh_recipe": {
+        "domain": [
+          -1.3335001468658447,
+          2.4765002727508545,
+          -0.7658100798726082,
+          0.7658100798726082,
+          0,
+          1.0260000920295715
+        ],
+        "velocity": [
+          27.77777777777778,
+          0.0,
+          0
+        ],
+        "freestream": 27.77777777777778,
+        "base_cells": 9720,
+        "preset": {
+          "cell": 0.95,
+          "surface": 1,
+          "wake": 0,
+          "layers": 0,
+          "max_cells": 120000,
+          "iterations": 50,
+          "residual": 0.01,
+          "label": "Import test",
+          "memory_gb": 2
+        },
+        "processes": 4,
+        "local_refinement": {
+          "part0": {
+            "surface_level": 3,
+            "nominal_spacing": 0.01077232261498769,
+            "selected": false,
+            "requested_surface_level": 5,
+            "underresolved": true
+          }
+        },
+        "underfloor_spacing": null,
+        "tunnel_cross_section": 1.571442424852939,
+        "blockage_ratio": 0.006363580263486799
+      },
+      "airshaper": {
+        "status": "original file accepted and preview rendered",
+        "draft": "https://app.airshaper.com/simulations/sim_oQP26Kp3b2bSXYYP3NWYXyAw/step/upload",
+        "screenshot": "airshaper-endplate.jpg"
+      }
+    }
+  ],
+  "superseded_experiments": {
+    "note": "Earlier reconstruction experiments retained for audit only. They are not used to establish original-shape import parity.",
+    "runs": [
+      {
+        "run": "c25cd188b237468cb60013f56b47d1f0",
+        "name": "2020 Porsche 718 Cayman GT4 prepared \u00b7 from EasyCFD Web",
+        "status": "completed",
+        "started": "2026-10-09T09:50:50.824708+00:00",
+        "finished": "2026-10-09T09:50:58.717975+00:00",
+        "settings": {
+          "profile": null,
+          "axles": null,
+          "vehicle_mass_kg": null,
+          "front_weight_percent": null,
+          "moment_origin": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "part_labels": {
+            "part0": {
+              "id": "2020 Porsche 718 Cayman GT4 prepared.stl::2020 Porsche 718 Cayman GT4 prepared",
+              "name": "2020 Porsche 718 Cayman GT4 prepared",
+              "group": "g:body",
+              "groupName": "Body"
+            }
+          },
+          "refine_groups": null,
+          "refine_underfloor": true,
+          "max_seconds": 180,
+          "speed_kmh": 100.0,
+          "yaw_deg": 0.0,
+          "quality": "fast",
+          "simulation_box": null,
+          "custom_mesh": "medium",
+          "custom_iterations": 1000,
+          "reference_area": 2.2,
+          "density": 1.225,
+          "moving_ground": true,
+          "wheels": false,
+          "import_test": true,
+          "flow_animation": false,
+          "flow_detail": "standard",
+          "geometry_confirmed": true
+        },
+        "mesh_preset": {
+          "cell": 0.95,
+          "surface": 1,
+          "wake": 0,
+          "layers": 0,
+          "max_cells": 120000,
+          "iterations": 50,
+          "residual": 0.01,
+          "label": "Import test",
+          "memory_gb": 2
+        },
+        "geometry_triangles": 111312,
+        "cells": 10333,
+        "mesh_ok": true,
+        "iterations": 50.0,
+        "force_settled": false,
+        "residual_converged": false,
+        "warnings": [
+          "Quick import test: coarse mesh and 50 iterations. Diagnostic forces only; this run does not qualify aerodynamics.",
+          "Residuals have not reached this preset's target. Forces are provisional.",
+          "Forces or pitching/axle balance are still changing. Do not rank designs from this run.",
+          "This run uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+          "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+          "Only 0% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+        ],
+        "timings": {
+          "blockMesh": 0.509244665998267,
+          "snappyHexMesh": 2.0318978339928435,
+          "checkMesh": 0.5163369999936549,
+          "decomposePar": 0.5193054999981541,
+          "simpleFoam": 2.057857541993144,
+          "reconstructPar": 0.5195727909886045
+        }
+      },
+      {
+        "run": "9b4f6fe66524443589504291ace15c63",
+        "name": "challenger3 prepared \u00b7 from EasyCFD Web",
+        "status": "completed",
+        "started": "2026-10-09T10:04:01.615743+00:00",
+        "finished": "2026-10-09T10:04:10.874240+00:00",
+        "settings": {
+          "profile": null,
+          "axles": null,
+          "vehicle_mass_kg": null,
+          "front_weight_percent": null,
+          "moment_origin": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "part_labels": {
+            "part0": {
+              "id": "challenger3 prepared.stl::challenger3 prepared",
+              "name": "challenger3 prepared",
+              "group": "g:body",
+              "groupName": "Body"
+            }
+          },
+          "refine_groups": null,
+          "refine_underfloor": true,
+          "max_seconds": 180,
+          "speed_kmh": 100.0,
+          "yaw_deg": 0.0,
+          "quality": "fast",
+          "simulation_box": null,
+          "custom_mesh": "medium",
+          "custom_iterations": 1000,
+          "reference_area": 2.2,
+          "density": 1.225,
+          "moving_ground": true,
+          "wheels": false,
+          "import_test": true,
+          "flow_animation": false,
+          "flow_detail": "standard",
+          "geometry_confirmed": true
+        },
+        "mesh_preset": {
+          "cell": 0.95,
+          "surface": 1,
+          "wake": 0,
+          "layers": 0,
+          "max_cells": 120000,
+          "iterations": 50,
+          "residual": 0.01,
+          "label": "Import test",
+          "memory_gb": 2
+        },
+        "geometry_triangles": 48280,
+        "cells": 10362,
+        "mesh_ok": true,
+        "iterations": 50,
+        "force_settled": false,
+        "residual_converged": false,
+        "warnings": [
+          "Quick import test: coarse mesh and 50 iterations. Diagnostic forces only; this run does not qualify aerodynamics.",
+          "Residuals have not reached this preset's target. Forces are provisional.",
+          "Forces or pitching/axle balance are still changing. Do not rank designs from this run.",
+          "This run uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+          "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+          "Only 0% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+        ],
+        "timings": {
+          "blockMesh": 1.0228140840044944,
+          "snappyHexMesh": 2.0267053749994375,
+          "checkMesh": 0.5083889579982497,
+          "decomposePar": 0.516614666004898,
+          "simpleFoam": 2.5360845840041293,
+          "reconstructPar": 0.5137058339896612
+        }
+      },
+      {
+        "run": "93874118c864453fb2fac87ef428a513",
+        "name": "Browser CAD check - porsche-987-cayman-aero-package-1",
+        "status": "completed",
+        "started": "2026-10-09T09:54:50.967181+00:00",
+        "finished": "2026-10-09T09:55:22.035794+00:00",
+        "settings": {
+          "profile": null,
+          "axles": null,
+          "vehicle_mass_kg": null,
+          "front_weight_percent": null,
+          "moment_origin": null,
+          "part_labels": {},
+          "refine_groups": null,
+          "refine_underfloor": true,
+          "max_seconds": 180,
+          "speed_kmh": 100.0,
+          "yaw_deg": 0.0,
+          "quality": "custom",
+          "simulation_box": null,
+          "custom_mesh": "fast",
+          "custom_iterations": 50,
+          "reference_area": 0.01,
+          "density": 1.225,
+          "moving_ground": false,
+          "wheels": false,
+          "import_test": false,
+          "flow_animation": false,
+          "flow_detail": "standard",
+          "geometry_confirmed": true
+        },
+        "mesh_preset": {
+          "cell": 0.65,
+          "surface": 2,
+          "wake": 1,
+          "layers": 0,
+          "max_cells": 350000,
+          "iterations": 50,
+          "residual": 0.001,
+          "label": "Exploratory",
+          "memory_gb": 3
+        },
+        "geometry_triangles": 340,
+        "cells": 96958,
+        "mesh_ok": true,
+        "iterations": 50.0,
+        "force_settled": false,
+        "residual_converged": false,
+        "warnings": [
+          "Residuals have not reached this preset's target. Forces are provisional.",
+          "Forces or pitching/axle balance are still changing. Do not rank designs from this run.",
+          "This run uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+          "No experimental validation for this car. Mesh refinement and physical testing are still needed."
+        ],
+        "timings": {
+          "blockMesh": 0.5119411670020781,
+          "snappyHexMesh": 9.161881041000015,
+          "checkMesh": 1.528345166996587,
+          "decomposePar": 1.0286403339996468,
+          "simpleFoam": 15.367119582995656,
+          "reconstructPar": 0.5187455410050461
+        }
+      }
+    ],
+    "preparation": [
+      {
+        "revision": "6c996f4b5edf64964abf73d53d91ac4358152e3407ca06412399d26b51a98abc",
+        "geometry": {
+          "parts": [
+            {
+              "id": "part0",
+              "name": "Merged body",
+              "role": "body",
+              "wheel": null,
+              "triangles": 111312,
+              "minimum_extent": 1.1993653678229665,
+              "bounds": [
+                [
+                  -2.181743860244751,
+                  -0.9833018183708191,
+                  -0.010717839002609253
+                ],
+                [
+                  2.1759960651397705,
+                  0.9826143383979797,
+                  1.1897430419921875
+                ]
+              ],
+              "issues": [],
+              "enabled": true
+            }
+          ],
+          "bounds": [
+            [
+              -2.181743860244751,
+              -0.9833018183708191,
+              -0.010717839002609253
+            ],
+            [
+              2.1759960651397705,
+              0.9826143383979797,
+              1.1897430419921875
+            ]
+          ],
+          "dimensions": [
+            4.3577399253845215,
+            1.9659161567687988,
+            1.2004608809947968
+          ],
+          "triangles": 111312,
+          "errors": [
+            "Merged body: lowest point is -0.011 m above the road. Keep every part at least 5 mm above it."
+          ],
+          "fingerprint": "6abe8bd8bd2b0272bc5e6fa8e1910de7486f63e6ab9083e0f13808004f70c0f2",
+          "frontal_area_estimate": 3.1248,
+          "warnings": [
+            "Automatic checks do not establish that surfaces are free of intersections. Review the model and mesh.",
+            "Small wheel-to-ground gaps avoid degenerate contact cells; ground clearance affects forces."
+          ],
+          "repaired": true,
+          "seal_summary": {
+            "source_components": 1811,
+            "result_components": 1,
+            "watertight": true,
+            "can_apply": true,
+            "pitch_mm": 25.0,
+            "gap_mm": 100.0,
+            "effective_gap_mm": 100.0,
+            "source_triangles": 405053,
+            "result_triangles": 111312,
+            "voxel_cells": 954970,
+            "filled_voxels": 320577,
+            "interior_voxels": 176439,
+            "dimensions_before": [
+              4.345729827880859,
+              1.9493860006332397,
+              1.1740519907325506
+            ],
+            "dimensions_after": [
+              4.3577399253845215,
+              1.9659161567687988,
+              1.2004608809947968
+            ],
+            "original_to_result": {
+              "samples": 4000,
+              "p95_mm": 108.92986854700622,
+              "max_mm": 455.8951230217262
+            },
+            "result_to_original": {
+              "samples": 4000,
+              "p95_mm": 35.38173453865906,
+              "max_mm": 64.40371075633001
+            },
+            "message": "One closed body. Inspect the shape and intentional gaps before applying."
+          }
+        },
+        "report": {
+          "source_components": 1811,
+          "result_components": 1,
+          "watertight": true,
+          "can_apply": true,
+          "pitch_mm": 25.0,
+          "gap_mm": 100.0,
+          "effective_gap_mm": 100.0,
+          "source_triangles": 405053,
+          "result_triangles": 111312,
+          "voxel_cells": 954970,
+          "filled_voxels": 320577,
+          "interior_voxels": 176439,
+          "dimensions_before": [
+            4.345729827880859,
+            1.9493860006332397,
+            1.1740519907325506
+          ],
+          "dimensions_after": [
+            4.3577399253845215,
+            1.9659161567687988,
+            1.2004608809947968
+          ],
+          "original_to_result": {
+            "samples": 4000,
+            "p95_mm": 108.92986854700622,
+            "max_mm": 455.8951230217262
+          },
+          "result_to_original": {
+            "samples": 4000,
+            "p95_mm": 35.38173453865906,
+            "max_mm": 64.40371075633001
+          },
+          "message": "One closed body. Inspect the shape and intentional gaps before applying."
+        }
+      },
+      {
+        "revision": "8c27417203717babf655a4afc07044a592ee759149f92a60ac5614969d79f9fd",
+        "geometry": {
+          "parts": [
+            {
+              "id": "part0",
+              "name": "Merged body",
+              "role": "body",
+              "wheel": null,
+              "triangles": 48280,
+              "minimum_extent": 1.4897853447420566,
+              "bounds": [
+                [
+                  -2.5023193359375,
+                  -1.0849518775939941,
+                  -0.02583262324333191
+                ],
+                [
+                  2.49684476852417,
+                  1.0835113525390625,
+                  1.4644497632980347
+                ]
+              ],
+              "issues": [],
+              "enabled": true
+            }
+          ],
+          "bounds": [
+            [
+              -2.5023193359375,
+              -1.0849518775939941,
+              -0.02583262324333191
+            ],
+            [
+              2.49684476852417,
+              1.0835113525390625,
+              1.4644497632980347
+            ]
+          ],
+          "dimensions": [
+            4.99916410446167,
+            2.1684632301330566,
+            1.4902823865413666
+          ],
+          "triangles": 48280,
+          "errors": [
+            "Merged body: lowest point is -0.026 m above the road. Keep every part at least 5 mm above it."
+          ],
+          "fingerprint": "755e3816124bc80288e652b865bf5694296534d3fb81539d7ff794537c9a027b",
+          "frontal_area_estimate": 3.1195,
+          "warnings": [
+            "Automatic checks do not establish that surfaces are free of intersections. Review the model and mesh.",
+            "Small wheel-to-ground gaps avoid degenerate contact cells; ground clearance affects forces."
+          ],
+          "repaired": true,
+          "seal_summary": {
+            "source_components": 295766,
+            "result_components": 1,
+            "watertight": true,
+            "can_apply": true,
+            "pitch_mm": 40.0,
+            "gap_mm": 100.0,
+            "effective_gap_mm": 160.0,
+            "source_triangles": 872812,
+            "result_triangles": 48280,
+            "voxel_cells": 412425,
+            "filled_voxels": 134738,
+            "interior_voxels": 101228,
+            "dimensions_before": [
+              4.9842023849487305,
+              2.1768345832824707,
+              1.4182438757270575
+            ],
+            "dimensions_after": [
+              4.99916410446167,
+              2.1684632301330566,
+              1.4902823865413666
+            ],
+            "original_to_result": {
+              "samples": 4000,
+              "p95_mm": 217.63965951839793,
+              "max_mm": 303.7705067798078
+            },
+            "result_to_original": {
+              "samples": 4000,
+              "p95_mm": 43.090218968920254,
+              "max_mm": 100.16538870958998
+            },
+            "message": "One closed body. Inspect the shape and intentional gaps before applying."
+          }
+        },
+        "report": {
+          "source_components": 295766,
+          "result_components": 1,
+          "watertight": true,
+          "can_apply": true,
+          "pitch_mm": 40.0,
+          "gap_mm": 100.0,
+          "effective_gap_mm": 160.0,
+          "source_triangles": 872812,
+          "result_triangles": 48280,
+          "voxel_cells": 412425,
+          "filled_voxels": 134738,
+          "interior_voxels": 101228,
+          "dimensions_before": [
+            4.9842023849487305,
+            2.1768345832824707,
+            1.4182438757270575
+          ],
+          "dimensions_after": [
+            4.99916410446167,
+            2.1684632301330566,
+            1.4902823865413666
+          ],
+          "original_to_result": {
+            "samples": 4000,
+            "p95_mm": 217.63965951839793,
+            "max_mm": 303.7705067798078
+          },
+          "result_to_original": {
+            "samples": 4000,
+            "p95_mm": 43.090218968920254,
+            "max_mm": 100.16538870958998
+          },
+          "message": "One closed body. Inspect the shape and intentional gaps before applying."
+        }
+      }
+    ]
+  },
+  "verification": {
+    "backend_tests_passed": 122,
+    "browser_tests_passed": 67,
+    "ruff": "passed",
+    "openfoam_build": "passed",
+    "webgpu_build": "passed",
+    "challenger_result_loading": "Full 872812-triangle original sampled successfully after bounded kNN batches; browser saved result reopened successfully.",
+    "viewer": "Original surfaces displayed from both sides; no surface coordinate or winding changes.",
+    "isolated_pr": {
+      "backend_tests_passed": 120,
+      "browser_tests_passed": 61,
+      "base": "origin/main e272002",
+      "note": "Only import changes carried onto main; unrelated Medium-profile and experimental solver work excluded."
+    }
+  }
+}

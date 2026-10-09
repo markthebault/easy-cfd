@@ -8,6 +8,7 @@ import {
   cancelServerRun,
   domainToUi,
   ensureProject,
+  ensureOriginalSurfaceProject,
   fetchField,
   fetchAnimation,
   fetchSurface,
@@ -173,7 +174,7 @@ async function follow(
     }
     if (active !== session) aborted();
     const tier = (lv.stage ?? "").split(":")[0];
-    if (lastTier && tier !== lastTier && lv.iteration < 5)
+    if (lastTier && tier !== lastTier && lv.iteration < 5 && ["fast","medium","precise"].includes(tier))
       done = total - budget(tier);
     lastTier = tier;
     const solving = /solving/i.test(lv.stage ?? "");
@@ -248,6 +249,7 @@ async function finish(
   const result = resultFromRecord(rec, highV[0] - lowV[0], offset, domain);
   if (result.partForces)
     result.partForces = result.partForces.map((f) => {
+      if (f.id === "original-surface-assembly") return f;
       const part = enabled.find(
         (p) =>
           partKey(p) === f.id ||
@@ -296,6 +298,7 @@ export async function startOpenFoamRun() {
     engine: "openfoam",
     quality:
       design.settings.quality === "custom" ? "medium" : design.settings.quality,
+    ...(design.settings.import_test ? {wheels:false}:{}),
   };
   const enabled = s.parts.filter((p) => p.enabled);
   // Every part with its own switch on is uploaded once, so switching groups reuses the project.
@@ -303,7 +306,7 @@ export async function startOpenFoamRun() {
   const geometry = summarize(s.parts, s.report, s.groups);
   const { low, high } = partsBounds(s.parts);
   const total =
-    settings.flow_animation && settings.flow_detail === "fine" ? 500 : settings.profile === "advanced2"
+    settings.import_test ? 50 : settings.flow_animation && settings.flow_detail === "fine" ? 500 : settings.profile === "advanced2"
       ? 30000
       : settings.profile === "advanced1"
         ? 6000
@@ -343,7 +346,7 @@ export async function startOpenFoamRun() {
     },
   });
   try {
-    const link = await ensureProject(
+    const link = settings.import_test ? await ensureOriginalSurfaceProject(design.name, enabled, (stage)=>{ if (active === session) patchLive({serverStage:stage}); }) : await ensureProject(
       design.name,
       shaping.map((p) => ({ key: partKey(p), part: p })),
       (stage) => { if (active === session) patchLive({ serverStage: stage }); },
@@ -405,6 +408,7 @@ function settingsFromServer(s: ServerRun["settings"]): Settings {
   const box = s.simulation_box as Settings["simulation_box"] | undefined;
   return {
     ...DEFAULT_SETTINGS,
+    import_test: !!s.import_test,
     flow_animation: !!s.flow_animation,
     flow_detail: s.flow_detail === "fine" ? "fine" : "standard",
     speed_kmh: s.speed_kmh,
@@ -529,7 +533,7 @@ export async function importServerRun(id: string) {
     if (rec.status === "queued" || rec.status === "running") {
       session.fetching = false;
       const settings = settingsFromServer(rec.settings);
-      const total = settings.flow_animation && settings.flow_detail === "fine" ? 500
+      const total = settings.import_test ? 50 : settings.flow_animation && settings.flow_detail === "fine" ? 500
         : settings.profile === "advanced2" ? 30000 : settings.profile === "advanced1" ? 6000 : budget(settings.quality);
       const bounds = rec.geometry.bounds ?? [[-2,-1,0],[2,1,1.5]];
       const elapsed = Math.max(0,(Date.now()-Date.parse(rec.started ?? rec.created))/1000);

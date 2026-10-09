@@ -35,6 +35,7 @@ export function verticalLoad(r: RunResult): { label: "Downforce" | "Lift"; kg: n
 }
 
 export function qualityLabel(s: Settings): string {
+  if (s.engine === "openfoam" && s.import_test) return "Quick import test";
   const base = s.quality === "custom" ? `Custom ${s.custom_cells} cells · ${s.custom_passes} passes` : PRESETS[s.quality].label;
   const d = detailRatio(s);
   return d > 1 ? `${base} · detail ${d}×` : base;

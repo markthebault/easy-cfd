@@ -67,11 +67,17 @@ def test_high_speed_settings():
         Settings(speed_kmh=301)
 
 
-def test_open_surface_is_retained_for_review_but_blocked(tmp_path):
+def test_open_surface_is_retained_without_reconstruction_and_warned(tmp_path):
     mesh = trimesh.creation.box()
     mesh.update_faces(np.arange(len(mesh.faces) - 1))
+    mesh.apply_translation([0, 0, .505])
+    vertices, faces = mesh.vertices.copy(), mesh.faces.copy()
     data = geometry.persist_parts(tmp_path, [("Open car", mesh, "body", None)])
-    assert any("Open edges" in e for e in data["errors"])
+    assert not data["errors"]
+    assert any("Open edges" in e for e in data["warnings"])
+    assert not data["parts"][0]["watertight"]
+    assert np.array_equal(mesh.vertices, vertices)
+    assert np.array_equal(mesh.faces, faces)
     assert (tmp_path / "part0.vtp").exists()
 
 

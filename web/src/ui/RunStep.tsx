@@ -68,12 +68,12 @@ export function RunStep() {
   const openfoam = OPENFOAM_ENABLED && s.engine === "openfoam";
   const fineFlow = openfoam && !!s.flow_animation && s.flow_detail === "fine";
   const qualityLimit = (q: Quality) => openfoam && q === "medium" ? 1200 : (q === "fast" ? 300 : 600) * (openfoam && s.flow_animation ? 2 : 1);
-  const requestedLimit = s.max_seconds ?? (!openfoam ? qualityLimit(s.quality) : fineFlow ? 43200 : s.profile === "basic" ? qualityLimit("fast") : s.profile === "regular" ? qualityLimit("medium") : s.profile === "advanced2" ? 43200 : !s.profile && s.quality === "medium" ? 1200 : 10800);
+  const requestedLimit = s.max_seconds ?? (s.import_test && openfoam ? 180 : !openfoam ? qualityLimit(s.quality) : fineFlow ? 43200 : s.profile === "basic" ? qualityLimit("fast") : s.profile === "regular" ? qualityLimit("medium") : s.profile === "advanced2" ? 43200 : !s.profile && s.quality === "medium" ? 1200 : 10800);
   const mediumLevel = openfoam && !fineFlow && (!s.profile || s.profile === "regular") && (s.quality === "medium" || s.quality === "custom");
   const timeLimit = mediumLevel ? Math.min(requestedLimit,1200) : requestedLimit;
   const serverReady = OPENFOAM_ENABLED && server.status === "ready";
   const limitCeiling = openfoam
-    ? !fineFlow && (s.profile === "regular" || (!s.profile && s.quality === "medium"))
+    ? s.import_test ? 180 : !fineFlow && (s.profile === "regular" || (!s.profile && s.quality === "medium"))
       ? 1200
       : s.profile === "basic"
       ? qualityLimit("fast")
@@ -99,6 +99,7 @@ export function RunStep() {
           onClick={() =>
             setSettings({
               engine: "webgpu",
+              import_test: false,
               profile: "regular",
               quality: "medium",
               max_seconds: 600,
@@ -120,6 +121,7 @@ export function RunStep() {
           onClick={() =>
             setSettings({
               engine: "openfoam",
+              import_test: false,
               profile: "regular",
               quality: "medium",
               max_seconds: 1200,
@@ -419,19 +421,19 @@ export function RunStep() {
       <div className="group flow-record-option">
         <Toggle checked={!!s.flow_animation} onChange={flow_animation => {
           if(flow_animation && openfoam && s.flow_detail === "fine") {
-            setSettings({flow_animation,profile:undefined,quality:"medium",max_seconds:43200});
+            setSettings({import_test:false,flow_animation,profile:undefined,quality:"medium",max_seconds:43200});
             return;
           }
           const normalLimit = s.profile === "basic" ? 300 : 1200;
           const standard = openfoam && (s.profile === "basic" || s.profile === "regular");
           const from = normalLimit * (s.profile === "basic" && s.flow_animation ? 2 : 1), to = normalLimit * (s.profile === "basic" && flow_animation ? 2 : 1);
-          setSettings({flow_animation, ...(standard && (!s.max_seconds || s.max_seconds === from || s.max_seconds > to) ? {max_seconds:to} : {})});
+          setSettings({import_test:false,flow_animation, ...(s.import_test && flow_animation ? {profile:"basic" as const,quality:"fast" as const,max_seconds:600}:{}), ...(standard && (!s.max_seconds || s.max_seconds === from || s.max_seconds > to) ? {max_seconds:to} : {})});
         }} label="Record flow animation" hint="Watch the coloured airflow and wake evolve after the run." />
         {s.flow_animation && openfoam && <>
           <label className="field-label" htmlFor="flow-detail">Recording detail</label>
           <select id="flow-detail" value={s.flow_detail ?? "standard"} onChange={e=> {
             const flow_detail = e.target.value as "standard" | "fine";
-            setSettings(flow_detail === "fine" ? {flow_detail, profile:undefined, quality:"medium", max_seconds:43200} : {flow_detail,profile:"advanced1",quality:"medium",max_seconds:10800});
+            setSettings(flow_detail === "fine" ? {import_test:false,flow_detail, profile:undefined, quality:"medium", max_seconds:43200} : {flow_detail,profile:"advanced1",quality:"medium",max_seconds:10800});
           }}>
             <option value="standard">Standard airflow</option>
             <option value="fine">Detailed wake</option>
@@ -445,7 +447,7 @@ export function RunStep() {
 
       {openfoam ? (
         !fineFlow && !s.profile?.startsWith("advanced") && (
-          <OpenFoamSummary quality={s.quality} info={server.info} />
+          <OpenFoamSummary quality={s.quality} info={server.info} importTest={s.import_test} />
         )
       ) : (
         <div className="run-summary">
@@ -547,18 +549,20 @@ const OF_LEVELS = [
 
 function OpenFoamLevels({settings:s}:{settings:Settings}) {
   const fine = !!s.flow_animation && s.flow_detail === "fine";
-  const selected = s.profile ?? (s.quality === "fast" ? "basic" : s.quality === "precise" ? "advanced1" : "regular");
+  const selected = s.import_test ? "import" : s.profile ?? (s.quality === "fast" ? "basic" : s.quality === "precise" ? "advanced1" : "regular");
   return <div className="group">
     <span className="field-label">Analysis level</span>
     <div className="quality-grid of" role="radiogroup" aria-label="Analysis level">
       {OF_LEVELS.map(level => <button key={level.profile} role="radio" aria-checked={!fine && selected === level.profile}
         className={`quality-card ${!fine && selected === level.profile ? "on" : ""}`}
-        onClick={()=>setSettings({profile:level.profile,quality:level.quality,flow_detail:"standard",max_seconds:level.limit * (level.profile === "basic" && s.flow_animation ? 2 : 1)})}>
+        onClick={()=>setSettings({import_test:false,profile:level.profile,quality:level.quality,flow_detail:"standard",max_seconds:level.limit * (level.profile === "basic" && s.flow_animation ? 2 : 1)})}>
         <span className="q-label">{level.label}</span>
         <span className="q-blurb">{level.blurb}</span>
         <span className="q-meta">Up to {level.limit >= 3600 ? `${level.limit / 3600} hours` : fmtDuration(level.limit * (level.profile === "basic" && s.flow_animation ? 2 : 1))}</span>
       </button>)}
     </div>
+    <button className={`btn ${s.import_test ? "primary" : "ghost"} sm`} aria-pressed={!!s.import_test} onClick={() => setSettings({import_test:true,wheels:false,profile:undefined,quality:"fast",flow_animation:false,flow_detail:"standard",max_seconds:180})}>Quick import test</button>
+    {s.import_test && <p className="field-hint">Original surfaces combined for meshing; wheels fixed. Coarse mesh, no layers, 50 iterations, up to 3 minutes. Small features may be unresolved; forces are diagnostic only.</p>}
     {fine && <p className="field-hint">Detailed wake uses a separate recording budget. Choose a level above to return to standard airflow.</p>}
   </div>;
 }
@@ -566,16 +570,18 @@ function OpenFoamLevels({settings:s}:{settings:Settings}) {
 function OpenFoamSummary({
   quality,
   info,
+  importTest,
 }: {
   quality: string;
   info: ServerInfo | null;
+  importTest?: boolean;
 }) {
   const q = (quality === "custom" ? "medium" : quality) as
     | "fast"
     | "medium"
     | "precise";
-  const p = info?.presets[q];
-  const m = info?.measured[q];
+  const p = importTest ? {max_cells:120000,iterations:50,layers:0,label:"Import test"} : info?.presets[q];
+  const m = importTest ? undefined : info?.measured[q];
   return (
     <div className="run-summary">
       <div>

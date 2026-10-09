@@ -134,12 +134,20 @@ mergePatchPairs ();
         # Resolve an estimated thin dimension with at least two cells. This estimate
         # cannot detect every small local feature, so results still need mesh review.
         thickness = part.get("minimum_extent", min(b - a for a, b in zip(*part["bounds"])))
-        level = max(p["surface"], math.ceil(math.log2(2 * cell / max(thickness, 1e-9))))
+        # A shell's bounding-box thickness is not a solid wall thickness (and
+        # can be exactly zero). Do not demand infinite refinement for panels.
+        closed = part.get("watertight", not any("Open edges" in issue for issue in part.get("issues", [])))
+        level = max(p["surface"], math.ceil(math.log2(2 * cell / max(thickness, 1e-9)))) if closed else p["surface"]
         group = settings.part_labels.get(part["id"],{}).get("group")
         selected = group in selected_groups if selected_groups is not None else part["role"] == "wheel" or (group is not None and group != "g:body")
         if advanced and selected:
             level = max(level,p["surface"]+1)
-        local_refinement[part["id"]] = dict(surface_level=level,nominal_spacing=cell/2**level,selected=selected)
+        requested_level = level
+        if settings.import_test:
+            # This deliberately coarse diagnostic must not refine tiny badges
+            # to a production mesh. Preserve surfaces and record unresolved size.
+            level = min(level, 3)
+        local_refinement[part["id"]] = dict(surface_level=level,nominal_spacing=cell/2**level,selected=selected,requested_surface_level=requested_level,underresolved=level < requested_level)
         if level > 7:
             raise ValueError(
                 f"{part['name']} is too thin for this preset's automatic mesh. Simplify the geometry."
@@ -220,7 +228,7 @@ writeControl timeStep; writeInterval 1; log false;}}
         case / "system/controlDict",
         f"""
 application simpleFoam; startFrom startTime; startTime 0; stopAt endTime;
-endTime {p["iterations"]}; deltaT 1; writeControl timeStep; writeInterval {250 if settings.profile in ("advanced1","advanced2") else p["iterations"] if (quality or settings.quality) == "custom" else 100};
+endTime {p["iterations"]}; deltaT 1; writeControl timeStep; writeInterval {10 if settings.import_test else 250 if settings.profile in ("advanced1","advanced2") else p["iterations"] if (quality or settings.quality) == "custom" else 100};
 purgeWrite 2; writeFormat binary; writePrecision 10; writeCompression off;
 timeFormat general; timePrecision 6; runTimeModifiable true;
 functions {{

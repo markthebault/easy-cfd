@@ -3226,3 +3226,12 @@ input[type="range"]::-moz-range-thumb {
   width: 34px; height: 20px; right: 0; top: 50%; margin: 0;
   transform: translateY(-50%); z-index: 1; cursor: pointer; pointer-events: auto;
 }
+
+.prepare-dialog { width: min(440px, calc(100vw - 40px)); margin: auto auto 24px 420px; padding: 22px; border: 1px solid var(--border); border-radius: 18px; max-height: calc(100vh - 48px); overflow: auto; }
+.prepare-dialog::backdrop { background: rgb(0 0 0 / 15%); }
+.prepare-dialog h2 { margin: 0 0 12px; }
+.prepare-dialog p { line-height: 1.5; margin: 12px 0; }
+.prepare-dialog label { display: grid; gap: 6px; font-size: 12px; flex: 1; }
+.prepare-dialog input { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--field); color: inherit; }
+.prepare-dialog > .row, .prepare-dialog > button { margin-top: 12px; }
+@media (max-width: 900px) { .prepare-dialog { margin: auto; } }
