@@ -52,3 +52,9 @@ These checks establish import and run compatibility for the seven supplied files
 ## Challenger Fast retry on Tailscale
 
 The user-reported failed run `8f05d83433b0476ea414d50590768a37` was repeated as `547b82619a57407cba75f3e42f56ed21` on the persistent preview with the exact same settings, all 60 imported parts and all 872,812 original triangles. Every source STL was byte-checked against the failed snapshot. It passed `checkMesh` on 35,097 cells, completed 300 iterations and saved the coverage diagnostics. No model reconstruction or simplification was used. See [retry evidence](challenger-fast-retry.json). The updated backend passes 126 tests and Ruff.
+
+## MR2 Fast thin-part retry on Tailscale
+
+Run `c250c840856c412b959ea53ffe6cb5b3` failed during dictionary generation: two roughly 7.5 mm-thick closed parts requested refinement level 8, above the old hard limit of 7. The normal Fast retry `b92e83be660c4da3a5ccadcd82e509f0` used the exact failed-run settings (including fixed wheels), all 18 original imported parts and 24,178 triangles. Each imported part STL was byte-checked across the failed snapshot, retry snapshot and solver input. No source geometry was simplified, sealed or reconstructed. The new automatic detail bound is level 4 for Fast; nine parts record capped refinement, including both thin parts. This affects volume mesh resolution, not original surface triangles.
+
+The deployed code `584d8c3` passed `checkMesh` on 60,825 cells and completed all 300 iterations. Thin-feature resolution remains diagnostic. See [retry evidence](mr2-fast-retry.json). The backend suite passes 132 tests, including thin-part preservation and bounded refinement across Fast, Medium and Precise.
