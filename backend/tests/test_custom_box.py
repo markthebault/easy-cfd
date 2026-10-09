@@ -145,7 +145,7 @@ def test_underfloor_refinement_is_local_optional_and_preserves_source(tmp_path, 
         length = data["bounds"][1][0] - data["bounds"][0][0]
         advanced = profile in ("advanced1", "advanced2")
         assert high[0]-low[0] == pytest.approx((1.2 if advanced else 1.1)*length)
-        assert high[2] <= (.06 if advanced else .03)*length
+        assert high[2] <= (.06 if advanced else .02 if quality == "medium" else .03)*length
         assert low[2] > 0
         assert meta["preset"]["max_cells"] == resolved_preset(settings)["max_cells"]
     for part in data["parts"]:

@@ -123,8 +123,11 @@ mergePatchPairs ();
         # retain the existing advanced refinement. Never modify input surfaces.
         level = p["surface"] + 1 if advanced else min(4, p["surface"] + 2)
         padding = .1 if advanced else .05
-        road_height = (.2 if advanced else .12)*length/4.2
-        gap_height = low[2] + (.05 if advanced else .025)*length
+        # Medium already resolves the body at level three: confine its extra
+        # level to the bottom of the gap, avoiding another full band of cells.
+        medium_band = not advanced and p["surface"] == 3
+        road_height = (.2 if advanced else .08 if medium_band else .12)*length/4.2
+        gap_height = low[2] + (.05 if advanced else .015 if medium_band else .025)*length
         band_low = [low[0]-padding*length, low[1]-padding*width, .001]
         band_high = [high[0]+padding*length, high[1]+padding*width,
                      min(high[2], max(road_height, gap_height))]
