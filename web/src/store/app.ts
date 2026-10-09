@@ -271,7 +271,9 @@ async function rebuild(opts: { resetConfirm?: boolean; fit?: boolean } = {}) {
     const grouped = applyGroups(applyOverrides(built, d.overrides), d.overrides, d.groups);
     const parts = grouped.parts;
     const hasStl = d.source.kind === "files" && d.source.files.some((f) => f.name.toLowerCase().endsWith(".stl"));
-    const report = checkGeometry(parts, hasStl);
+    // The local OpenFOAM workflow measures the model without a geometry
+    // acceptance preflight. WebGPU applies its own checks at the Run step.
+    const report = checkGeometry(parts, hasStl, !OPENFOAM_ENABLED);
     app.set((s) => ({
       parts,
       groups: grouped.groups,

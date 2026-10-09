@@ -27,17 +27,6 @@ def domain_bounds(geometry, settings, reference_case=None):
             0,
             high[2] + 2 * length,
         ]
-    if settings.simulation_box is not None and not (
-        bounds[0] < low[0]
-        and bounds[1] > high[0]
-        and bounds[2] < low[1]
-        and bounds[3] > high[1]
-        and bounds[5] > high[2]
-        and low[2] > 0
-    ):
-        raise ValueError(
-            "Simulation box must surround the enabled geometry, with space at the inlet, outlet, sides and top. The floor stays at Z = 0."
-        )
     return bounds
 
 

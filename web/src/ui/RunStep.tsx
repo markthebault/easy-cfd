@@ -20,6 +20,7 @@ import { startRun } from "../store/runs";
 import { weightInputError } from "../solver/tyreLoads";
 import { Slider, Toggle } from "./controls";
 import { boundaryLine, fmt, fmtCells, fmtDuration } from "./format";
+import { checkGeometry } from "../geometry/model";
 
 const QUALITIES: { q: Quality; label: string; blurb: string }[] = [
   { q: "fast", label: "Basic", blurb: "Check the setup" },
@@ -42,13 +43,15 @@ function detailWhere(zones: number, boxes: number, first: string): string {
 
 export function RunStep() {
   const design = useStore(app, (s) => s.design)!;
-  const report = useStore(app, (s) => s.report);
+  const measured = useStore(app, (s) => s.report);
   const gpu = useStore(app, (s) => s.gpu);
   const server = useStore(app, (s) => s.server);
   const confirmed = useStore(app, (s) => s.confirmed);
   const parts = useStore(app, (s) => s.parts);
   const groups = useStore(app, (s) => s.groups);
   const s = design.settings;
+  const openfoam = OPENFOAM_ENABLED && s.engine === "openfoam";
+  const report = useMemo(() => openfoam ? measured : checkGeometry(parts, design.source.kind === "files" && design.source.files.some(f => /\.stl$/i.test(f.name))), [openfoam, measured, parts, design.source]);
   const weightError = weightInputError(s);
   // The grid is shaped by every part whose own switch is on (also those in groups switched off).
   const { shapes, low, high } = useMemo(() => {
@@ -63,9 +66,8 @@ export function RunStep() {
   const resourceBlocked =
     s.engine !== "openfoam" && !!current && current.cells > 2_500_000;
   const blocked =
-    !report || report.errors.length > 0 || !confirmed || resourceBlocked;
+    !report || !parts.some(p => p.enabled) || (!openfoam && (report.errors.length > 0 || !confirmed || resourceBlocked));
   const noGpu = gpu.status === "unavailable" || gpu.status === "checking";
-  const openfoam = OPENFOAM_ENABLED && s.engine === "openfoam";
   const fineFlow = openfoam && !!s.flow_animation && s.flow_detail === "fine";
   const qualityLimit = (q: Quality) => openfoam && q === "medium" ? 1200 : (q === "fast" ? 300 : 600) * (openfoam && s.flow_animation ? 2 : 1);
   const requestedLimit = s.max_seconds ?? (s.import_test && openfoam ? 180 : !openfoam ? qualityLimit(s.quality) : fineFlow ? 43200 : s.profile === "basic" ? qualityLimit("fast") : s.profile === "regular" ? qualityLimit("medium") : s.profile === "advanced2" ? 43200 : !s.profile && s.quality === "medium" ? 1200 : 10800);
@@ -515,7 +517,7 @@ export function RunStep() {
       {weightError && <p className="inline-error" role="alert">{weightError} Edit the weight inputs in Conditions.</p>}
       <button
         className="btn run block"
-        disabled={blocked || !!weightError || (openfoam ? !serverReady : noGpu)}
+        disabled={blocked || (!openfoam && !!weightError) || (openfoam ? !serverReady : noGpu)}
         onClick={() => startRun()}
         data-testid="run"
       >

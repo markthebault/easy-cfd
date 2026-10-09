@@ -97,7 +97,7 @@ def test_step_embedded_units(tmp_path):
 
 def test_confirmation_and_snapshot(client):
     p = project(client)
-    assert client.post(f"/api/projects/{p['id']}/runs").status_code == 400
+    assert client.post(f"/api/projects/{p['id']}/runs").status_code == 202
     settings = {
         **p["settings"],
         "geometry_confirmed": True,
@@ -956,17 +956,19 @@ def test_reorient_rebuilds_from_originals_and_keeps_roles(client):
     # Centimetres instead of millimetres: 10x larger, wheel radius scales with the part.
     scaled = client.put(f"/api/projects/{p['id']}/import-options", json={**options, "units": "cm"}).json()
     assert scaled["geometry"]["parts"][1]["wheel"]["radius"] == pytest.approx(3.0)
-    assert any("Unexpected model size" in e for e in scaled["geometry"]["errors"])
+    assert not scaled["geometry"]["errors"]
 
 
-def test_added_part_below_road_blocks_and_base_files_cannot_be_removed(client):
+def test_added_part_below_road_is_sent_to_openfoam_and_base_files_cannot_be_removed(client):
     p = imported_car(client)
     splitter = trimesh.creation.box(extents=[1600, 200, 20])
     splitter.apply_translation([0, -2100, -30])
     data = client.post(
         f"/api/projects/{p['id']}/parts", files=[("files", ("splitter.stl", stl(splitter)))]
     ).json()
-    assert any("above the road" in e for e in data["geometry"]["errors"])
+    assert not data["geometry"]["errors"]
+    assert data["geometry"]["parts"][-1]["bounds"][0][2] < 0
+    assert client.post(f"/api/projects/{p['id']}/runs").status_code == 202
     part = data["geometry"]["parts"][-1]["id"]
     off = client.put(
         f"/api/projects/{p['id']}/parts-enabled", json=dict(part_ids=[part], enabled=False)
@@ -1139,3 +1141,37 @@ def test_plane_masks_extrapolated_probe_values():
     # |U| = 5 within the speed; 30 above the interpolated speed of 12; negative speed.
     speed = np.array([5.2, 12.0, -1.0])
     assert plane.interpolated(velocity, speed).tolist() == [True, False, False]
+
+
+def test_browser_batches_preserve_all_original_coordinates_without_preflight(client):
+    p = project(client)
+    # First batch does not contain the lowest part. Recentring it would shift the
+    # later wheel below the road; transport must use the browser's shared frame.
+    body = trimesh.creation.box(extents=[4, 2, 1])
+    body.apply_translation([3, 1, .565])
+    wheel = trimesh.creation.box(extents=[.3, .2, .6])
+    wheel.apply_translation([2, .2, .305])
+    first = client.post(
+        f"/api/projects/{p['id']}/import",
+        files=[("files", ("body.stl", stl(body)))],
+        data={"options": json.dumps(dict(components="group", preserve_coordinates=True))},
+    )
+    assert first.status_code == 200, first.text
+    second = client.post(
+        f"/api/projects/{p['id']}/parts", files=[("files", ("wheel.stl", stl(wheel)))]
+    )
+    assert second.status_code == 201, second.text
+    current = second.json()
+    for part, source in zip(current["geometry"]["parts"], [body, wheel]):
+        assert np.asarray(part["bounds"]) == pytest.approx(source.bounds, abs=1e-7)
+        assert part["triangles"] == len(source.faces)
+        assert part["watertight"] is None
+        assert part["issues"] == []
+    assert current["geometry"]["bounds"][0][2] == pytest.approx(.005, abs=1e-7)
+    # Cached legacy diagnostics and an unchecked confirmation cannot block OF.
+    current["geometry"]["errors"] = ["Legacy clearance / thin-part error"]
+    current["settings"]["geometry_confirmed"] = False
+    storage.save("projects", current)
+    response = client.post(f"/api/projects/{p['id']}/runs")
+    assert response.status_code == 202, response.text
+    assert response.json()["settings"]["geometry_confirmed"] is False

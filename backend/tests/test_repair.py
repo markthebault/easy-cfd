@@ -67,7 +67,8 @@ def test_import_does_not_silently_fill_triangle(tmp_path):
     data = geometry.import_files([source], tmp_path, ImportOptions())
     assert data["parts"][0]["triangles"] == 11
     assert not data["errors"]
-    assert any("Open edges" in issue for issue in data["warnings"])
+    assert data["parts"][0]["watertight"] is None
+    assert data["parts"][0]["issues"] == []
 
 
 def test_preview_apply_export_and_stale_requests(tmp_path, monkeypatch):

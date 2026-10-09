@@ -1,6 +1,7 @@
 // Step 1: the car. Source files, units and axes, clearance, parts and roles, geometry checks.
 
 import { useRef, useState } from "react";
+import { OPENFOAM_ENABLED } from "../engine/features";
 import { AlertTriangle, ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, CircleAlert, FlipVertical2, Lightbulb, Plus, RotateCw, Upload, X } from "lucide-react";
 import type { AxisName, Units } from "../geometry/model";
 import { useStore } from "../store/store";
@@ -35,7 +36,7 @@ export function CarStep() {
   const o = design.importOptions;
   const sample = design.source.kind === "sample";
   const dims = report?.dimensions ?? [0, 0, 0];
-  const canContinue = !busy && !!report && report.errors.length === 0 && confirmed;
+  const canContinue = !busy && !!report && (OPENFOAM_ENABLED || (report.errors.length === 0 && confirmed));
   const position = roadPosition(parts);
   const height = position.height ?? 0;
   const geometryErrors = report?.errors.filter(e => e !== ROAD_CONTACT_ERROR) ?? [];
@@ -176,7 +177,7 @@ export function CarStep() {
 
       <label className={`confirm ${confirmed ? "on" : ""}`}>
         <input type="checkbox" disabled={!!busy || !report} checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
-        <span>I checked size, orientation, wheels and clearance.</span>
+        <span>I checked size, orientation, wheels and clearance.{OPENFOAM_ENABLED ? " (Optional for OpenFOAM.)" : ""}</span>
       </label>
       <button className="btn primary block" disabled={!canContinue} onClick={() => goStep("conditions")}>
         Continue to conditions

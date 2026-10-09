@@ -339,7 +339,7 @@ def process(case, output, run, metadata):
         for v in ("p", "Ux", "Uy", "Uz", "k", "omega")
     )
     warnings = []
-    open_parts = sum(not part.get("watertight", not any("Open edges" in issue for issue in part.get("issues", []))) for part in run["geometry"]["parts"])
+    open_parts = sum(part.get("watertight") is False or any("Open edges" in issue for issue in part.get("issues", [])) for part in run["geometry"]["parts"])
     if open_parts:
         warnings.append(f"Original surfaces were meshed without sealing or reconstructing {open_parts} open parts. Inspect the volume mesh for leakage and missing features before interpreting forces.")
     if run["settings"].get("import_test"):

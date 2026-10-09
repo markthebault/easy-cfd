@@ -26,8 +26,9 @@ def test_custom_box_validation_and_budget(tmp_path):
         with pytest.raises(ValueError):
             SimulationBox(**bad)
     for bad in [dict(box(), x_min=0), dict(box(), y_max=1), dict(box(), z_max=1)]:
-        with pytest.raises(ValueError, match="surround"):
-            foam.domain_bounds(data, Settings(simulation_box=bad))
+        assert foam.domain_bounds(data, Settings(simulation_box=bad)) == [
+            bad["x_min"], bad["x_max"], bad["y_min"], bad["y_max"], 0, bad["z_max"]
+        ]
     with pytest.raises(ValueError, match="budget"):
         foam.mesh_layout(
             data, Settings(simulation_box=dict(x_min=-100, x_max=100, y_min=-100, y_max=100, z_max=100))
@@ -90,8 +91,8 @@ def test_preview_solver_snapshot_and_comparison(client, tmp_path):
     assert not compared["comparable"]
     assert "simulation box" in compared["warnings"][0] and "iteration limit" in compared["warnings"][0]
     bad = {**updated, "simulation_box": dict(box(), x_max=0)}
-    assert client.put(f"/api/projects/{p['id']}/settings", json=bad).status_code == 400
-    assert storage.get("projects", p["id"])["settings"] == updated
+    assert client.put(f"/api/projects/{p['id']}/settings", json=bad).status_code == 200
+    assert storage.get("projects", p["id"])["settings"] == bad
 
 
 def test_custom_precise_is_one_mesh_and_legacy_defaults():

@@ -171,10 +171,6 @@ def settings_reference(project, body):
 def settings(key: str, body: Settings):
     current = storage.get("projects", key)
     reference = settings_reference(current, body)
-    if current.get("geometry") and not current["geometry"]["errors"]:
-        from .foam import mesh_layout
-
-        mesh_layout(current["geometry"], body, reference_case=reference)
     return storage.update("projects", key, settings=body.model_dump(), reference_case=reference)
 
 

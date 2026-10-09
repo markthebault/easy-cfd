@@ -30,3 +30,19 @@ test("initial import suggests the long axis and up axis and recognizes millimetr
   const positions=new Float32Array([0,0,0,2000,1200,4500,0,1200,0]);
   assert.deepEqual(model.suggestImport([{name:"car",file:"car.stl",positions}]),{...model.DEFAULT_IMPORT,forward:"-Z",up:"+Y",units:"mm"});
 });
+
+
+test("OpenFOAM measurements skip geometry heuristics while WebGPU retains its checks", () => {
+  const parts=[{id:"part0",name:"Original panel",file:"panel.stl",role:"body",enabled:true,base:true,wheel:null,
+    positions:new Float32Array([0,0,-.056,40,0,-.056,0,2,.5])}];
+  const measured=model.checkGeometry(parts,true,false);
+  assert.deepEqual(measured.errors,[]);
+  assert.deepEqual(measured.warnings,[]);
+  assert.deepEqual(measured.openParts,[]);
+  assert.equal(measured.triangles,1);
+  assert.equal(measured.dimensions[0],40);
+  assert.ok(measured.low[2]<0);
+  const checked=model.checkGeometry(parts,true);
+  assert.ok(checked.errors.length>0);
+  assert.ok(checked.openParts.length>0);
+});

@@ -377,10 +377,6 @@ def solve(key, tier):
         if matches:
             added, total = map(int, matches[-1])
             layer_coverage = added / max(total, 1)
-        if layer_coverage is None or layer_coverage < 0.2:
-            raise RuntimeError(
-                "Fewer than 20% of surface faces received boundary layers. Mesh quality was not silently reduced; review small gaps and sharp features."
-            )
     timings["decomposePar"] = stage(
         key, case, ["decomposePar", "-force"], f"{tier}: Partitioning mesh", preset["memory_gb"], cpus
     )
@@ -722,15 +718,12 @@ def enqueue(project):
     if not status["ready"]:
         raise ValueError(status["message"])
     settings = Settings(**project["settings"])
-    if not settings.geometry_confirmed:
-        raise ValueError("Confirm model dimensions, orientation, and ground clearance before running.")
     geometry = project.get("geometry")
-    if not geometry or geometry["errors"]:
-        raise ValueError("Import usable surface geometry and resolve its blocking errors before running.")
+    if not geometry or not geometry.get("parts"):
+        raise ValueError("Import a surface model before running.")
     if settings.axles is None or settings.axles.source == "wheels":
         inferred = detected_axles(geometry["parts"])
         settings.axles = Axles(**inferred) if inferred else None
-    foam.mesh_layout(geometry, settings, reference_case=project.get("reference_case"))
     required = resolved_preset(settings)["memory_gb"]
     if status.get("memory_gb", 0) < required + 0.5:
         raise ValueError(

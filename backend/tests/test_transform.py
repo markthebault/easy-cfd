@@ -56,7 +56,8 @@ def test_wheel_center_radius_axis_and_ground_height(tmp_path):
     result = transform.prepare(
         source, tilted, before, transform.TransformOptions(revision="x", part_ids=ids, rotation=[0, 0, 90])
     )
-    assert any("axle is not transverse" in e for e in result["errors"])
+    assert not result["errors"]
+    assert any("axle is not transverse" in e for e in result["warnings"])
 
 
 def test_preview_apply_on_repaired_model_and_stale_token(tmp_path, monkeypatch):

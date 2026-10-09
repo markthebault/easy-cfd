@@ -2,7 +2,7 @@ import { computeLease } from "../engine/computeLease";
 import { OPENFOAM_ENABLED, OPENFOAM_COMING_SOON } from "../engine/features";
 // Running simulations, saving them, reopening them and exporting them.
 
-import type { Part } from "../geometry/model";
+import { checkGeometry, type Part } from "../geometry/model";
 import type { SurfaceSample, VizField } from "../solver/extract";
 import { cancelOpenFoamRun, startOpenFoamRun } from "./openfoamRuns";
 import { recordFlowAnimation, ANIMATION_POINTS, type FlowAnimation } from "../solver/animation";
@@ -70,7 +70,13 @@ export async function assessTyreLoads(patch: Partial<VehicleWeight>) {
 export async function startRun() {
   const s = app.get();
   let design = s.design;
-  if (!design || !s.report || s.report.errors.length || !s.confirmed) return;
+  if (!design || !s.report) return;
+  if (design.settings.engine === "openfoam") {
+    if (!OPENFOAM_ENABLED) { toast(OPENFOAM_COMING_SOON, "error"); return; }
+    return startOpenFoamRun();
+  }
+  const checked = checkGeometry(s.parts, design.source.kind === "files" && design.source.files.some(f => /\.stl$/i.test(f.name)));
+  if (checked.errors.length || !s.confirmed) return;
   if (!design.settings.axles || design.settings.axles.source === "wheels") {
     const axles = resolvedAxles(design.settings.axles,toSolverParts(s.parts, s.groups));
     if (JSON.stringify(axles) !== JSON.stringify(design.settings.axles)) {
@@ -80,10 +86,6 @@ export async function startRun() {
   }
   const weightError = weightInputError(design.settings);
   if (weightError) { toast(weightError, "error"); return; }
-  if (design.settings.engine === "openfoam") {
-    if (!OPENFOAM_ENABLED) { toast(OPENFOAM_COMING_SOON, "error"); return; }
-    return startOpenFoamRun();
-  }
   if (s.gpu.status === "unavailable" || s.gpu.status === "checking") {
     toast(s.gpu.message || "WebGPU is not ready yet.", "error");
     return;

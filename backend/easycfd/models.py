@@ -100,7 +100,10 @@ class ImportOptions(BaseModel):
     units: Literal["m", "mm", "cm", "in"] = "m"
     forward: Literal["+X", "-X", "+Y", "-Y", "+Z", "-Z"] = "-X"
     up: Literal["+X", "-X", "+Y", "-Y", "+Z", "-Z"] = "+Z"
-    clearance: float = Field(default=0.01, ge=0.005, le=2)
+    clearance: float = Field(default=0.01, allow_inf_nan=False)
+    # Browser exports are already in the chosen tunnel frame. Batch boundaries
+    # must never introduce a second centring or road-height transform.
+    preserve_coordinates: bool = False
 
     @model_validator(mode="after")
     def independent_axes(self):

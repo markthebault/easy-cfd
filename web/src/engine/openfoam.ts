@@ -263,7 +263,7 @@ export function resultFromRecord(run: ServerRun, carLength: number, offset: Vec3
 // Server projects for UI designs
 // ---------------------------------------------------------------------------------------------
 
-const PROJECTS_KEY = "easycfd.openfoamProjects";
+const PROJECTS_KEY = "easycfd.openfoamProjects.coordinates-v2";
 const MAX_FILES = 20;
 const MAX_BYTES = 90 * 1024 * 1024;
 
@@ -313,7 +313,7 @@ export async function ensureProject(name: string, parts: { key: string; part: Pa
   }
   onStage("Uploading the car to the OpenFOAM server");
   const project = await api<{ id: string }>("/projects", json({ name: `${name} · from EasyCFD Web`.slice(0, 100), sample: false }));
-  // Batches within the server's per-request limits; the first defines the car's position.
+  // Batch only for request size limits; every part stays in the browser's shared frame.
   const files = parts.map(({ key, part }, i) => ({ key, part, name: `${String(i).padStart(2, "0")}-${safeName(part.name)}.stl`, bytes: writeSTL(part.positions, "EasyCFD Web part") }));
   const batches: (typeof files)[] = [];
   for (const f of files) {
@@ -326,11 +326,10 @@ export async function ensureProject(name: string, parts: { key: string; part: Pa
   for (let b = 0; b < batches.length; b++) {
     const form = new FormData();
     for (const f of batches[b]) form.append("files", new Blob([f.bytes], { type: "model/stl" }), f.name);
-    if (b === 0) form.append("options", JSON.stringify({ components: "group", units: "m", forward: "-X", up: "+Z", clearance: Math.round(Math.min(2, Math.max(0.005, clearance)) * 1e4) / 1e4 }));
+    if (b === 0) form.append("options", JSON.stringify({ components: "group", units: "m", forward: "-X", up: "+Z", clearance, preserve_coordinates: true }));
     record = await api(`/projects/${project.id}/${b === 0 ? "import" : "parts"}`, { method: "POST", body: form });
   }
   const serverParts = record!.geometry.parts;
-  if (record!.geometry.errors?.length) throw new ServerError(record!.geometry.errors.join(" "));
   if (serverParts.length !== files.length) throw new ServerError(`The server read ${serverParts.length} parts from ${files.length} files.`);
   // Server parts follow the upload order (one part per file with components grouped).
   const order = [...serverParts].sort((a, b) => (a.source ?? 0) - (b.source ?? 0));

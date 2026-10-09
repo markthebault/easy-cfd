@@ -355,7 +355,7 @@ export function frontalArea(list: Float32Array[], resolution = 600): number {
   return count * cell * cell;
 }
 
-export function checkGeometry(parts: Part[], hasStl: boolean): GeometryReport {
+export function checkGeometry(parts: Part[], hasStl: boolean, preflight = true): GeometryReport {
   const enabled = parts.filter((p) => p.enabled);
   const errors: string[] = [];
   const warnings: string[] = [];
@@ -364,6 +364,11 @@ export function checkGeometry(parts: Part[], hasStl: boolean): GeometryReport {
   const { low, high } = soupBounds(enabled.map((p) => p.positions));
   const dims: Vec3 = enabled.length ? [high[0] - low[0], high[1] - low[1], high[2] - low[2]] : [0, 0, 0];
   const triangles = enabled.reduce((n, p) => n + p.positions.length / 9, 0);
+  if (!preflight) return {
+    low, high, dimensions: dims, triangles,
+    frontalArea: enabled.length ? frontalArea(enabled.map(p => p.positions)) : 0,
+    errors: [], warnings: [], openParts: [], hints: [],
+  };
   if (triangles > LIMITS.triangles) errors.push(`The enabled parts have ${triangles.toLocaleString()} triangles; the limit is ${LIMITS.triangles.toLocaleString()}.`);
   const longest = Math.max(...dims);
   if (enabled.length && (longest < LIMITS.minLength || longest > LIMITS.maxLength))

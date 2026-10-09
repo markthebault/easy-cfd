@@ -29,11 +29,12 @@ def test_group_import_over_100_components_is_lossless(tmp_path):
         geometry.import_files([source], tmp_path, ImportOptions())
     grouped = geometry.import_files([source], tmp_path, ImportOptions(components="group"))
     assert len(grouped["parts"]) == 1
-    assert grouped["parts"][0]["grouped_components"] == 110
+    assert "grouped_components" not in grouped["parts"][0]
+    assert grouped["parts"][0]["issues"] == []
     assert grouped["triangles"] == len(original.faces)
     assert grouped["dimensions"] == pytest.approx(original.extents, abs=1e-6)
     assert not grouped["errors"]
-    assert any("Grouped STL" in e for e in grouped["warnings"])
+    assert not any("Grouped STL" in e for e in grouped["warnings"])
 
 
 def test_gap_bridging_and_remote_islands_not_discarded():
