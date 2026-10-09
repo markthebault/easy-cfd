@@ -149,7 +149,7 @@ export function serverSettings(s: Settings): Record<string, unknown> {
     wheels: s.wheels,
     flow_animation: !!s.flow_animation,
     ...(s.flow_detail !== undefined ? {flow_detail:s.flow_detail} : {}),
-    geometry_confirmed: true,
+    geometry_confirmed: false,
   };
 }
 

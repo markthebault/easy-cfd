@@ -55,7 +55,7 @@ test("UI settings map to the server's settings; Custom quality becomes Medium", 
   assert.equal(out.speed_kmh, 130);
   assert.equal(out.yaw_deg, 5);
   assert.deepEqual(out.simulation_box, s.simulation_box);
-  assert.equal(out.geometry_confirmed, true);
+  assert.equal(out.geometry_confirmed, false);
   // Only fields the server accepts (its model forbids extra ones).
   assert.deepEqual(Object.keys(out).sort(), ["custom_iterations", "custom_mesh", "density", "flow_animation", "geometry_confirmed", "moving_ground", "quality", "reference_area", "simulation_box", "speed_kmh", "wheels", "yaw_deg"]);
 });
