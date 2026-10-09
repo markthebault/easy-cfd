@@ -748,7 +748,8 @@ def test_solver_ranks_and_cpu_limit_fit_the_runtime(client, monkeypatch):
     assert "numberOfSubdomains 8;" in (storage.ROOT / "case/system/decomposeParDict").read_text()
 
 
-def test_solve_passes_ranks_and_removes_processor_copies(client, monkeypatch):
+@pytest.mark.parametrize("part_faces", [0, 1, 5, 6, 50])
+def test_solve_passes_ranks_and_removes_processor_copies(client, monkeypatch, part_faces):
     p = project(client)
     client.put(
         f"/api/projects/{p['id']}/settings",
@@ -764,7 +765,7 @@ def test_solve_passes_ranks_and_removes_processor_copies(client, monkeypatch):
         if command[0] == "snappyHexMesh":
             (case / "constant/polyMesh").mkdir(parents=True)
             (case / "constant/polyMesh/boundary").write_text(
-                " ".join(f"{part['id']} {{ nFaces 50; }}" for part in run["geometry"]["parts"])
+                " ".join(f"{part['id']} {{ nFaces {part_faces}; }}" for part in run["geometry"]["parts"])
             )
             (case / "log.snappyHexMesh").write_text("Finished meshing")
         if command[0] == "checkMesh":
@@ -788,7 +789,12 @@ def test_solve_passes_ranks_and_removes_processor_copies(client, monkeypatch):
         return dict(warnings=[])
 
     monkeypatch.setattr(runner, "extract_case", process)
-    runner.solve(run["id"], "fast")
+    result = runner.solve(run["id"], "fast")
+    assert all(part["faces"] == part_faces for part in result["mesh_part_coverage"])
+    assert any("Mesh resolution:" in warning for warning in result["warnings"]) == (part_faces < 6)
+    saved = json.loads((storage.directory("runs", run["id"]) / "results/summary.json").read_text())
+    assert saved["mesh_part_coverage"] == result["mesh_part_coverage"]
+    assert saved["warnings"] == result["warnings"]
     solver = next(command for command, _ in calls if command[0] == "mpirun")
     assert solver[solver.index("-np") + 1] == "6"
     assert {cpus for _, cpus in calls} == {6}
@@ -796,6 +802,13 @@ def test_solve_passes_ranks_and_removes_processor_copies(client, monkeypatch):
     case = storage.directory("runs", run["id"]) / "case-fast"
     assert not list(case.glob("processor*"))
     assert (case / "200/U").exists() and (case / "300/U").exists()
+
+
+@pytest.mark.parametrize("boundary", ["part0 { nFaces 0; }", "part01 { nFaces 50; }"])
+def test_missing_mesh_part_is_reported_without_rejecting_openfoam_mesh(boundary):
+    assert runner.mesh_part_coverage(boundary, [{"id": "part0", "name": "Original panel"}]) == [
+        dict(id="part0", name="Original panel", faces=0, sparse=True)
+    ]
 
 
 def test_processor_copies_are_removable_only_when_every_time_was_reconstructed(tmp_path):

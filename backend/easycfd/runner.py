@@ -300,6 +300,22 @@ def extract_case(key, case, output, run, module="easycfd.extract_worker"):
     return json.loads((output / ".extracted.json").read_text())
 
 
+def mesh_part_coverage(boundary, parts):
+    """Report patch representation without adding a mesh-validity threshold.
+
+    CAD assemblies include small and sheltered parts with only a few fluid-facing
+    cells. A face count alone cannot distinguish those from unresolved features.
+    Keep their original surfaces and report coverage. OpenFOAM's mesh quality
+    checks decide validity; internal details may have no fluid-facing cells.
+    """
+    coverage = []
+    for part in parts:
+        match = re.search(r"\b" + re.escape(part["id"]) + r"\s*\{[^}]*?nFaces\s+(\d+)", boundary)
+        faces = int(match.group(1)) if match else 0
+        coverage.append(dict(id=part["id"], name=part["name"], faces=faces, sparse=faces < 6))
+    return coverage
+
+
 def solve(key, tier):
     run = storage.get("runs", key)
     root = storage.directory("runs", key)
@@ -351,12 +367,7 @@ def solve(key, tier):
             "Meshing reached its cell budget. Simplify the model; quality was not silently reduced."
         )
     boundary = (case / "constant/polyMesh/boundary").read_text(errors="replace")
-    for part in run["geometry"]["parts"]:
-        match = re.search(r"\b" + re.escape(part["id"]) + r"\s*\{[^}]*?nFaces\s+(\d+)", boundary)
-        if not match or int(match.group(1)) < 6:
-            raise RuntimeError(
-                f"Part {part['name']} disappeared or has too few mesh faces. Use a finer preset or simplify the part."
-            )
+    coverage = mesh_part_coverage(boundary, run["geometry"]["parts"])
     cells = re.search(r"cells:\s+(\d+)", check)
     if cells and int(cells.group(1)) > preset["max_cells"]:
         raise RuntimeError("The final mesh exceeds the preset cell budget. Simplify the model.")
@@ -418,7 +429,16 @@ def solve(key, tier):
             extraction_peak_bytes=storage.get("runs", key).get("extraction_peak_bytes"),
         ),
         mesh_recipe=meta,
+        mesh_part_coverage=coverage,
     )
+    sparse = [part for part in coverage if part["sparse"]]
+    if sparse:
+        details = "; ".join(f"{part['name']}: {part['faces']}" for part in sparse)
+        data["warnings"].append(
+            f"Mesh resolution: {len(sparse)} parts have fewer than six boundary faces ({details}). "
+            "Small, internal or sheltered parts may have few or no fluid-facing cells. "
+            "Zero-face parts contribute no forces; sparse-part forces and local flow need resolution review."
+        )
     if data.get("provenance"):
         mesh_hash = hashlib.sha256()
         for field in ("points", "faces", "owner", "neighbour", "boundary"):
