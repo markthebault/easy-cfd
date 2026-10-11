@@ -5,7 +5,7 @@ web_port := "4173"
 default:
     @just --list
 
-# WebGPU only (no server): build and serve web/dist on 127.0.0.1
+# Static UI with WebGPU and optional remote OpenFOAM: build and serve web/dist on 127.0.0.1
 run:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -23,6 +23,6 @@ run:
 run-openfoam:
     VITE_ENABLE_OPENFOAM=true ./scripts/start.sh
 
-# Publish the WebGPU-only edition to Cloudflare Pages.
+# Publish the static frontend to Cloudflare Pages.
 deploy-web:
     ./scripts/deploy-web.sh

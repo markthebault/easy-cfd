@@ -1,11 +1,13 @@
 import type { Settings } from "../solver/types";
+import { backendAvailable, NATIVE_OPENFOAM_ENABLED } from "./connection";
 
-/** Build-time opt-in: public static builds never contact an OpenFOAM backend. */
-export const OPENFOAM_ENABLED = import.meta.env.VITE_ENABLE_OPENFOAM === "true";
-export const OPENFOAM_COMING_SOON = "Coming soon: OpenFOAM runs on demand.";
+/** Build-time opt-in for automatic discovery of a native, same-origin backend. */
+export const OPENFOAM_ENABLED = NATIVE_OPENFOAM_ENABLED;
+export const OPENFOAM_COMING_SOON = "Connect a remote OpenFOAM server below to enable this engine.";
 
-/** Reopened local-server designs remain runnable in the WebGPU-only edition. */
+/** Reopened OpenFOAM designs fall back to WebGPU when no backend is configured. */
 export function availableSettings(settings: Settings): Settings {
-  if (OPENFOAM_ENABLED || settings.engine !== "openfoam") return settings;
+  // A configured remote server is independent of the native build flag.
+  if (backendAvailable() || settings.engine !== "openfoam") return settings;
   return { ...settings, engine: "webgpu", profile: "regular", quality: "medium", max_seconds: 600, flow_detail: "standard" };
 }

@@ -1,7 +1,6 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Literal
-from urllib.parse import urlparse
 import shutil
 import hashlib
 import json
@@ -12,12 +11,13 @@ import math
 import statistics
 import tempfile
 import zipfile
-from fastapi import BackgroundTasks, FastAPI, File, Form, Request, UploadFile
+from fastapi import BackgroundTasks, FastAPI, File, Form, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ValidationError
 from . import geometry, plane, runner, storage, results, repair, seal, transform, wake, webview, compute_lease
 from .models import ImportOptions, NewProject, Settings, PRESETS, resolved_preset
+from .access import AccessMiddleware
 
 
 @asynccontextmanager
@@ -29,21 +29,7 @@ async def lifespan(app):
 
 
 app = FastAPI(title="Easy CFD", lifespan=lifespan)
-
-
-@app.middleware("http")
-async def local_only(request: Request, call_next):
-    host = request.headers.get("host", "").split(":")[0]
-    tailnet_origin = os.environ.get("EASYCFD_TAILNET_ORIGIN", "").rstrip("/")
-    allowed_hosts = {"localhost", "127.0.0.1", "testserver"}
-    if tailnet_origin:
-        allowed_hosts.add(urlparse(tailnet_origin).hostname)
-    if host not in allowed_hosts:
-        return JSONResponse({"detail": "This application accepts local connections only."}, status_code=403)
-    origin = request.headers.get("origin")
-    if origin and origin != tailnet_origin and urlparse(origin).hostname not in ("localhost", "127.0.0.1"):
-        return JSONResponse({"detail": "External origins are not allowed."}, status_code=403)
-    return await call_next(request)
+app.add_middleware(AccessMiddleware)
 
 
 @app.exception_handler(FileNotFoundError)

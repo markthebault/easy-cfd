@@ -1,0 +1,7 @@
+*
+!Dockerfile
+!pyproject.toml
+!uv.lock
+!backend/
+!backend/easycfd/
+!backend/easycfd/*.py

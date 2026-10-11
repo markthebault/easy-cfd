@@ -2,7 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { resolve } from "node:path";
 
-// Static build: every asset is bundled, nothing is fetched from a server at runtime.
+// Static build: bundle every asset; optional OpenFOAM requests use the selected backend.
 export default defineConfig({
   plugins: [react()],
   base: "./",

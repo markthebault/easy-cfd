@@ -4,6 +4,8 @@ import { useMemo } from "react";
 import { Cpu, Play, Server, TriangleAlert, Zap } from "lucide-react";
 import type { ServerInfo } from "../engine/openfoam";
 import { OPENFOAM_ENABLED, OPENFOAM_COMING_SOON } from "../engine/features";
+import { backendAvailable, getRemoteConnection } from "../engine/connection";
+import { OpenFoamConnection } from "./OpenFoamConnection";
 import { partShapes } from "../solver/detail";
 import { boundsOf } from "../solver/setup";
 import {
@@ -65,13 +67,13 @@ export function RunStep() {
   const blocked =
     !report || report.errors.length > 0 || !confirmed || resourceBlocked;
   const noGpu = gpu.status === "unavailable" || gpu.status === "checking";
-  const openfoam = OPENFOAM_ENABLED && s.engine === "openfoam";
+  const openfoam = backendAvailable() && s.engine === "openfoam";
   const fineFlow = openfoam && !!s.flow_animation && s.flow_detail === "fine";
   const qualityLimit = (q: Quality) => openfoam && q === "medium" ? 1200 : (q === "fast" ? 300 : 600) * (openfoam && s.flow_animation ? 2 : 1);
   const requestedLimit = s.max_seconds ?? (!openfoam ? qualityLimit(s.quality) : fineFlow ? 43200 : s.profile === "basic" ? qualityLimit("fast") : s.profile === "regular" ? qualityLimit("medium") : s.profile === "advanced2" ? 43200 : !s.profile && s.quality === "medium" ? 1200 : 10800);
   const mediumLevel = openfoam && !fineFlow && (!s.profile || s.profile === "regular") && (s.quality === "medium" || s.quality === "custom");
   const timeLimit = mediumLevel ? Math.min(requestedLimit,1200) : requestedLimit;
-  const serverReady = OPENFOAM_ENABLED && server.status === "ready";
+  const serverReady = backendAvailable() && server.status === "ready";
   const limitCeiling = openfoam
     ? !fineFlow && (s.profile === "regular" || (!s.profile && s.quality === "medium"))
       ? 1200
@@ -128,17 +130,18 @@ export function RunStep() {
           }
         >
           <span className="q-label"><Server size={15} /> OpenFOAM</span>
-          <span className="q-blurb">{OPENFOAM_ENABLED ? "On your local server" : "On demand"}</span>
+          <span className="q-blurb">{getRemoteConnection() ? "On your remote server" : OPENFOAM_ENABLED ? "On your native server" : "Connect your server"}</span>
           <span className="q-meta">Advanced analysis</span>
         </button>
       </div>
       {!serverReady && (
         <p id="openfoam-availability" className="field-hint" data-testid="openfoam-availability">
-          {!OPENFOAM_ENABLED ? OPENFOAM_COMING_SOON : server.status === "checking"
-            ? "Looking for the local OpenFOAM server…"
-            : server.info?.message || "OpenFOAM is unavailable. Start the local server with just run-openfoam."}
+          {!backendAvailable() ? OPENFOAM_COMING_SOON : server.status === "checking"
+            ? "Connecting to the OpenFOAM server…"
+            : server.error || server.info?.message || "OpenFOAM is unavailable. Connect a remote server or start the native server with just run-openfoam."}
         </p>
       )}
+      <OpenFoamConnection />
       {openfoam && <OpenFoamLevels settings={s} />}
       {openfoam && s.profile?.startsWith("advanced") && (
         <div className="group">

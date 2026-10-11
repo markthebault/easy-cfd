@@ -256,6 +256,8 @@ export interface RunResult {
 }
 
 export interface OpenFoamDetails {
+  /** Backend endpoint, without its token; absent in older native runs. */
+  backend?: string;
   run: string;
   project?: string;
   iterations: number;

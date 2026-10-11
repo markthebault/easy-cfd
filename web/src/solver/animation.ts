@@ -9,7 +9,7 @@ export interface FlowAnimation {
   frames: { time: number; field: VizField }[];
   sections?: RecordedSection[];
   section?: string;
-  server?: { run: string; offset: [number, number, number] };
+  server?: { run: string; offset: [number, number, number]; backend?: string };
 }
 
 export interface RecordedSection {

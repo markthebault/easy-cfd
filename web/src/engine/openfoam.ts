@@ -1,10 +1,9 @@
-// OpenFOAM engine: runs the OpenFOAM app's backend (same origin, /api) from this UI and turns its
+// OpenFOAM engine: runs a native or remote EasyCFD backend from this UI and turns its
 // results into the data the viewer uses (RunResult, VizField, per-vertex surface values).
-// Nothing leaves this computer or the tailnet: the backend is the local EasyCFD server.
 
 import { balanceAtAxles, momentOrigin } from "../solver/aero";
 import { estimateTyreLoads } from "../solver/tyreLoads";
-import { OPENFOAM_ENABLED, OPENFOAM_COMING_SOON } from "./features";
+import { backendAvailable, backendFetch, backendIdentity, backendStorageKey, getRemoteConnection } from "./connection";
 import type { Part } from "../geometry/model";
 import { writeSTL } from "../geometry/stl";
 import { vizBoxFor, vizGrid, type SurfaceSample, type VizField } from "../solver/extract";
@@ -61,12 +60,12 @@ export interface ServerPart {
 export class ServerError extends Error {}
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
-  if (!OPENFOAM_ENABLED) throw new ServerError(OPENFOAM_COMING_SOON);
   let response: Response;
   try {
-    response = await fetch("/api" + path, init);
+    response = await backendFetch(path, init);
   } catch {
-    throw new ServerError("The OpenFOAM server is not reachable. Start it with `just run-openfoam`.");
+    if (init?.signal?.aborted) throw new DOMException("Request cancelled", "AbortError");
+    throw new ServerError("The OpenFOAM server is not reachable. Check its URL, HTTPS and CORS settings, or start the native server with just run-openfoam.");
   }
   if (!response.ok) {
     let detail = `${response.status} ${response.statusText}`;
@@ -89,20 +88,18 @@ function median(values: number[]): number {
   return s.length % 2 ? s[(s.length - 1) / 2] : 0.5 * (s[s.length / 2 - 1] + s[s.length / 2]);
 }
 
-/** The server's health and presets, or null when this page is not served by the OpenFOAM app. */
+/** The selected server's health and presets; null when native discovery finds no backend. */
 export async function probeServer(): Promise<ServerInfo | null> {
-  if (!OPENFOAM_ENABLED) return null;
+  if (!backendAvailable()) return null;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 15000);
   try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 4000);
-    const response = await fetch("/api/health", { signal: ctrl.signal });
-    clearTimeout(timer);
-    if (!response.ok || !(response.headers.get("content-type") ?? "").includes("json")) return null;
-    const health = await response.json();
-    if (!health || typeof health.ready !== "boolean" || !health.presets) return null;
+    const health = await api<ServerInfo>("/health", { signal: ctrl.signal });
+    if (!health || typeof health.ready !== "boolean" || !health.presets)
+      throw new ServerError("This URL does not serve an EasyCFD OpenFOAM API.");
     const measured: ServerInfo["measured"] = {};
     try {
-      const runs = await api<ServerRun[]>("/runs");
+      const runs = await api<ServerRun[]>("/runs", { signal: ctrl.signal });
       for (const q of ["fast", "medium", "precise"] as const) {
         const secs = runs
           .filter((r) => r.status === "completed" && r.settings.quality === q && !r.settings.flow_animation && !(r.settings.profile ?? "").startsWith("advanced") &&
@@ -115,9 +112,10 @@ export async function probeServer(): Promise<ServerInfo | null> {
       /* no run list: estimates stay generic */
     }
     return { ready: health.ready, message: health.message ?? "", cpus: health.cpus, memory_gb: health.memory_gb, presets: health.presets, measured };
-  } catch {
+  } catch (error) {
+    if (getRemoteConnection()) throw error;
     return null;
-  }
+  } finally { clearTimeout(timer); }
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -245,6 +243,7 @@ export function resultFromRecord(run: ServerRun, carLength: number, offset: Vec3
     gridId: `openfoam:${run.id}`,
     engine: "openfoam",
     openfoam: {
+      backend: backendIdentity(),
       run: run.id,
       project: run.project_id,
       iterations,
@@ -277,7 +276,7 @@ interface ProjectLink {
 
 function links(): Record<string, ProjectLink> {
   try {
-    return JSON.parse(localStorage.getItem(PROJECTS_KEY) ?? "{}");
+    return JSON.parse(localStorage.getItem(backendStorageKey(PROJECTS_KEY)) ?? "{}");
   } catch {
     return {};
   }
@@ -347,7 +346,7 @@ export async function ensureProject(name: string, parts: { key: string; part: Pa
   }
   const labels = Object.fromEntries(files.map(f=>[map[f.key],{id:f.key,name:f.part.name,...(f.part.group ? {group:f.part.group}: {})}]));
   const link: ProjectLink = { project: project.id, parts: map, offset, labels };
-  localStorage.setItem(PROJECTS_KEY, JSON.stringify({ ...links(), [fp]: link }));
+  localStorage.setItem(backendStorageKey(PROJECTS_KEY), JSON.stringify({ ...links(), [fp]: link }));
   return link;
 }
 
@@ -478,5 +477,5 @@ export async function fetchAnimation(run: ServerRun, offset: Vec3, signal?: Abor
   }));
   const sections = m.sections?.map(p=>({...p, origin:p.origin.map((v,j)=>v-offset[j]) as Vec3, position:p.position-offset[p.axis]}));
   return { version:m.version, engine:"openfoam", timeUnit:"s", model:m.model, frames,
-    ...(fine ? {sections,section:m.section,server:{run:run.id,offset}} : {}) };
+    ...(fine ? {sections,section:m.section,server:{run:run.id,offset,backend:backendIdentity()}} : {}) };
 }

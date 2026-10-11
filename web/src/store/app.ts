@@ -5,7 +5,8 @@ import { checkGeometry, UNIT_SCALE, DEFAULT_IMPORT, LIMITS, type GeometryReport,
 import type { VizField } from "../solver/extract";
 import { requestDevice, type GpuInfo } from "../solver/gpu";
 import { probeServer, type ServerInfo } from "../engine/openfoam";
-import { availableSettings, OPENFOAM_ENABLED } from "../engine/features";
+import { availableSettings } from "../engine/features";
+import { backendAvailable, parseRemoteUrl, setRemoteConnection } from "../engine/connection";
 import { DEFAULT_SETTINGS, type ForceSample, type Settings } from "../solver/types";
 import type { VizSettings } from "../viz/stage";
 import { collectFiles, get, getAll, hasKey, newId, put, remove, sha256 } from "./db";
@@ -59,10 +60,11 @@ export interface Toast {
   kind: "info" | "error";
 }
 
-/** The OpenFOAM app's backend, when this page is served by it. */
+/** The selected native or remote OpenFOAM backend. */
 export interface ServerState {
   status: "checking" | "ready" | "busy" | "unavailable";
   info: ServerInfo | null;
+  error?: string;
 }
 
 export interface AppState {
@@ -138,7 +140,7 @@ export const app = createStore<AppState>({
   theme: initialTheme,
   dark: initialTheme === "system" ? systemDark() : initialTheme === "dark",
   gpu: { status: "checking", adapter: "", message: "" },
-  server: { status: OPENFOAM_ENABLED ? "checking" : "unavailable", info: null },
+  server: { status: backendAvailable() ? "checking" : "unavailable", info: null },
   design: null,
   parts: [],
   groups: [],
@@ -557,9 +559,25 @@ export function closeCompare() {
 // Start-up
 // ---------------------------------------------------------------------------------------------
 
+let serverCheck = 0;
 export async function checkServer() {
-  const info = await probeServer();
-  app.set({ server: { status: info ? (info.ready ? "ready" : "busy") : "unavailable", info } });
+  const check = ++serverCheck;
+  app.set({ server: { status: backendAvailable() ? "checking" : "unavailable", info: null } });
+  try {
+    const info = await probeServer();
+    if (check !== serverCheck) return;
+    app.set({ server: { status: info ? (info.ready ? "ready" : "busy") : "unavailable", info } });
+  } catch (error) {
+    if (check !== serverCheck) return;
+    app.set({ server: { status: "unavailable", info: null, error: error instanceof Error ? error.message : String(error) } });
+  }
+}
+
+export async function connectOpenFoam(value: string | null) {
+  if (app.get().busy || app.get().view === "live") throw new Error("Wait for the current operation before changing servers.");
+  setRemoteConnection(value === null ? null : parseRemoteUrl(value));
+  if (!backendAvailable() && app.get().design) setSettings(availableSettings(app.get().design!.settings));
+  await checkServer();
 }
 
 export async function init() {

@@ -1,5 +1,6 @@
 import { computeLease } from "../engine/computeLease";
-import { OPENFOAM_ENABLED, OPENFOAM_COMING_SOON } from "../engine/features";
+import { OPENFOAM_COMING_SOON } from "../engine/features";
+import { backendAvailable } from "../engine/connection";
 // Running simulations, saving them, reopening them and exporting them.
 
 import type { Part } from "../geometry/model";
@@ -81,7 +82,7 @@ export async function startRun() {
   const weightError = weightInputError(design.settings);
   if (weightError) { toast(weightError, "error"); return; }
   if (design.settings.engine === "openfoam") {
-    if (!OPENFOAM_ENABLED) { toast(OPENFOAM_COMING_SOON, "error"); return; }
+    if (!backendAvailable()) { toast(OPENFOAM_COMING_SOON, "error"); return; }
     return startOpenFoamRun();
   }
   if (s.gpu.status === "unavailable" || s.gpu.status === "checking") {
