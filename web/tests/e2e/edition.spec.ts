@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("the public edition disables OpenFOAM and makes no backend requests", async ({ page }) => {
+test("the static edition offers remote connection and makes no automatic backend requests", async ({ page }) => {
   test.setTimeout(30_000);
   test.skip(process.env.VITE_ENABLE_OPENFOAM !== "false", "Requires the WebGPU-only build flag.");
   const apiRequests: string[] = [];
@@ -13,7 +13,8 @@ test("the public edition disables OpenFOAM and makes no backend requests", async
   await page.getByRole("button", { name: "Continue to conditions" }).click();
   await page.getByRole("button", { name: "Continue to run" }).click();
   await expect(page.getByTestId("engine-openfoam")).toBeDisabled();
-  await expect(page.getByTestId("openfoam-availability")).toHaveText("Coming soon: OpenFOAM runs on demand.");
+  await expect(page.getByTestId("openfoam-availability")).toHaveText("Connect a remote OpenFOAM server below to enable this engine.");
+  await expect(page.getByText("OpenFOAM server connection", {exact:true})).toBeVisible();
   await expect(page.getByRole("radiogroup", { name: "Solver engine" })).toHaveCount(1);
   await expect(page.locator("#advanced-profile")).toHaveCount(0);
 

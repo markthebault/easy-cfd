@@ -100,6 +100,9 @@ def check_cancelled(key):
 
 def container(name, case, command, memory, cpus):
     """Arguments for one isolated, network-less solver container on a case folder."""
+    # The Docker daemon resolves bind mounts on its host, outside the API container.
+    host_data = os.environ.get("EASYCFD_HOST_DATA")
+    host_case = Path(host_data) / case.resolve().relative_to(storage.ROOT) if host_data else case
     return [
         "docker",
         "run",
@@ -121,7 +124,7 @@ def container(name, case, command, memory, cpus):
         "-e",
         "HOME=/tmp",
         "--mount",
-        f"type=bind,source={case},target=/case",
+        f"type=bind,source={host_case},target=/case",
         "-w",
         "/case",
         "--entrypoint",

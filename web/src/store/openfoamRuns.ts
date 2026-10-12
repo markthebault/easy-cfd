@@ -1,8 +1,9 @@
-// OpenFOAM engine runs: upload the design to the local OpenFOAM server, follow the run live, then
+// OpenFOAM engine runs: upload the design to the selected OpenFOAM server, follow the run live, then
 // fetch the flow field and surface values and save the run like a WebGPU run. Also opens runs that
 // were made on the server (for example in the original UI).
 
 import type { Part } from "../geometry/model";
+import { backendIdentity, backendStorageKey } from "../engine/connection";
 import { parseSTL } from "../geometry/stl";
 import {
   cancelServerRun,
@@ -47,7 +48,7 @@ import { animationRanges } from "./ranges";
 import type { FileRef, PartOverride, RunDoc } from "./types";
 
 const FINAL_POINTS = 900_000;
-export const OPENFOAM_ADAPTER = "OpenFOAM v2412 · local server";
+export const OPENFOAM_ADAPTER = "OpenFOAM v2412 · server";
 
 type ActiveRun = {
   runId: string | null;
@@ -69,7 +70,7 @@ interface StartedRun {
 
 function startedRuns(): Record<string, StartedRun> {
   try {
-    return JSON.parse(localStorage.getItem(STARTED_KEY) ?? "{}");
+    return JSON.parse(localStorage.getItem(backendStorageKey(STARTED_KEY)) ?? "{}");
   } catch {
     return {};
   }
@@ -79,7 +80,7 @@ function rememberRun(id: string, info: StartedRun | null) {
   const all = startedRuns();
   if (info) all[id] = info;
   else delete all[id];
-  localStorage.setItem(STARTED_KEY, JSON.stringify(all));
+  localStorage.setItem(backendStorageKey(STARTED_KEY), JSON.stringify(all));
 }
 
 /** Server run ids already saved as runs in this browser. */
@@ -87,7 +88,7 @@ export function importedRunIds(): Set<string> {
   return new Set(
     app
       .get()
-      .runs.map((r) => r.result.openfoam?.run)
+      .runs.filter(r => (r.result.openfoam?.backend ?? "local") === backendIdentity()).map((r) => r.result.openfoam?.run)
       .filter((x): x is string => !!x),
   );
 }
@@ -123,6 +124,10 @@ export function cancelOpenFoamRun() {
 export async function selectRecordedSection(section: string) {
   const run = app.get().run, animation = run?.animation;
   if (!run || !animation?.server || animation.section === section) return;
+  if ((animation.server.backend ?? "local") !== backendIdentity()) {
+    toast("Connect to the OpenFOAM server that produced this recording before loading another section.", "error");
+    return;
+  }
   app.set({busy:"loading"});
   try {
     const record = await getRun(animation.server.run);
@@ -136,7 +141,7 @@ export async function selectRecordedSection(section: string) {
     if (stored) await replaceCachedAnimation(stored,next);
     return plane;
   } catch(e) {
-    toast(`This section could not be loaded from the local server: ${e instanceof Error ? e.message : String(e)}`,"error");
+    toast(`This section could not be loaded from the OpenFOAM server: ${e instanceof Error ? e.message : String(e)}`,"error");
   } finally { app.set({busy:null}); }
 }
 
@@ -284,9 +289,9 @@ export async function startOpenFoamRun() {
   const s = app.get();
   const design = s.design;
   if (!design || !s.report) return;
-  if (!s.server.info) {
+  if (s.server.status !== "ready") {
     toast(
-      "The OpenFOAM server is not available. Start EasyCFD with `just run-openfoam` and open it from there.",
+      "The OpenFOAM server is not available. Connect a remote backend or start the native server with just run-openfoam.",
       "error",
     );
     return;

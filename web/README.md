@@ -1,6 +1,6 @@
 # EasyCFD Web
 
-A virtual wind tunnel that runs entirely in the browser. Drop in a car, choose a speed, and the airflow is computed on your graphics card through WebGPU. There is no server, no OpenFOAM and no Docker: the app is a folder of static files, and your geometry never leaves the computer.
+A virtual wind tunnel served as static files. Drop in a car, choose a speed, and WebGPU computes airflow on your graphics card. You can also connect a token-protected OpenFOAM backend; those runs upload geometry to the connected server.
 
 ![Results with smoke and surface pressure](docs/03-results-smoke.png)
 
@@ -32,8 +32,9 @@ Designs and runs are saved in the browser (IndexedDB). Runs can be exported as J
 ## Engines
 
 WebGPU (in the browser, the default) or OpenFOAM (the EasyCFD server, for final checks), chosen in the Run step.
-- **When OpenFOAM is available:** opt in at build time with `VITE_ENABLE_OPENFOAM=true`, then serve from the OpenFOAM app; detected at `/api/health`. `just run-openfoam` and `scripts/start.sh` do this automatically. Default builds and `just run` disable backend calls and show “Coming soon: OpenFOAM runs on demand.”
-- **Public deployment:** `just deploy-web` publishes a forced WebGPU-only build to https://easy-cfd.mthracelab.com using Cloudflare Pages. Models and results remain in browser storage.
+- **Native OpenFOAM:** opt in at build time with `VITE_ENABLE_OPENFOAM=true`, then serve from the OpenFOAM app; detected at `/api/health`. `just run-openfoam` and `scripts/start.sh` do this automatically. Default builds and `just run` disable automatic native discovery.
+- **Remote OpenFOAM:** available regardless of the native build flag. In Run, open **OpenFOAM server connection** and paste `https://your-backend?token=…` or `http://localhost:8000?token=…`. The connection survives reloads in this tab. See the [Docker and internet setup](../README.md#run-an-openfoam-backend-with-docker).
+- **Public deployment:** `just deploy-web` publishes a static build to https://easy-cfd.mthracelab.com using Cloudflare Pages. It supports WebGPU and user-configured remote backends.
 - **Client:** `src/engine/openfoam.ts` is the server client and the mapping from server records to UI results. It measures the frame offset from the uploaded parts' bounds.
 - **Run flow:** `src/store/openfoamRuns.ts` runs, follows and opens OpenFOAM runs.
 - **Backend:** its endpoints for the viewer are in `backend/easycfd/webview.py`.

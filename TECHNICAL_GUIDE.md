@@ -1,6 +1,6 @@
 # EasyCFD
 
-A virtual wind tunnel for cars. Drop in a car, choose a speed, and the airflow is computed on your own graphics card through WebGPU, in the browser. The browser version needs no server, Docker or OpenFOAM: it is a folder of static files, and your geometry never leaves the computer. For final, more precise numbers, the same UI can send a run to the OpenFOAM engine on your EasyCFD server.
+A virtual wind tunnel for cars. Drop in a car, choose a speed, and WebGPU computes airflow on your graphics card in the browser. The static frontend also supports a native or remote OpenFOAM backend; OpenFOAM runs upload geometry to that server. See the [Docker and remote backend instructions](README.md#run-an-openfoam-backend-with-docker).
 
 ![EasyCFD in the browser: smoke over the car, force history and drag breakdown](docs/easycfd-web.png)
 
@@ -9,9 +9,9 @@ The browser version in [`web/`](web/README.md) is the primary EasyCFD tool. The 
 ## Start
 
 ```sh
-just run            # WebGPU only: builds web/ and serves http://127.0.0.1:4173 (static files)
+just run            # static UI with WebGPU and optional remote backend: http://127.0.0.1:4173
 just run-openfoam   # WebGPU and OpenFOAM: http://127.0.0.1:8000 (original UI at /legacy/)
-just deploy-web     # publish the WebGPU-only edition to https://easy-cfd.mthracelab.com
+just deploy-web     # publish the static frontend to https://easy-cfd.mthracelab.com
 ```
 
 `just run` needs Node.js 22+ and Python 3 (for the static file server). It installs the npm packages on first use. Open the page in Chrome or Edge 113+, or Safari 26+. The app tells you if WebGPU is missing, or if the browser only offers a slow software fallback. Without `just`: `cd web && npm install && npm run build`, then serve `web/dist` from any static web server over `https://` or `http://localhost`.
@@ -34,9 +34,9 @@ The Run step offers two engines:
 - **WebGPU:** on this device, seconds to minutes. This is the default. Use it to explore and compare designs.
 - **OpenFOAM:** a *final check* on the EasyCFD server, minutes to an hour. It uses snappyHexMesh with prism layers and simpleFoam, the legacy app's pipeline, with its Fast, Medium and Precise presets, their cell budgets and the run times measured on this server.
 
-OpenFOAM is available when the page is opened from `just run-openfoam`. This launcher (and `scripts/start.sh`) builds with `VITE_ENABLE_OPENFOAM=true` and uses the existing local Docker/OpenFOAM backend. Direct builds disable OpenFOAM unless that build-time variable is exactly `true`.
+Native OpenFOAM is discovered when the page is opened from `just run-openfoam`. This launcher (and `scripts/start.sh`) builds with `VITE_ENABLE_OPENFOAM=true` and uses the existing local Docker/OpenFOAM backend. Remote connections are available in all builds.
 
-The public edition at https://easy-cfd.mthracelab.com and `just run` use WebGPU only. OpenFOAM is greyed out with “Coming soon: OpenFOAM runs on demand.” These builds never probe or call the backend. Imported models, designs and WebGPU results stay in the browser; no cloud storage is required. On-demand OpenFOAM is not connected yet.
+Static builds and `just run` make no automatic backend requests. OpenFOAM becomes available when you enter a token-protected backend URL in the Run step's **OpenFOAM server connection** form. This works even with `VITE_ENABLE_OPENFOAM=false`. The public frontend can connect to Docker on the user's own computer at `http://localhost:8000?token=…`, or to another computer over HTTPS. Imported models, designs and WebGPU results stay in the browser; OpenFOAM uploads models to the chosen backend.
 
 `just deploy-web` forces `VITE_ENABLE_OPENFOAM=false`, builds `web/dist-webgpu` separately from the laptop's `web/dist`, and directly uploads the static assets to the Cloudflare Pages project `easy-cfd` (production branch `main`). It loads the API token from `~/.env.cloudflare` after building, without printing it or bundling it into the site. Deployment is manual; it does not set up automatic GitHub deployments. For a Cloudflare build, use root `web`, command `npm run build`, output `dist`, and `VITE_ENABLE_OPENFOAM=false`.
 

@@ -166,7 +166,7 @@ function RecordedSectionPicker({animation,stageIds}: {animation:FlowAnimation;st
       const p=await selectRecordedSection(e.target.value);
       if(p) for(const id of stageIds ?? ["main"]) stages[id]?.setView(sliceView(p.axis),true,false,true);
     }}>{animation.sections?.map(p=><option value={p.id} key={p.id}>{p.label}</option>)}</select>
-    <p className="muted small">Other sections load from your local OpenFOAM server.</p>
+    <p className="muted small">Other sections load from the connected OpenFOAM server.</p>
   </div>;
 }
 
