@@ -44,6 +44,7 @@ function GroupName({ group, autoEdit }: { group: GroupView; autoEdit: boolean })
 export function GroupsPanel() {
   const groups = useStore(app, (s) => s.groups);
   const parts = useStore(app, (s) => s.parts);
+  const legacyDetail = useStore(app, (s) => s.design?.settings.engine === "webgpu");
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [created, setCreated] = useState<string | null>(null);
   const nextName = () => {
@@ -81,7 +82,7 @@ export function GroupsPanel() {
                 </label>
                 <GroupName key={g.id + (created === g.id ? ":new" : "")} group={g} autoEdit={created === g.id} />
                 <span className="muted small">{g.parts.length} part{g.parts.length === 1 ? "" : "s"}</span>
-                <select
+                {legacyDetail && <select
                   className="detail-select"
                   value={g.detail ?? "auto"}
                   aria-label={`Detail cells for group ${g.name}`}
@@ -91,7 +92,7 @@ export function GroupsPanel() {
                   <option value="auto">Detail: auto</option>
                   <option value="always">Detail: always</option>
                   <option value="off">Detail: off</option>
-                </select>
+                </select>}
                 {!CORE.has(g.id) && optional.length > 1 && (
                   <button className="btn tiny" title="Switch this group on and the other optional groups off" onClick={() => soloGroup(g.id, optional)}>
                     <Target size={12} /> Only this

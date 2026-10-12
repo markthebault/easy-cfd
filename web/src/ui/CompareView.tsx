@@ -3,6 +3,7 @@
 
 import { ArrowDown, ArrowUp, TriangleAlert, X } from "lucide-react";
 import { G, type Settings } from "../solver/types";
+import { engineLabel } from "../engine/features";
 import { estimateTyreLoads } from "../solver/tyreLoads";
 import { assessedAxles, assessedResult } from "../store/axleAnalysis";
 import { useStore } from "../store/store";
@@ -17,7 +18,7 @@ import { conditionsLine, fmt, fmtDate, groupForces, groupsLine, qualityLabel, si
 
 function conditionDiffs(a: Settings, b: Settings): string[] {
   const out: string[] = [];
-  const ea = a.engine === "openfoam" ? "OpenFOAM" : "WebGPU", eb = b.engine === "openfoam" ? "OpenFOAM" : "WebGPU";
+  const ea = a.engine === "wasm" ? "OpenFOAM browser" : a.engine === "openfoam" ? "OpenFOAM server" : "WebGPU", eb = b.engine === "wasm" ? "OpenFOAM browser" : b.engine === "openfoam" ? "OpenFOAM server" : "WebGPU";
   if (ea !== eb) out.push(`solver ${ea} vs ${eb}`);
   if (a.speed_kmh !== b.speed_kmh) out.push(`speed ${a.speed_kmh} vs ${b.speed_kmh} km/h`);
   if (a.yaw_deg !== b.yaw_deg) out.push(`yaw ${a.yaw_deg}° vs ${b.yaw_deg}°`);
@@ -149,7 +150,7 @@ export function CompareView() {
       />
       <div className="compare-tag glass">
         <b>{tag}</b> {r.doc.designName}
-        <span className="muted small">{r.doc.result.engine === "openfoam" ? "OpenFOAM" : "WebGPU"} · {conditionsLine(r.doc.settings)} · {fmtDate(r.doc.createdAt)}</span>
+        <span className="muted small">{engineLabel(r.doc.result)} · {conditionsLine(r.doc.settings)} · {fmtDate(r.doc.createdAt)}</span>
         {groupsLine(r.doc.geometry) && <span className="small groups-line">Groups: {groupsLine(r.doc.geometry)}</span>}
       </div>
     </div>

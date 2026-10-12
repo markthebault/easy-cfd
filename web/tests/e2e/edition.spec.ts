@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test("the static edition offers remote connection and makes no automatic backend requests", async ({ page }) => {
   test.setTimeout(30_000);
-  test.skip(process.env.VITE_ENABLE_OPENFOAM !== "false", "Requires the WebGPU-only build flag.");
+  test.skip(process.env.VITE_ENABLE_OPENFOAM !== "false", "Requires the static build flag.");
   const apiRequests: string[] = [];
   page.on("request", (request) => {
     if (new URL(request.url()).pathname.startsWith("/api/")) apiRequests.push(request.url());
@@ -18,7 +18,7 @@ test("the static edition offers remote connection and makes no automatic backend
   await expect(page.getByRole("radiogroup", { name: "Solver engine" })).toHaveCount(1);
   await expect(page.locator("#advanced-profile")).toHaveCount(0);
 
-  // A local-server design saved earlier must reopen with runnable WebGPU settings.
+  // A local-server design saved earlier must reopen with runnable browser OpenFOAM settings.
   await page.evaluate(async () => {
     const app = (window as any).__easycfd.app;
     const design = structuredClone(app.get().design);
@@ -38,7 +38,7 @@ test("the static edition offers remote connection and makes no automatic backend
     localStorage.setItem("easycfd.lastDesign", design.id);
   });
   await page.reload();
-  await expect.poll(() => page.evaluate(() => (window as any).__easycfd.app.get().design?.settings.engine)).toBe("webgpu");
+  await expect.poll(() => page.evaluate(() => (window as any).__easycfd.app.get().design?.settings.engine)).toBe("wasm");
   expect(await page.evaluate(()=>(window as any).__easycfd.app.get().design.settings.flow_detail)).toBe("standard");
   await page.getByRole("button", { name: "Designs & runs" }).click();
   await expect(page.getByTestId("tab-server")).toHaveCount(0);

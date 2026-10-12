@@ -1,0 +1,95 @@
+{
+  "cases": [
+    {
+      "case": "sample",
+      "nativeImage": "opencfd/openfoam-default@sha256:33fb575aa9980d2bc42fd58c75ae698c489293ba30c991380fe3f899c622f319",
+      "nativeVersion": "v2512",
+      "browserVersion": "v2512",
+      "sameMesh": true,
+      "nativeSolver": "stock simpleFoam",
+      "browser": {
+        "cd": 0.49896506047575007,
+        "cl": 0.7166613631503291
+      },
+      "native": {
+        "cd": 0.498965060475752,
+        "cl": 0.716661363150326
+      },
+      "difference": {
+        "cd": 1.942890293094024e-15,
+        "cl": 3.1086244689504383e-15
+      },
+      "tolerance": 0.0001,
+      "passed": true
+    },
+    {
+      "case": "sample-fast",
+      "nativeImage": "opencfd/openfoam-default@sha256:33fb575aa9980d2bc42fd58c75ae698c489293ba30c991380fe3f899c622f319",
+      "nativeVersion": "v2512",
+      "browserVersion": "v2512",
+      "sameMesh": true,
+      "nativeSolver": "stock simpleFoam",
+      "browser": {
+        "cd": 0.510034706398351,
+        "cl": 0.7146786714458668
+      },
+      "native": {
+        "cd": 0.510034706398338,
+        "cl": 0.71467867144587
+      },
+      "difference": {
+        "cd": 1.2989609388114332e-14,
+        "cl": 3.219646771412954e-15
+      },
+      "tolerance": 0.0001,
+      "passed": true
+    },
+    {
+      "case": "mx5",
+      "nativeImage": "opencfd/openfoam-default@sha256:33fb575aa9980d2bc42fd58c75ae698c489293ba30c991380fe3f899c622f319",
+      "nativeVersion": "v2512",
+      "browserVersion": "v2512",
+      "sameMesh": true,
+      "nativeSolver": "stock simpleFoam",
+      "browser": {
+        "cd": 0.3287594416887283,
+        "cl": 0.045241580944163765
+      },
+      "native": {
+        "cd": 0.32875944168873,
+        "cl": 0.0452415809441636
+      },
+      "difference": {
+        "cd": 1.7208456881689926e-15,
+        "cl": 1.6653345369377348e-16
+      },
+      "tolerance": 0.0001,
+      "passed": true
+    },
+    {
+      "case": "z4",
+      "nativeImage": "opencfd/openfoam-default@sha256:33fb575aa9980d2bc42fd58c75ae698c489293ba30c991380fe3f899c622f319",
+      "nativeVersion": "v2512",
+      "browserVersion": "v2512",
+      "sameMesh": true,
+      "nativeSolver": "stock simpleFoam",
+      "browser": {
+        "cd": 0.47585785078722653,
+        "cl": 0.22766019517224045
+      },
+      "native": {
+        "cd": 0.47585784822451205,
+        "cl": 0.22766018070583802
+      },
+      "difference": {
+        "cd": 2.5627144850659533e-09,
+        "cl": 1.4466402437074422e-08
+      },
+      "tolerance": 0.0001,
+      "passed": true
+    }
+  ],
+  "sourceBase": "5fb0cb09a1a3b4bfa99203d4956f3dc199bc0933",
+  "staticBuild": "web/dist",
+  "wasmVersion": "v2512"
+}

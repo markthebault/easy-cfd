@@ -55,7 +55,7 @@ export function LivePanel() {
   return (
     <div className="live" aria-live="polite">
       <div className="live-head">
-        <span className="eyebrow"><span className="rec" /> Live{openfoam ? " · OpenFOAM server" : ""}</span>
+        <span className="eyebrow"><span className="rec" /> Live{live.runtime === "wasm" ? " · OpenFOAM browser" : openfoam ? " · OpenFOAM server" : ""}</span>
         <h2>{openfoam ? serverStageText(live.serverStage) : (live.serverStage || STAGE[live.stage])}</h2>
         <p className="muted small">{live.designName} · {conditionsLine(live.settings)}</p>
         <p className="muted small" data-testid="run-boundaries">{boundaryLine(live.settings)}</p>
@@ -68,6 +68,7 @@ export function LivePanel() {
           <div><b>{fmtInt(live.iteration ?? 0)}<small> / {fmtInt(live.iterations ?? 0)}</small></b><span>iterations</span></div>
           {live.recordingDuration && <div><b>{fmt(live.recordingTime ?? 0,3)}<small> / {fmt(live.recordingDuration,3)} s</small></b><span>recording physical time</span></div>}
           <div><b>{fmtDuration(live.elapsed)}</b><span>elapsed{Number.isFinite(remaining) ? ` · ~${fmtDuration(remaining)} left` : ""}</span></div>
+          <div><b>{live.cells ? fmtCells(live.cells) : "–"}</b><span>cells</span></div>
         </div>
       ) : (
         <div className="live-stats">
@@ -85,7 +86,9 @@ export function LivePanel() {
       <ForceChart history={live.history} passTime={passTime} live height={140} maPasses={win} windowFrom={avg?.from} unit={unit} />
       <StatsTable history={live.history} passTime={passTime} passes={win} onPasses={setPick} unit={unit} />
       <p className="muted small">
-        {openfoam
+        {live.runtime === "wasm"
+          ? live.field ? `Computed OpenFOAM flow · ${live.snapshots} live snapshots. Keep this tab open until the run finishes.` : "OpenFOAM is meshing and solving locally. Computed airflow appears after the first snapshot. Keep this tab open."
+          : openfoam
           ? "OpenFOAM writes the flow field when it finishes; the 3D flow, surface pressure and animations appear with the result. The run continues on the server if you close this tab."
           : live.field
           ? `The 3D flow updates every few seconds (${live.snapshots} snapshot${live.snapshots === 1 ? "" : "s"}). It is the solver's current state, not converged yet.`

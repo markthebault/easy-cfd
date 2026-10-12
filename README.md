@@ -12,7 +12,7 @@ Explore airflow around a car or a part. Compare drag, downforce, and design chan
 2. Check the model's units and orientation. Set the speed and yaw angle.
 3. Run a simulation. Inspect the results and airflow. Compare two runs to study a change.
 
-The public app uses WebGPU. It needs a browser and device with WebGPU support. It stores projects in your browser.
+Browser OpenFOAM runs entirely on your device using WebAssembly. It needs a modern browser with WebAssembly and WebGL support, and stores projects and results in your browser. Quick and Fast are light options; advanced meshes and physical-time recordings use the connected OpenFOAM backend.
 
 Treat the results as exploratory estimates. They do not establish real vehicle loads or aerodynamic accuracy. Read the [validation notes](web/VALIDATION.md) before you use the numbers for a design decision.
 
@@ -32,7 +32,7 @@ npm ci
 npm run dev
 ```
 
-OpenFOAM is an optional engine. The UI supports both a native server and a token-protected backend URL, including in builds with native OpenFOAM disabled. See the [technical guide](TECHNICAL_GUIDE.md) for model preparation, solver options, and development checks.
+Browser OpenFOAM is the default engine. The UI also supports both a native server and a token-protected backend URL for advanced analysis, including in static builds with native discovery disabled. See the [technical guide](TECHNICAL_GUIDE.md) for model preparation, solver options, and development checks.
 
 ## Run an OpenFOAM backend with Docker
 
@@ -63,7 +63,7 @@ export EASYCFD_API_TOKEN='replace-with-a-long-random-secret'
 docker compose up -d backend
 ```
 
-Use this value in the connection URL. The token grants access to all projects and runs on that backend. API requests require the token, including health checks, uploads, cancellations and result downloads. The UI extracts it from the URL and sends it as a bearer authorization header; it keeps the connection in this browser tab's session storage and does not export the token with projects or results. OpenFOAM runs upload the selected model to your backend; WebGPU runs compute in the browser.
+Use this value in the connection URL. The token grants access to all projects and runs on that backend. API requests require the token, including health checks, uploads, cancellations and result downloads. The UI extracts it from the URL and sends it as a bearer authorization header; it keeps the connection in this browser tab's session storage and does not export the token with projects or results. Server runs upload the selected model to your backend; Browser OpenFOAM runs compute in the browser.
 
 The Compose service listens on loopback by default. It uses the host Docker socket to launch isolated solver containers, so run it on a machine you trust. The API and solver share the persistent data directory; `EASYCFD_HOST_DATA` must identify that directory on the Docker daemon's host. You can also build the API image directly with `docker build -t easycfd-backend:local .`. Stop the service with `docker compose down`; saved runs and the generated token stay in the data directory.
 
@@ -92,7 +92,7 @@ The startup log now prints `https://your-ngrok-domain?token=…`. `EASYCFD_PUBLI
 
 For direct hosting, forward `/api/*` to the backend and preserve the `Authorization` and `Origin` headers. If you publish Docker's port, configure HTTPS at the proxy. Remote mode accepts **any backend hostname**. CORS permits **any frontend origin by default** (`Access-Control-Allow-Origin: *`), including authorization-header preflights; every API request still requires a valid token. `EASYCFD_CORS_ORIGINS` optionally restricts browser access to comma-separated frontend origins, for example `https://easy-cfd.mthracelab.com,http://localhost:5173`; an unset or blank setting permits all origins, without cookies. Internet connections require HTTPS; HTTP is accepted for `localhost`, `127.0.0.1` and `[::1]` only.
 
-The existing `just run-openfoam` native setup still works. `VITE_ENABLE_OPENFOAM=true` enables automatic same-origin discovery; `false` disables that discovery while keeping the remote connection option available. **Use native server** switches back to same-origin access, or **Disconnect** returns a static build to WebGPU.
+The existing `just run-openfoam` native setup still works. `VITE_ENABLE_OPENFOAM=true` enables automatic same-origin discovery; `false` disables that discovery while keeping the remote connection option available. **Use native server** switches back to same-origin access, or **Disconnect** returns a static build to browser OpenFOAM.
 
 To repeat the browser smoke test against your Compose backend, build the static UI, install Chromium, and run:
 

@@ -32,7 +32,7 @@ export function AnalysisPicker({ active, surface, friction, forces, animation, o
     <div className="analysis-grid">
       {ANALYSES.map(a => {
         const disabled = a.needsAnimation && !animation || a.needsStress && !friction || a.needsSurface && !surface || a.needsForces && !forces;
-        const reason = a.needsAnimation ? "Enable Record flow animation in Run, then run again." : a.needsStress ? "Physical wall stress is unavailable in this run. Run it again with the updated solver." : a.needsForces ? "Available when the run finishes." : "Surface samples are not available for this run.";
+        const reason = a.needsAnimation ? "Record flow animation with the connected OpenFOAM server, then run again." : a.needsStress ? "Physical wall stress is unavailable in this run. Run it again with the updated solver." : a.needsForces ? "Available when the run finishes." : "Surface samples are not available for this run.";
         return <button key={a.id} className={`analysis-card ${active === a.id ? "selected" : ""}`} aria-pressed={active === a.id} disabled={!!disabled} onClick={() => onPick(a.id)} data-testid={`analysis-${a.id}`} title={disabled ? reason : a.description}>
           <Thumbnail mode={a.id} /><span className="analysis-copy"><b>{a.title}</b><span>{disabled ? reason : a.description}</span></span>{active === a.id && <Check size={14} className="analysis-check" />}
         </button>;

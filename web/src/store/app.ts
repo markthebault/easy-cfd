@@ -3,7 +3,6 @@
 
 import { checkGeometry, UNIT_SCALE, DEFAULT_IMPORT, LIMITS, type GeometryReport, type ImportOptions, type Part } from "../geometry/model";
 import type { VizField } from "../solver/extract";
-import { requestDevice, type GpuInfo } from "../solver/gpu";
 import { probeServer, type ServerInfo } from "../engine/openfoam";
 import { availableSettings } from "../engine/features";
 import { backendAvailable, parseRemoteUrl, setRemoteConnection } from "../engine/connection";
@@ -29,6 +28,7 @@ export interface GpuState {
 export interface LiveState {
   /** Solver of this run (absent: WebGPU). */
   engine?: "webgpu" | "openfoam";
+  runtime?: "wasm";
   /** OpenFOAM: the server's stage text, iteration and iteration budget. */
   serverStage?: string;
   iteration?: number;
@@ -182,36 +182,6 @@ if (typeof matchMedia !== "undefined")
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
     if (app.get().theme === "system") app.set({ dark: systemDark() });
   });
-
-let gpuPromise: Promise<GpuInfo> | null = null;
-
-export function gpuDevice(): Promise<GpuInfo> {
-  gpuPromise ??= requestDevice();
-  return gpuPromise;
-}
-
-async function checkGpu() {
-  try {
-    const info = await gpuDevice();
-    info.device.lost.then((l) => {
-      gpuPromise = null;
-      app.set({ gpu: { status: "unavailable", adapter: info.adapterName, message: `The GPU device was lost (${l.message || l.reason}). Reload the page to try again.` } });
-    });
-    app.set({
-      gpu: info.software
-        ? { status: "software", adapter: info.adapterName, message: "WebGPU runs on a software renderer here. Simulations will work but will be very slow." }
-        : { status: "ready", adapter: info.adapterName, message: "" },
-    });
-  } catch (e) {
-    app.set({
-      gpu: {
-        status: "unavailable",
-        adapter: "",
-        message: `${e instanceof Error ? e.message : String(e)} Use a current Chrome, Edge or Safari 26+ to run simulations. Saved results can still be viewed.`,
-      },
-    });
-  }
-}
 
 // ---------------------------------------------------------------------------------------------
 // Designs and geometry
@@ -581,7 +551,6 @@ export async function connectOpenFoam(value: string | null) {
 }
 
 export async function init() {
-  checkGpu();
   checkServer();
   try {
     await refreshLists();

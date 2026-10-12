@@ -103,8 +103,8 @@ export interface Settings extends VehicleWeight {
   detail_ratio?: number;
   /** User-defined detail boxes (world coordinates, metres). */
   detail_boxes?: DetailBox[];
-  /** Solver: WebGPU in this browser (default) or the OpenFOAM app's backend. */
-  engine?: "webgpu" | "openfoam";
+  /** Browser OpenFOAM (default), connected backend, or a legacy WebGPU design. */
+  engine?: "wasm" | "webgpu" | "openfoam";
 }
 
 /**
@@ -131,7 +131,8 @@ export interface ExperimentalSettings {
 export const DEFAULT_SETTINGS: Settings = {
   speed_kmh: 100,
   yaw_deg: 0,
-  quality: "medium",
+  quality: "fast",
+  engine: "wasm",
   reference_area: 2.2,
   density: 1.225,
   moving_ground: true,
@@ -256,6 +257,8 @@ export interface RunResult {
 }
 
 export interface OpenFoamDetails {
+  /** Browser WASM runs share the server's result contract without a backend endpoint. */
+  runtime?: "wasm";
   /** Backend endpoint, without its token; absent in older native runs. */
   backend?: string;
   run: string;

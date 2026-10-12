@@ -13,7 +13,7 @@ export default defineConfig({
     baseURL: `http://127.0.0.1:${port}`,
     viewport: { width: 1440, height: 900 },
     browserName: "chromium",
-    launchOptions: { args: ["--enable-unsafe-webgpu", "--use-angle=metal", "--enable-gpu", "--ignore-gpu-blocklist"] },
+    launchOptions: { args: process.platform === "darwin" ? ["--enable-unsafe-webgpu", "--use-angle=metal", "--enable-gpu", "--ignore-gpu-blocklist"] : ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] },
   },
   webServer: {
     command: `npx vite --host 127.0.0.1 --port ${port} --strictPort`,

@@ -1,6 +1,7 @@
 // Results: headline forces, where the drag comes from, force history and run details.
 
 import { useState } from "react";
+import { engineLabel } from "../engine/features";
 import { CheckCircle2, Columns2, FileJson, FileSpreadsheet, Image, Pencil, TriangleAlert } from "lucide-react";
 import { resolvePreset } from "../solver/types";
 import { useStore } from "../store/store";
@@ -137,7 +138,7 @@ export function ResultsPanel() {
       <div className="results-head">
         <div className="results-eyebrow">
           <span className="eyebrow">Result · {fmtDate(doc.createdAt)}</span>
-          <span className="engine-badge" data-testid="result-engine">{of ? "OpenFOAM" : "WebGPU"}</span>
+          <span className="engine-badge" data-testid="result-engine">{engineLabel(r)}</span>
           {r.settled ? (
             <span className="badge ok" title="Forces varied little over the averaging window"><CheckCircle2 size={13} /> Settled</span>
           ) : (
@@ -232,7 +233,7 @@ export function ResultsPanel() {
             <select value={compareWith} onChange={(e) => setCompareWith(e.target.value)} aria-label="Run to compare with">
               <option value="">Compare with…</option>
               {others.map((o) => (
-                <option key={o.id} value={o.id}>{o.designName}{groupsLine(o.geometry) ? ` · ${groupsLine(o.geometry)}` : ""} · {o.result.engine === "openfoam" ? "OpenFOAM" : "WebGPU"} · {Math.round(o.settings.speed_kmh)} km/h · {fmtDate(o.createdAt)}</option>
+                <option key={o.id} value={o.id}>{o.designName}{groupsLine(o.geometry) ? ` · ${groupsLine(o.geometry)}` : ""} · {engineLabel(o.result)} · {Math.round(o.settings.speed_kmh)} km/h · {fmtDate(o.createdAt)}</option>
               ))}
             </select>
             <button className="btn ghost sm" disabled={!compareWith} onClick={() => startCompare(doc.id, compareWith)}><Columns2 size={15} /> Compare</button>

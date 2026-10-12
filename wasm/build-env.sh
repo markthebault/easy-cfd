@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+export WM_PROJECT_DIR=/src/openfoam WM_PROJECT=OpenFOAM WM_ARCH=linux64 WM_COMPILER=Emscripten WM_COMPILER_TYPE=system
+export WM_PRECISION_OPTION=DP WM_LABEL_SIZE=32 WM_LABEL_OPTION=Int32 WM_COMPILE_OPTION=Opt WM_OSTYPE=POSIX
+export WM_DIR="$WM_PROJECT_DIR/wmake" WM_OPTIONS=linux64EmscriptenDPInt32Opt FOAM_MPI=dummy
+export FOAM_APPBIN="$WM_PROJECT_DIR/platforms/$WM_OPTIONS/bin" FOAM_LIBBIN="$WM_PROJECT_DIR/platforms/$WM_OPTIONS/lib"
+export FOAM_SRC="$WM_PROJECT_DIR/src" FOAM_APP="$WM_PROJECT_DIR/applications" FOAM_ETC="$WM_PROJECT_DIR/etc"
+export WMAKE_BIN="$WM_PROJECT_DIR/platforms/tools/linux64Gcc"
+export PATH="$WM_DIR:$WM_PROJECT_DIR/bin:$PATH"

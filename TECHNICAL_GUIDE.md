@@ -1,5 +1,12 @@
 # EasyCFD
 
+> Browser engine update: the current default is OpenFOAM WebAssembly, with Quick
+> and Fast presets. See [the browser guide](web/README.md) and
+> [WASM build and validation](wasm/README.md). The older WebGPU-specific numerical
+> settings below describe the retained legacy solver, not the current Run UI.
+> Advanced OpenFOAM backend connections and their API are preserved.
+
+
 A virtual wind tunnel for cars. Drop in a car, choose a speed, and WebGPU computes airflow on your graphics card in the browser. The static frontend also supports a native or remote OpenFOAM backend; OpenFOAM runs upload geometry to that server. See the [Docker and remote backend instructions](README.md#run-an-openfoam-backend-with-docker).
 
 ![EasyCFD in the browser: smoke over the car, force history and drag breakdown](docs/easycfd-web.png)
@@ -38,7 +45,7 @@ Native OpenFOAM is discovered when the page is opened from `just run-openfoam`. 
 
 Static builds and `just run` make no automatic backend requests. OpenFOAM becomes available when you enter a token-protected backend URL in the Run step's **OpenFOAM server connection** form. This works even with `VITE_ENABLE_OPENFOAM=false`. The public frontend can connect to Docker on the user's own computer at `http://localhost:8000?token=…`, or to another computer over HTTPS. Imported models, designs and WebGPU results stay in the browser; OpenFOAM uploads models to the chosen backend.
 
-`just deploy-web` forces `VITE_ENABLE_OPENFOAM=false`, builds `web/dist-webgpu` separately from the laptop's `web/dist`, and directly uploads the static assets to the Cloudflare Pages project `easy-cfd` (production branch `main`). It loads the API token from `~/.env.cloudflare` after building, without printing it or bundling it into the site. Deployment is manual; it does not set up automatic GitHub deployments. For a Cloudflare build, use root `web`, command `npm run build`, output `dist`, and `VITE_ENABLE_OPENFOAM=false`.
+`just deploy-web` forces `VITE_ENABLE_OPENFOAM=false`, builds `web/dist-static` separately from the laptop's `web/dist`, and directly uploads the static assets to the Cloudflare Pages project `easy-cfd` (production branch `main`). It loads the API token from `~/.env.cloudflare` after building, without printing it or bundling it into the site. Deployment is manual; it does not set up automatic GitHub deployments. For a Cloudflare build, use root `web`, command `npm run build`, output `dist`, and `VITE_ENABLE_OPENFOAM=false`.
 
 With OpenFOAM, the UI:
 - uploads the car to the server, once per geometry;

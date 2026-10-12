@@ -74,7 +74,7 @@ export function App() {
 
   const detailOutlines = useMemo(() => {
     const list = design?.settings.detail_boxes ?? [];
-    if (view !== "setup" || step === "car" || !list.length) return null;
+    if (view !== "setup" || step === "car" || design?.settings.engine !== "webgpu" || !list.length) return null;
     return list.map((b) => [b.x_min, b.x_max, b.y_min, b.y_max, b.z_min, b.z_max]);
   }, [view, step, design?.settings.detail_boxes]);
 

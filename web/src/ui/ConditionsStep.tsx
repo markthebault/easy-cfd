@@ -301,7 +301,7 @@ export function ConditionsStep() {
         <VehicleWeightFields value={s} onChange={setSettings} />
         <small className="field-hint">You can also enter these values on a saved result without rerunning CFD.</small>
       </div>
-      <DetailBoxes low={low} high={high} />
+      {s.engine === "webgpu" && <DetailBoxes low={low} high={high} />}
 
       <button className="btn primary block" disabled={!!boxError || !!weightInputError(s)} onClick={() => goStep("run")}>
         Continue to run

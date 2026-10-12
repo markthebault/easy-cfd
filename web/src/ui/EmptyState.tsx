@@ -1,7 +1,7 @@
 // First screen: drop zone, sample car and recent work.
 
 import { useRef, useState } from "react";
-import { Car, Clock, FileUp, TriangleAlert } from "lucide-react";
+import { Car, Clock, FileUp } from "lucide-react";
 import { useStore } from "../store/store";
 import { app, importFiles, loadSample, openDesign } from "../store/app";
 import { openRun } from "../store/runs";
@@ -14,12 +14,11 @@ export function EmptyState() {
   const [over, setOver] = useState(false);
   const designs = useStore(app, (s) => s.designs);
   const runs = useStore(app, (s) => s.runs);
-  const gpu = useStore(app, (s) => s.gpu);
   return (
     <div className="empty">
       <div className="empty-card glass">
         <h1>Virtual wind tunnel</h1>
-        <p className="lead">Drop in a car, pick a speed, and watch the air flow around it. The flow is solved on your GPU, inside this page; files never leave your computer.</p>
+        <p className="lead">Drop in a car, pick a speed, and watch the air flow around it. OpenFOAM runs inside this browser; browser runs keep your files on this device.</p>
         <div
           className={`dropzone ${over ? "over" : ""}`}
           data-drop="replace"
@@ -51,9 +50,6 @@ export function EmptyState() {
           </button>
           <Toggle checked={wing} onChange={setWing} label="with rear wing" />
         </div>
-        {(gpu.status === "unavailable" || gpu.status === "software") && (
-          <p className={`gpu-note ${gpu.status}`}><TriangleAlert size={15} /> {gpu.message}</p>
-        )}
         {(designs.length > 0 || runs.length > 0) && (
           <div className="recent">
             <div className="recent-title"><Clock size={14} /> Recent</div>

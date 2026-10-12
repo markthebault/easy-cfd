@@ -1,0 +1,12 @@
+<!doctype html><meta charset="utf-8"><title>OpenFOAM source</title>
+<h1>OpenFOAM WebAssembly source and license</h1>
+<p>OpenFOAM v2512 is GPL-3.0-or-later. These are the corresponding patched sources and build scripts for the browser binaries.</p>
+<p><a href="COPYING.OpenFOAM">Read the license</a></p><button id="download">Download corresponding source</button><p id="status"></p>
+<script type="module">
+document.querySelector('#download').onclick=async()=>{
+  const status=document.querySelector('#status');status.textContent='Downloading source archive…';
+  try{const m=await (await fetch('manifest.json')).json();const parts=await Promise.all(m.source.chunks.map(async name=>{const r=await fetch(name);if(!r.ok)throw Error('Download failed');return r.arrayBuffer();}));
+    const url=URL.createObjectURL(new Blob(parts,{type:'application/gzip'}));const a=document.createElement('a');a.href=url;a.download=m.source.filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);status.textContent='Source archive downloaded.';
+  }catch(e){status.textContent=e.message;}
+};
+</script>

@@ -34,7 +34,7 @@ export function OpenFoamConnection() {
       </div>
     </form>
     <p className="field-hint">{remote ? `Remote server: ${remote.baseUrl}` : OPENFOAM_ENABLED ? "Using the native server on this site." : "A remote server works with this edition of EasyCFD."}</p>
-    <p className="field-hint">The connection is saved for this browser tab. OpenFOAM runs upload your model to the connected server.</p>
+    <p className="field-hint">The connection is saved for this browser tab. Server runs upload your model to the connected server.</p>
     {(error || server.error) && <p className="inline-error" role="alert">{error || server.error}</p>}
   </details>;
 }
