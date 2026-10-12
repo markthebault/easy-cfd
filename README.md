@@ -34,9 +34,11 @@ npm run dev
 
 OpenFOAM is an optional engine. The UI supports both a native server and a token-protected backend URL, including in builds with native OpenFOAM disabled. See the [technical guide](TECHNICAL_GUIDE.md) for model preparation, solver options, and development checks.
 
+The public frontend deploys automatically when a pull request is merged into `main`, using the [Cloudflare Pages workflow](.github/workflows/cloudflare-pages.yml). It runs the frontend checks and build before publishing to the existing Pages project. Repository Actions secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are required; see the [deployment setup](TECHNICAL_GUIDE.md#two-engines-webgpu-and-openfoam). You can also run the workflow manually on `main`, or use `just deploy-web` from a machine with `~/.env.cloudflare`.
+
 ## Run an OpenFOAM backend with Docker
 
-You can use the static frontend at **https://easy-cfd.mthracelab.com/** with a backend running on **your own computer**. In the Run step, expand **OpenFOAM server connection**, paste `http://localhost:8000?token=YOUR_TOKEN`, and click **Connect remote server**. Select OpenFOAM once it connects. No ngrok tunnel is needed when the browser and Docker backend run on the same computer. If the browser asks for permission to access the local network, allow it for this connection. The public frontend needs a deployment containing this feature.
+You can use the static frontend at **https://easy-cfd.mthracelab.com/** with a backend running on **your own computer**. In the Run step, expand **OpenFOAM server connection**, paste `http://localhost:8000?token=YOUR_TOKEN`, and click **Connect remote server**. Select OpenFOAM once it connects. No ngrok tunnel is needed when the browser and Docker backend run on the same computer. If the browser asks for permission to access the local network, allow it for this connection.
 
 Install Docker with Compose, then from this checkout:
 
