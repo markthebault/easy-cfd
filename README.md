@@ -34,7 +34,7 @@ npm run dev
 
 OpenFOAM is an optional engine. The UI supports both a native server and a token-protected backend URL, including in builds with native OpenFOAM disabled. See the [technical guide](TECHNICAL_GUIDE.md) for model preparation, solver options, and development checks.
 
-The public frontend deploys automatically when a pull request is merged into `main`, using the [Cloudflare Pages workflow](.github/workflows/cloudflare-pages.yml). It runs the frontend checks and build before publishing to the existing Pages project. Repository Actions secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are required; see the [deployment setup](TECHNICAL_GUIDE.md#two-engines-webgpu-and-openfoam). You can also run the workflow manually on `main`, or use `just deploy-web` from a machine with `~/.env.cloudflare`.
+Cloudflare's native GitHub integration deploys every push to `main` to the public frontend. Pull requests get preview URLs, with links posted by Cloudflare on GitHub. The Pages project is `easy-cfd-github`; see the [deployment setup](TECHNICAL_GUIDE.md#two-engines-webgpu-and-openfoam) for build settings and the manual fallback.
 
 ## Run an OpenFOAM backend with Docker
 
