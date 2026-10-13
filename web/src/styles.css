@@ -2997,6 +2997,8 @@ input[type="range"]::-moz-range-thumb {
   white-space: pre;
 }
 
+.docker-command code { background: none; padding: 0; font-size: inherit; }
+
 .engine-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

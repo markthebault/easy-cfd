@@ -37,6 +37,12 @@ hardware, fields and lack of API/WebGPU usage. The Detailed tests used a
 
 ![Detailed: saved 1,000-iteration result reopened](detailed-results.png)
 
+![Copyable Docker server startup command](docker-setup.png)
+
+[Published Docker image checks](docker-verification.json) include both native
+architectures, authentication/restart checks and a real car run through the
+fresh Mac Mini API container. See [the Docker guide](../docker-backend.md).
+
 ## Unedited recordings
 
 - [MX-5 static OpenFOAM run](mx5-static-openfoam.mp4)

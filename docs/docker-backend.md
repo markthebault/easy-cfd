@@ -52,8 +52,9 @@ docker stop easycfd-openfoam
 docker rm easycfd-openfoam
 ```
 
-Run the startup block again. Use the immutable `sha-COMMIT` tag instead of
-`latest` when you need to reproduce a particular release.
+Run the startup block again. Use the `sha-COMMIT` tag instead of `latest` to
+select a source revision. Pin the full image digest (`@sha256:…`) when you need
+the exact published image.
 
 ## Another computer or port
 

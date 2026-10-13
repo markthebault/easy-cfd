@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-13",
+  "image": "markthebault/easy-cfd-backend:latest",
+  "digest": "sha256:dac24d9cf9f0b5f8b1af10a0f7663ec99d4697e7ede9af365e75e7a2bedf494d",
+  "sourceRevision": "f465959c4a7e015004e62bf310fb7d67a8eb9b2f",
+  "platforms": [
+    "linux/amd64",
+    "linux/arm64"
+  ],
+  "githubBuild": "https://github.com/markthebault/easy-cfd/actions/runs/38434729232",
+  "checks": {
+    "webUnitTests": 64,
+    "backendAccessTests": 16,
+    "clipboard": "passed",
+    "remoteReconnect": "passed",
+    "nativeGithubBuilds": "passed",
+    "publishedImagePulls": "passed",
+    "apiAuthenticationBothArchitectures": "passed",
+    "corsBothArchitectures": "passed",
+    "tokenAfterRestartBothArchitectures": "passed",
+    "solverReadinessBothArchitectures": "passed"
+  },
+  "macSimulation": {
+    "frontend": "HTTPS static frontend",
+    "backend": "fresh published-image build with Docker socket and shared home-directory bind mount",
+    "solver": "pinned OpenCFD v2412",
+    "preset": "fast",
+    "cells": 41417,
+    "iterations": 300,
+    "elapsedSeconds": 62.546962,
+    "cd": 0.5169572946396,
+    "cl": 0.6066435580362001,
+    "checks": {
+      "missing": 401,
+      "incorrect": 401,
+      "correct": 200,
+      "httpsFrontendConnection": "passed",
+      "reopen": "passed"
+    }
+  }
+}

@@ -102,7 +102,7 @@ jobs:
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Publish latest, main and immutable commit tags
+      - name: Publish latest, main and commit tags
         working-directory: /tmp/digests
         env:
           REVISION: ${{ github.sha }}

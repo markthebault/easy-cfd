@@ -88,7 +88,7 @@ fallback chunks for browsers without `DecompressionStream`. Every asset is
 at most 8 MiB, below Cloudflare Pages' 25 MiB file limit. The matching GPL source
 archive and license are served with the binaries.
 
-Validation also passed 63 unit tests, the browser preset selection/time-limit
+Validation also passed 64 unit tests, the browser preset selection/time-limit
 checks, the browser results/group/friction and
 cancellation checks, native/remote API UI checks, and a real HTTPS-frontend
 connection to the existing Docker backend.
@@ -97,3 +97,20 @@ Screenshots, unedited MP4 recordings and machine-readable checks are in
 [the evidence bundle](../docs/browser-openfoam/README.md). Reproduce the static
 browser checks with `node scripts/test-browser-openfoam.mjs`, and native parity
 with `python3 scripts/compare-wasm-native.py <captured-run-directory>`.
+
+## Published Docker backend
+
+The remote connection panel includes a tested, copyable startup command using
+`markthebault/easy-cfd-backend:latest`. Native AMD64 and ARM64 builds passed API
+startup, authentication, CORS, token persistence across restart, and solver
+readiness checks. The GitHub workflow also built and tested both architectures.
+
+A fresh API container on the Mac Mini launched the pinned OpenCFD v2412 solver
+through its Docker socket and shared home-directory data mount. A real Fast
+sample run from the HTTPS static frontend completed 300 iterations on 41,417
+cells in 62.5 seconds, with Cd 0.516957 and Cl 0.606644. Result reopening passed.
+Sixteen API access tests and the clipboard/remote connection UI checks passed.
+
+See [Docker setup and publishing](../docs/docker-backend.md). Automatic Docker
+Hub publishing starts when the workflow is merged into `main`; pull requests
+build and test without publishing.
