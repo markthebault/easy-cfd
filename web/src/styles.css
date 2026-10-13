@@ -2982,6 +2982,20 @@ input[type="range"]::-moz-range-thumb {
 .remote-connection input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .remote-connection-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 .remote-connection .field-hint { overflow-wrap: anywhere; }
+.docker-setup { border-top: 1px solid var(--border); padding-top: 12px; }
+.docker-setup summary { font-weight: 600; }
+.docker-setup .field-hint { margin: 10px 0; }
+.docker-command {
+  margin: 10px 0;
+  padding: 10px;
+  background: var(--field);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 11px;
+  line-height: 1.6;
+  overflow-x: auto;
+  white-space: pre;
+}
 
 .engine-grid {
   display: grid;

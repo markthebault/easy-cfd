@@ -28,6 +28,10 @@ test("a remote server works with native discovery disabled, survives reload and 
   await page.getByTestId("engine-openfoam").click();
   await expect(page.getByTestId("run")).toHaveText(/Run on OpenFOAM/);
   await expect(page.getByLabel("Remote backend URL with token")).toHaveValue("");
+  await expect.poll(()=>page.evaluate(()=>{
+    const state=(window as any).__easycfd.app.get();
+    return state.designs.find((d:any)=>d.id===state.design.id)?.settings.engine;
+  })).toBe("openfoam");
   await page.reload();
   await expect.poll(()=>page.evaluate(()=>(window as any).__easycfd.app.get().server.status)).toBe("ready");
   await page.getByText("I checked size, orientation, wheels and clearance.").click();
@@ -38,7 +42,22 @@ test("a remote server works with native discovery disabled, survives reload and 
   await page.getByRole("button",{name:"Close",exact:true}).click();
   await page.getByRole("button",{name:"Disconnect",exact:true}).click();
   await expect(page.getByTestId("engine-openfoam")).toBeDisabled();
-  expect(await page.evaluate(()=>(window as any).__easycfd.app.get().design.settings.engine)).toBe("webgpu");
+  expect(await page.evaluate(()=>(window as any).__easycfd.app.get().design.settings.engine)).toBe("wasm");
+});
+
+test("Docker startup command can be copied without connecting a backend", async ({page,context}) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("/");await runStep(page);
+  await page.getByText("OpenFOAM server connection",{exact:true}).click();
+  await page.getByText("Start your server with Docker",{exact:true}).click();
+  await page.getByTestId("copy-docker-command").click();
+  await expect(page.getByTestId("copy-docker-command")).toHaveText("Copied");
+  const command=await page.evaluate(()=>navigator.clipboard.readText());
+  await expect(page.getByLabel("Docker startup command")).toHaveText(command);
+  expect(command).toContain("markthebault/easy-cfd-backend:latest");
+  expect(command).toContain('EASYCFD_HOST_DATA="$HOME/easycfd-data"');
+  expect(command).toContain("docker logs easycfd-openfoam");
+  expect(command.split("\n")).toHaveLength(9);
 });
 
 test("a rejected remote token is visible and leaves the engine disabled", async ({page}) => {

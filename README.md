@@ -38,6 +38,12 @@ Cloudflare's native GitHub integration deploys every push to `main` to the publi
 
 ## Run an OpenFOAM backend with Docker
 
+The Run screen includes a **Copy startup command** button under **OpenFOAM
+server connection → Start your server with Docker**. It starts the published
+[`markthebault/easy-cfd-backend`](https://hub.docker.com/r/markthebault/easy-cfd-backend)
+image without cloning this repository, on Intel/AMD or Apple Silicon. See the
+[published-image setup and update guide](docs/docker-backend.md).
+
 You can use the static frontend at **https://easy-cfd.mthracelab.com/** with a backend running on **your own computer**. In the Run step, expand **OpenFOAM server connection**, paste `http://localhost:8000?token=YOUR_TOKEN`, and click **Connect remote server**. Select OpenFOAM once it connects. No ngrok tunnel is needed when the browser and Docker backend run on the same computer. If the browser asks for permission to access the local network, allow it for this connection.
 
 Install Docker with Compose, then from this checkout:

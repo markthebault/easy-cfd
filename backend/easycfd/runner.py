@@ -65,7 +65,7 @@ def health():
             cpus=parsed.get("NCPU"),
             message="Solver ready"
             if image.returncode == 0
-            else "Run ./scripts/setup.sh to download the pinned solver image.",
+            else f"Download the solver image with: docker pull {foam.IMAGE}",
             image=foam.IMAGE,
         )
     except (OSError, subprocess.SubprocessError, ValueError):
