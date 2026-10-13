@@ -2983,7 +2983,7 @@ input[type="range"]::-moz-range-thumb {
 .remote-connection-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 .remote-connection .field-hint { overflow-wrap: anywhere; }
 .docker-setup { border-top: 1px solid var(--border); padding-top: 12px; }
-.docker-setup summary { font-weight: 600; }
+.docker-setup-title { margin: 0; font-size: inherit; font-weight: 600; }
 .docker-setup .field-hint { margin: 10px 0; }
 .docker-command {
   margin: 10px 0;

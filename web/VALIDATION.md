@@ -100,8 +100,14 @@ with `python3 scripts/compare-wasm-native.py <captured-run-directory>`.
 
 ## Published Docker backend
 
-The remote connection panel includes a tested, copyable startup command using
-`markthebault/easy-cfd-backend:latest`. Native AMD64 and ARM64 builds passed API
+The remote connection panel displays a copyable `docker run -it --rm` startup
+command using `markthebault/easy-cfd-backend:latest`, without another disclosure
+to open. The Tailscale static preview passed visibility and real clipboard checks.
+The actual foreground command passed interactive startup, authenticated API and
+solver readiness checks on Linux. Ctrl+C stopped and removed the container; a
+second startup retained the same host-mounted connection token.
+
+Native AMD64 and ARM64 builds passed API
 startup, authentication, CORS, token persistence across restart, and solver
 readiness checks. The GitHub workflow also built and tested both architectures.
 

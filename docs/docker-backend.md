@@ -13,43 +13,36 @@ checkout, Python install or local image build is required.
 ```sh
 mkdir -p "$HOME/easycfd-data"
 docker pull opencfd/openfoam-default@sha256:1ba02114b1c025c370f2e269a07677c16c9bea8d990fcd75ac8378aff9d41b50
-docker run -d --name easycfd-openfoam --init --restart unless-stopped \
+docker run -it --rm --name easycfd-openfoam --init \
   -p 127.0.0.1:8000:8000 \
   -v "$HOME/easycfd-data:/data" \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -e EASYCFD_HOST_DATA="$HOME/easycfd-data" \
   markthebault/easy-cfd-backend:latest
-docker logs easycfd-openfoam
 ```
 
 In EasyCFD, open **Run → OpenFOAM server connection**. Paste the
-`http://localhost:8000?token=…` URL printed in the logs and connect. Allow local
+`http://localhost:8000?token=…` URL printed in the terminal and connect. Allow local
 network access if the browser asks. Select **OpenFOAM · Server** to run advanced
 analysis. Browser Quick, Fast and Detailed runs continue to work independently.
 
 The backend image contains the API, geometry preparation and persistent queue.
 It launches the pinned OpenCFD v2412 solver in separate Docker containers;
-that solver image is downloaded by the first command. Keep Docker running.
+that solver image is downloaded by the `docker pull` command. Keep Docker running.
 The backend uses your Docker daemon, so run it on a computer you trust.
 
 Projects, runs and the generated connection token stay in `~/easycfd-data`.
-They survive container restarts and replacement. Start the container once;
-afterward use:
-
-```sh
-docker stop easycfd-openfoam
-docker start easycfd-openfoam
-```
+Keep the terminal open while using the server. After active runs finish, press
+**Ctrl+C** to stop it. Docker removes the container automatically; the host data
+directory and token remain. Paste the startup block again to restart the server.
 
 ## Update
 
-Finish active runs first, then download the latest image and recreate the API
-container. The data directory and connection token are kept.
+Finish active runs first and press **Ctrl+C**, then download the latest image.
+The data directory and connection token are kept.
 
 ```sh
 docker pull markthebault/easy-cfd-backend:latest
-docker stop easycfd-openfoam
-docker rm easycfd-openfoam
 ```
 
 Run the startup block again. Use the `sha-COMMIT` tag instead of `latest` to

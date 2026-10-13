@@ -20,6 +20,19 @@
     "tokenAfterRestartBothArchitectures": "passed",
     "solverReadinessBothArchitectures": "passed"
   },
+  "foregroundCommand": {
+    "platform": "linux/amd64",
+    "command": "docker run -it --rm",
+    "interactiveStartup": "passed",
+    "authenticatedApi": "passed",
+    "solverReady": "passed",
+    "terminalConnectionUrl": "passed",
+    "ctrlCShutdown": "passed",
+    "automaticRemoval": "passed",
+    "recreatedTokenPersistence": "passed",
+    "tailscaleCommandVisibility": "passed",
+    "tailscaleClipboard": "passed"
+  },
   "macSimulation": {
     "frontend": "HTTPS static frontend",
     "backend": "fresh published-image build with Docker socket and shared home-directory bind mount",

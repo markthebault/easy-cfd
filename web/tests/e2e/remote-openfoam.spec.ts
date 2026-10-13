@@ -49,15 +49,16 @@ test("Docker startup command can be copied without connecting a backend", async 
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto("/");await runStep(page);
   await page.getByText("OpenFOAM server connection",{exact:true}).click();
-  await page.getByText("Start your server with Docker",{exact:true}).click();
+  await expect(page.getByLabel("Docker startup command")).toBeVisible();
   await page.getByTestId("copy-docker-command").click();
   await expect(page.getByTestId("copy-docker-command")).toHaveText("Copied");
   const command=await page.evaluate(()=>navigator.clipboard.readText());
   await expect(page.getByLabel("Docker startup command")).toHaveText(command);
   expect(command).toContain("markthebault/easy-cfd-backend:latest");
   expect(command).toContain('EASYCFD_HOST_DATA="$HOME/easycfd-data"');
-  expect(command).toContain("docker logs easycfd-openfoam");
-  expect(command.split("\n")).toHaveLength(9);
+  expect(command).toContain("docker run -it --rm");
+  expect(command).not.toContain("--restart");
+  expect(command.split("\n")).toHaveLength(8);
 });
 
 test("a rejected remote token is visible and leaves the engine disabled", async ({page}) => {
