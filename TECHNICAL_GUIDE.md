@@ -1,7 +1,7 @@
 # EasyCFD
 
 > Browser engine update: the current default is OpenFOAM WebAssembly, with Quick
-> and Fast presets. See [the browser guide](web/README.md) and
+> Fast and Detailed presets. See [the browser guide](web/README.md) and
 > [WASM build and validation](wasm/README.md). The older WebGPU-specific numerical
 > settings below describe the retained legacy solver, not the current Run UI.
 > Advanced OpenFOAM backend connections and their API are preserved.
@@ -45,7 +45,11 @@ Native OpenFOAM is discovered when the page is opened from `just run-openfoam`. 
 
 Static builds and `just run` make no automatic backend requests. OpenFOAM becomes available when you enter a token-protected backend URL in the Run step's **OpenFOAM server connection** form. This works even with `VITE_ENABLE_OPENFOAM=false`. The public frontend can connect to Docker on the user's own computer at `http://localhost:8000?token=…`, or to another computer over HTTPS. Imported models, designs and WebGPU results stay in the browser; OpenFOAM uploads models to the chosen backend.
 
-`just deploy-web` forces `VITE_ENABLE_OPENFOAM=false`, builds `web/dist-static` separately from the laptop's `web/dist`, and directly uploads the static assets to the Cloudflare Pages project `easy-cfd` (production branch `main`). It loads the API token from `~/.env.cloudflare` after building, without printing it or bundling it into the site. Deployment is manual; it does not set up automatic GitHub deployments. For a Cloudflare build, use root `web`, command `npm run build`, output `dist`, and `VITE_ENABLE_OPENFOAM=false`.
+Cloudflare's native GitHub integration connects Pages project `easy-cfd-github` to `markthebault/easy-cfd`. Every push to the production branch `main`, including a merged pull request, builds and deploys https://easy-cfd.mthracelab.com. All other branches build previews. Cloudflare posts preview links on pull requests and reports build status through its GitHub integration; each deployment also has an immutable URL under `easy-cfd-github.pages.dev`.
+
+The production and preview build settings are the same: root directory `web`, command `npm run build`, output directory `dist`, `NODE_VERSION=22` and `VITE_ENABLE_OPENFOAM=false`. Native discovery remains disabled, while user-configured remote OpenFOAM connections are available on both production and preview sites. The native integration does not require Cloudflare credentials in GitHub Actions secrets or a deployment workflow. Build settings and branch controls are managed in the Cloudflare Pages dashboard.
+
+The old `easy-cfd` Direct Upload project remains as a rollback copy. Cloudflare does not convert Direct Upload projects to Git integration, so the Git-connected project uses a separate name and serves the existing custom domain. `just deploy-web` remains a manual fallback for the new project: it builds `web/dist-static` and uploads it with Wrangler, loading the API token from `~/.env.cloudflare` after building. Set `EASYCFD_PAGES_PROJECT=easy-cfd` to upload to the old rollback project explicitly. Cloudflare credentials are never bundled into the frontend.
 
 With OpenFOAM, the UI:
 - uploads the car to the server, once per geometry;

@@ -13,4 +13,4 @@ export CLOUDFLARE_API_TOKEN="${CLOUDFLARE_API_TOKEN:-${CF_API_TOKEN:-${CLOUDFLAR
 : "${CLOUDFLARE_API_TOKEN:?Cloudflare API token is required}"
 export CLOUDFLARE_ACCOUNT_ID="${CLOUDFLARE_ACCOUNT_ID:-c2e07154ac9eb2d292307bb4c2f244ef}"
 cd web
-npx --yes wrangler@4.147.0 pages deploy dist-static --project-name easy-cfd --branch main --commit-dirty=true
+npx --yes wrangler@4.147.0 pages deploy dist-static --project-name "${EASYCFD_PAGES_PROJECT:-easy-cfd-github}" --branch main --commit-dirty=true
