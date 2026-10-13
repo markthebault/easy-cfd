@@ -100,16 +100,23 @@ with `python3 scripts/compare-wasm-native.py <captured-run-directory>`.
 
 ## Published Docker backend
 
-The remote connection panel displays a copyable `docker run -it --rm` startup
+The remote connection panel displays a single copyable `docker run -it --rm`
 command using `markthebault/easy-cfd-backend:latest`, without another disclosure
-to open. The Tailscale static preview passed visibility and real clipboard checks.
-The actual foreground command passed interactive startup, authenticated API and
-solver readiness checks on Linux. Ctrl+C stopped and removed the container; a
-second startup retained the same host-mounted connection token.
+to open or any preparation commands. Docker creates the missing data folder;
+the server downloads its pinned OpenFOAM solver before starting the API and
+reuses the cached solver afterward. `--pull=always` checks for server updates.
+The Tailscale static preview passed visibility and real clipboard checks.
+
+The actual foreground command passed automatic data-folder creation,
+interactive startup, authenticated API and solver readiness checks on Linux and
+the Mac Mini. Ctrl+C stopped and removed the container; a second startup retained
+the same host-mounted connection token. Six backend startup tests covered cached
+and missing solver images, setup failures, timeout and cancellation.
 
 Native AMD64 and ARM64 builds passed API
 startup, authentication, CORS, token persistence across restart, and solver
-readiness checks. The GitHub workflow also built and tested both architectures.
+readiness checks. The GitHub workflow built and tested both architectures with
+empty solver caches, verifying automatic first-use downloads before API startup.
 
 A fresh API container on the Mac Mini launched the pinned OpenCFD v2412 solver
 through its Docker socket and shared home-directory data mount. A real Fast

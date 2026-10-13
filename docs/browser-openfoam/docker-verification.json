@@ -1,13 +1,13 @@
 {
   "date": "2026-10-13",
   "image": "markthebault/easy-cfd-backend:latest",
-  "digest": "sha256:dac24d9cf9f0b5f8b1af10a0f7663ec99d4697e7ede9af365e75e7a2bedf494d",
-  "sourceRevision": "f465959c4a7e015004e62bf310fb7d67a8eb9b2f",
+  "digest": "sha256:608448d766ead4f71fa54b079bb6fe0ada08b25eb44d8f16a02419e1cb205404",
+  "sourceRevision": "3fab9f22e3977fb1cc469e6482ab6d35bb7512bb",
   "platforms": [
     "linux/amd64",
     "linux/arm64"
   ],
-  "githubBuild": "https://github.com/markthebault/easy-cfd/actions/runs/38434729232",
+  "githubBuild": "https://github.com/markthebault/easy-cfd/actions/runs/38467079370",
   "checks": {
     "webUnitTests": 64,
     "backendAccessTests": 16,
@@ -18,10 +18,11 @@
     "apiAuthenticationBothArchitectures": "passed",
     "corsBothArchitectures": "passed",
     "tokenAfterRestartBothArchitectures": "passed",
-    "solverReadinessBothArchitectures": "passed"
+    "solverReadinessBothArchitectures": "passed",
+    "dockerStartupUnitTests": 6,
+    "automaticSolverDownloadBothArchitectures": "passed"
   },
   "foregroundCommand": {
-    "platform": "linux/amd64",
     "command": "docker run -it --rm",
     "interactiveStartup": "passed",
     "authenticatedApi": "passed",
@@ -31,7 +32,14 @@
     "automaticRemoval": "passed",
     "recreatedTokenPersistence": "passed",
     "tailscaleCommandVisibility": "passed",
-    "tailscaleClipboard": "passed"
+    "tailscaleClipboard": "passed",
+    "platforms": [
+      "linux/amd64",
+      "linux/arm64"
+    ],
+    "singleCommand": "passed",
+    "automaticDataDirectory": "passed",
+    "publishedLatestImage": "passed"
   },
   "macSimulation": {
     "frontend": "HTTPS static frontend",
@@ -49,6 +57,8 @@
       "correct": 200,
       "httpsFrontendConnection": "passed",
       "reopen": "passed"
-    }
+    },
+    "sourceRevision": "f465959c4a7e015004e62bf310fb7d67a8eb9b2f",
+    "imageDigest": "sha256:dac24d9cf9f0b5f8b1af10a0f7663ec99d4697e7ede9af365e75e7a2bedf494d"
   }
 }
