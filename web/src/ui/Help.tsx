@@ -33,8 +33,8 @@ function Guide() {
         <li><b>3D pressure clouds</b> mark equal static pressure in the air. Blue is suction and coral is positive pressure. Lower the threshold to reveal weaker regions. Surface flow shows near-wall direction, not friction stress; turbulent energy is not an acoustic noise level.</li>
         <li><b>Force arrows</b> show the saved average forces in newtons with a shared length scale. Their position is illustrative, not a measured centre of pressure.</li>
         <li><b>Downforce</b> (kg) pushes the car onto the road; negative Cl means downforce. <b>Lift</b> is the opposite.</li>
-        <li>Use browser <b>Quick</b> to check the setup and <b>Fast</b> for a finer light mesh. Connect an OpenFOAM server for advanced analysis. Compare runs with the same speed, reference area and quality.</li>
-        <li>A <b>Provisional</b> badge means forces were still moving at the end: run longer (more passes) before trusting small differences.</li>
+        <li>Use browser <b>Quick</b> to check the setup and <b>Fast</b> for a finer light mesh. <b>Detailed</b> uses 1,000 iterations and up to 600,000 cells for a longer browser run. Connect an OpenFOAM server for advanced analysis. Compare runs with the same speed, reference area and quality.</li>
+        <li>A <b>Provisional</b> badge means forces were still moving at the end: try a longer run before trusting small differences.</li>
         <li>The <b>Slice</b> in Cp0 and the <b>Wake</b> surface show where the air loses energy. A smaller wake usually means less drag.</li>
       </ul>
       <h3>Controls</h3>
@@ -56,7 +56,7 @@ function Solver() {
         EasyCFD solves the <b>steady incompressible Reynolds-averaged Navier–Stokes equations</b> with OpenFOAM's <b>k-ω SST</b> turbulence model. Browser runs mesh and solve locally using WebAssembly. Server runs upload the model to the OpenFOAM backend you connect.
       </p>
       <ul className="guide">
-        <li>OpenFOAM's snappyHexMesh refines and snaps the mesh to the enabled car surfaces. Quick uses a coarse mesh without prism layers; Fast adds finer surface cells and requests one prism layer. Thin parts and small gaps can require the server's larger mesh budget.</li>
+        <li>OpenFOAM's snappyHexMesh refines and snaps the mesh to the enabled car surfaces. Quick uses a coarse mesh without prism layers; Fast and Detailed add finer surface cells and request one prism layer. Detailed also refines the wake further. Thin parts and small gaps can require the server's larger mesh budget.</li>
         <li>Enabled groups and parts are simulated. Results retain per-part and per-group pressure and friction forces. Different designs can create different meshes, so use server refinement studies to assess grid sensitivity.</li>
         <li>Walls use log-law wall functions, as in the OpenFOAM app. Separation on smooth bodies is still sensitive to resolution, and lift more so than drag.</li>
         <li>The steady SIMPLE solver uses double precision. Forces and moments are averaged over the last 50 iterations. Force settling and residual convergence are reported separately.</li>

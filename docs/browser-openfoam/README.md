@@ -13,6 +13,14 @@ body, including computed fields, per-part wall values and saved result reopening
 coefficients and request records. [Native parity](native-parity.json) compares
 four captured meshes with stock OpenFOAM v2512.
 
+Detailed completed all 1,000 iterations on Linux and the Mac Mini with 348,352
+cells, taking 28.3 and 29.7 minutes respectively. Both reopened saved results;
+the sample retained prism layers on 98.2% of its car wall. Quick also passed
+through a Tailscale HTTPS preview served directly from static files.
+[Detailed and Tailscale checks](detailed-verification.json) record the results,
+hardware, fields and lack of API/WebGPU usage. The Detailed tests used a
+30-minute cap; the final preset allows an hour for larger imported models.
+
 ## Screenshots
 
 ![MX-5: computed pressure and forces](mx5-results.png)
@@ -24,6 +32,10 @@ four captured meshes with stock OpenFOAM v2512.
 ![Z4 and wing: computed streamlines](z4-streamlines.png)
 
 ![Fast browser preset](fast-results.png)
+
+![Quick, Fast and Detailed browser presets](detailed-setup.png)
+
+![Detailed: saved 1,000-iteration result reopened](detailed-results.png)
 
 ## Unedited recordings
 

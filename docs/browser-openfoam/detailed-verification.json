@@ -1,0 +1,379 @@
+{
+  "date": "2026-10-13",
+  "preset": {
+    "label": "Detailed",
+    "iterations": 1000,
+    "maxCells": 600000,
+    "defaultTimeLimitSeconds": 3600
+  },
+  "runs": [
+    {
+      "source": "test-results/browser-openfoam-detailed/verification.json",
+      "model": "sample-detailed",
+      "environment": {
+        "platform": "linux",
+        "arch": "x64",
+        "cpu": "AMD Ryzen 5 7640HS w/ Radeon 760M Graphics",
+        "cores": 12,
+        "memoryGB": 24.732669830322266
+      },
+      "checks": {
+        "staticOnly": "passed",
+        "noApi": "passed",
+        "noWebGPU": "passed",
+        "computedFields": "passed",
+        "savedReopen": "passed"
+      },
+      "apiRequests": [],
+      "gpuReads": 0,
+      "reopen": "passed",
+      "elapsedSeconds": 1699.646,
+      "cells": 348352,
+      "iterations": 1000,
+      "cd": 0.4891740772092676,
+      "cl": 0.5538208360696901,
+      "settled": true,
+      "openfoam": {
+        "runtime": "wasm",
+        "run": "openfoam-wasm:f2ab197018c9891e2d334a6877148269ed7942d3f30d37ccf777f2cab81ed3f6",
+        "iterations": 1000,
+        "averagingIterations": 50,
+        "residuals": {
+          "Ux": 3.08424660882e-06,
+          "Uy": 1.89679688e-05,
+          "Uz": 1.11581151173e-05,
+          "p": 3.04143694586e-05,
+          "omega": 1.57871744787e-06,
+          "k": 1.99711516083e-06
+        },
+        "residualConverged": true,
+        "meshOk": true,
+        "layerCoverage": 0.9817384952520087,
+        "offset": [
+          0,
+          0,
+          0
+        ]
+      },
+      "warnings": [
+        "Light browser mesh: check mesh sensitivity with the connected OpenFOAM backend before relying on aerodynamic loads."
+      ],
+      "field": {
+        "dims": [
+          97,
+          34,
+          20
+        ],
+        "u": {
+          "min": -9.986584663391113,
+          "max": 38.092437744140625,
+          "finite": 65960,
+          "total": 65960
+        },
+        "p": {
+          "min": -487.2177429199219,
+          "max": 361.4115295410156,
+          "finite": 65960,
+          "total": 65960
+        },
+        "valid": 64666
+      },
+      "surface": [
+        {
+          "cp": {
+            "min": -0.717012882232666,
+            "max": 0.9602704644203186,
+            "finite": 72,
+            "total": 72
+          },
+          "stressPoints": 72
+        },
+        {
+          "cp": {
+            "min": -1.2158994674682617,
+            "max": 0.9466736316680908,
+            "finite": 384,
+            "total": 384
+          },
+          "stressPoints": 384
+        },
+        {
+          "cp": {
+            "min": -1.1545158624649048,
+            "max": 0.9462131261825562,
+            "finite": 384,
+            "total": 384
+          },
+          "stressPoints": 384
+        },
+        {
+          "cp": {
+            "min": -0.8323155641555786,
+            "max": 0.55628502368927,
+            "finite": 384,
+            "total": 384
+          },
+          "stressPoints": 384
+        },
+        {
+          "cp": {
+            "min": -0.8307486772537231,
+            "max": 0.5567368268966675,
+            "finite": 384,
+            "total": 384
+          },
+          "stressPoints": 384
+        }
+      ],
+      "timeLimitSeconds": 1800,
+      "servedBy": "file-only HTTP server"
+    },
+    {
+      "source": "test-results/browser-openfoam-mac-detailed/verification.json",
+      "model": "sample-detailed",
+      "environment": {
+        "platform": "darwin",
+        "arch": "arm64",
+        "cpu": "Apple M1",
+        "cores": 8,
+        "memoryGB": 16
+      },
+      "checks": {
+        "staticOnly": "passed",
+        "noApi": "passed",
+        "noWebGPU": "passed",
+        "computedFields": "passed",
+        "savedReopen": "passed"
+      },
+      "apiRequests": [],
+      "gpuReads": 0,
+      "reopen": "passed",
+      "elapsedSeconds": 1780.587,
+      "cells": 348352,
+      "iterations": 1000,
+      "cd": 0.4891740772092676,
+      "cl": 0.5538208360696901,
+      "settled": true,
+      "openfoam": {
+        "runtime": "wasm",
+        "run": "openfoam-wasm:f2ab197018c9891e2d334a6877148269ed7942d3f30d37ccf777f2cab81ed3f6",
+        "iterations": 1000,
+        "averagingIterations": 50,
+        "residuals": {
+          "Ux": 3.08424660882e-06,
+          "Uy": 1.89679688e-05,
+          "Uz": 1.11581151173e-05,
+          "p": 3.04143694586e-05,
+          "omega": 1.57871744787e-06,
+          "k": 1.99711516083e-06
+        },
+        "residualConverged": true,
+        "meshOk": true,
+        "layerCoverage": 0.9817384952520087,
+        "offset": [
+          0,
+          0,
+          0
+        ]
+      },
+      "warnings": [
+        "Light browser mesh: check mesh sensitivity with the connected OpenFOAM backend before relying on aerodynamic loads."
+      ],
+      "field": {
+        "dims": [
+          97,
+          34,
+          20
+        ],
+        "u": {
+          "min": -9.986584663391113,
+          "max": 38.092437744140625,
+          "finite": 65960,
+          "total": 65960
+        },
+        "p": {
+          "min": -487.2177429199219,
+          "max": 361.4115295410156,
+          "finite": 65960,
+          "total": 65960
+        },
+        "valid": 64666
+      },
+      "surface": [
+        {
+          "cp": {
+            "min": -0.717012882232666,
+            "max": 0.9602704644203186,
+            "finite": 72,
+            "total": 72
+          },
+          "stressPoints": 72
+        },
+        {
+          "cp": {
+            "min": -1.2158994674682617,
+            "max": 0.9466736316680908,
+            "finite": 384,
+            "total": 384
+          },
+          "stressPoints": 384
+        },
+        {
+          "cp": {
+            "min": -1.1545158624649048,
+            "max": 0.9462131261825562,
+            "finite": 384,
+            "total": 384
+          },
+          "stressPoints": 384
+        },
+        {
+          "cp": {
+            "min": -0.8323155641555786,
+            "max": 0.55628502368927,
+            "finite": 384,
+            "total": 384
+          },
+          "stressPoints": 384
+        },
+        {
+          "cp": {
+            "min": -0.8307486772537231,
+            "max": 0.5567368268966675,
+            "finite": 384,
+            "total": 384
+          },
+          "stressPoints": 384
+        }
+      ],
+      "timeLimitSeconds": 1800,
+      "servedBy": "file-only HTTP server"
+    },
+    {
+      "source": "test-results/browser-openfoam-tailscale/verification.json",
+      "model": "sample",
+      "environment": {
+        "platform": "linux",
+        "arch": "x64",
+        "cpu": "AMD Ryzen 5 7640HS w/ Radeon 760M Graphics",
+        "cores": 12,
+        "memoryGB": 24.732669830322266
+      },
+      "checks": {
+        "staticOnly": "passed",
+        "noApi": "passed",
+        "noWebGPU": "passed",
+        "computedFields": "passed",
+        "savedReopen": "passed"
+      },
+      "apiRequests": [],
+      "gpuReads": 0,
+      "reopen": "passed",
+      "elapsedSeconds": 32.452,
+      "cells": 21206,
+      "iterations": 180,
+      "cd": 0.49896506047575007,
+      "cl": 0.7166613631503291,
+      "settled": true,
+      "openfoam": {
+        "runtime": "wasm",
+        "run": "openfoam-wasm:cbf005079b92f81d1f918810440cacb7bacccc0afd1aa2c7b3a86b65b422f358",
+        "iterations": 180,
+        "averagingIterations": 50,
+        "residuals": {
+          "Ux": 1.30183266886e-06,
+          "Uy": 7.87541157912e-06,
+          "Uz": 3.83793451845e-06,
+          "p": 1.646464996e-06,
+          "omega": 1.35405181764e-07,
+          "k": 8.36809182214e-07
+        },
+        "residualConverged": true,
+        "meshOk": true,
+        "layerCoverage": 0,
+        "offset": [
+          0,
+          0,
+          0
+        ]
+      },
+      "warnings": [
+        "Light browser mesh: check mesh sensitivity with the connected OpenFOAM backend before relying on aerodynamic loads.",
+        "Quick uses wall functions without prism layers; near-wall resolution is limited."
+      ],
+      "field": {
+        "dims": [
+          97,
+          34,
+          20
+        ],
+        "u": {
+          "min": -13.931427001953125,
+          "max": 33.03420639038086,
+          "finite": 65960,
+          "total": 65960
+        },
+        "p": {
+          "min": -423.593505859375,
+          "max": 246.5717010498047,
+          "finite": 65960,
+          "total": 65960
+        },
+        "valid": 64656
+      },
+      "surface": [
+        {
+          "cp": {
+            "min": -0.6178033947944641,
+            "max": 0.7462518215179443,
+            "finite": 72,
+            "total": 72
+          },
+          "stressPoints": 72
+        },
+        {
+          "cp": {
+            "min": -1.2823333740234375,
+            "max": 0.8666623830795288,
+            "finite": 384,
+            "total": 384
+          },
+          "stressPoints": 384
+        },
+        {
+          "cp": {
+            "min": -1.2758132219314575,
+            "max": 0.8673572540283203,
+            "finite": 384,
+            "total": 384
+          },
+          "stressPoints": 384
+        },
+        {
+          "cp": {
+            "min": -0.7836475372314453,
+            "max": 0.36595776677131653,
+            "finite": 384,
+            "total": 384
+          },
+          "stressPoints": 384
+        },
+        {
+          "cp": {
+            "min": -0.7325884103775024,
+            "max": 0.3510187268257141,
+            "finite": 384,
+            "total": 384
+          },
+          "stressPoints": 384
+        }
+      ],
+      "timeLimitSeconds": 300,
+      "servedBy": "Tailscale Serve static directory over HTTPS"
+    }
+  ],
+  "notes": [
+    "The two Detailed runs used a 1800-second test limit; the final preset allows 3600 seconds for larger models.",
+    "Cell budgets are ceilings; actual mesh sizes depend on geometry."
+  ]
+}

@@ -33,8 +33,9 @@ and workers. WebGPU is not required; WebGL still renders the 3D scene.
    clearance, part groups and the wheel roles and radii. Confirm the checklist.
 2. Set speed, yaw, density, reference area, road and wheel motion, and the
    automatic or custom tunnel box.
-3. Choose **OpenFOAM · Browser** and **Quick** or **Fast**. These are bounded
-   light meshes. The worker runs real `blockMesh`, `snappyHexMesh`, `checkMesh`
+3. Choose **OpenFOAM · Browser** and **Quick**, **Fast** or **Detailed**. Quick
+   and Fast are light meshes; Detailed uses 1,000 iterations and up to 600,000
+   cells for a longer run. The worker runs real `blockMesh`, `snappyHexMesh`, `checkMesh`
    and the OpenFOAM SIMPLE / k–omega SST solver in double precision. It reports
    live force history and computed flow snapshots. Keep the tab open.
 4. Inspect pressure, wall friction, streamlines, smoke, sections, wake, total and

@@ -16,7 +16,7 @@ test("browser presets include Detailed and use their own whole-job limits", asyn
   await expect(page.getByRole("radiogroup", { name: "Quality", exact: true }).getByRole("radio")).toHaveCount(3);
   await expect(page.getByTestId("wasm-quality-precise")).toContainText("1000 iterations · up to 600 k cells");
   await page.locator(".run-time-settings summary").click();
-  for (const [quality, seconds] of [["precise", 1800], ["medium", 600], ["fast", 300]] as const) {
+  for (const [quality, seconds] of [["precise", 3600], ["medium", 600], ["fast", 300]] as const) {
     await page.getByTestId(`wasm-quality-${quality}`).click();
     await expect(page.getByTestId(`wasm-quality-${quality}`)).toHaveAttribute("aria-checked", "true");
     await expect(page.locator("#elapsed-limit")).toHaveValue(String(seconds));

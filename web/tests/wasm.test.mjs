@@ -40,7 +40,7 @@ test("unsupported custom and transient requests fail explicitly, disabled groups
 test("Detailed survives saved settings normalization and prepares a finer 1000-iteration bounded case",()=>{
   const saved={...types.DEFAULT_SETTINGS,engine:"wasm",quality:"precise",max_seconds:9999};
   const s=features.availableSettings(saved),c=prepare([cube()],s),fast=prepare([cube()],{...s,quality:"medium"});
-  assert.equal(s.quality,"precise");assert.equal(s.max_seconds,1800);
+  assert.equal(s.quality,"precise");assert.equal(s.max_seconds,3600);
   assert.equal(features.availableSettings({...s,max_seconds:900}).max_seconds,900);
   assert.equal(format.qualityLabel(s),"Detailed · Browser");
   assert.equal(c.iterations,1000);assert.equal(c.maxCells,600000);assert.ok(c.h<fast.h);

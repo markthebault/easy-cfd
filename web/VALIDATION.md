@@ -26,8 +26,15 @@ not modified. Source models remain outside Git and the shipped static app.
 | Sample / Fast, final compressed build, Mac M1 | 63,442 | 300 | 104.9 s | 0.510035 | 0.714679 |
 | Sample / Quick, final compressed build, Linux | 21,206 | 180 | 28.2 s | 0.498965 | 0.716661 |
 | Sample / Fast, final compressed build, Linux | 63,442 | 300 | 106.0 s | 0.510035 | 0.714679 |
+| Sample / Detailed, Linux | 348,352 | 1,000 | 1699.6 s | 0.489174 | 0.553821 |
+| Sample / Detailed, Mac M1 | 348,352 | 1,000 | 1780.6 s | 0.489174 | 0.553821 |
+| Sample / Quick, Tailscale HTTPS static directory, Linux | 21,206 | 180 | 32.5 s | 0.498965 | 0.716661 |
 
 Times include meshing, checking, solving, sampling, and loading static assets.
+The Detailed checks used a 30-minute test limit; its final default is one hour
+to leave room for larger imported models. Both finished all 1,000 iterations,
+passed field/force checks and reopened saved results. The Tailscale check used
+Serve's static directory mode, with no application server or solver backend.
 They are observations on these devices, not runtime guarantees. Imported runs
 used 100 km/h, zero yaw and moving road; wheels rotated on the MX-5 and Z4.
 The Ahmed case used the imported project's density and reference area, with
@@ -56,11 +63,12 @@ physical aerodynamic accuracy or agreement with a much finer native mesh.
 
 Quick has a 100,000-cell ceiling and 180 iterations; Fast has a 220,000-cell
 ceiling and 300 iterations. Detailed uses finer surface and wake refinement,
-a 600,000-cell ceiling and 1,000 iterations, with a 30-minute whole-job limit.
+a 600,000-cell ceiling and 1,000 iterations, with a 60-minute whole-job limit.
 Cell ceilings are limits, not fixed mesh sizes. All presets stop on mesh-check
 failure or unresolved car parts. Fast and Detailed request one prism layer,
 but actual coverage is reported; the
-sample Fast mesh obtained no retained prism layers. Surface, gap, and wall
+sample Fast mesh obtained no retained prism layers. The sample Detailed mesh
+retained layers on 98.2% of its car wall. Surface, gap, and wall
 resolution can materially affect lift, drag and axle loads. A settled force
 history and low residuals do not establish grid independence.
 

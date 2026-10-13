@@ -53,7 +53,7 @@ export function RunStep() {
           <span className="q-meta">{p.iterations} iterations · up to {fmtCells(p.maxCells)} cells</span>
         </button>})}
       </div>
-      <p className="field-hint">Computes the car mesh, pressure, velocity and forces in this browser. Detailed can take several minutes; use a connected server for advanced design comparisons.</p>
+      <p className="field-hint">Computes the car mesh, pressure, velocity and forces in this browser. Detailed can take tens of minutes; use a connected server for advanced design comparisons.</p>
     </>}
     {openfoam && s.profile?.startsWith("advanced") && <div className="group">
       <span className="field-label">Local refinement</span>

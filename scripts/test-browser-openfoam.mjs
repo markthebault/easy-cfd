@@ -19,7 +19,8 @@ const server=createServer(async(req,res)=>{
   catch{res.writeHead(404);res.end("Not found");}
 });
 await new Promise(r=>server.listen(0,"127.0.0.1",r));
-const origin=`http://127.0.0.1:${server.address().port}`;
+const startUrl=new URL(process.env.EASYCFD_WASM_BASE_URL ?? `http://127.0.0.1:${server.address().port}`);
+const origin=startUrl.origin;
 const browser=await chromium.launch({headless:true,args:process.platform === "darwin"?["--use-angle=metal","--enable-gpu","--ignore-gpu-blocklist"]:["--use-gl=angle","--use-angle=swiftshader","--enable-unsafe-swiftshader"]});
 const models=(process.env.EASYCFD_WASM_MODELS ?? "sample,sample-fast").split(",");
 const evidence={base:"origin/main",runtime:"static files + browser WebAssembly",webgpu:false,
@@ -60,7 +61,7 @@ try{
       }
       return route.continue();
     });
-    await page.goto(origin);
+    await page.goto(startUrl.href);
     let settings;
     if(model.startsWith("sample")){
       if(model.includes("wing"))await page.getByRole("checkbox",{name:"with rear wing"}).check();
@@ -91,7 +92,9 @@ try{
     await expect(page.getByTestId("engine-openfoam")).toBeDisabled();
     const quality=process.env.EASYCFD_WASM_QUALITY ?? (model.endsWith("-detailed")?"precise":model.endsWith("-fast")?"medium":"fast");
     assert.ok(["fast","medium","precise"].includes(quality),"Unknown browser quality preset");
+    const qualityLabel={fast:"Quick",medium:"Fast",precise:"Detailed"}[quality];
     await page.getByTestId(`wasm-quality-${quality}`).click();
+    await expect(page.getByTestId(`wasm-quality-${quality}`)).toHaveAttribute("aria-checked","true");
     const timeLimit=Number(await page.locator("#elapsed-limit").inputValue());
     await page.screenshot({path:join(dir,"setup.png")});
     const started=Date.now();console.log(`${model}: starting browser OpenFOAM`);
@@ -109,6 +112,7 @@ try{
       throw new Error(`${model}: ${failure}`);
     }
     await expect(page.getByTestId("result-engine")).toHaveText("OpenFOAM · Browser",{timeout:60000});
+    await expect(page.locator(".results-head")).toContainText(`${qualityLabel} · Browser`);
     const measured=await page.evaluate(()=>{
       const {result,field,surface,log}=window.__wasmOutcome;
       const minmax=a=>{let min=Infinity,max=-Infinity,finite=0;for(const v of a)if(Number.isFinite(v)){min=Math.min(min,v);max=Math.max(max,v);finite++;}return {min,max,finite,total:a.length};};
@@ -122,6 +126,7 @@ try{
     assert.ok(measured.field.valid>1000);assert.ok(measured.surface.every(s=>s.cp.finite>0));assert.equal(measured.result.history.length,measured.result.steps);
     await writeFile(join(dir,"solver.log"),measured.log);delete measured.log;
     measured.elapsedSeconds=(Date.now()-started)/1000;
+    measured.quality=quality;measured.timeLimitSeconds=timeLimit;
     await writeFile(join(dir,"verification.json"),JSON.stringify(measured,null,2));
     await page.screenshot({path:join(dir,"results.png")});
     const saveCase=join(dir,"case");await mkdir(saveCase,{recursive:true});
@@ -141,6 +146,7 @@ try{
     await page.getByTestId("open-library").click();
     await page.getByTestId("run-item").first().click();
     await expect(page.getByTestId("result-engine")).toHaveText("OpenFOAM · Browser");
+    await expect(page.locator(".results-head")).toContainText(`${qualityLabel} · Browser`);
     await page.screenshot({path:join(dir,"reopened.png")});
     assert.deepEqual(errors,[],"Browser errors");
     const video=page.video();await context.close();const old=await video.path();
