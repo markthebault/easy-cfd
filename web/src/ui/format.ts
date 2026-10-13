@@ -3,6 +3,7 @@
 import type { GeometrySummary } from "../store/types";
 import { detailRatio, G, type RunResult, type Settings } from "../solver/types";
 import { PRESETS } from "../solver/types";
+import { wasmPreset } from "../engine/wasmPresets";
 
 export const fmt = (v: number, digits = 2) => (Number.isFinite(v) ? v.toFixed(digits) : "–");
 
@@ -35,7 +36,7 @@ export function verticalLoad(r: RunResult): { label: "Downforce" | "Lift"; kg: n
 }
 
 export function qualityLabel(s: Settings): string {
-  if (s.engine === "wasm") return s.quality === "medium" ? "Fast · Browser" : "Quick · Browser";
+  if (s.engine === "wasm") return `${wasmPreset(s.quality).label} · Browser`;
   const base = s.quality === "custom" ? `Custom ${s.custom_cells} cells · ${s.custom_passes} passes` : PRESETS[s.quality].label;
   const d = detailRatio(s);
   return d > 1 ? `${base} · detail ${d}×` : base;

@@ -3,7 +3,7 @@ import { Cpu, Play, Server, TriangleAlert, Zap } from "lucide-react";
 import type { ServerInfo } from "../engine/openfoam";
 import { OPENFOAM_ENABLED, OPENFOAM_COMING_SOON } from "../engine/features";
 import { backendAvailable, getRemoteConnection } from "../engine/connection";
-import { WASM_PRESETS } from "../engine/wasmCase";
+import { WASM_PRESETS, wasmPreset, type WasmQuality } from "../engine/wasmPresets";
 import { OpenFoamConnection } from "./OpenFoamConnection";
 import type { Settings } from "../solver/types";
 import { useStore } from "../store/store";
@@ -20,7 +20,7 @@ export function RunStep() {
   const s=design.settings,openfoam=s.engine === "openfoam",serverReady=backendAvailable() && server.status === "ready";
   const blocked=!report || !!report.errors.length || !confirmed;
   const weightError=weightInputError(s),wasmReady=typeof WebAssembly !== "undefined" && typeof Worker !== "undefined";
-  const browserPreset=WASM_PRESETS[s.quality === "medium"?"medium":"fast"];
+  const browserPreset=wasmPreset(s.quality);
   const fineFlow=openfoam && !!s.flow_animation && s.flow_detail === "fine";
   const mediumLevel=openfoam && !fineFlow && (!s.profile || s.profile === "regular") && s.quality === "medium";
   const limitCeiling=!openfoam ? browserPreset.seconds : mediumLevel ? 1200 : fineFlow || s.profile === "advanced2" ? 43200 : s.profile === "advanced1" ? 10800 : s.flow_animation ? 600 : 300;
@@ -45,15 +45,15 @@ export function RunStep() {
     </p>}
     <OpenFoamConnection/>
     {openfoam?<OpenFoamLevels settings={s}/>:<>
-      <div className="quality-grid" role="radiogroup" aria-label="Quality">
-        {(["fast","medium"] as const).map(q=>{const p=WASM_PRESETS[q];return <button key={q} role="radio" aria-checked={s.quality === q}
+      <div className="quality-grid browser" role="radiogroup" aria-label="Quality">
+        {(Object.keys(WASM_PRESETS) as WasmQuality[]).map(q=>{const p=WASM_PRESETS[q];return <button key={q} role="radio" aria-checked={s.quality === q}
           className={`quality-card ${s.quality === q?"on":""}`} data-testid={`wasm-quality-${q}`}
           onClick={()=>setSettings({quality:q,profile:q === "fast"?"basic":"regular",max_seconds:p.seconds})}>
-          <span className="q-label">{p.label}</span><span className="q-blurb">{q === "fast"?"Check the car and airflow":"Finer car mesh"}</span>
+          <span className="q-label">{p.label}</span><span className="q-blurb">{p.blurb}</span>
           <span className="q-meta">{p.iterations} iterations · up to {fmtCells(p.maxCells)} cells</span>
         </button>})}
       </div>
-      <p className="field-hint">Computes the car mesh, pressure, velocity and forces in this browser. Light presets keep the run small; use a connected server for detailed design comparisons.</p>
+      <p className="field-hint">Computes the car mesh, pressure, velocity and forces in this browser. Detailed can take several minutes; use a connected server for advanced design comparisons.</p>
     </>}
     {openfoam && s.profile?.startsWith("advanced") && <div className="group">
       <span className="field-label">Local refinement</span>

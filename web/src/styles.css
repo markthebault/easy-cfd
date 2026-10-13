@@ -1274,6 +1274,10 @@ input[type="range"]::-moz-range-thumb {
   gap: 7px;
 }
 
+.quality-grid.browser .quality-card:last-child {
+  grid-column: 1 / -1;
+}
+
 .quality-card {
   display: flex;
   flex-direction: column;

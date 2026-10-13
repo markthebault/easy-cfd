@@ -1,6 +1,7 @@
 import type { SurfaceSample, VizField } from "../solver/extract";
 import type { ForceSample, RunResult, Settings, SolverPart } from "../solver/types";
 import type { CaseFiles } from "./wasmCase";
+import { wasmPreset } from "./wasmPresets";
 
 export interface WasmProgress {
   stage:"preparing"|"solving"|"saving";
@@ -15,7 +16,8 @@ export function runBrowserOpenFoam(parts:SolverPart[],settings:Settings,options:
     let done=false;
     const finish=(fn:()=>void)=>{if(done)return;done=true;clearTimeout(timer);options.signal.removeEventListener("abort",abort);worker.terminate();fn();};
     const abort=()=>finish(()=>reject(new DOMException("Simulation cancelled","AbortError")));
-    const limit=Math.min(settings.max_seconds??(settings.quality==="fast"?300:600),settings.quality==="fast"?300:600);
+    const ceiling=wasmPreset(settings.quality).seconds;
+    const limit=Math.min(settings.max_seconds??ceiling,ceiling);
     const timer=setTimeout(()=>finish(()=>reject(new Error(`Browser OpenFOAM reached its ${limit}-second whole-job limit. Try Quick, simplify the model, or connect the server.`))),limit*1000);
     options.signal.addEventListener("abort",abort,{once:true});
     if(options.signal.aborted){abort();return;}

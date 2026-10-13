@@ -33,6 +33,7 @@ self.onmessage=async({data}:{data:{parts:SolverPart[];settings:Settings;assetBas
   try{
     progress();
     const c=prepareWasmCase(data.parts,data.settings);iterations=c.iterations;
+    const meshAdvice=data.settings.quality === "precise" ? "Connect the OpenFOAM server for a larger mesh." : "Choose a finer browser preset or connect the OpenFOAM server.";
     files=c.files;
     const manifest=JSON.parse(new TextDecoder().decode(await fetchBytes(data.assetBase+"manifest.json"))) as Manifest;
     const [controlDict,cellModels]=await Promise.all([fetchBytes(data.assetBase+"controlDict"),fetchBytes(data.assetBase+"cellModels")]);
@@ -72,9 +73,9 @@ self.onmessage=async({data}:{data:{parts:SolverPart[];settings:Settings;assetBas
       // Layer extrusion can write moved points/fields in 0/polyMesh as well as
       // constant/polyMesh. Preserve OpenFOAM's instance selection across tools.
       files={};readTree(module.FS,"/case",files);
-      if(app==="snappyHexMesh" && /reached.*(?:limit|maxGlobalCells)|maximum number of cells/i.test(moduleLog))throw new Error("Car meshing reached the light preset's cell budget. Choose Fast or connect the OpenFOAM server.");
+      if(app==="snappyHexMesh" && /reached.*(?:limit|maxGlobalCells)|maximum number of cells/i.test(moduleLog))throw new Error(`Car meshing reached the browser preset's cell budget. ${meshAdvice}`);
       if(app==="checkMesh"){
-        if(!moduleLog.includes("Mesh OK."))throw new Error(`The car mesh failed OpenFOAM's quality checks. Try Fast or a server mesh. ${moduleLog.slice(-1800)}`);
+        if(!moduleLog.includes("Mesh OK."))throw new Error(`The car mesh failed OpenFOAM's quality checks. ${meshAdvice} ${moduleLog.slice(-1800)}`);
         cells=Number(moduleLog.match(/^\s*cells:\s*(\d+)/m)?.[1]??0);
         if(!cells||cells>c.maxCells)throw new Error("The car mesh exceeds the browser cell budget.");
       }

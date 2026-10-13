@@ -2,12 +2,13 @@ import { before, after, test } from "node:test";
 import assert from "node:assert/strict";
 import { createServer } from "vite";
 
-let server,prepare,results,types,sample,features;
+let server,prepare,results,types,sample,features,format;
 before(async()=>{
   server=await createServer({server:{middlewareMode:true,hmr:false},logLevel:"error",appType:"custom"});
   const caseModule=await server.ssrLoadModule("/src/engine/wasmCase.ts");prepare=caseModule.prepareWasmCase;
   results=await server.ssrLoadModule("/src/engine/wasmResults.ts");types=await server.ssrLoadModule("/src/solver/types.ts");
   sample=await server.ssrLoadModule("/src/geometry/sample.ts");features=await server.ssrLoadModule("/src/engine/features.ts");
+  format=await server.ssrLoadModule("/src/ui/format.ts");
 });
 after(()=>server?.close());
 
@@ -28,12 +29,26 @@ test("browser case preserves yaw, road speed, wheel rotation and dimensional pre
   assert.deepEqual(fixed.inlet,c.inlet);
 });
 
-test("unsupported advanced and transient requests fail explicitly, disabled groups are excluded",()=>{
-  assert.throws(()=>prepare([cube()],{...types.DEFAULT_SETTINGS,quality:"precise"}),/connected server/);
+test("unsupported custom and transient requests fail explicitly, disabled groups are excluded",()=>{
+  assert.throws(()=>prepare([cube()],{...types.DEFAULT_SETTINGS,quality:"custom"}),/connected server/);
   assert.throws(()=>prepare([cube()],{...types.DEFAULT_SETTINGS,flow_animation:true}),/Recording physical-time/);
   const off={...cube(),id:"disabled",active:false};
   assert.equal(prepare([cube(),off],types.DEFAULT_SETTINGS).parts.length,1);
   assert.throws(()=>prepare([cube()],{...types.DEFAULT_SETTINGS,simulation_box:{x_min:0,x_max:1,y_min:0,y_max:1,z_max:1}}),/contain the whole car/);
+});
+
+test("Detailed survives saved settings normalization and prepares a finer 1000-iteration bounded case",()=>{
+  const saved={...types.DEFAULT_SETTINGS,engine:"wasm",quality:"precise",max_seconds:9999};
+  const s=features.availableSettings(saved),c=prepare([cube()],s),fast=prepare([cube()],{...s,quality:"medium"});
+  assert.equal(s.quality,"precise");assert.equal(s.max_seconds,1800);
+  assert.equal(features.availableSettings({...s,max_seconds:900}).max_seconds,900);
+  assert.equal(format.qualityLabel(s),"Detailed · Browser");
+  assert.equal(c.iterations,1000);assert.equal(c.maxCells,600000);assert.ok(c.h<fast.h);
+  assert.match(text(c,"system/controlDict"),/endTime 1000;/);
+  assert.match(text(c,"system/snappyHexMeshDict"),/maxGlobalCells 600000;/);
+  assert.match(text(c,"system/snappyHexMeshDict"),/part0 \{level \(4 4\)/);
+  assert.equal(features.availableSettings({...saved,engine:"openfoam"}).quality,"fast");
+  assert.equal(features.availableSettings({...saved,engine:"webgpu"}).quality,"fast");
 });
 
 test("OpenFOAM wall integrals retain signs, per-part forces, moments and the last-50 iteration window",()=>{

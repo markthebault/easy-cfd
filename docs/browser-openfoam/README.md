@@ -3,7 +3,8 @@
 The isolated worktree is based on origin/main commit
 `5fb0cb09a1a3b4bfa99203d4956f3dc199bc0933`. It replaces the public WebGPU run
 path with OpenFOAM WebAssembly, while keeping the native/remote API and viewer
-contracts. Quick and Fast are the only browser presets.
+contracts. Quick, Fast and Detailed are the browser presets; Detailed has a
+600,000-cell ceiling and 1,000 iterations.
 
 The file-only production test disables WebGPU and blocks API/off-origin
 requests. The Mac Mini checks cover the MX-5, Z4 with all wing parts, and Ahmed

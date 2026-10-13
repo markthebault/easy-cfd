@@ -7,6 +7,23 @@ function collectErrors(page: Page): string[] {
   return errors;
 }
 
+test("browser presets include Detailed and use their own whole-job limits", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("try-sample").click();
+  await page.getByText("I checked size, orientation, wheels and clearance.").click();
+  await page.getByRole("button", { name: "Continue to conditions" }).click();
+  await page.getByRole("button", { name: "Continue to run" }).click();
+  await expect(page.getByRole("radiogroup", { name: "Quality", exact: true }).getByRole("radio")).toHaveCount(3);
+  await expect(page.getByTestId("wasm-quality-precise")).toContainText("1000 iterations · up to 600 k cells");
+  await page.locator(".run-time-settings summary").click();
+  for (const [quality, seconds] of [["precise", 1800], ["medium", 600], ["fast", 300]] as const) {
+    await page.getByTestId(`wasm-quality-${quality}`).click();
+    await expect(page.getByTestId(`wasm-quality-${quality}`)).toHaveAttribute("aria-checked", "true");
+    await expect(page.locator("#elapsed-limit")).toHaveValue(String(seconds));
+    await expect(page.locator("#elapsed-limit")).toHaveAttribute("max", String(seconds));
+  }
+});
+
 test("sample car, short run, results, layers, reopen after reload", async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto("/");

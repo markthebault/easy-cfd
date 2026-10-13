@@ -55,8 +55,11 @@ physical aerodynamic accuracy or agreement with a much finer native mesh.
 ## Mesh and feature limits
 
 Quick has a 100,000-cell ceiling and 180 iterations; Fast has a 220,000-cell
-ceiling and 300 iterations. Both stop on mesh-check failure or unresolved car
-parts. Fast requests one prism layer, but actual coverage is reported; the
+ceiling and 300 iterations. Detailed uses finer surface and wake refinement,
+a 600,000-cell ceiling and 1,000 iterations, with a 30-minute whole-job limit.
+Cell ceilings are limits, not fixed mesh sizes. All presets stop on mesh-check
+failure or unresolved car parts. Fast and Detailed request one prism layer,
+but actual coverage is reported; the
 sample Fast mesh obtained no retained prism layers. Surface, gap, and wall
 resolution can materially affect lift, drag and axle loads. A settled force
 history and low residuals do not establish grid independence.
@@ -76,7 +79,8 @@ fallback chunks for browsers without `DecompressionStream`. Every asset is
 at most 8 MiB, below Cloudflare Pages' 25 MiB file limit. The matching GPL source
 archive and license are served with the binaries.
 
-Validation also passed 62 unit tests, the browser results/group/friction and
+Validation also passed 63 unit tests, the browser preset selection/time-limit
+checks, the browser results/group/friction and
 cancellation checks, native/remote API UI checks, and a real HTTPS-frontend
 connection to the existing Docker backend.
 

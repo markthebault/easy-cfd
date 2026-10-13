@@ -35,14 +35,22 @@ try{
       // Capture the real worker's case files for a native parity test, without app test hooks.
       const Original=window.Worker;
       window.Worker=class extends Original {
-        constructor(...args){super(...args);this.addEventListener("message",event=>{
+        constructor(...args){super(...args);let lastLabel="",lastIteration=0;this.addEventListener("message",event=>{
           if(event.data.type==="done"){window.__wasmOutcome=event.data.value;}
           if(event.data.type==="error"){window.__wasmError=event.data.message;window.__wasmFailure=event.data;}
+          if(event.data.type==="progress"){
+            const p=event.data.value;
+            if(p.label!==lastLabel || p.iteration-lastIteration>=100){
+              console.info(`OpenFOAM progress: ${p.label}, ${p.iteration}/${p.iterations} iterations, ${p.cells} cells`);
+              lastLabel=p.label;lastIteration=p.iteration;
+            }
+          }
         });}
         postMessage(value,...args){if(value?.parts && value?.settings)value.includeCaseFiles=true;return super.postMessage(value,...args);}
       };
     });
     const page=await context.newPage(),errors=[],requests=[];
+    page.on("console",m=>{if(m.type()==="info" && m.text().startsWith("OpenFOAM progress:"))console.log(`${model}: ${m.text()}`);});
     page.on("pageerror",e=>errors.push(e.message));
     page.on("request",r=>requests.push({method:r.method(),url:r.url()}));
     await context.route(/https?:\/\//,route=>{
@@ -58,7 +66,7 @@ try{
       if(model.includes("wing"))await page.getByRole("checkbox",{name:"with rear wing"}).check();
       await page.getByTestId("try-sample").click();
     }else{
-      const root=join(repo,".wasm-test-models",model.replace(/-fast$/,"")),record=JSON.parse(await readFile(join(root,"record.json"),"utf8"));
+      const root=join(repo,".wasm-test-models",model.replace(/-(fast|detailed)$/,"")),record=JSON.parse(await readFile(join(root,"record.json"),"utf8"));
       settings=record.settings;
       const geom=(await readdir(root)).find(n=>n.startsWith("geometry-"));
       const parts=record.geometry.parts.filter(p=>p.enabled!==false);
@@ -81,13 +89,16 @@ try{
     await page.getByRole("button",{name:"Continue to run"}).click();
     await expect(page.getByTestId("engine-wasm")).toHaveAttribute("aria-checked","true");
     await expect(page.getByTestId("engine-openfoam")).toBeDisabled();
-    if(process.env.EASYCFD_WASM_QUALITY === "medium" || model.endsWith("-fast"))await page.getByTestId("wasm-quality-medium").click();
+    const quality=process.env.EASYCFD_WASM_QUALITY ?? (model.endsWith("-detailed")?"precise":model.endsWith("-fast")?"medium":"fast");
+    assert.ok(["fast","medium","precise"].includes(quality),"Unknown browser quality preset");
+    await page.getByTestId(`wasm-quality-${quality}`).click();
+    const timeLimit=Number(await page.locator("#elapsed-limit").inputValue());
     await page.screenshot({path:join(dir,"setup.png")});
     const started=Date.now();console.log(`${model}: starting browser OpenFOAM`);
     await page.getByTestId("run").click();
     await expect(page.locator(".live-head h2")).toBeVisible();
     await page.screenshot({path:join(dir,"running.png")});
-    await page.waitForFunction(()=>window.__wasmOutcome || window.__wasmError,{},{timeout:650000});
+    await page.waitForFunction(()=>window.__wasmOutcome || window.__wasmError,{},{timeout:(timeLimit+50)*1000});
     const failure=await page.evaluate(()=>window.__wasmError);
     if(failure){
       await writeFile(join(dir,"failure.json"),JSON.stringify({model,error:failure},null,2));
@@ -106,6 +117,7 @@ try{
     });
     assert.equal(measured.gpuReads,0,"App accessed WebGPU");assert.equal(measured.result.openfoam.runtime,"wasm");
     assert.equal(measured.result.engine,"openfoam");assert.ok(measured.result.cd>0 && measured.result.cd<5);
+    if(quality==="precise"){assert.equal(measured.result.steps,1000);assert.ok(measured.result.cells<=600000);}
     assert.ok(measured.field.p.max-measured.field.p.min>1);assert.ok(measured.field.u.max-measured.field.u.min>1);
     assert.ok(measured.field.valid>1000);assert.ok(measured.surface.every(s=>s.cp.finite>0));assert.equal(measured.result.history.length,measured.result.steps);
     await writeFile(join(dir,"solver.log"),measured.log);delete measured.log;

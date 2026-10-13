@@ -4,11 +4,7 @@ import { momentOrigin } from "../solver/aero";
 import { automaticDomain } from "../solver/grid";
 import { vizBoxFor, vizGrid } from "../solver/extract";
 import type { Settings, SolverPart, Vec3 } from "../solver/types";
-
-export const WASM_PRESETS = {
-  fast: { label: "Quick", cellsPerLength: 5, surface: 2, wake: 1, layers: 0, iterations: 180, maxCells: 100_000, seconds: 300 },
-  medium: { label: "Fast", cellsPerLength: 7, surface: 3, wake: 1, layers: 1, iterations: 300, maxCells: 220_000, seconds: 600 },
-} as const;
+import { isWasmQuality, WASM_PRESETS } from "./wasmPresets";
 
 export type CaseFiles = Record<string, Uint8Array>;
 export interface WasmCase {
@@ -29,7 +25,7 @@ export function prepareWasmCase(input: SolverPart[], s: Settings): WasmCase {
   const parts = input.filter(p => p.active !== false);
   if (!parts.length) throw new Error("Enable at least one car part.");
   if (parts.length > 64) throw new Error("Browser OpenFOAM supports up to 64 parts. Connect the server for larger models.");
-  if (s.quality !== "fast" && s.quality !== "medium") throw new Error("Choose Quick or Fast for browser OpenFOAM. Advanced meshes require a connected server.");
+  if (!isWasmQuality(s.quality)) throw new Error("Choose Quick, Fast or Detailed for browser OpenFOAM. Custom meshes require a connected server.");
   if (s.flow_animation) throw new Error("Recording physical-time flow requires the connected OpenFOAM server. Steady airflow views are available in the browser.");
   if (![s.speed_kmh,s.yaw_deg,s.density,s.reference_area].every(Number.isFinite) || s.speed_kmh<=0 || s.density<=0 || s.reference_area<=0 || Math.abs(s.yaw_deg)>=80)
     throw new Error("Check speed, yaw, density and reference area before running OpenFOAM.");

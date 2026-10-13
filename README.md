@@ -12,7 +12,7 @@ Explore airflow around a car or a part. Compare drag, downforce, and design chan
 2. Check the model's units and orientation. Set the speed and yaw angle.
 3. Run a simulation. Inspect the results and airflow. Compare two runs to study a change.
 
-Browser OpenFOAM runs entirely on your device using WebAssembly. It needs a modern browser with WebAssembly and WebGL support, and stores projects and results in your browser. Quick and Fast are light options; advanced meshes and physical-time recordings use the connected OpenFOAM backend.
+Browser OpenFOAM runs entirely on your device using WebAssembly. It needs a modern browser with WebAssembly and WebGL support, and stores projects and results in your browser. Quick and Fast are light options; Detailed uses 1,000 iterations and up to 600,000 cells for a longer browser run. Advanced meshes and physical-time recordings use the connected OpenFOAM backend.
 
 Treat the results as exploratory estimates. They do not establish real vehicle loads or aerodynamic accuracy. Read the [validation notes](web/VALIDATION.md) before you use the numbers for a design decision.
 

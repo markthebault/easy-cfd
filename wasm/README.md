@@ -7,7 +7,10 @@ and stock boundary conditions on a static mesh. It adds wall integration and
 field sampling for the existing `RunResult`, `VizField` and `SurfaceSample`
 contracts. It does not substitute the old WebGPU solver.
 
-Quick and Fast are light browser presets. Advanced meshes and physical-time
+Quick and Fast are light browser presets. Detailed uses a finer car/wake mesh,
+1,000 iterations and a 600,000-cell ceiling, with a 30-minute whole-job limit.
+The cell count depends on the geometry; the ceiling is not a fixed mesh size.
+Advanced meshes and physical-time
 recordings continue to use the existing connected OpenFOAM API. Browser runs
 make no API requests, including when a remote backend is configured.
 
@@ -50,6 +53,7 @@ disables WebGPU, imports car geometry through the real UI, and checks computed
 fields, wall forces and saved result reopening. It records screenshots and
 WebM video under `test-results/browser-openfoam/`. The default test runs Quick
 and Fast on the sample car; `EASYCFD_WASM_MODELS=sample` runs Quick alone.
+`EASYCFD_WASM_MODELS=sample-detailed` checks the longer Detailed preset.
 `EASYCFD_WASM_MODELS=mx5,z4,ahmed` uses imported fixtures outside Git under
 `.wasm-test-models/{mx5,z4,ahmed}/`, each containing the original project
 `record.json` and `geometry-*` folder copied from the Mac Mini.

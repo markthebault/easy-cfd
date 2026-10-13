@@ -1,5 +1,6 @@
 import type { Settings } from "../solver/types";
 import { backendAvailable, NATIVE_OPENFOAM_ENABLED } from "./connection";
+import { isWasmQuality, WASM_PRESETS } from "./wasmPresets";
 
 /** Build-time opt-in for automatic discovery of a native, same-origin backend. */
 export const OPENFOAM_ENABLED = NATIVE_OPENFOAM_ENABLED;
@@ -9,9 +10,10 @@ export const OPENFOAM_COMING_SOON = "Connect a remote OpenFOAM server below to e
 export function availableSettings(settings: Settings): Settings {
   if (settings.engine === "openfoam" && backendAvailable()) return settings;
   const fallback=settings.engine === "openfoam";
-  const quality=!fallback && settings.quality === "medium" ? "medium" : "fast";
+  const quality=!fallback && isWasmQuality(settings.quality) && (settings.engine === "wasm" || settings.quality !== "precise") ? settings.quality : "fast";
+  const preset=WASM_PRESETS[quality];
   return { ...settings, engine: "wasm", profile: quality === "fast" ? "basic" : "regular", quality,
-    max_seconds: Math.min(settings.max_seconds ?? (quality === "fast" ? 300 : 600),quality === "fast" ? 300 : 600),
+    max_seconds: Math.min(settings.max_seconds ?? preset.seconds,preset.seconds),
     flow_animation: false, flow_detail: "standard" };
 }
 
