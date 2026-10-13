@@ -39,7 +39,8 @@
     ],
     "singleCommand": "passed",
     "automaticDataDirectory": "passed",
-    "publishedLatestImage": "passed"
+    "publishedLatestImage": "passed",
+    "allInterfacePortBindingLinux": "passed"
   },
   "macSimulation": {
     "frontend": "HTTPS static frontend",

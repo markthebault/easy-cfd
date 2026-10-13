@@ -12,7 +12,7 @@ checkout, Python install or local image build is required.
 
 ```sh
 docker run -it --rm --pull=always --name easycfd-openfoam --init \
-  -p 127.0.0.1:8000:8000 \
+  -p 8000:8000 \
   -v "$HOME/easycfd-data:/data" \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -e EASYCFD_HOST_DATA="$HOME/easycfd-data" \
@@ -29,7 +29,10 @@ It launches the pinned OpenCFD v2412 solver in separate Docker containers;
 it downloads that solver automatically on first startup and reuses it afterward.
 Docker creates the data folder automatically. The first startup can take a few
 minutes; download progress appears in the terminal. Keep Docker running.
-The backend uses your Docker daemon, so run it on a computer you trust.
+The Docker socket mount lets the API start and stop the separate OpenFOAM solver
+containers. It grants access to the host Docker engine, so use an image you trust.
+`EASYCFD_HOST_DATA` tells those solver containers where their shared case files
+live on the Docker host.
 
 Projects, runs and the generated connection token stay in `~/easycfd-data`.
 Keep the terminal open while using the server. After active runs finish, press
@@ -48,14 +51,14 @@ the exact published image.
 
 For a server on another computer, expose port 8000 through HTTPS, such as a
 reverse proxy or Tailscale Serve. Paste its HTTPS address with the same
-`?token=…` value into EasyCFD. The default Docker port binding accepts local
-connections; a proxy on that computer can forward them.
+`?token=…` value into EasyCFD. The command publishes port 8000 on all host network
+interfaces; the API still requires its connection token.
 
 Add `-e EASYCFD_PUBLIC_URL=https://your-server.example` to the Docker run command
 to print the correct remote address in the startup logs. This advertises the
 address; it does not set up HTTPS or create a tunnel.
 
-To use another local port, change the binding to `127.0.0.1:8001:8000` and add
+To use another port, change the binding to `8001:8000` and add
 `-e EASYCFD_PUBLIC_URL=http://localhost:8001`. Optional settings include
 `EASYCFD_PROCESSES` (4 by default), `EASYCFD_API_TOKEN`, and
 `EASYCFD_CORS_ORIGINS`. The data path must be absolute and identify the same

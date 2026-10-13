@@ -53,7 +53,7 @@ export function OpenFoamConnection() {
       {copyError && <p className="inline-error" role="status">{copyError}</p>}
       <p className="field-hint">Copy the <code>http://localhost:8000?token=…</code> URL printed in the terminal into the connection field above. Allow local-network access if your browser asks.</p>
       <p className="field-hint">Keep the terminal open while using the server. After runs finish, press <code>Ctrl+C</code> to stop it; the container is removed automatically. Runs and the connection token stay in <code>~/easycfd-data</code>. Paste the command again to restart.</p>
-      <p className="field-hint">The server uses your Docker daemon to run simulations.</p>
+      <p className="field-hint">The Docker socket mount lets the server start and stop the separate OpenFOAM containers that run simulations.</p>
       <p className="field-hint">For a server on another computer, expose it over HTTPS and paste its URL with the same token.</p>
       <a className="small" href={`https://hub.docker.com/r/${BACKEND_IMAGE.split(":")[0]}`} target="_blank" rel="noreferrer">Docker image and setup guide</a>
     </div>
