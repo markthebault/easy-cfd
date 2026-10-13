@@ -68,3 +68,29 @@ def test_medium_budget_includes_recording_and_legacy_settings():
                 Settings(profile=profile, quality="medium", flow_animation=recording, max_seconds=1201)
     assert Settings(profile="advanced1", max_seconds=10800)
     assert Settings(flow_animation=True, flow_detail="fine", max_seconds=43200)
+
+
+def test_medium_profile_cannot_inherit_an_expensive_custom_or_precise_preset():
+    from easycfd.models import PRESETS, resolved_preset
+
+    for quality in ("custom", "precise", "fast"):
+        settings = Settings(profile="regular", quality=quality, custom_mesh="precise", custom_iterations=20000)
+        assert settings.quality == "medium"
+        assert resolved_preset(settings) == PRESETS["medium"]
+        assert resolved_preset(settings, "precise") == PRESETS["medium"]
+    with pytest.raises(ValueError, match="single-mesh"):
+        Settings(profile="regular", flow_animation=True, flow_detail="fine", max_seconds=43200)
+
+
+def test_medium_deadline_is_checked_during_every_job_stage(tmp_path, monkeypatch):
+    from easycfd import runner, storage
+
+    monkeypatch.setattr(storage, "ROOT", tmp_path)
+    key = "f" * 32
+    storage.save("runs", dict(id=key, status="running"))
+    monkeypatch.setattr(runner, "DEADLINES", {key:1200})
+    monkeypatch.setattr(runner.time, "monotonic", lambda:1199.9)
+    runner.check_cancelled(key)
+    monkeypatch.setattr(runner.time, "monotonic", lambda:1200.1)
+    with pytest.raises(TimeoutError, match="Whole-job"):
+        runner.check_cancelled(key)

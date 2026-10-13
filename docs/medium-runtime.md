@@ -11,3 +11,5 @@ The run remains exploratory. Its saved mesh, residual, force-settling and near-w
 Validation: 113 backend tests plus the added legacy-default deadline case; 57 web unit tests; all eight OpenFOAM browser scenarios passed across the main and follow-up runs. Production build and live Tailscale desktop/mobile checks passed. Matching Medium preset history excludes DDES, advanced and old mesh budgets.
 
 Artifacts live under `.easycfd/experiments/medium-20min/`: benchmark-result.json, benchmark-run.json, test logs, and live desktop/mobile screenshots.
+
+Medium selects the standard recording only. Detailed wake is enabled from Precise and is labeled as a separate study with a budget of up to 12 hours in setup, live progress and the server library. Returning to Medium resets recording detail and the time limit. Old saved Regular settings are normalized to the Medium preset; a custom or precise quality cannot silently select a larger mesh.

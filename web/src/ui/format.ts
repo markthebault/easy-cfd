@@ -35,6 +35,13 @@ export function verticalLoad(r: RunResult): { label: "Downforce" | "Lift"; kg: n
 }
 
 export function qualityLabel(s: Settings): string {
+  if (s.engine === "openfoam") {
+    if (s.flow_animation && s.flow_detail === "fine") return "Detailed wake · up to 12 hours";
+    if (s.profile === "advanced1") return "Precise";
+    if (s.profile === "advanced2") return "Very Precise";
+    if (s.profile === "regular" || (!s.profile && s.quality === "medium")) return "Medium · up to 20 min";
+    if (s.profile === "basic") return "Fast";
+  }
   const base = s.quality === "custom" ? `Custom ${s.custom_cells} cells · ${s.custom_passes} passes` : PRESETS[s.quality].label;
   const d = detailRatio(s);
   return d > 1 ? `${base} · detail ${d}×` : base;

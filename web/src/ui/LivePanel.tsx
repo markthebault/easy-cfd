@@ -10,7 +10,7 @@ import { ForceChart } from "./ForceChart";
 import { StatsTable, defaultWindow } from "./StatsTable";
 import { unitFor } from "./historyUnit";
 import { trailingStats } from "./windowStats";
-import { boundaryLine, conditionsLine, fmt, fmtCells, fmtDuration, fmtInt } from "./format";
+import { boundaryLine, conditionsLine, qualityLabel, fmt, fmtCells, fmtDuration, fmtInt } from "./format";
 
 const STAGE: Record<string, string> = {
   preparing: "Preparing the grid",
@@ -56,7 +56,7 @@ export function LivePanel() {
     <div className="live" aria-live="polite">
       <div className="live-head">
         <span className="eyebrow"><span className="rec" /> Live{openfoam ? " · OpenFOAM server" : ""}</span>
-        <h2>{openfoam ? serverStageText(live.serverStage) : (live.serverStage || STAGE[live.stage])}</h2>
+        <h2>{openfoam ? serverStageText(live.serverStage?.replace(/^(medium|advanced1|advanced2):/, `${qualityLabel(live.settings)}:`)) : (live.serverStage || STAGE[live.stage])}</h2>
         <p className="muted small">{live.designName} · {conditionsLine(live.settings)}</p>
         <p className="muted small" data-testid="run-boundaries">{boundaryLine(live.settings)}</p>
       </div>
