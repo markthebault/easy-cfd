@@ -54,6 +54,7 @@ OpenFOAM's native `forceCoeffs` output was compared to the browser adapter.
 | Sample Fast | 1.30e-14 | 3.22e-15 |
 | MX-5 Quick | 1.72e-15 | 1.67e-16 |
 | Z4 Quick | 2.56e-9 | 1.45e-8 |
+| Sample Detailed | 2.20e-6 | 3.18e-5 |
 
 All are below the 1e-4 coefficient tolerance. This establishes numerical
 agreement with native OpenFOAM on the same browser meshes. It does not establish

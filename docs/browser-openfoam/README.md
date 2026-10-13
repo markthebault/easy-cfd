@@ -11,7 +11,7 @@ requests. The Mac Mini checks cover the MX-5, Z4 with all wing parts, and Ahmed
 body, including computed fields, per-part wall values and saved result reopening.
 [Machine-readable Mac checks](mac-verification.json) include hardware, timings,
 coefficients and request records. [Native parity](native-parity.json) compares
-four captured meshes with stock OpenFOAM v2512.
+five captured meshes with stock OpenFOAM v2512, including Detailed.
 
 Detailed completed all 1,000 iterations on Linux and the Mac Mini with 348,352
 cells, taking 28.3 and 29.7 minutes respectively. Both reopened saved results;

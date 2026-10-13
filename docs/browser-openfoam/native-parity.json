@@ -87,6 +87,31 @@
       },
       "tolerance": 0.0001,
       "passed": true
+    },
+    {
+      "case": "sample-detailed",
+      "cells": 348352,
+      "iterations": 1000,
+      "averagingIterations": 50,
+      "nativeImage": "opencfd/openfoam-default@sha256:33fb575aa9980d2bc42fd58c75ae698c489293ba30c991380fe3f899c622f319",
+      "nativeVersion": "v2512",
+      "browserVersion": "v2512",
+      "sameMesh": true,
+      "nativeSolver": "stock simpleFoam",
+      "browser": {
+        "cd": 0.4891740772092676,
+        "cl": 0.5538208360696901
+      },
+      "native": {
+        "cd": 0.48917627261921803,
+        "cl": 0.5538525913921439
+      },
+      "difference": {
+        "cd": 2.195409950445093e-06,
+        "cl": 3.175532245380808e-05
+      },
+      "tolerance": 0.0001,
+      "passed": true
     }
   ],
   "sourceBase": "5fb0cb09a1a3b4bfa99203d4956f3dc199bc0933",
