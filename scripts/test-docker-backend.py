@@ -18,13 +18,16 @@ def docker(*args):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("image")
-    parser.add_argument("--solver", action="store_true", help="Check the real host solver through its Docker socket")
+    parser.add_argument("--expect-download", action="store_true", help="Require first startup to download an uncached solver")
     args = parser.parse_args()
+    if args.expect_download:
+        image = docker("run", "--rm", args.image, "python", "-c", "from easycfd.foam import IMAGE; print(IMAGE)")
+        cached = subprocess.run(["docker", "image", "inspect", image], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        assert cached.returncode, "The solver must be absent for the first-download check"
     name = "easycfd-image-test-" + uuid.uuid4().hex[:10]
     with tempfile.TemporaryDirectory(prefix=".easycfd-image-test-", dir=Path.home()) as data:
         command = ["run", "-d", "--name", name, "--init", "-p", "127.0.0.1::8000", "-v", f"{data}:/data"]
-        if args.solver:
-            command += ["-v", "/var/run/docker.sock:/var/run/docker.sock", "-e", f"EASYCFD_HOST_DATA={data}"]
+        command += ["-v", "/var/run/docker.sock:/var/run/docker.sock", "-e", f"EASYCFD_HOST_DATA={data}"]
         docker(*command, args.image)
         try:
             port = docker("port", name, "8000/tcp").split(":")[-1]
@@ -39,24 +42,26 @@ def main():
                     return error.code, error.headers, json.load(error)
 
             def ready():
-                for _ in range(90):
+                for _ in range(900):
                     try:
                         if request("/api/health")[0] == 401:
                             return
                     except (URLError, TimeoutError, ConnectionError):
                         pass
                     time.sleep(1)
-                raise RuntimeError("Image API did not become ready within 90 seconds")
+                raise RuntimeError("Image API did not become ready within 15 minutes")
 
             ready()
             token = docker("exec", name, "python", "-c", "from pathlib import Path; print(Path('/data/.api-token').read_text().strip())")
             assert len(token) >= 32
-            assert token in docker("logs", name)  # URL is printed, but never echoed by this test.
+            logs = docker("logs", name)  # URL is printed, but never echoed by this test.
+            assert token in logs
+            if args.expect_download:
+                assert "Downloading OpenFOAM for first use" in logs
             assert request("/api/health", "wrong")[0] == 401
             status, headers, health = request("/api/health", token)
             assert status == 200 and headers["access-control-allow-origin"] == "*"
-            if args.solver:
-                assert health["ready"], health.get("message")
+            assert health["ready"], health.get("message")
             assert request("/api/runs", token)[0] == 200
             assert request("/", token)[0] == 404
             preflight = Request(base + "/api/projects", method="OPTIONS", headers={
@@ -73,7 +78,8 @@ def main():
             assert docker("exec", name, "python", "-c", "from pathlib import Path; print(Path('/data/.api-token').read_text().strip())") == token
             assert request("/api/health", token)[0] == 200
             print(json.dumps({"image": args.image, "authenticatedApi": "passed", "rejectsBadTokens": "passed",
-                "cors": "passed", "persistentToken": "passed", "apiOnly": "passed", "solverReady": health["ready"]}))
+                "cors": "passed", "persistentToken": "passed", "apiOnly": "passed", "solverReady": health["ready"],
+                "automaticSolverDownload": "passed" if args.expect_download else "not checked"}))
         finally:
             docker("rm", "-f", name)
 

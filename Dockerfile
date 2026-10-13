@@ -21,4 +21,4 @@ LABEL org.opencontainers.image.title="EasyCFD OpenFOAM backend" \
 ENV PATH="/app/.venv/bin:$PATH" EASYCFD_DATA=/data EASYCFD_REMOTE=true PYTHONUNBUFFERED=1
 EXPOSE 8000
 # Single worker owns the persistent queue. Avoid query-string tokens in access logs.
-CMD ["uvicorn", "easycfd.api:app", "--host", "0.0.0.0", "--port", "8000", "--no-access-log"]
+CMD ["python", "-m", "easycfd.docker_server"]

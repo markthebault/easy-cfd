@@ -45,7 +45,7 @@ export function OpenFoamConnection() {
     <p className="field-hint">The connection is saved for this browser tab. Server runs upload your model to the connected server.</p>
     <div className="docker-setup" data-testid="docker-setup">
       <h4 className="docker-setup-title">Start your server with Docker</h4>
-      <p className="field-hint">Start Docker, then paste this into a macOS or Linux terminal. It downloads OpenFOAM and starts the server on your computer.</p>
+      <p className="field-hint">Start Docker, then paste this into a macOS or Linux terminal. The server creates its data folder and downloads OpenFOAM automatically on first use. The first startup can take a few minutes.</p>
       <button className="btn ghost sm" type="button" onClick={()=>void copyCommand()} data-testid="copy-docker-command">
         {copied ? "Copied" : "Copy startup command"}
       </button>

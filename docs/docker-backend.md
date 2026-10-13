@@ -11,9 +11,7 @@ Start Docker, then copy this block into a macOS or Linux terminal. No repository
 checkout, Python install or local image build is required.
 
 ```sh
-mkdir -p "$HOME/easycfd-data"
-docker pull opencfd/openfoam-default@sha256:1ba02114b1c025c370f2e269a07677c16c9bea8d990fcd75ac8378aff9d41b50
-docker run -it --rm --name easycfd-openfoam --init \
+docker run -it --rm --pull=always --name easycfd-openfoam --init \
   -p 127.0.0.1:8000:8000 \
   -v "$HOME/easycfd-data:/data" \
   -v /var/run/docker.sock:/var/run/docker.sock \
@@ -28,7 +26,9 @@ analysis. Browser Quick, Fast and Detailed runs continue to work independently.
 
 The backend image contains the API, geometry preparation and persistent queue.
 It launches the pinned OpenCFD v2412 solver in separate Docker containers;
-that solver image is downloaded by the `docker pull` command. Keep Docker running.
+it downloads that solver automatically on first startup and reuses it afterward.
+Docker creates the data folder automatically. The first startup can take a few
+minutes; download progress appears in the terminal. Keep Docker running.
 The backend uses your Docker daemon, so run it on a computer you trust.
 
 Projects, runs and the generated connection token stay in `~/easycfd-data`.
@@ -38,14 +38,9 @@ directory and token remain. Paste the startup block again to restart the server.
 
 ## Update
 
-Finish active runs first and press **Ctrl+C**, then download the latest image.
-The data directory and connection token are kept.
-
-```sh
-docker pull markthebault/easy-cfd-backend:latest
-```
-
-Run the startup block again. Use the `sha-COMMIT` tag instead of `latest` to
+Finish active runs first and press **Ctrl+C**, then run the startup command again.
+Its `--pull=always` option checks for the latest server image automatically.
+The data directory and connection token are kept. Use the `sha-COMMIT` tag instead of `latest` to
 select a source revision. Pin the full image digest (`@sha256:…`) when you need
 the exact published image.
 

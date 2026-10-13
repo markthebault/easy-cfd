@@ -57,8 +57,10 @@ test("Docker startup command can be copied without connecting a backend", async 
   expect(command).toContain("markthebault/easy-cfd-backend:latest");
   expect(command).toContain('EASYCFD_HOST_DATA="$HOME/easycfd-data"');
   expect(command).toContain("docker run -it --rm");
+  expect(command).not.toContain("mkdir");
+  expect(command).not.toContain("docker pull");
   expect(command).not.toContain("--restart");
-  expect(command.split("\n")).toHaveLength(8);
+  expect(command.split("\n")).toHaveLength(6);
 });
 
 test("a rejected remote token is visible and leaves the engine disabled", async ({page}) => {
