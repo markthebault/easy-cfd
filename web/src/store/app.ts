@@ -3,7 +3,6 @@
 
 import { checkGeometry, UNIT_SCALE, DEFAULT_IMPORT, LIMITS, type GeometryReport, type ImportOptions, type Part } from "../geometry/model";
 import type { VizField } from "../solver/extract";
-import { requestDevice, type GpuInfo } from "../solver/gpu";
 import { probeServer, type ServerInfo } from "../engine/openfoam";
 import { availableSettings } from "../engine/features";
 import { backendAvailable, parseRemoteUrl, setRemoteConnection } from "../engine/connection";
@@ -20,15 +19,9 @@ export type Step = "car" | "conditions" | "run";
 export type View = "setup" | "live" | "results" | "compare";
 export type ThemePref = "system" | "dark" | "light";
 
-export interface GpuState {
-  status: "checking" | "ready" | "software" | "unavailable";
-  adapter: string;
-  message: string;
-}
-
 export interface LiveState {
-  /** Solver of this run (absent: WebGPU). */
-  engine?: "webgpu" | "openfoam";
+  engine: "openfoam";
+  runtime?: "wasm";
   /** OpenFOAM: the server's stage text, iteration and iteration budget. */
   serverStage?: string;
   iteration?: number;
@@ -37,11 +30,6 @@ export interface LiveState {
   recordingDuration?: number;
   stage: "preparing" | "solving" | "recording" | "finishing" | "saving";
   fraction: number;
-  time: number;
-  targetTime: number;
-  /** Simulated seconds per flow pass (car length / speed). */
-  passTime: number;
-  steps: number;
   elapsed: number;
   cells: number;
   history: ForceSample[];
@@ -70,7 +58,6 @@ export interface ServerState {
 export interface AppState {
   theme: ThemePref;
   dark: boolean;
-  gpu: GpuState;
   server: ServerState;
   design: DesignDoc | null;
   parts: Part[];
@@ -139,7 +126,6 @@ const initialTheme = (localStorage.getItem(THEME_KEY) as ThemePref | null) ?? "s
 export const app = createStore<AppState>({
   theme: initialTheme,
   dark: initialTheme === "system" ? systemDark() : initialTheme === "dark",
-  gpu: { status: "checking", adapter: "", message: "" },
   server: { status: backendAvailable() ? "checking" : "unavailable", info: null },
   design: null,
   parts: [],
@@ -183,36 +169,6 @@ if (typeof matchMedia !== "undefined")
     if (app.get().theme === "system") app.set({ dark: systemDark() });
   });
 
-let gpuPromise: Promise<GpuInfo> | null = null;
-
-export function gpuDevice(): Promise<GpuInfo> {
-  gpuPromise ??= requestDevice();
-  return gpuPromise;
-}
-
-async function checkGpu() {
-  try {
-    const info = await gpuDevice();
-    info.device.lost.then((l) => {
-      gpuPromise = null;
-      app.set({ gpu: { status: "unavailable", adapter: info.adapterName, message: `The GPU device was lost (${l.message || l.reason}). Reload the page to try again.` } });
-    });
-    app.set({
-      gpu: info.software
-        ? { status: "software", adapter: info.adapterName, message: "WebGPU runs on a software renderer here. Simulations will work but will be very slow." }
-        : { status: "ready", adapter: info.adapterName, message: "" },
-    });
-  } catch (e) {
-    app.set({
-      gpu: {
-        status: "unavailable",
-        adapter: "",
-        message: `${e instanceof Error ? e.message : String(e)} Use a current Chrome, Edge or Safari 26+ to run simulations. Saved results can still be viewed.`,
-      },
-    });
-  }
-}
-
 // ---------------------------------------------------------------------------------------------
 // Designs and geometry
 // ---------------------------------------------------------------------------------------------
@@ -240,7 +196,7 @@ export async function refreshLists() {
   const [designs, runs] = await Promise.all([getAll("designs"), getAll("runs")]);
   designs.sort((a, b) => b.updatedAt - a.updatedAt);
   runs.sort((a, b) => b.createdAt - a.createdAt);
-  app.set({ designs, runs });
+  app.set({ designs, runs: runs.filter(run => run.result.engine === "openfoam") });
 }
 
 const pause = () => new Promise((r) => setTimeout(r, 30));
@@ -404,7 +360,6 @@ function upsertGroup(id: string, patch: Partial<PartGroup>, resetConfirm = true)
 /** Switching groups does not change the geometry itself, so the checklist stays confirmed. */
 export const setGroupEnabled = (id: string, enabled: boolean) => upsertGroup(id, { enabled }, false);
 export const renameGroup = (id: string, name: string) => upsertGroup(id, { name: name.trim() || "Group" }, false);
-export const setGroupDetail = (id: string, detail: "auto" | "always" | "off") => upsertGroup(id, { detail }, false);
 
 /** Switch on exactly one group among `ids` (e.g. one rear-wing version) and switch the others off. */
 export function soloGroup(id: string, ids: string[]) {
@@ -581,7 +536,6 @@ export async function connectOpenFoam(value: string | null) {
 }
 
 export async function init() {
-  checkGpu();
   checkServer();
   try {
     await refreshLists();

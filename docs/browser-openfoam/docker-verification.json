@@ -1,0 +1,103 @@
+{
+  "date": "2026-10-14",
+  "image": "markthebault/easy-cfd-backend:latest",
+  "digest": "sha256:a95dd4bb9f6d51394222cc070775db5e5795a156da4a5462f90c71b49927e1ed",
+  "sourceRevision": "c21dae78635eee4d9245ea32807bd8dd549b0d83",
+  "platforms": [
+    "linux/amd64",
+    "linux/arm64"
+  ],
+  "runtime": "bundled OpenCFD v2412 and Open MPI inside the API container",
+  "githubBuild": "https://github.com/markthebault/easy-cfd/actions/runs/38531850764",
+  "checks": {
+    "webUnitTests": 64,
+    "backendTests": 137,
+    "remoteConnectionBrowserTests": 3,
+    "nativeGithubMpiTests": "passed",
+    "noDockerSocket": "passed",
+    "noDockerCli": "passed",
+    "onlySavedDataMounted": "passed",
+    "privilegedMode": false
+  },
+  "linuxSimulation": {
+    "image": "markthebault/easy-cfd-backend:sha-c21dae78635eee4d9245ea32807bd8dd549b0d83-amd64",
+    "authenticatedApi": "passed",
+    "rejectsBadTokens": "passed",
+    "cors": "passed",
+    "persistentToken": "passed",
+    "apiOnly": "passed",
+    "solverReady": true,
+    "noDockerSocket": "passed",
+    "noDockerCli": "passed",
+    "mpiSimulation": {
+      "cells": 41417,
+      "iterations": 300,
+      "cd": 0.5169306731036,
+      "cl": 0.606611859968,
+      "ranks": 4,
+      "elapsedSeconds": 29.196,
+      "mpiLog": "passed",
+      "wing": false,
+      "mpiCpuAllocation": "passed",
+      "mpiCancellation": "passed",
+      "resultAfterRestart": "passed"
+    }
+  },
+  "macSimulation": {
+    "image": "markthebault/easy-cfd-backend:sha-c21dae78635eee4d9245ea32807bd8dd549b0d83-arm64",
+    "authenticatedApi": "passed",
+    "rejectsBadTokens": "passed",
+    "cors": "passed",
+    "persistentToken": "passed",
+    "apiOnly": "passed",
+    "solverReady": true,
+    "noDockerSocket": "passed",
+    "noDockerCli": "passed",
+    "mpiSimulation": {
+      "cells": 141345,
+      "iterations": 300,
+      "cd": 0.6262212630867999,
+      "cl": 0.38875515948600003,
+      "ranks": 4,
+      "elapsedSeconds": 111.334,
+      "mpiLog": "passed",
+      "wing": true,
+      "mpiCpuAllocation": "passed",
+      "mpiCancellation": "passed",
+      "resultAfterRestart": "passed"
+    },
+    "dataStorage": "temporary Docker-managed volume"
+  },
+  "foregroundCommand": {
+    "command": "docker run -it --rm --pull=always",
+    "platforms": [
+      "linux/amd64",
+      "linux/arm64"
+    ],
+    "allInterfacePortBinding": "passed",
+    "automaticDataDirectory": "passed",
+    "ctrlCShutdown": "passed",
+    "automaticRemoval": "passed",
+    "tokenAfterRecreation": "passed",
+    "publishedLatestImage": "passed",
+    "tailscaleClipboard": "passed"
+  },
+  "browser": {
+    "productionFrontend": "passed",
+    "nativeResultOpen": "passed",
+    "savedReopenWithApiBlocked": "passed",
+    "screenshot": "mpi-backend-results.png",
+    "sourceRevision": "c21dae78635eee4d9245ea32807bd8dd549b0d83",
+    "publishedImageResult": {
+      "cells": 41417,
+      "iterations": 300,
+      "cd": 0.5169553046174,
+      "cl": 0.6066451176266,
+      "ranks": 4,
+      "elapsedSeconds": 28.189,
+      "mpiLog": "passed",
+      "wing": false,
+      "resultAfterRestart": "passed"
+    }
+  }
+}

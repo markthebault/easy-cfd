@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, Columns2, Copy, FilePlus2, Pencil, RefreshCw, Trash2, X } from "lucide-react";
 import { listRuns, type ServerRun } from "../engine/openfoam";
+import { engineLabel } from "../engine/features";
 import { importedRunIds, importServerRun } from "../store/openfoamRuns";
 import { useStore } from "../store/store";
 import { app, deleteDesign, duplicateDesign, newDesign, openDesign, renameDesign } from "../store/app";
@@ -155,7 +156,7 @@ export function Library() {
                     </button>
                     <button className="lib-main" onClick={() => openRun(r.id)} data-testid="run-item">
                       <b>{r.designName}</b>
-                      <span><span className="engine-tag">{r.result.engine === "openfoam" ? "OpenFOAM" : "WebGPU"}</span> {conditionsLine(r.settings)}{groupsLine(r.geometry) ? ` · ${groupsLine(r.geometry)}` : ""}</span>
+                      <span><span className="engine-tag">{engineLabel(r.result)}</span> {conditionsLine(r.settings)}{groupsLine(r.geometry) ? ` · ${groupsLine(r.geometry)}` : ""}</span>
                       <span className="lib-nums">Cd {r.result.cd.toFixed(3)} · Cl {r.result.cl.toFixed(3)} · {v.label} {v.kg.toFixed(1)} kg · {fmtDate(r.createdAt)}</span>
                     </button>
                     <div className="lib-actions">

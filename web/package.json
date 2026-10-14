@@ -6,10 +6,11 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build && cp VALIDATION.md dist/",
-    "build:webgpu": "tsc -b && vite build --outDir dist-webgpu && cp VALIDATION.md dist-webgpu/",
+    "build:static": "tsc -b && vite build --outDir dist-static && cp VALIDATION.md dist-static/",
+    "build:wasm": "bash ../wasm/build.sh",
     "preview": "vite preview --host 127.0.0.1",
     "test": "node --test tests/*.test.mjs",
-    "validate": "node validation/run-validation.mjs",
+    "validate": "node ../scripts/test-browser-openfoam.mjs",
     "test:e2e": "playwright test"
   },
   "dependencies": {
@@ -24,7 +25,6 @@
     "@types/react-dom": "^19.0.0",
     "@types/three": "^0.186.0",
     "@vitejs/plugin-react": "^4.3.4",
-    "@webgpu/types": "^0.1.74",
     "typescript": "~5.7.3",
     "vite": "^6.2.0"
   }

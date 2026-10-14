@@ -6,25 +6,19 @@ import { backendAvailable } from "../engine/connection";
 import type { Part } from "../geometry/model";
 import type { SurfaceSample, VizField } from "../solver/extract";
 import { cancelOpenFoamRun, startOpenFoamRun } from "./openfoamRuns";
-import { recordFlowAnimation, ANIMATION_POINTS, type FlowAnimation } from "../solver/animation";
-import { runSimulation } from "../solver/run";
-import { resolvePreset } from "../solver/types";
+import type { FlowAnimation } from "../solver/animation";
+import { runBrowserOpenFoam } from "../engine/wasm";
 import type { VehicleWeight } from "../solver/types";
 import { estimateTyreLoads, weightInputError } from "../solver/tyreLoads";
 import { resolvedAxles } from "../solver/aero";
 import { assessedResult, detectRunAxles } from "./axleAnalysis";
-import { CaseWorker } from "../workers/caseClient";
-import { app, gpuDevice, partsBounds, refreshLists, setSettings, toast, vizForCar, type LiveState } from "./app";
+import { app, partsBounds, refreshLists, setSettings, toast, vizForCar, type LiveState } from "./app";
 import { decodeField, decodeSurface, encodeField, encodeSurface } from "./codec";
 import { cacheAnimation, restoreAnimation } from "./animationCache";
 import { collectFiles, get, newId, put, remove, removeAnimationFrames, sha256 } from "./db";
-import { recordRun } from "./estimate";
 import { buildDesignParts, partKey, rawFromSource, summarize, toSolverParts, type RawPart } from "./geometry";
 import { animationRanges, computeRanges, mergeRanges } from "./ranges";
 import type { LoadedRun, RunDoc } from "./types";
-
-const LIVE_POINTS = 260_000;
-const FINAL_POINTS = 900_000;
 
 let controller: AbortController | null = null;
 
@@ -73,7 +67,7 @@ export async function startRun() {
   let design = s.design;
   if (!design || !s.report || s.report.errors.length || !s.confirmed) return;
   if (!design.settings.axles || design.settings.axles.source === "wheels") {
-    const axles = resolvedAxles(design.settings.axles,toSolverParts(s.parts, s.groups));
+    const axles = resolvedAxles(design.settings.axles,toSolverParts(s.parts));
     if (JSON.stringify(axles) !== JSON.stringify(design.settings.axles)) {
       setSettings({axles});
       design = {...design, settings:{...design.settings,axles}};
@@ -85,116 +79,46 @@ export async function startRun() {
     if (!backendAvailable()) { toast(OPENFOAM_COMING_SOON, "error"); return; }
     return startOpenFoamRun();
   }
-  if (s.gpu.status === "unavailable" || s.gpu.status === "checking") {
-    toast(s.gpu.message || "WebGPU is not ready yet.", "error");
-    return;
-  }
-  const settings = { ...design.settings };
-  const enabled = s.parts.filter((p) => p.enabled);
-  const solverParts = toSolverParts(s.parts, s.groups);
+  const settings = { ...design.settings, engine: "wasm" as const };
+  const enabled = s.parts.filter((p) => p.enabled && s.groups.find(g=>g.id===p.group)?.enabled !== false);
+  const solverParts = toSolverParts(s.parts);
   const geometry = summarize(s.parts, s.report, s.groups);
-  const { low, high } = partsBounds(s.parts);
+  const { low, high } = partsBounds(enabled);
   controller = new AbortController();
   const signal = controller.signal;
   app.set({
-    view: "live",
-    viz: vizForCar(s.viz, low, high),
+    view: "live", viz: vizForCar(s.viz, low, high),
     live: {
-      stage: "preparing", fraction: 0, time: 0, targetTime: 1, passTime: 1, steps: 0, elapsed: 0, cells: 0, history: [],
+      engine: "openfoam", runtime: "wasm", stage: "preparing", serverStage: "Loading browser OpenFOAM", fraction: 0,
+      elapsed: 0, cells: 0, history: [],
       field: null, ranges: null, parts: enabled, settings, designName: design.name, snapshots: 0, error: null,
     },
   });
-  const worker = new CaseWorker();
-  const started = performance.now();
-  signal.addEventListener("abort",()=>worker.dispose(),{once:true});
-  let releaseLease:(()=>Promise<void>)|undefined;
+  let releaseLease: (()=>Promise<void>) | undefined;
   try {
-    releaseLease=await computeLease(signal,()=>controller?.abort(),s.server.status === "ready" || s.server.status === "busy");
-    const { device, adapterName } = await gpuDevice();
-    if (signal.aborted) throw new DOMException("Simulation cancelled", "AbortError");
-    settings.gpu_buffer_limit=Math.min(device.limits.maxBufferSize,device.limits.maxStorageBufferBindingSize);
-    const setup = await worker.prepare(solverParts, settings);
-    patchLive({ passTime: setup.length / setup.freestream });
-    if (signal.aborted) throw new DOMException("Simulation cancelled", "AbortError");
-    let snapBusy = false;
-    let lastUi = 0;
-    let solveStart = 0;
-    const { result, solver } = await runSimulation(device, solverParts, settings, {
-      setup,
-      deadline: started+1000*(settings.max_seconds ?? (settings.quality === "fast"?300:600)),
-      prepareLevel: (lv) => worker.prepare(solverParts, lv),
+    releaseLease=await computeLease(signal);
+    const {result,field,surface}=await runBrowserOpenFoam(solverParts,settings,{
       signal,
-      snapshotSeconds: 2.5,
-      onProgress: (p) => {
-        if (p.stage === "solving" && !solveStart) solveStart = performance.now();
-        const now = performance.now();
-        if (now - lastUi < 120 && p.stage === "solving") return;
-        lastUi = now;
-        patchLive({
-          stage: p.stage, fraction: p.fraction, time: p.time, targetTime: p.targetTime, steps: p.steps,
-          elapsed: (now - started) / 1000, cells: p.cells, history: p.history.slice(),
-        });
-      },
-      onSnapshot: async (live) => {
-        if (snapBusy) return;
-        snapBusy = true;
-        const fields = await live.readFields();
-        worker
-          .extract(fields, live.c, LIVE_POINTS, false)
-          .then(({ field }) => {
-            const cur = app.get().live;
-            if (!cur || signal.aborted) return;
-            patchLive({ field, ranges: computeRanges(field, null, field.freestream, settings.density), snapshots: cur.snapshots + 1 });
-          })
-          .catch(() => {})
-          .finally(() => (snapBusy = false));
+      onProgress:p=>patchLive({stage:p.stage,serverStage:p.label,iteration:p.iteration,iterations:p.iterations,
+        fraction:p.iterations?p.iteration/p.iterations:0,
+        elapsed:p.elapsed,cells:p.cells,history:p.history}),
+      onSnapshot:field=>{
+        const live=app.get().live;
+        if(live && !signal.aborted)patchLive({field,ranges:computeRanges(field,null,field.freestream,settings.density),snapshots:live.snapshots+1});
       },
     });
-    const solveSeconds = (performance.now() - (solveStart || started)) / 1000;
-    patchLive({ stage: "saving", fraction: 1 });
-    let animation: FlowAnimation | undefined;
-    let field: VizField, surface: SurfaceSample[] | null;
-    try {
-      const fields = await solver.readFields(true);
-      ({ field, surface } = await worker.extract(fields, solver.c, FINAL_POINTS, true));
-      if (settings.flow_animation) {
-        patchLive({ stage: "finishing", fraction: 0, serverStage: "Recording flow animation" });
-        animation = await recordFlowAnimation(solver, async () => {
-          const f = await solver.readFields();
-          return (await worker.extract(f, solver.c, ANIMATION_POINTS, false)).field;
-        }, { signal, deadline: started + 1000 * (settings.max_seconds ?? (settings.quality === "fast" ? 300 : 600)),
-          onProgress: fraction => patchLive({ fraction, serverStage: "Recording flow animation" }) });
-      }
-    } finally { solver.destroy(); }
-
-    const preset = resolvePreset(settings);
-    if (!result.levels) recordRun(result.cells, result.steps, solveSeconds, preset.passes, preset.cellsPerLength * Math.sqrt(result.detail?.ratio ?? 1));
-    const doc: RunDoc = {
-      id: newId("r"),
-      designId: design.id,
-      designName: design.name,
-      createdAt: Date.now(),
-      settings,
-      source: design.source,
-      importOptions: design.importOptions,
-      overrides: design.overrides,
-      groups: design.groups,
-      geometry,
-      result,
-      adapter: adapterName,
-      hasField: true,
-    };
+    if(signal.aborted)throw new DOMException("Simulation cancelled","AbortError");
+    const doc:RunDoc={id:newId("r"),designId:design.id,designName:design.name,createdAt:Date.now(),settings,
+      source:design.source,importOptions:design.importOptions,overrides:design.overrides,groups:design.groups,geometry,result,
+      adapter:"OpenFOAM v2512 · WebAssembly · serial SIMPLE / k–ω SST · double precision",hasField:true};
     if(result.provenance)result.provenance.geometry=await sha256(new TextEncoder().encode(JSON.stringify([doc.source,doc.importOptions,doc.overrides,doc.geometry])).buffer);
-    await saveAndShow(doc, enabled, field, surface, animation);
-  } catch (e) {
-    if (signal.aborted || (e instanceof DOMException && e.name === "AbortError")) {
-      app.set({ view: "setup", live: null, step: "run" });
-      toast("Simulation cancelled.");
-    } else patchLive({ error: e instanceof Error ? e.message : String(e) });
+    await saveAndShow(doc,enabled,field,surface);
+  } catch(e) {
+    if(signal.aborted || (e instanceof DOMException && e.name === "AbortError")){
+      app.set({view:"setup",live:null,step:"run"});toast("Simulation cancelled.");
+    }else patchLive({error:e instanceof Error?e.message:String(e)});
   } finally {
-    worker.dispose();
-    await releaseLease?.();
-    controller = null;
+    await releaseLease?.();controller=null;
   }
 }
 
@@ -227,6 +151,7 @@ async function partsFor(doc: RunDoc): Promise<Part[]> {
 export async function loadRun(id: string): Promise<LoadedRun> {
   let doc = await get("runs", id);
   if (!doc) throw new Error("That run no longer exists.");
+  if (doc.result.engine !== "openfoam") throw new Error("This result uses a retired solver. Open its design and run it again with OpenFOAM.");
   const fdoc = await get("fields", id);
   let parts: Part[] = [];
   let notice: string | undefined;
@@ -329,7 +254,7 @@ export function exportJSON(doc: RunDoc) {
 export function exportCSV(doc: RunDoc) {
   const analysis = assessedResult(doc);
   const loads = estimateTyreLoads(analysis.balance, doc.tyreLoadAssessment?.inputs ?? doc.settings);
-  const rows = [`${doc.result.engine === "openfoam" ? "iteration" : "pseudo_time_s"},step,cd,cl,cs,pitch_Nm,front_lift_N,rear_lift_N,front_static_N,rear_static_N,front_tyre_total_N,rear_tyre_total_N`, ...analysis.history.map((h) => {
+  const rows = [`iteration,step,cd,cl,cs,pitch_Nm,front_lift_N,rear_lift_N,front_static_N,rear_static_N,front_tyre_total_N,rear_tyre_total_N`, ...analysis.history.map((h) => {
     const front = loads && h.frontLift !== undefined ? loads.front.staticN-h.frontLift : "";
     const rear = loads && h.rearLift !== undefined ? loads.rear.staticN-h.rearLift : "";
     return `${h.time},${h.step},${h.cd},${h.cl},${h.cs},${h.pitch ?? ""},${h.frontLift ?? ""},${h.rearLift ?? ""},${loads?.front.staticN ?? ""},${loads?.rear.staticN ?? ""},${front},${rear}`;

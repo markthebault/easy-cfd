@@ -9,13 +9,13 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 let server, of, types;
 
 before(async () => {
-  server = await createServer({ root, define:{"import.meta.env.VITE_ENABLE_OPENFOAM":JSON.stringify("true")}, server: { middlewareMode: true, hmr: false }, logLevel: "error", appType: "custom" });
+  server = await createServer({ optimizeDeps: {noDiscovery: true, include: []}, root, define:{"import.meta.env.VITE_ENABLE_OPENFOAM":JSON.stringify("true")}, server: { middlewareMode: true, hmr: false }, logLevel: "error", appType: "custom" });
   [of, types] = await Promise.all([server.ssrLoadModule("/src/engine/openfoam.ts"), server.ssrLoadModule("/src/solver/types.ts")]);
 });
 after(async () => server?.close());
 
-test("UI settings map to the server's settings; Custom quality becomes Medium", () => {
-  const s = { ...types.DEFAULT_SETTINGS, quality: "custom", speed_kmh: 130, yaw_deg: 5, simulation_box: { x_min: -10, x_max: 20, y_min: -5, y_max: 5, z_max: 6 } };
+test("UI conditions and Medium quality map to the server contract", () => {
+  const s = { ...types.DEFAULT_SETTINGS, quality: "medium", speed_kmh: 130, yaw_deg: 5, simulation_box: { x_min: -10, x_max: 20, y_min: -5, y_max: 5, z_max: 6 } };
   const out = of.serverSettings(s);
   assert.equal(out.quality, "medium");
   assert.equal(out.speed_kmh, 130);

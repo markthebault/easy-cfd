@@ -1,13 +1,22 @@
 import type { Settings } from "../solver/types";
 import { backendAvailable, NATIVE_OPENFOAM_ENABLED } from "./connection";
+import { isWasmQuality, WASM_PRESETS } from "./wasmPresets";
 
 /** Build-time opt-in for automatic discovery of a native, same-origin backend. */
 export const OPENFOAM_ENABLED = NATIVE_OPENFOAM_ENABLED;
 export const OPENFOAM_COMING_SOON = "Connect a remote OpenFOAM server below to enable this engine.";
 
-/** Reopened OpenFOAM designs fall back to WebGPU when no backend is configured. */
+/** Keep browser settings bounded; use a connected backend for advanced runs. */
 export function availableSettings(settings: Settings): Settings {
-  // A configured remote server is independent of the native build flag.
-  if (backendAvailable() || settings.engine !== "openfoam") return settings;
-  return { ...settings, engine: "webgpu", profile: "regular", quality: "medium", max_seconds: 600, flow_detail: "standard" };
+  if (settings.engine === "openfoam" && backendAvailable()) return settings;
+  const fallback=settings.engine === "openfoam";
+  const quality=!fallback && isWasmQuality(settings.quality) ? settings.quality : "fast";
+  const preset=WASM_PRESETS[quality];
+  return { ...settings, engine: "wasm", profile: quality === "fast" ? "basic" : "regular", quality,
+    max_seconds: Math.min(settings.max_seconds ?? preset.seconds,preset.seconds),
+    flow_animation: false, flow_detail: "standard" };
+}
+
+export function engineLabel(result: {engine?:string;openfoam?:{runtime?:string}}):string {
+  return result.openfoam?.runtime === "wasm" ? "OpenFOAM · Browser" : "OpenFOAM";
 }

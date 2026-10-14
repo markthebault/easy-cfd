@@ -21,20 +21,13 @@ test("part groups: import, rename, solo, run", async ({ page }) => {
   await page.getByTestId("group-Wing B").getByRole("button", { name: "Only this" }).click();
   await expect(page.getByTestId("group-rear_wing_A_12deg")).toHaveClass(/off/);
   await expect(page.locator(".group-title", { hasText: "Parts and groups" })).toContainText("6 parts simulated");
-  await expect(page.getByLabel("Detail cells for group Wing B")).toHaveValue("auto");
+  await expect(page.getByLabel("Detail cells for group Wing B")).toHaveCount(0);
 
   const cont = page.getByRole("button", { name: "Continue to conditions" });
   await page.getByText("I checked size, orientation, wheels and clearance.").click();
   await cont.click();
   await page.getByRole("button", { name: "Continue to run" }).click();
-  await page.getByText("Expert WebGPU settings",{exact:true}).click();
-  await page.getByRole("radio", { name: /Custom/ }).click();
-  const sliders = page.locator(".step.open input[type=range]");
-  await sliders.nth(0).fill("40");
-  await sliders.nth(1).fill("2");
-  await sliders.nth(2).fill("2");
-  // Both wing versions shape the grid (same cells for every variant), so both get detail cells.
-  await expect(page.getByTestId("detail-line")).toContainText("2× finer around 2 parts");
+  await page.getByTestId("wasm-quality-fast").click();
   await page.getByTestId("run").click();
   await expect(page.getByTestId("card-cd")).toBeVisible({ timeout: 240_000 });
   await expect(page.getByTestId("run-groups")).toHaveText("Groups: Wing B");

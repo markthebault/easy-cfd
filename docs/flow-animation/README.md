@@ -1,3 +1,5 @@
+> Historical specification/evidence: the browser numerical solver described here has been removed. Current runs use OpenFOAM WASM or the native MPI backend. See [the current guide](../../TECHNICAL_GUIDE.md).
+
 # Flow animation validation
 
 Validated on 6 October 2026 using both actual solver paths.

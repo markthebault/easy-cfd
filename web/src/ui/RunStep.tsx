@@ -1,544 +1,106 @@
-// Step 3: mesh quality and the Run button.
-
-import { useMemo } from "react";
+// Lightweight browser OpenFOAM and the unchanged native/remote server analysis levels.
 import { Cpu, Play, Server, TriangleAlert, Zap } from "lucide-react";
 import type { ServerInfo } from "../engine/openfoam";
 import { OPENFOAM_ENABLED, OPENFOAM_COMING_SOON } from "../engine/features";
 import { backendAvailable, getRemoteConnection } from "../engine/connection";
+import { WASM_PRESETS, wasmPreset, type WasmQuality } from "../engine/wasmPresets";
 import { OpenFoamConnection } from "./OpenFoamConnection";
-import { partShapes } from "../solver/detail";
-import { boundsOf } from "../solver/setup";
-import {
-  detailRatio,
-  PRESETS,
-  type Quality,
-  type Settings,
-} from "../solver/types";
+import type { Settings } from "../solver/types";
 import { useStore } from "../store/store";
 import { app, setSettings } from "../store/app";
-import { estimate } from "../store/estimate";
-import { toSolverParts } from "../store/geometry";
 import { startRun } from "../store/runs";
 import { weightInputError } from "../solver/tyreLoads";
-import { Slider, Toggle } from "./controls";
+import { Toggle } from "./controls";
 import { boundaryLine, fmt, fmtCells, fmtDuration } from "./format";
 
-const QUALITIES: { q: Quality; label: string; blurb: string }[] = [
-  { q: "fast", label: "Basic", blurb: "Check the setup" },
-  { q: "medium", label: "Regular", blurb: "Compare designs" },
-  { q: "precise", label: "Precise", blurb: "Two-grid sensitivity" },
-  { q: "custom", label: "Custom", blurb: "Your own mesh" },
-];
-
-function detailWhere(zones: number, boxes: number, first: string): string {
-  const parts = zones - boxes;
-  const p =
-    parts === 1 && !boxes
-      ? `around ${first}`
-      : parts
-        ? `around ${parts} part${parts > 1 ? "s" : ""}`
-        : "";
-  const b = boxes ? `in ${boxes} detail box${boxes > 1 ? "es" : ""}` : "";
-  return [p, b].filter(Boolean).join(" and ");
-}
-
 export function RunStep() {
-  const design = useStore(app, (s) => s.design)!;
-  const report = useStore(app, (s) => s.report);
-  const gpu = useStore(app, (s) => s.gpu);
-  const server = useStore(app, (s) => s.server);
-  const confirmed = useStore(app, (s) => s.confirmed);
-  const parts = useStore(app, (s) => s.parts);
-  const groups = useStore(app, (s) => s.groups);
-  const s = design.settings;
-  const weightError = weightInputError(s);
-  // The grid is shaped by every part whose own switch is on (also those in groups switched off).
-  const { shapes, low, high } = useMemo(() => {
-    const solver = toSolverParts(parts, groups);
-    return solver.length
-      ? { shapes: partShapes(solver), ...boundsOf(solver) }
-      : { shapes: [], low: [0, 0, 0] as const, high: [1, 1, 1] as const };
-  }, [parts, groups]);
-  const est = (settings: Settings) =>
-    estimate([...low], [...high], settings, shapes);
-  const current = est(s);
-  const resourceBlocked =
-    s.engine !== "openfoam" && !!current && current.cells > 2_500_000;
-  const blocked =
-    !report || report.errors.length > 0 || !confirmed || resourceBlocked;
-  const noGpu = gpu.status === "unavailable" || gpu.status === "checking";
-  const openfoam = backendAvailable() && s.engine === "openfoam";
-  const fineFlow = openfoam && !!s.flow_animation && s.flow_detail === "fine";
-  const qualityLimit = (q: Quality) => openfoam && q === "medium" ? 1200 : (q === "fast" ? 300 : 600) * (openfoam && s.flow_animation ? 2 : 1);
-  const requestedLimit = s.max_seconds ?? (!openfoam ? qualityLimit(s.quality) : fineFlow ? 43200 : s.profile === "basic" ? qualityLimit("fast") : s.profile === "regular" ? qualityLimit("medium") : s.profile === "advanced2" ? 43200 : !s.profile && s.quality === "medium" ? 1200 : 10800);
-  const mediumLevel = openfoam && !fineFlow && (!s.profile || s.profile === "regular") && (s.quality === "medium" || s.quality === "custom");
-  const timeLimit = mediumLevel ? Math.min(requestedLimit,1200) : requestedLimit;
-  const serverReady = backendAvailable() && server.status === "ready";
-  const limitCeiling = openfoam
-    ? !fineFlow && (s.profile === "regular" || (!s.profile && s.quality === "medium"))
-      ? 1200
-      : s.profile === "basic"
-      ? qualityLimit("fast")
-      : s.profile === "advanced1"
-      ? 10800
-      : 43200
-    : s.quality === "fast"
-      ? 300
-      : 600;
-
-  return (
-    <div className="step-body">
-      <div
-        className="engine-grid"
-        role="radiogroup"
-        aria-label="Solver engine"
-      >
-        <button
-          role="radio"
-          aria-checked={!openfoam}
-          className={`engine-card ${!openfoam ? "on" : ""}`}
-          data-testid="engine-webgpu"
-          onClick={() =>
-            setSettings({
-              engine: "webgpu",
-              profile: "regular",
-              quality: "medium",
-              max_seconds: 600,
-              flow_detail: "standard",
-            })
-          }
-        >
-          <span className="q-label"><Zap size={15} /> WebGPU</span>
-          <span className="q-blurb">On this device</span>
-          <span className="q-meta">Explore and compare designs</span>
-        </button>
-        <button
-          role="radio"
-          aria-checked={openfoam}
-          className={`engine-card ${openfoam ? "on" : ""}`}
-          disabled={!serverReady}
-          aria-describedby={!serverReady ? "openfoam-availability" : undefined}
-          data-testid="engine-openfoam"
-          onClick={() =>
-            setSettings({
-              engine: "openfoam",
-              profile: "regular",
-              quality: "medium",
-              max_seconds: 1200,
-              flow_detail: "standard",
-            })
-          }
-        >
-          <span className="q-label"><Server size={15} /> OpenFOAM</span>
-          <span className="q-blurb">{getRemoteConnection() ? "On your remote server" : OPENFOAM_ENABLED ? "On your native server" : "Connect your server"}</span>
-          <span className="q-meta">Advanced analysis</span>
-        </button>
-      </div>
-      {!serverReady && (
-        <p id="openfoam-availability" className="field-hint" data-testid="openfoam-availability">
-          {!backendAvailable() ? OPENFOAM_COMING_SOON : server.status === "checking"
-            ? "Connecting to the OpenFOAM server…"
-            : server.error || server.info?.message || "OpenFOAM is unavailable. Connect a remote server or start the native server with just run-openfoam."}
-        </p>
-      )}
-      <OpenFoamConnection />
-      {openfoam && <OpenFoamLevels settings={s} />}
-      {openfoam && s.profile?.startsWith("advanced") && (
-        <div className="group">
-          <span className="field-label">Local refinement</span>
-          {groups
-            .filter((g) => g.enabled)
-            .map((g) => {
-              const selected =
-                s.refine_groups ??
-                groups
-                  .filter((x) => x.enabled && x.id !== "g:body")
-                  .map((x) => x.id);
-              return (
-                <label className="row gap-s small" key={g.id}>
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(g.id)}
-                    onChange={(e) =>
-                      setSettings({
-                        refine_groups: e.target.checked
-                          ? [...selected, g.id]
-                          : selected.filter((id) => id !== g.id),
-                      })
-                    }
-                  />
-                  {g.name}
-                </label>
-              );
-            })}
-          <label className="row gap-s small">
-            <input
-              type="checkbox"
-              checked={s.refine_underfloor !== false}
-              onChange={(e) =>
-                setSettings({ refine_underfloor: e.target.checked })
-              }
-            />
-            Underfloor and road gap
-          </label>
-          <p className="field-hint">
-            Selected surfaces receive extra local cells. The actual mesh must
-            pass its cell ceiling and layer checks; requested refinement is
-            never silently reduced.
-          </p>
-        </div>
-      )}
-      {resourceBlocked && (
-        <p className="inline-error">
-          This grid exceeds the 2.5 M cell ceiling. Reduce the cells or detail
-          refinement.
-        </p>
-      )}
-      <details className="group run-time-settings"><summary>Time limit</summary>
-      <label className="field-label" htmlFor="elapsed-limit">
-        Whole-job time limit (seconds)
-      </label>
-      <input
-        id="elapsed-limit"
-        type="number"
-        min="30"
-        max={limitCeiling}
-        value={
-          timeLimit
-        }
-        onChange={(e) =>
-          setSettings({
-            max_seconds: Math.max(
-              30,
-              Math.min(limitCeiling, Number(e.target.value)),
-            ),
-          })
-        }
-      />
-      <p className="field-hint">
-        {!openfoam && "WebGPU limits: 2.5 million cells / 3 GiB. GPU limits are checked before preparing the grid. "}
-        Stop is available during preparation and solving.
-      </p>
-
-      </details>
-
-      {openfoam ? (
-        fineFlow ? <p className="field-hint">Detailed wake mesh · up to 2 million cells · 6 GiB. Fine cells surround the car and continue into its wake.</p> : s.profile?.startsWith("advanced") ? (
-          <p className="field-hint">
-            Keep Mac responsive · 2 MPI ranks / 2-CPU quota. Runtime not yet
-            benchmarked. All analysis views are included when their data are
-            available.
-          </p>
-        ) : (
-          <p className="field-hint">{s.quality === "medium" ? "Medium stops within 20 minutes, including preparation and any standard recording. Unfinished results are marked incomplete." : "Stop is available throughout the run."}</p>
-        )
-      ) : (
-        <div className="quality-grid" role="radiogroup" aria-label="Quality">
-          {QUALITIES.filter(({ q }) => q === "fast" || q === "medium").map(
-            ({ q, label, blurb }) => {
-              const e = est({ ...s, quality: q });
-              const on = s.quality === q;
-              const p =
-                q === "custom"
-                  ? { cellsPerLength: s.custom_cells, passes: s.custom_passes }
-                  : PRESETS[q];
-              return (
-                <button
-                  key={q}
-                  role="radio"
-                  aria-checked={on}
-                  className={`quality-card ${on ? "on" : ""}`}
-                  onClick={() =>
-                    setSettings({
-                      quality: q,
-                      profile:
-                        q === "fast"
-                          ? "basic"
-                          : q === "medium"
-                            ? "regular"
-                            : undefined,
-                      max_seconds: qualityLimit(q),
-                    })
-                  }
-                >
-                  <span className="q-label">
-                    {label}
-                    {q === "medium" && (
-                      <small className="badge">recommended</small>
-                    )}
-                  </span>
-                  <span className="q-blurb">
-                    {q === "fast"
-                      ? "Basic · check setup"
-                      : q === "medium"
-                        ? "Regular · compare designs"
-                        : blurb}
-                  </span>
-                  <span className="q-meta">
-                    {p.cellsPerLength} cells/length · {p.passes} passes
-                  </span>
-                  <span className="q-est">
-                    {e
-                      ? `${fmtCells(e.cells)} cells · ~${fmtDuration(e.seconds)}`
-                      : "–"}
-                  </span>
-                </button>
-              );
-            },
-          )}
-        </div>
-      )}
-
-      {!openfoam && (
-        <details
-          className="group"
-          open={
-            s.quality === "custom" || s.quality === "precise" ? true : undefined
-          }
-        >
-          <summary>Expert WebGPU settings</summary>
-          <div
-            className="quality-grid"
-            role="radiogroup"
-            aria-label="Expert quality"
-          >
-            {" "}
-            {QUALITIES.filter(({ q }) => q === "precise" || q === "custom").map(
-              ({ q, label, blurb }) => {
-                const e = est({ ...s, quality: q });
-                const on = s.quality === q;
-                const p =
-                  q === "custom"
-                    ? {
-                        cellsPerLength: s.custom_cells,
-                        passes: s.custom_passes,
-                      }
-                    : PRESETS[q];
-                return (
-                  <button
-                    key={q}
-                    role="radio"
-                    aria-checked={on}
-                    className={`quality-card ${on ? "on" : ""}`}
-                    onClick={() =>
-                      setSettings({
-                        quality: q,
-                        profile:
-                          q === "fast"
-                            ? "basic"
-                            : q === "medium"
-                              ? "regular"
-                              : undefined,
-                        max_seconds: qualityLimit(q),
-                      })
-                    }
-                  >
-                    <span className="q-label">{label}</span>
-                    <span className="q-blurb">
-                      {q === "fast"
-                        ? "Basic · check setup"
-                        : q === "medium"
-                          ? "Regular · compare designs"
-                          : blurb}
-                    </span>
-                    <span className="q-meta">
-                      {p.cellsPerLength} cells/length · {p.passes} passes
-                    </span>
-                    <span className="q-est">
-                      {e
-                        ? `${fmtCells(e.cells)} cells · ~${fmtDuration(e.seconds)}`
-                        : "–"}
-                    </span>
-                  </button>
-                );
-              },
-            )}
-          </div>
-          {s.quality === "custom" && (
-            <div className="group">
-              <Slider
-                label="Cells along the car length"
-                min={40}
-                max={220}
-                step={1}
-                value={s.custom_cells}
-                onChange={(v) => setSettings({ custom_cells: v })}
-              />
-              <Slider
-                label="Flow passes"
-                min={2}
-                max={40}
-                step={1}
-                value={s.custom_passes}
-                display={`${s.custom_passes} × car length`}
-                onChange={(v) => setSettings({ custom_passes: v })}
-              />
-              <small className="field-hint">
-                More passes let the wake settle; forces are averaged over the
-                last 30 %.
-              </small>
-            </div>
-          )}
-
-          {!openfoam && (
-            <div className="group">
-              <Slider
-                label="Detail cells around aero parts"
-                min={1}
-                max={4}
-                step={0.5}
-                value={detailRatio(s)}
-                display={
-                  detailRatio(s) <= 1 ? "off" : `${detailRatio(s)}× finer`
-                }
-                onChange={(v) => setSettings({ detail_ratio: v })}
-              />
-              <small className="field-hint">
-                Experimental, off by default. Finer cells around thin or small
-                parts and in detail boxes; 3–6× slower. On some cars they change
-                the body flow or make the run unstable, and wing downforce stays
-                under-predicted. See the validation notes.
-              </small>
-            </div>
-          )}
-        </details>
-      )}
-
-      {!openfoam && current && current.detail.zones.length > 0 && (
-        <p className="detail-line small" data-testid="detail-line">
-          Detail cells {current.detail.ratio}× finer{" "}
-          {detailWhere(
-            current.detail.zones.length,
-            s.detail_boxes?.length ?? 0,
-            current.detail.zones[0],
-          )}
-          {current.detail.ratio < current.detail.requested
-            ? ` (limited from ${current.detail.requested}× by the cell budget)`
-            : ""}
-          .<span className="muted"> Set per group in the car step.</span>
-        </p>
-      )}
-
-      <div className="group flow-record-option">
-        <Toggle checked={!!s.flow_animation} onChange={flow_animation => {
-          if(flow_animation && openfoam && s.flow_detail === "fine") {
-            setSettings({flow_animation,profile:undefined,quality:"medium",max_seconds:43200});
-            return;
-          }
-          const normalLimit = s.profile === "basic" ? 300 : 1200;
-          const standard = openfoam && (s.profile === "basic" || s.profile === "regular");
-          const from = normalLimit * (s.profile === "basic" && s.flow_animation ? 2 : 1), to = normalLimit * (s.profile === "basic" && flow_animation ? 2 : 1);
-          setSettings({flow_animation, ...(standard && (!s.max_seconds || s.max_seconds === from || s.max_seconds > to) ? {max_seconds:to} : {})});
-        }} label="Record flow animation" hint="Watch the coloured airflow and wake evolve after the run." />
-        {s.flow_animation && openfoam && <>
-          <label className="field-label" htmlFor="flow-detail">Recording detail</label>
-          <select id="flow-detail" value={s.flow_detail ?? "standard"} onChange={e=> {
-            const flow_detail = e.target.value as "standard" | "fine";
-            setSettings(flow_detail === "fine" ? {flow_detail, profile:undefined, quality:"medium", max_seconds:43200} : {flow_detail,profile:"advanced1",quality:"medium",max_seconds:10800});
-          }}>
-            <option value="standard">Standard airflow</option>
-            <option value="fine">Detailed wake</option>
-          </select>
-        </>}
-        {s.flow_animation && <p className="field-hint">{fineFlow
-          ? "Resolves wake motion with DDES and records about 192 frames in four detailed sections after the flow develops. This needs substantially more computation than a standard recording."
-          : `Records 48 frames over twelve car-lengths of airflow using ${openfoam ? "OpenFOAM" : "WebGPU"}.`}
-          {" "}Whole-job limit including recording: {fmtDuration(timeLimit)}. Play it in Explore airflow.</p>}
-      </div>
-
-      {openfoam ? (
-        !fineFlow && !s.profile?.startsWith("advanced") && (
-          <OpenFoamSummary quality={s.quality} info={server.info} />
-        )
-      ) : (
-        <div className="run-summary">
-          <div>
-            <span className="run-big">
-              {current ? fmtCells(current.cells) : "–"}
-            </span>
-            <span className="run-small">
-              cells{current ? ` · ${current.grid.join(" × ")}` : ""}
-            </span>
-          </div>
-          <div>
-            <span className="run-big">
-              ~{current ? fmtDuration(current.seconds) : "–"}
-            </span>
-            <span className="run-small">
-              {current?.calibrated
-                ? "estimate from your last runs"
-                : "rough estimate, improves after a run"}
-            </span>
-          </div>
-        </div>
-      )}
-
-      {openfoam ? (
-        <div className={`gpu-line ${serverReady ? "ready" : "unavailable"}`}>
-          {serverReady ? (
-            <>
-              <Server size={15} />{" "}
-              <span>
-                OpenFOAM server · {server.info?.cpus ?? "?"} CPUs ·{" "}
-                {fmt(server.info?.memory_gb ?? 0, 1)} GB memory
-              </span>
-            </>
-          ) : (
-            <>
-              <TriangleAlert size={15} />{" "}
-              <span>
-                {server.info?.message || "The OpenFOAM server is not ready."}
-              </span>
-            </>
-          )}
-        </div>
-      ) : (
-        <div className={`gpu-line ${gpu.status}`}>
-          {gpu.status === "ready" && (
-            <>
-              <Cpu size={15} />{" "}
-              <span>WebGPU · {gpu.adapter || "GPU ready"}</span>
-            </>
-          )}
-          {gpu.status === "checking" && (
-            <>
-              <Cpu size={15} /> <span>Checking WebGPU…</span>
-            </>
-          )}
-          {(gpu.status === "software" || gpu.status === "unavailable") && (
-            <>
-              <TriangleAlert size={15} /> <span>{gpu.message}</span>
-            </>
-          )}
-        </div>
-      )}
-
-      {weightError && <p className="inline-error" role="alert">{weightError} Edit the weight inputs in Conditions.</p>}
-      <button
-        className="btn run block"
-        disabled={blocked || !!weightError || (openfoam ? !serverReady : noGpu)}
-        onClick={() => startRun()}
-        data-testid="run"
-      >
-        <Play size={20} fill="currentColor" />{" "}
-        {openfoam ? "Run on OpenFOAM" : "Run simulation"}
+  const design=useStore(app,s=>s.design)!;
+  const report=useStore(app,s=>s.report),confirmed=useStore(app,s=>s.confirmed);
+  const server=useStore(app,s=>s.server),groups=useStore(app,s=>s.groups);
+  const s=design.settings,openfoam=s.engine === "openfoam",serverReady=backendAvailable() && server.status === "ready";
+  const blocked=!report || !!report.errors.length || !confirmed;
+  const weightError=weightInputError(s),wasmReady=typeof WebAssembly !== "undefined" && typeof Worker !== "undefined";
+  const browserPreset=wasmPreset(s.quality);
+  const fineFlow=openfoam && !!s.flow_animation && s.flow_detail === "fine";
+  const mediumLevel=openfoam && !fineFlow && (!s.profile || s.profile === "regular") && s.quality === "medium";
+  const limitCeiling=!openfoam ? browserPreset.seconds : mediumLevel ? 1200 : fineFlow || s.profile === "advanced2" ? 43200 : s.profile === "advanced1" ? 10800 : s.flow_animation ? 600 : 300;
+  const timeLimit=Math.min(s.max_seconds ?? limitCeiling,limitCeiling);
+  return <div className="step-body">
+    <div className="engine-grid" role="radiogroup" aria-label="Solver engine">
+      <button role="radio" aria-checked={!openfoam} className={`engine-card ${!openfoam?"on":""}`} data-testid="engine-wasm"
+        onClick={()=>setSettings({engine:"wasm",quality:"fast",profile:"basic",max_seconds:300,flow_animation:false,flow_detail:"standard"})}>
+        <span className="q-label"><Zap size={15}/> OpenFOAM · Browser</span>
+        <span className="q-blurb">On this device</span><span className="q-meta">Quick airflow · no server needed</span>
       </button>
-      <p className="small center" data-testid="run-boundaries">
-        {boundaryLine(s)}
-      </p>
-      {blocked && (
-        <small className="field-hint center">
-          Finish the car step and tick the check box first.
-        </small>
-      )}
-      {openfoam && !blocked && (
-        <small className="field-hint center">
-          The run continues on the server if you close this tab; open it later
-          from the run list.
-        </small>
-      )}
+      <button role="radio" aria-checked={openfoam} className={`engine-card ${openfoam?"on":""}`} disabled={!serverReady}
+        aria-describedby={!serverReady?"openfoam-availability":undefined} data-testid="engine-openfoam"
+        onClick={()=>setSettings({engine:"openfoam",profile:"regular",quality:"medium",max_seconds:1200,flow_detail:"standard"})}>
+        <span className="q-label"><Server size={15}/> OpenFOAM · Server</span>
+        <span className="q-blurb">{getRemoteConnection()?"On your remote server":OPENFOAM_ENABLED?"On your native server":"Connect your server"}</span>
+        <span className="q-meta">Advanced analysis and recordings</span>
+      </button>
     </div>
-  );
+    {!serverReady && <p id="openfoam-availability" className="field-hint" data-testid="openfoam-availability">
+      {!backendAvailable()?OPENFOAM_COMING_SOON:server.status === "checking"?"Connecting to the OpenFOAM server…":server.error || server.info?.message || "Connect a remote OpenFOAM server or start the native server with just run-openfoam."}
+    </p>}
+    <OpenFoamConnection/>
+    {openfoam?<OpenFoamLevels settings={s}/>:<>
+      <div className="quality-grid browser" role="radiogroup" aria-label="Quality">
+        {(Object.keys(WASM_PRESETS) as WasmQuality[]).map(q=>{const p=WASM_PRESETS[q];return <button key={q} role="radio" aria-checked={s.quality === q}
+          className={`quality-card ${s.quality === q?"on":""}`} data-testid={`wasm-quality-${q}`}
+          onClick={()=>setSettings({quality:q,profile:q === "fast"?"basic":"regular",max_seconds:p.seconds})}>
+          <span className="q-label">{p.label}</span><span className="q-blurb">{p.blurb}</span>
+          <span className="q-meta">{p.iterations} iterations · up to {fmtCells(p.maxCells)} cells</span>
+        </button>})}
+      </div>
+      <p className="field-hint">Computes the car mesh, pressure, velocity and forces in this browser. Detailed can take tens of minutes; use a connected server for advanced design comparisons.</p>
+    </>}
+    {openfoam && s.profile?.startsWith("advanced") && <div className="group">
+      <span className="field-label">Local refinement</span>
+      {groups.filter(g=>g.enabled).map(g=>{const selected=s.refine_groups ?? groups.filter(x=>x.enabled && x.id !== "g:body").map(x=>x.id);
+        return <label className="row gap-s small" key={g.id}><input type="checkbox" checked={selected.includes(g.id)}
+          onChange={e=>setSettings({refine_groups:e.target.checked?[...selected,g.id]:selected.filter(id=>id !== g.id)})}/>{g.name}</label>;})}
+      <label className="row gap-s small"><input type="checkbox" checked={s.refine_underfloor !== false}
+        onChange={e=>setSettings({refine_underfloor:e.target.checked})}/>Underfloor and road gap</label>
+      <p className="field-hint">Selected surfaces receive extra local cells. The mesh must pass its cell ceiling and layer checks.</p>
+    </div>}
+    <details className="group run-time-settings"><summary>Time limit</summary>
+      <label className="field-label" htmlFor="elapsed-limit">Whole-job time limit (seconds)</label>
+      <input id="elapsed-limit" type="number" min="30" max={limitCeiling} value={timeLimit}
+        onChange={e=>setSettings({max_seconds:Math.max(30,Math.min(limitCeiling,Number(e.target.value)))})}/>
+      <p className="field-hint">Stop is available during preparation and solving. {openfoam?"":"Browser runs use one CPU worker and a bounded mesh."}</p>
+    </details>
+    {openfoam && <div className="group flow-record-option">
+      <Toggle checked={!!s.flow_animation} onChange={flow_animation=>{
+        if(flow_animation && s.flow_detail === "fine"){setSettings({flow_animation,profile:undefined,quality:"medium",max_seconds:43200});return;}
+        const normalLimit=s.profile === "basic"?300:1200,standard=s.profile === "basic" || s.profile === "regular";
+        const from=normalLimit*(s.profile === "basic" && s.flow_animation?2:1),to=normalLimit*(s.profile === "basic" && flow_animation?2:1);
+        setSettings({flow_animation,...(standard && (!s.max_seconds || s.max_seconds === from || s.max_seconds>to)?{max_seconds:to}:{})});
+      }}
+        label="Record flow animation" hint="Watch the computed airflow and wake evolve after the run."/>
+      {s.flow_animation && <><label className="field-label" htmlFor="flow-detail">Recording detail</label>
+        <select id="flow-detail" value={s.flow_detail ?? "standard"} onChange={e=>{const flow_detail=e.target.value as "standard"|"fine";
+          setSettings(flow_detail === "fine"?{flow_detail,profile:undefined,quality:"medium",max_seconds:43200}:{flow_detail,profile:"advanced1",quality:"medium",max_seconds:10800});}}>
+          <option value="standard">Standard airflow</option><option value="fine">Detailed wake</option></select>
+        <p className="field-hint">{fineFlow?"DDES detailed wake recording on the server.":"Records 48 physical-time airflow frames on the server."}</p></>}
+      {s.flow_animation && <p className="field-hint">Whole-job limit including recording: {fmtDuration(timeLimit)}. Stop is available throughout the run.</p>}
+    </div>}
+    {fineFlow && <p className="field-hint">Detailed wake mesh · up to 2 million cells · 6 GiB. Fine cells surround the car and continue into its wake.</p>}
+    {!openfoam && <p className="field-hint">Steady airflow, pressure views and animated particles are included. Recording a changing physical-time wake requires the server engine.</p>}
+    {openfoam?<OpenFoamSummary quality={s.quality} info={server.info}/>:<div className={`engine-status ${wasmReady?"ready":"unavailable"}`}>
+      <Cpu size={15}/><span>{wasmReady?"OpenFOAM WebAssembly · runs locally in this tab":"WebAssembly and browser workers are required."}</span>
+    </div>}
+    {openfoam && <div className={`engine-status ${serverReady?"ready":"unavailable"}`}>
+      {serverReady?<><Server size={15}/><span>OpenFOAM server · {server.info?.cpus ?? "?"} CPUs · {fmt(server.info?.memory_gb ?? 0,1)} GB memory</span></>:<><TriangleAlert size={15}/><span>The OpenFOAM server is not ready.</span></>}
+    </div>}
+    {weightError && <p className="inline-error" role="alert">{weightError} Edit the weight inputs in Conditions.</p>}
+    <button className="btn run block" disabled={blocked || !!weightError || (openfoam?!serverReady:!wasmReady)} onClick={()=>startRun()} data-testid="run">
+      <Play size={20} fill="currentColor"/> {openfoam?"Run on OpenFOAM server":"Run browser OpenFOAM"}
+    </button>
+    <p className="small center" data-testid="run-boundaries">{boundaryLine(s)}</p>
+    {blocked && <small className="field-hint center">Finish the car step and tick the check box first.</small>}
+    {!blocked && <small className="field-hint center">{openfoam?"The run continues on the server if you close this tab; reopen it from the run list.":"Keep this tab open until the run finishes. Results are saved on this device."}</small>}
+  </div>;
 }
 
 const OF_LEVELS = [

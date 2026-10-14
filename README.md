@@ -12,7 +12,7 @@ Explore airflow around a car or a part. Compare drag, downforce, and design chan
 2. Check the model's units and orientation. Set the speed and yaw angle.
 3. Run a simulation. Inspect the results and airflow. Compare two runs to study a change.
 
-The public app uses WebGPU. It needs a browser and device with WebGPU support. It stores projects in your browser.
+Browser OpenFOAM runs entirely on your device using WebAssembly. It needs a modern browser with WebAssembly and WebGL support, and stores projects and results in your browser. Quick and Fast are light options; Detailed uses 1,000 iterations and up to 600,000 cells for a longer browser run. Advanced meshes and physical-time recordings use the connected OpenFOAM backend.
 
 Treat the results as exploratory estimates. They do not establish real vehicle loads or aerodynamic accuracy. Read the [validation notes](web/VALIDATION.md) before you use the numbers for a design decision.
 
@@ -32,27 +32,25 @@ npm ci
 npm run dev
 ```
 
-OpenFOAM is an optional engine. The UI supports both a native server and a token-protected backend URL, including in builds with native OpenFOAM disabled. See the [technical guide](TECHNICAL_GUIDE.md) for model preparation, solver options, and development checks.
+Browser OpenFOAM is the default engine. The UI also supports both a native server and a token-protected backend URL for advanced analysis, including in static builds with native discovery disabled. See the [technical guide](TECHNICAL_GUIDE.md) for model preparation, solver options, and development checks.
 
-Cloudflare's native GitHub integration deploys every push to `main` to the public frontend. Pull requests get preview URLs, with links posted by Cloudflare on GitHub. The Pages project is `easy-cfd-github`; see the [deployment setup](TECHNICAL_GUIDE.md#two-engines-webgpu-and-openfoam) for build settings and the manual fallback.
+Cloudflare's native GitHub integration deploys every push to `main` to the public frontend. Pull requests get preview URLs, with links posted by Cloudflare on GitHub. The Pages project is `easy-cfd-github`; see the [deployment setup](TECHNICAL_GUIDE.md#two-openfoam-runtimes) for build settings and the manual fallback.
 
 ## Run an OpenFOAM backend with Docker
+
+The Run screen includes a **Copy startup command** button under **OpenFOAM
+server connection → Start your server with Docker**. It starts the published
+[`markthebault/easy-cfd-backend`](https://hub.docker.com/r/markthebault/easy-cfd-backend)
+image without cloning this repository, on Intel/AMD or Apple Silicon. See the
+[published-image setup and update guide](docs/docker-backend.md).
 
 You can use the static frontend at **https://easy-cfd.mthracelab.com/** with a backend running on **your own computer**. In the Run step, expand **OpenFOAM server connection**, paste `http://localhost:8000?token=YOUR_TOKEN`, and click **Connect remote server**. Select OpenFOAM once it connects. No ngrok tunnel is needed when the browser and Docker backend run on the same computer. If the browser asks for permission to access the local network, allow it for this connection.
 
 Install Docker with Compose, then from this checkout:
 
 ```sh
-# Use an absolute, persistent path on the machine running the Docker daemon.
-export EASYCFD_HOST_DATA="$PWD/.easycfd-remote"
-mkdir -p "$EASYCFD_HOST_DATA"
-
-# Download the pinned OpenFOAM v2412 solver image (separate from the API image).
-docker pull opencfd/openfoam-default@sha256:1ba02114b1c025c370f2e269a07677c16c9bea8d990fcd75ac8378aff9d41b50
-
-# Build the backend image, then start its single-worker API and persistent queue.
-docker compose build backend
-docker compose up -d backend
+# Build the self-contained OpenFOAM/MPI server, then start its API and queue.
+docker compose up -d --build backend
 
 # The startup log prints the full URL to paste into the frontend, including its token.
 docker compose logs backend
@@ -65,13 +63,17 @@ export EASYCFD_API_TOKEN='replace-with-a-long-random-secret'
 docker compose up -d backend
 ```
 
-Use this value in the connection URL. The token grants access to all projects and runs on that backend. API requests require the token, including health checks, uploads, cancellations and result downloads. The UI extracts it from the URL and sends it as a bearer authorization header; it keeps the connection in this browser tab's session storage and does not export the token with projects or results. OpenFOAM runs upload the selected model to your backend; WebGPU runs compute in the browser.
+Use this value in the connection URL. The token grants access to all projects and runs on that backend. API requests require the token, including health checks, uploads, cancellations and result downloads. The UI extracts it from the URL and sends it as a bearer authorization header; it keeps the connection in this browser tab's session storage and does not export the token with projects or results. Server runs upload the selected model to your backend; Browser OpenFOAM runs compute in the browser.
 
-The Compose service listens on loopback by default. It uses the host Docker socket to launch isolated solver containers, so run it on a machine you trust. The API and solver share the persistent data directory; `EASYCFD_HOST_DATA` must identify that directory on the Docker daemon's host. You can also build the API image directly with `docker build -t easycfd-backend:local .`. Stop the service with `docker compose down`; saved runs and the generated token stay in the data directory.
+The Compose service publishes port 8000 and mounts only its saved-data directory,
+`.easycfd-remote` by default (override with `EASYCFD_DATA_DIR`). The image includes
+OpenFOAM and runs MPI processes inside the API container; no Docker socket is
+mounted. You can also build it with `docker build -t easycfd-backend:local .`.
+Stop the service with `docker compose down`; saved runs and the token remain.
 
 ## Connect to a backend on another computer
 
-Use a reachable **HTTPS** backend URL such as `https://cfd.example.com?token=YOUR_TOKEN` (an `/api` suffix is also accepted). A public server with HTTPS through a reverse proxy needs no tunnel. For a backend behind NAT or a firewall, ngrok or a similar HTTPS tunnel can expose the loopback service:
+Use a reachable **HTTPS** backend URL such as `https://cfd.example.com?token=YOUR_TOKEN` (an `/api` suffix is also accepted). A public server with HTTPS through a reverse proxy needs no tunnel. For a backend behind NAT or a firewall, ngrok or a similar HTTPS tunnel can expose the service:
 
 ```sh
 # After installing ngrok and configuring its account credentials:
@@ -94,7 +96,7 @@ The startup log now prints `https://your-ngrok-domain?token=…`. `EASYCFD_PUBLI
 
 For direct hosting, forward `/api/*` to the backend and preserve the `Authorization` and `Origin` headers. If you publish Docker's port, configure HTTPS at the proxy. Remote mode accepts **any backend hostname**. CORS permits **any frontend origin by default** (`Access-Control-Allow-Origin: *`), including authorization-header preflights; every API request still requires a valid token. `EASYCFD_CORS_ORIGINS` optionally restricts browser access to comma-separated frontend origins, for example `https://easy-cfd.mthracelab.com,http://localhost:5173`; an unset or blank setting permits all origins, without cookies. Internet connections require HTTPS; HTTP is accepted for `localhost`, `127.0.0.1` and `[::1]` only.
 
-The existing `just run-openfoam` native setup still works. `VITE_ENABLE_OPENFOAM=true` enables automatic same-origin discovery; `false` disables that discovery while keeping the remote connection option available. **Use native server** switches back to same-origin access, or **Disconnect** returns a static build to WebGPU.
+The existing `just run-openfoam` native setup still works. `VITE_ENABLE_OPENFOAM=true` enables automatic same-origin discovery; `false` disables that discovery while keeping the remote connection option available. **Use native server** switches back to same-origin access, or **Disconnect** returns a static build to browser OpenFOAM.
 
 To repeat the browser smoke test against your Compose backend, build the static UI, install Chromium, and run:
 

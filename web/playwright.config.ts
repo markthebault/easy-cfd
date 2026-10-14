@@ -2,7 +2,7 @@ import { defineConfig } from "@playwright/test";
 
 const port = Number(process.env.EASYCFD_WEB_TEST_PORT ?? "5173");
 
-// Real WebGPU in headless Chromium (Metal on macOS). Runs are kept short: 45 cells, 2 passes.
+// Real OpenFOAM WASM runs and WebGL rendering in headless Chromium.
 export default defineConfig({
   testDir: "tests/e2e",
   timeout: 300_000,
@@ -13,7 +13,7 @@ export default defineConfig({
     baseURL: `http://127.0.0.1:${port}`,
     viewport: { width: 1440, height: 900 },
     browserName: "chromium",
-    launchOptions: { args: ["--enable-unsafe-webgpu", "--use-angle=metal", "--enable-gpu", "--ignore-gpu-blocklist"] },
+    launchOptions: { args: process.platform === "darwin" ? [ "--use-angle=metal", "--enable-gpu", "--ignore-gpu-blocklist"] : ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] },
   },
   webServer: {
     command: `npx vite --host 127.0.0.1 --port ${port} --strictPort`,

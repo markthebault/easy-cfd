@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 let server, motion, centroid;
 before(async () => {
-  server = await createServer({ root, server: { middlewareMode: true, hmr: false }, logLevel: "error", appType: "custom" });
+  server = await createServer({ optimizeDeps: {noDiscovery: true, include: []}, root, server: { middlewareMode: true, hmr: false }, logLevel: "error", appType: "custom" });
   motion = await server.ssrLoadModule("/src/viz/driving.ts");
   centroid = await server.ssrLoadModule("/src/geometry/centroid.ts");
 });

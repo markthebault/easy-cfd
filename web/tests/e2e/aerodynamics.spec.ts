@@ -31,11 +31,7 @@ test("wall-integrated balance, physical friction, units, reopen and old-run fall
   await page.getByTestId("step-conditions").click();
   await page.getByRole("spinbutton", {name:"Front weight", exact:true}).fill("55");
   await page.getByRole("button", { name: "Continue to run" }).click();
-  await page.getByText("Expert WebGPU settings", { exact: true }).click();
-  await page.getByRole("radio", { name: /Custom/ }).click();
-  const sliders = page.locator(".step.open input[type=range]");
-  await sliders.nth(0).fill("45");
-  await sliders.nth(1).fill("2");
+  await page.getByTestId("wasm-quality-fast").click();
   await page.getByTestId("run").click();
   await expect(page.getByTestId("card-cd")).toBeVisible({ timeout: 240000 });
   await expect(page.getByTestId("aero-balance")).toBeVisible();
@@ -45,7 +41,7 @@ test("wall-integrated balance, physical friction, units, reopen and old-run fall
       balance: r.doc.result.balance,
       lift: r.doc.result.lift,
       cl: r.doc.result.cl,
-      wallIntegration: r.doc.result.wallIntegration,
+      nativeRuntime: r.doc.result.openfoam.runtime,
       tyreLoads: r.doc.result.tyreLoads,
       axles: r.doc.settings.axles,
       reconciliation: r.doc.result.reconciliation,
@@ -64,18 +60,18 @@ test("wall-integrated balance, physical friction, units, reopen and old-run fall
     7,
   );
   expect(metrics.reconciliation.complete).toBe(true);
-  expect(metrics.wallIntegration.passed).toBe(true);
+  expect(metrics.nativeRuntime).toBe("wasm");
   expect(metrics.stress.every((s: any) => s.valid > 0)).toBe(true);
   expect(metrics.axles.source).toBe("wheels");
   expect(metrics.tyreLoads.front.totalN).toBeCloseTo(1200 * 9.80665 * .55 - metrics.balance.frontLift, 7);
   expect(metrics.tyreLoads.rear.totalN).toBeCloseTo(1200 * 9.80665 * .45 - metrics.balance.rearLift, 7);
   await page.getByRole("button", { name: "Pause animation" }).click();
-  await checkTyreLoadAssessment(page, "webgpu");
+  await checkTyreLoadAssessment(page, "wasm");
   await page.getByRole("button", { name: "Explore airflow" }).click();
   await page.getByTestId("analysis-friction").click();
   await expect(page.locator(".legend-title")).toContainText("Surface friction");
   await expect(page.locator(".legend-title")).toContainText("Pa");
-  await page.screenshot({ path: "test-results/aero-friction-webgpu.png" });
+  await page.screenshot({ path: "test-results/aero-friction-wasm.png" });
   await page.getByRole("radio", { name: "Cf", exact: true }).click();
   await expect(page.locator(".legend-title")).toContainText("Cf");
   const download = page.waitForEvent("download");

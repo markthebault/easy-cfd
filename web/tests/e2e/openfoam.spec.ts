@@ -70,7 +70,7 @@ test("detailed wake selects its dedicated mesh and time budget, and switching en
   await expect(page.getByRole("radiogroup",{name:"Analysis level"}).getByRole("radio")).toHaveCount(4);
   await expect(page.locator("#elapsed-limit")).toHaveValue("43200");
   expect(await page.evaluate(()=>(window as any).__easycfd.app.get().design.settings)).toMatchObject({engine:"openfoam",quality:"medium",flow_animation:true,flow_detail:"fine",max_seconds:43200});
-  await page.getByTestId("engine-webgpu").click();
+  await page.getByTestId("engine-wasm").click();
   expect(await page.evaluate(()=>(window as any).__easycfd.app.get().design.settings.flow_detail)).toBe("standard");
   await expect(page.getByLabel("Recording detail")).toHaveCount(0);
 });
@@ -189,7 +189,7 @@ test("without an OpenFOAM server the engine choice explains how to get one", asy
   await page.getByRole("button", { name: "Continue to run" }).click();
   await expect(page.getByTestId("engine-openfoam")).toBeDisabled();
   await expect(page.getByTestId("openfoam-availability")).toContainText("just run-openfoam");
-  await expect(page.getByTestId("run")).toHaveText(/Run simulation/);
+  await expect(page.getByTestId("run")).toHaveText(/Run browser OpenFOAM/);
 });
 
 

@@ -1,0 +1,3 @@
+browserFoam.C
+
+EXE = $(FOAM_APPBIN)/browserFoam

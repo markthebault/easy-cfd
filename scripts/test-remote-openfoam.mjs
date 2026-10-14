@@ -28,7 +28,7 @@ for (const [name,auth] of [["missing",{}],["incorrect",{Authorization:"Bearer in
   evidence.checks[name]=response.status;
   if(response.status!==(name==="correct"?200:401)) throw new Error(`Unexpected ${name} token status: ${response.status}`);
 }
-const browser = await chromium.launch({headless:true,args:["--enable-unsafe-webgpu","--use-angle=swiftshader","--ignore-gpu-blocklist"]});
+const browser = await chromium.launch({headless:true,args:["--use-angle=swiftshader","--ignore-gpu-blocklist"]});
 let page;
 try {
   // Capture the actual Docker startup output, including the copyable connection URL.

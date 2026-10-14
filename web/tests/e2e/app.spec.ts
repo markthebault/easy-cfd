@@ -7,6 +7,23 @@ function collectErrors(page: Page): string[] {
   return errors;
 }
 
+test("browser presets include Detailed and use their own whole-job limits", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("try-sample").click();
+  await page.getByText("I checked size, orientation, wheels and clearance.").click();
+  await page.getByRole("button", { name: "Continue to conditions" }).click();
+  await page.getByRole("button", { name: "Continue to run" }).click();
+  await expect(page.getByRole("radiogroup", { name: "Quality", exact: true }).getByRole("radio")).toHaveCount(3);
+  await expect(page.getByTestId("wasm-quality-precise")).toContainText("1000 iterations · up to 600 k cells");
+  await page.locator(".run-time-settings summary").click();
+  for (const [quality, seconds] of [["precise", 3600], ["medium", 600], ["fast", 300]] as const) {
+    await page.getByTestId(`wasm-quality-${quality}`).click();
+    await expect(page.getByTestId(`wasm-quality-${quality}`)).toHaveAttribute("aria-checked", "true");
+    await expect(page.locator("#elapsed-limit")).toHaveValue(String(seconds));
+    await expect(page.locator("#elapsed-limit")).toHaveAttribute("max", String(seconds));
+  }
+});
+
 test("sample car, short run, results, layers, reopen after reload", async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto("/");
@@ -25,19 +42,13 @@ test("sample car, short run, results, layers, reopen after reload", async ({ pag
   await page.getByRole("button", { name: "Continue to run" }).click();
   await expect(page.getByTestId("run-boundaries")).toHaveText("Road fixed · Wheels fixed");
 
-  // ③ Run: custom, 45 cells, 2 passes
-  await page.getByText("Expert WebGPU settings",{exact:true}).click();
-  await page.getByRole("radio", { name: /Custom/ }).click();
-  const sliders = page.locator(".step.open input[type=range]");
-  await sliders.nth(0).fill("45");
-  await sliders.nth(1).fill("2");
-  await expect(page.getByText("2 × car length")).toBeVisible();
-  const gpu = await page.locator(".gpu-line").innerText();
-  test.skip(/not available|No WebGPU/i.test(gpu), `WebGPU unavailable: ${gpu}`);
+  // ③ Run: real, lightweight browser OpenFOAM.
+  await page.getByTestId("wasm-quality-fast").click();
+  await expect(page.getByTestId("engine-wasm")).toHaveAttribute("aria-checked", "true");
   await page.getByTestId("run").click();
 
   // Live view, then results
-  await expect(page.getByText("Solving the flow").or(page.getByText("Preparing the grid"))).toBeVisible();
+  await expect(page.locator(".live-head h2")).toBeVisible();
   await expect(page.getByTestId("card-cd")).toBeVisible({ timeout: 240_000 });
   await expect(page.getByTestId("run-boundaries")).toHaveText("Road fixed · Wheels fixed");
   const motion = await page.evaluate(() => {

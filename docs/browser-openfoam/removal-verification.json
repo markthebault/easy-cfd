@@ -1,0 +1,82 @@
+{
+  "applicationRevision": "3857729dcae1d49b74227bb2e10af5bfb9a86701",
+  "date": "2026-10-14",
+  "applicationSourceAndBundleAudit": "passed: no retired compute API, shader or solver references",
+  "frontendUnits": 49,
+  "backendUnits": 137,
+  "nativeEnabledUi": {
+    "passed": 27,
+    "skipped": 7
+  },
+  "staticUi": {
+    "passed": 5,
+    "skipped": 1
+  },
+  "optionalSkips": "Edition-specific checks or optional recorded/native/model/video fixtures; imported MX-5 is covered by the separate real static production run.",
+  "wasmRuns": [
+    {
+      "model": "sample",
+      "cells": 21206,
+      "iterations": 180,
+      "cd": 0.49896506047575007,
+      "cl": 0.7166613631503291,
+      "seconds": 26.054,
+      "gpuReads": 0,
+      "reopen": "passed"
+    },
+    {
+      "model": "sample-fast",
+      "cells": 63442,
+      "iterations": 300,
+      "cd": 0.510034706398351,
+      "cl": 0.7146786714458668,
+      "seconds": 104.125,
+      "gpuReads": 0,
+      "reopen": "passed"
+    },
+    {
+      "model": "sample-wing",
+      "cells": 28089,
+      "iterations": 180,
+      "cd": 0.638691222403188,
+      "cl": 0.32687570240747166,
+      "seconds": 34.223,
+      "gpuReads": 0,
+      "reopen": "passed"
+    },
+    {
+      "model": "mx5",
+      "cells": 21191,
+      "iterations": 180,
+      "cd": 0.3287594416887283,
+      "cl": 0.045241580944163765,
+      "seconds": 32.521,
+      "gpuReads": 0,
+      "reopen": "passed"
+    }
+  ],
+  "mpi": {
+    "image": "markthebault/easy-cfd-backend:latest",
+    "authenticatedApi": "passed",
+    "rejectsBadTokens": "passed",
+    "cors": "passed",
+    "persistentToken": "passed",
+    "apiOnly": "passed",
+    "solverReady": true,
+    "noDockerSocket": "passed",
+    "noDockerCli": "passed",
+    "mpiSimulation": {
+      "cells": 41417,
+      "iterations": 300,
+      "cd": 0.5169519436834,
+      "cl": 0.6066524778426,
+      "ranks": 4,
+      "elapsedSeconds": 38.332,
+      "mpiLog": "passed",
+      "wing": false,
+      "mpiCpuAllocation": "passed",
+      "mpiCancellation": "passed",
+      "resultAfterRestart": "passed"
+    }
+  }
+}

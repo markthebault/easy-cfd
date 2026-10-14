@@ -1,4 +1,4 @@
-"""One persistent queue, one solver container at a time. Run uvicorn with one worker."""
+"""One persistent queue, one simulation at a time. Run uvicorn with one worker."""
 
 import datetime
 import json
@@ -14,7 +14,7 @@ import subprocess
 import threading
 import time
 from pathlib import Path
-from . import storage, foam, compute_lease
+from . import storage, foam, compute_lease, local_solver
 from .models import Axles, Settings, resolved_preset, profile_time_limit
 from .aerodynamics import detected_axles
 
@@ -34,6 +34,7 @@ PIPELINE_HASH = hashlib.sha256(
             "results.py",
             "benchmark.py",
             "runner.py",
+            "local_solver.py",
             "aerodynamics.py",
             "extract_worker.py",
             "sample_worker.py",
@@ -52,6 +53,8 @@ def docker(args, **kwargs):
 
 
 def health():
+    if local_solver.enabled():
+        return local_solver.health()
     try:
         info = docker(["info", "--format", "{{json .}}"])
         if info.returncode:
@@ -65,7 +68,7 @@ def health():
             cpus=parsed.get("NCPU"),
             message="Solver ready"
             if image.returncode == 0
-            else "Run ./scripts/setup.sh to download the pinned solver image.",
+            else f"Download the solver image with: docker pull {foam.IMAGE}",
             image=foam.IMAGE,
         )
     except (OSError, subprocess.SubprocessError, ValueError):
@@ -165,7 +168,8 @@ def stage(key, case, command, stage_name, memory, cpus=4):
     patch(key, stage=stage_name)
     tool = next((s for s in ("simpleFoam", "pimpleFoam") if s in command), command[0])
     log_path = case / f"log.{tool}"
-    args = container(name, case, command, memory, cpus)
+    local = local_solver.enabled()
+    args = local_solver.command(command, cpus) if local else container(name, case, command, memory, cpus)
     start = time.monotonic()
     record = storage.get("runs", key)
     reserve = min(120, 0.2 * record.get("deadline_seconds", 600))
@@ -173,7 +177,8 @@ def stage(key, case, command, stage_name, memory, cpus=4):
     resource_sample_at = start
     resource_peak = 0
     with log_path.open("w") as log:
-        process = subprocess.Popen(args, stdout=log, stderr=subprocess.STDOUT)
+        process = subprocess.Popen(args, stdout=log, stderr=subprocess.STDOUT,
+                                   **({"cwd": case, "start_new_session": True} if local else {}))
         ACTIVE = process
         try:
             while process.poll() is None:
@@ -181,36 +186,36 @@ def stage(key, case, command, stage_name, memory, cpus=4):
                 if time.monotonic() - start > 24 * 3600:
                     raise RuntimeError("Stage exceeded 24 hours. Refine the geometry or reduce quality.")
                 now = time.monotonic()
-                if now - resource_sample_at >= 5:
+                if now - resource_sample_at >= (0.5 if local else 5):
                     resource_sample_at = now
-                    try:
-                        stats = docker(["stats", "--no-stream", "--format", "{{.MemUsage}}", name], timeout=3)
-                    except subprocess.TimeoutExpired:
-                        stats = subprocess.CompletedProcess([], 1, "", "")
-                    match = re.match(r"([\d.]+)([KMG]i?B)", stats.stdout)
-                    if match:
-                        units = {
-                            "KiB": 1024,
-                            "MiB": 1024**2,
-                            "GiB": 1024**3,
-                            "KB": 1000,
-                            "MB": 1000**2,
-                            "GB": 1000**3,
-                        }
-                        rss = float(match[1]) * units[match[2]]
+                    rss = None
+                    if local:
+                        rss = local_solver.rss(process)
+                    else:
+                        try:
+                            stats = docker(["stats", "--no-stream", "--format", "{{.MemUsage}}", name], timeout=3)
+                        except subprocess.TimeoutExpired:
+                            stats = subprocess.CompletedProcess([], 1, "", "")
+                        match = re.match(r"([\d.]+)([KMG]i?B)", stats.stdout)
+                        if match:
+                            units = {"KiB": 1024, "MiB": 1024**2, "GiB": 1024**3,
+                                     "KB": 1000, "MB": 1000**2, "GB": 1000**3}
+                            rss = float(match[1]) * units[match[2]]
+                    if rss is not None:
                         resource_peak = max(resource_peak, rss)
                         record = storage.get("runs", key)
                         patch(
                             key,
                             container_peak_bytes=max(record.get("container_peak_bytes", 0), resource_peak),
-                            host_available_bytes=psutil.virtual_memory().available,
+                            host_available_bytes=local_solver.memory()[1] if local else psutil.virtual_memory().available,
                         )
                         if (
                             rss + psutil.Process().memory_info().rss > 8 * 1024**3
-                            or psutil.virtual_memory().available < 512 * 1024**2
+                            or (local and rss > memory * 1024**3)
+                            or (local_solver.memory()[1] if local else psutil.virtual_memory().available) < 512 * 1024**2
                         ):
                             raise RuntimeError(
-                                "Resource pressure exceeded the combined 8 GiB job budget or left less than 512 MiB available on the host. Saved checkpoints and logs remain available."
+                                "Resource pressure exceeded the job memory budget or left less than 512 MiB available. Saved checkpoints and logs remain available."
                             )
                 if tool in ("simpleFoam", "pimpleFoam"):
                     if (
@@ -241,16 +246,19 @@ def stage(key, case, command, stage_name, memory, cpus=4):
                             patch(key, recording_time_seconds=float(times[-1]))
                 time.sleep(0.5)
         except BaseException:
-            docker(["rm", "-f", name], timeout=3)
-            process.wait(timeout=2)
+            if local:
+                local_solver.terminate(process)
+            else:
+                docker(["rm", "-f", name], timeout=3)
+                process.wait(timeout=2)
             raise
         finally:
             ACTIVE = None
     if process.returncode:
         tail = log_path.read_text(errors="replace")[-4000:]
         reason = (
-            "Container was killed, possibly by a memory limit or an external stop."
-            if process.returncode == 137
+            "Solver was killed, possibly by a memory limit or an external stop."
+            if process.returncode in (137, -9)
             else f"{command[0]} failed."
         )
         raise RuntimeError(f"{reason} Inspect the log for the geometry or solver error.\n{tail}")
@@ -675,7 +683,8 @@ def start():
     for run in reversed(storage.all_records("runs")):
         if run["status"] == "running":
             try:
-                docker(["rm", "-f", f"easycfd-{run['id']}"])
+                if not local_solver.enabled():
+                    docker(["rm", "-f", f"easycfd-{run['id']}"])
             except (OSError, subprocess.SubprocessError):
                 pass
             patch(

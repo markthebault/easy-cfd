@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 let server, smoke;
 before(async () => {
-  server = await createServer({ root, server: { middlewareMode: true, hmr: false }, logLevel: "error", appType: "custom" });
+  server = await createServer({ optimizeDeps: {noDiscovery: true, include: []}, root, server: { middlewareMode: true, hmr: false }, logLevel: "error", appType: "custom" });
   smoke = await server.ssrLoadModule("/src/viz/previewSmoke.ts");
 });
 after(async () => server?.close());

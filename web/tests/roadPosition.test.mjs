@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 let server, road, model;
 before(async () => {
-  server = await createServer({ root, server: { middlewareMode: true, hmr: false }, logLevel: "error", appType: "custom" });
+  server = await createServer({ optimizeDeps: {noDiscovery: true, include: []}, root, server: { middlewareMode: true, hmr: false }, logLevel: "error", appType: "custom" });
   road = await server.ssrLoadModule("/src/geometry/roadPosition.ts");
   model = await server.ssrLoadModule("/src/geometry/model.ts");
 });

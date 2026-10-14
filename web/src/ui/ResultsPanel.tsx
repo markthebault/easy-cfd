@@ -1,8 +1,8 @@
 // Results: headline forces, where the drag comes from, force history and run details.
 
 import { useState } from "react";
+import { engineLabel } from "../engine/features";
 import { CheckCircle2, Columns2, FileJson, FileSpreadsheet, Image, Pencil, TriangleAlert } from "lucide-react";
-import { resolvePreset } from "../solver/types";
 import { useStore } from "../store/store";
 import { app, openDesign } from "../store/app";
 import { exportCSV, exportJSON, exportPNG, startCompare } from "../store/runs";
@@ -10,8 +10,8 @@ import type { LoadedRun } from "../store/types";
 import { AeroBalancePanel } from "./AeroBalancePanel";
 import { TyreLoadPanel } from "./TyreLoadPanel";
 import { ForceChart } from "./ForceChart";
-import { StatsTable, defaultWindow } from "./StatsTable";
-import { unitFor } from "./historyUnit";
+import { StatsTable } from "./StatsTable";
+import { ITERATIONS } from "./historyUnit";
 import { stages } from "./StageView";
 import { boundaryLine, conditionsLine, fmt, fmtCells, fmtDate, fmtDuration, fmtInt, groupForces, groupsLine, pct, verticalLoad } from "./format";
 
@@ -120,15 +120,10 @@ export function ResultsPanel() {
   if (!run) return null;
   const { doc } = run;
   const r = doc.result;
-  const L = r.length ?? doc.geometry.dimensions[0];
-  const of = r.engine === "openfoam" ? r.openfoam : undefined;
-  const unit = unitFor(r.engine);
-  const passTime = of ? 1 : L / r.freestream;
-  const preset = resolvePreset(doc.settings);
-  // Extended runs average over the last 30 % of the full (extended) length; OpenFOAM over its
-  // last iterations.
-  const win = pick ?? defaultWindow(preset.passes + (r.extendedPasses ?? 0), unit);
-  const avgFrom = of ? of.iterations - of.averagingIterations : (preset.passes + (r.extendedPasses ?? 0)) * passTime * (1 - preset.averageFraction);
+  const of = r.openfoam;
+  const unit = ITERATIONS;
+  const win = pick ?? unit.choices[0];
+  const avgFrom = of ? of.iterations - of.averagingIterations : r.provenance?.averaging.start;
   const [x0, x1, y0, y1, , z1] = r.domain;
   const others = runs.filter((x) => x.id !== doc.id);
 
@@ -137,7 +132,7 @@ export function ResultsPanel() {
       <div className="results-head">
         <div className="results-eyebrow">
           <span className="eyebrow">Result · {fmtDate(doc.createdAt)}</span>
-          <span className="engine-badge" data-testid="result-engine">{of ? "OpenFOAM" : "WebGPU"}</span>
+          <span className="engine-badge" data-testid="result-engine">{engineLabel(r)}</span>
           {r.settled ? (
             <span className="badge ok" title="Forces varied little over the averaging window"><CheckCircle2 size={13} /> Settled</span>
           ) : (
@@ -171,7 +166,7 @@ export function ResultsPanel() {
         <div className="breakdown">
           <div className="section-title">
             Grid levels
-            <span className="muted">{of ? "reported values use the last completed mesh" : "reported values are the mean"}</span>
+            <span className="muted">reported values use the last completed mesh</span>
           </div>
           <table>
             <tbody>
@@ -183,7 +178,7 @@ export function ResultsPanel() {
                 </tr>
               ))}
               {r.meshSensitivity && <tr>
-                <th scope="row">{of ? "Observed range" : "Difference"}</th>
+                <th scope="row">Observed range</th>
                 <td className="num">{r.meshSensitivity.dCd >= 0 ? "+" : ""}{fmt(r.meshSensitivity.dCd, 3)}</td>
                 <td className="num muted">{r.meshSensitivity.dCl >= 0 ? "+" : ""}{fmt(r.meshSensitivity.dCl, 3)}</td>
               </tr>}
@@ -193,22 +188,17 @@ export function ResultsPanel() {
       )}
 
       <div className="section-title">Force history <span className="muted">shaded: averaging window</span></div>
-      <ForceChart history={r.history} passTime={passTime} averageFrom={avgFrom} height={150} maPasses={win} unit={unit} />
-      <StatsTable history={r.history} passTime={passTime} passes={win} onPasses={setPick} unit={unit} />
+      <ForceChart history={r.history} averageFrom={avgFrom} height={150} maIterations={win} unit={unit} />
+      <StatsTable history={r.history} iterations={win} onIterations={setPick} unit={unit} />
 
       <dl className="meta">
         <div><dt>Cells</dt><dd>{fmtCells(r.cells)}</dd></div>
-        {of ? (
+        {of && (
           <>
             <div><dt>Iterations</dt><dd>{fmtInt(of.iterations)}</dd></div>
             <div><dt>Residuals</dt><dd title={Object.entries(of.residuals).map(([k, v]) => `${k} ${v.toExponential(1)}`).join(", ")}>{of.residualConverged ? "converged" : "above target"}</dd></div>
             {of.layerCoverage !== undefined && <div><dt>Prism layers</dt><dd>{fmt(of.layerCoverage * 100, 0)} % of wall</dd></div>}
             {of.wallTargetFraction !== undefined && <div><dt>y+ 30–300</dt><dd>{fmt(of.wallTargetFraction * 100, 0)} % of wall</dd></div>}
-          </>
-        ) : (
-          <>
-            <div><dt>Steps</dt><dd>{fmtInt(r.steps)}</dd></div>
-            <div><dt>Simulated</dt><dd>{fmt(r.simulatedTime, 2)} s</dd></div>
           </>
         )}
         <div><dt>Wall time</dt><dd>{fmtDuration(r.wallSeconds)}</dd></div>
@@ -218,7 +208,7 @@ export function ResultsPanel() {
         <div><dt>Density</dt><dd>{fmt(doc.settings.density, 3)}</dd></div>
         <div><dt>Ground</dt><dd>{doc.settings.moving_ground ? "moving" : "fixed"}</dd></div>
         <div><dt>Wheels</dt><dd>{doc.settings.wheels ? "rotating" : "fixed"}</dd></div>
-        <div className="wide"><dt>{of ? "Solver" : "GPU"}</dt><dd title={doc.adapter}>{doc.adapter || "–"}</dd></div>
+        <div className="wide"><dt>Solver</dt><dd title={doc.adapter}>{doc.adapter || "–"}</dd></div>
       </dl>
 
       <div className="actions">
@@ -232,7 +222,7 @@ export function ResultsPanel() {
             <select value={compareWith} onChange={(e) => setCompareWith(e.target.value)} aria-label="Run to compare with">
               <option value="">Compare with…</option>
               {others.map((o) => (
-                <option key={o.id} value={o.id}>{o.designName}{groupsLine(o.geometry) ? ` · ${groupsLine(o.geometry)}` : ""} · {o.result.engine === "openfoam" ? "OpenFOAM" : "WebGPU"} · {Math.round(o.settings.speed_kmh)} km/h · {fmtDate(o.createdAt)}</option>
+                <option key={o.id} value={o.id}>{o.designName}{groupsLine(o.geometry) ? ` · ${groupsLine(o.geometry)}` : ""} · {engineLabel(o.result)} · {Math.round(o.settings.speed_kmh)} km/h · {fmtDate(o.createdAt)}</option>
               ))}
             </select>
             <button className="btn ghost sm" disabled={!compareWith} onClick={() => startCompare(doc.id, compareWith)}><Columns2 size={15} /> Compare</button>

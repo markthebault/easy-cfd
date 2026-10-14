@@ -1,8 +1,8 @@
 // Number and text formatting shared by the panels.
 
 import type { GeometrySummary } from "../store/types";
-import { detailRatio, G, type RunResult, type Settings } from "../solver/types";
-import { PRESETS } from "../solver/types";
+import { G, type RunResult, type Settings } from "../solver/types";
+import { wasmPreset } from "../engine/wasmPresets";
 
 export const fmt = (v: number, digits = 2) => (Number.isFinite(v) ? v.toFixed(digits) : "–");
 
@@ -35,9 +35,8 @@ export function verticalLoad(r: RunResult): { label: "Downforce" | "Lift"; kg: n
 }
 
 export function qualityLabel(s: Settings): string {
-  const base = s.quality === "custom" ? `Custom ${s.custom_cells} cells · ${s.custom_passes} passes` : PRESETS[s.quality].label;
-  const d = detailRatio(s);
-  return d > 1 ? `${base} · detail ${d}×` : base;
+  if (s.engine === "wasm") return `${wasmPreset(s.quality).label} · Browser`;
+  return {fast: "Fast", medium: "Medium", precise: "Precise"}[s.quality];
 }
 
 export function conditionsLine(s: Settings): string {

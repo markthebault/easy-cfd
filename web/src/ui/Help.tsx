@@ -33,8 +33,8 @@ function Guide() {
         <li><b>3D pressure clouds</b> mark equal static pressure in the air. Blue is suction and coral is positive pressure. Lower the threshold to reveal weaker regions. Surface flow shows near-wall direction, not friction stress; turbulent energy is not an acoustic noise level.</li>
         <li><b>Force arrows</b> show the saved average forces in newtons with a shared length scale. Their position is illustrative, not a measured centre of pressure.</li>
         <li><b>Downforce</b> (kg) pushes the car onto the road; negative Cl means downforce. <b>Lift</b> is the opposite.</li>
-        <li>Use <b>Fast</b> to check the setup and <b>Medium</b> or <b>Precise</b> before comparing designs. Compare runs with the same speed, reference area and quality.</li>
-        <li>A <b>Provisional</b> badge means forces were still moving at the end: run longer (more passes) before trusting small differences.</li>
+        <li>Use browser <b>Quick</b> to check the setup and <b>Fast</b> for a finer light mesh. <b>Detailed</b> uses 1,000 iterations and up to 600,000 cells for a longer browser run. Connect an OpenFOAM server for advanced analysis. Compare runs with the same speed, reference area and quality.</li>
+        <li>A <b>Provisional</b> badge means forces were still moving at the end: try a longer run before trusting small differences.</li>
         <li>The <b>Slice</b> in Cp0 and the <b>Wake</b> surface show where the air loses energy. A smaller wake usually means less drag.</li>
       </ul>
       <h3>Controls</h3>
@@ -53,21 +53,22 @@ function Solver() {
   return (
     <div className="help-body">
       <p>
-        EasyCFD Web solves the <b>steady incompressible Reynolds-averaged Navier–Stokes equations</b> with the <b>k-ω SST</b> turbulence model on a Cartesian grid, using WebGPU compute shaders on your graphics card. WebGPU runs compute in your browser. OpenFOAM runs upload your model to the server you connect.
+        EasyCFD solves the <b>steady incompressible Reynolds-averaged Navier–Stokes equations</b> with OpenFOAM's <b>k-ω SST</b> turbulence model. Browser runs mesh and solve locally using WebAssembly. Server runs upload the model to the OpenFOAM backend you connect.
       </p>
       <ul className="guide">
-        <li>The car is cut out of a stretched Cartesian grid (finest around the car and near wake). Cells crossed by the surface keep their open fraction, so sloped and curved panels are seen as smooth walls; very small cut cells are merged with a neighbour. Parts thinner than about 1.5 cells (wings, endplates, canards, splitters) are modelled as zero-thickness walls with their true outline and angle. Experimental detail cells (Run step, off by default) make the grid 2–4× finer around thin or small parts (per group: Detail auto, always, off) and inside detail boxes set in Conditions, for holes or vents inside a larger part.</li>
-        <li>Every part whose own switch is on shapes the grid, also when its group is switched off. Variants of a design therefore run on identical cells, and Compare shows the difference from the geometry alone. Results list the downforce and drag of each group.</li>
+        <li>OpenFOAM's snappyHexMesh refines and snaps the mesh to the enabled car surfaces. Quick uses a coarse mesh without prism layers; Fast and Detailed add finer surface cells and request one prism layer. Detailed also refines the wake further. Thin parts and small gaps can require the server's larger mesh budget.</li>
+        <li>Enabled groups and parts are simulated. Results retain per-part and per-group pressure and friction forces. Different designs can create different meshes, so use server refinement studies to assess grid sensitivity.</li>
         <li>Walls use log-law wall functions, as in the OpenFOAM app. Separation on smooth bodies is still sensitive to resolution, and lift more so than drag.</li>
-        <li>The flow is marched to a steady state with local time steps and a multigrid pressure solver. Forces are averaged over the last 30 % of the run.</li>
-        <li>Two engines: WebGPU runs here, in this browser. OpenFOAM sends the run to a native or remote EasyCFD server for a check with a snapped mesh and prism layers. Connect a token-protected backend URL in the Run step, or start a native server with <code>just run-openfoam</code>; results open here with the same views and can be compared with WebGPU runs.</li>
+        <li>The steady SIMPLE solver uses double precision. Forces and moments are averaged over the last 50 iterations. Force settling and residual convergence are reported separately.</li>
+        <li>Browser OpenFOAM needs no solver server and keeps the geometry on this device. Keep the tab open while it runs. For advanced meshes and physical-time recordings, connect a token-protected backend URL in Run. Both engines use the same result views and browser library.</li>
         <li>Boundary conditions follow the OpenFOAM version of EasyCFD: fixed-velocity inlet, fixed-pressure outlet, free-stream sides, symmetric top, moving road, rotating wheels and wall functions.</li>
         <li>Everything drawn comes from the solver: colours, smoke, streamlines and numbers are interpolated from computed cells. Points without nearby fluid show as grey.</li>
       </ul>
       <p>
-        Results are meant for <b>design exploration</b>: comparing shapes and spotting trends. They are not a substitute for a validated CFD study or a wind tunnel. The solver was checked against the OpenFOAM app on several cars; the numbers, including any model that misses the target, are in{" "}
+        Results are meant for <b>design exploration</b>: comparing shapes and spotting trends. Light browser meshes do not establish physical aerodynamic accuracy. Browser tests and their limits are recorded in{" "}
         <a href="./VALIDATION.md" target="_blank" rel="noreferrer">VALIDATION.md</a>.
       </p>
+      <p><a href="./openfoam/source.html" target="_blank" rel="noreferrer">OpenFOAM source and GPL license</a></p>
     </div>
   );
 }

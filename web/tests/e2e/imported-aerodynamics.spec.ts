@@ -19,14 +19,13 @@ test('imported MX-5 and thin wing: actual friction and balance screenshots',asyn
   await page.getByRole('button',{name:'Suggest from marked wheels'}).click();
   await page.getByRole('checkbox',{name:'Confirm axle positions'}).check();
   await page.getByRole('button',{name:'Continue to run'}).click();
-  await page.getByText('Expert WebGPU settings',{exact:true}).click();await page.getByRole('radio',{name:/Custom/}).click();
-  const sliders=page.locator('.step.open input[type=range]');await sliders.nth(0).fill('45');await sliders.nth(1).fill('2');
+  await page.getByTestId('wasm-quality-fast').click();
   await page.getByTestId('run').click();await expect(page.getByTestId('aero-balance')).toBeVisible({timeout:240000});
   await page.getByRole('button',{name:'Pause animation'}).click();await page.getByRole('button',{name:'Explore airflow'}).click();await page.getByTestId('analysis-friction').click();
   await page.getByRole('button',{name:'Close options'}).click();
   await expect(page.locator('.legend-title')).toContainText('Pa');
   await page.screenshot({path:'test-results/aero-imported-mx5.png'});
   const data=await page.evaluate(()=>{const r=(window as any).__easycfd.app.get().run;return {geometry:r.doc.geometry,result:r.doc.result,stress:r.surface.map((s:any)=>({valid:s?.stressValid?.filter((x:number)=>x===1).length,missing:s?.stressValid?.filter((x:number)=>x!==1).length}))};});
-  expect(data.result.reconciliation.complete).toBe(true);expect(data.result.wallIntegration.passed).toBe(true);
+  expect(data.result.reconciliation.complete).toBe(true);expect(data.result.openfoam.runtime).toBe("wasm");
   await writeFile('test-results/aero-imported-mx5.json',JSON.stringify(data,null,2));
 });

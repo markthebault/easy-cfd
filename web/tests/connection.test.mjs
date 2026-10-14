@@ -4,7 +4,7 @@ import { createServer } from "vite";
 
 let server, connection, originalFetch;
 before(async () => {
-  server = await createServer({ server: { middlewareMode: true, hmr: false }, logLevel: "error", appType: "custom" });
+  server = await createServer({ optimizeDeps: {noDiscovery: true, include: []}, server: { middlewareMode: true, hmr: false }, logLevel: "error", appType: "custom" });
   globalThis.sessionStorage = { getItem: () => null, setItem() {}, removeItem() {} };
   connection = await server.ssrLoadModule("/src/engine/connection.ts");
   originalFetch = globalThis.fetch;

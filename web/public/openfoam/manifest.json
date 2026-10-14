@@ -1,0 +1,66 @@
+{
+  "version": "OpenFOAM-v2512",
+  "precision": "double",
+  "mpi": false,
+  "modules": {
+    "blockMesh": {
+      "chunks": [
+        "blockMesh.0.wasm.bin",
+        "blockMesh.1.wasm.bin",
+        "blockMesh.2.wasm.bin"
+      ],
+      "gzipChunks": [
+        "blockMesh.0.wasm.gz.bin"
+      ],
+      "gzipBytes": 3819286,
+      "bytes": 17619165,
+      "sha256": "1773a6eb969b9e5264b234943d7dcfb9cb738497cecf52ee9806f99e9ff09b1a"
+    },
+    "snappyHexMesh": {
+      "chunks": [
+        "snappyHexMesh.0.wasm.bin",
+        "snappyHexMesh.1.wasm.bin",
+        "snappyHexMesh.2.wasm.bin"
+      ],
+      "gzipChunks": [
+        "snappyHexMesh.0.wasm.gz.bin"
+      ],
+      "gzipBytes": 4743853,
+      "bytes": 20837890,
+      "sha256": "cfd50323f4f6a619f0b1c2f680019fdd5fa6f93d9232af9e3d8ce446bc4aeed2"
+    },
+    "checkMesh": {
+      "chunks": [
+        "checkMesh.0.wasm.bin",
+        "checkMesh.1.wasm.bin",
+        "checkMesh.2.wasm.bin"
+      ],
+      "gzipChunks": [
+        "checkMesh.0.wasm.gz.bin"
+      ],
+      "gzipBytes": 3740937,
+      "bytes": 17421777,
+      "sha256": "a727f0deef956dc2589dbf796fa3d453b2123456a1aa4fc04ced265cd5344048"
+    },
+    "browserFoam": {
+      "chunks": [
+        "browserFoam.0.wasm.bin",
+        "browserFoam.1.wasm.bin",
+        "browserFoam.2.wasm.bin"
+      ],
+      "gzipChunks": [
+        "browserFoam.0.wasm.gz.bin"
+      ],
+      "gzipBytes": 3695023,
+      "bytes": 17329167,
+      "sha256": "3c6f2f384a703fe6f57b43e1ae43d87a884fae10708bc7f6e2f9dff5ca6eb56f"
+    }
+  },
+  "source": {
+    "chunks": [
+      "source.0.tar.gz.bin",
+      "source.1.tar.gz.bin"
+    ],
+    "filename": "openfoam-wasm-source.tar.gz"
+  }
+}

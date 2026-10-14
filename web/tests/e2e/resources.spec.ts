@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { writeFile } from "node:fs/promises";
 
-test("M1 preparation/solver cancellation and UI response under a real GPU workload", async ({
+test("browser OpenFOAM cancellation and UI response under a real worker workload", async ({
   page,
 }) => {
   await page.goto("/");

@@ -122,9 +122,9 @@ export async function probeServer(): Promise<ServerInfo | null> {
 // Pure mappings (unit tested)
 // ---------------------------------------------------------------------------------------------
 
-/** The server's settings for a UI design. Custom quality has no OpenFOAM equivalent: Medium. */
+/** The server's settings for an OpenFOAM design. */
 export function serverSettings(s: Settings): Record<string, unknown> {
-  const quality = s.quality === "custom" ? "medium" : s.quality;
+  const quality = s.quality;
   const b = s.simulation_box;
   const medium = quality === "medium" && (!s.profile || s.profile === "regular") && !(s.flow_animation && s.flow_detail === "fine");
   return {
@@ -168,8 +168,6 @@ export function domainToUi(d: number[], offset: Vec3): number[] {
 }
 
 /** Iterations are the x axis of OpenFOAM histories: `time` holds the iteration (one unit each). */
-export const OPENFOAM_ITERATIONS_PER_UNIT = 1;
-
 export function historyFromServer(rows: { iteration: number; cd: number; cl: number }[]): ForceSample[] {
   return rows.map((h) => ({ time: h.iteration, step: h.iteration, cd: h.cd, cl: h.cl, cs: 0 }));
 }

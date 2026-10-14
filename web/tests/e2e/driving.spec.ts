@@ -46,7 +46,7 @@ test("driving preview follows road, tyre and wind settings without changing impo
   }
   const before = await motion();
   expect(before.wheels).toHaveLength(4);
-  await page.waitForTimeout(350);
+  await expect.poll(async () => (await motion()).road).toBeGreaterThan(before.road);
   const moving = await motion();
   expect(moving.road).toBeGreaterThan(before.road);
   expect(moving.wind).toBeGreaterThan(before.wind);
@@ -74,13 +74,13 @@ test("driving preview follows road, tyre and wind settings without changing impo
   await page.getByRole("checkbox", { name: "Moving road", exact: true }).uncheck();
   await page.getByRole("button", { name: "Play animation" }).click();
   const roadFixed = await motion();
-  await page.waitForTimeout(250);
+  await expect.poll(async () => (await motion()).wheels[0].distance).toBeGreaterThan(roadFixed.wheels[0].distance);
   const wheelsRolling = await motion();
   expect(wheelsRolling.road).toBe(roadFixed.road);
   expect(wheelsRolling.wheels[0].distance).toBeGreaterThan(roadFixed.wheels[0].distance);
   await page.getByRole("checkbox", { name: "Rotating wheels", exact: true }).uncheck();
   const wheelsFixed = await motion();
-  await page.waitForTimeout(250);
+  await expect.poll(async () => (await motion()).wind).toBeGreaterThan(wheelsFixed.wind);
   const windOnly = await motion();
   expect(windOnly.wheels).toEqual(wheelsFixed.wheels);
   expect(windOnly.wind).toBeGreaterThan(wheelsFixed.wind);
@@ -88,7 +88,7 @@ test("driving preview follows road, tyre and wind settings without changing impo
   // The opposite mixed state moves only the road.
   await page.getByRole("checkbox", { name: "Moving road", exact: true }).check();
   const roadOnly = await motion();
-  await page.waitForTimeout(250);
+  await expect.poll(async () => (await motion()).road).toBeGreaterThan(roadOnly.road);
   const roadRolling = await motion();
   expect(roadRolling.road).toBeGreaterThan(roadOnly.road);
   expect(roadRolling.wheels).toEqual(roadOnly.wheels);
