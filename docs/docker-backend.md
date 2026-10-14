@@ -29,8 +29,9 @@ Only the saved-data directory is mounted; no Docker socket, privileged mode or
 host-path environment setting is needed. Docker creates the data folder
 if it is missing. The first image download can take a few minutes.
 
-Four MPI ranks are used by default. Set `-e EASYCFD_PROCESSES=2` (or another
-rank count) to change this. The backend limits each job's CPU affinity and
+Standard runs use four MPI ranks by default. Set `-e EASYCFD_PROCESSES=2` (or another
+rank count) to change this. Advanced profiles retain their existing two-rank
+configuration. The backend limits each job's CPU affinity and
 monitors the whole MPI process family's memory, cancellation and elapsed-time
 budget. Optional Docker `--cpus` and `--memory` flags impose limits on the API
 and all solver processes together. Container memory and CPU limits are reflected

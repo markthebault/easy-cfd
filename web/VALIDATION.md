@@ -100,30 +100,36 @@ with `python3 scripts/compare-wasm-native.py <captured-run-directory>`.
 
 ## Published Docker backend
 
-The remote connection panel displays a single copyable `docker run -it --rm`
-command using `markthebault/easy-cfd-backend:latest`, without another disclosure
-to open or any preparation commands. Docker creates the missing data folder;
-the server downloads its pinned OpenFOAM solver before starting the API and
-reuses the cached solver afterward. `--pull=always` checks for server updates.
-The Tailscale static preview passed visibility and real clipboard checks.
+The remote connection panel displays one copyable `docker run -it --rm` command
+for `markthebault/easy-cfd-backend:latest`. Only the saved-data folder is mounted.
+OpenCFD v2412 and Open MPI are bundled in the image; meshing and MPI processes
+run inside the server container. The image has no Docker CLI and needs no Docker
+socket, privileged mode or host-path environment setting. The Tailscale static
+preview passed command visibility and real clipboard checks.
 
-The actual foreground command passed automatic data-folder creation,
-interactive startup, authenticated API and solver readiness checks on Linux and
-the Mac Mini. Ctrl+C stopped and removed the container; a second startup retained
-the same host-mounted connection token. Six backend startup tests covered cached
-and missing solver images, setup failures, timeout and cancellation.
+137 backend tests and 64 frontend unit tests passed. These include effective
+container memory/CPU limits, missing-runtime detection, cancellation of descendant
+processes with independent process groups, memory-pressure cleanup and preservation
+of the existing API. Three remote connection/clipboard browser tests passed.
 
-Native AMD64 and ARM64 builds passed API
-startup, authentication, CORS, token persistence across restart, and solver
-readiness checks. The GitHub workflow built and tested both architectures with
-empty solver caches, verifying automatic first-use downloads before API startup.
+Both native GitHub build jobs passed real 300-iteration car simulations using four
+MPI ranks, CPU-allocation checks, MPI cancellation with no surviving solver
+processes, authentication, CORS, saved-result reopening and token persistence
+across restart. Pull requests build and test; main pushes publish the exact tested
+images after both architectures pass.
 
-A fresh API container on the Mac Mini launched the pinned OpenCFD v2412 solver
-through its Docker socket and shared home-directory data mount. A real Fast
-sample run from the HTTPS static frontend completed 300 iterations on 41,417
-cells in 62.5 seconds, with Cd 0.516957 and Cl 0.606644. Result reopening passed.
-Sixteen API access tests and the clipboard/remote connection UI checks passed.
+The final image also completed the sample car on Linux (41,417 cells, 300
+iterations, four ranks, 29.2 seconds) and the sample with its wing on the Mac Mini
+(141,345 cells, 300 iterations, four ranks, 111.3 seconds). The Mac repeat used a
+temporary Docker-managed data volume: its home filesystem had less than the
+existing 8 GB free-space minimum, and the external-SSD bind stalled Docker Desktop.
+The resource check was kept. CPU allocation, MPI cancellation and restart checks
+passed on both machines. Published-image startup using the exact frontend command
+passed on both architectures, with an automatically-created host data folder.
 
-See [Docker setup and publishing](../docs/docker-backend.md). Automatic Docker
-Hub publishing starts when the workflow is merged into `main`; pull requests
-build and test without publishing.
+A completed native result opened in the production frontend and reopened from
+browser storage with API requests blocked. A real screenshot is included with
+[the Docker evidence](../docs/browser-openfoam/docker-verification.json).
+
+See [Docker setup and publishing](../docs/docker-backend.md). Automatic Docker Hub
+publishing activates when the workflow is merged into `main`.

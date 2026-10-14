@@ -39,9 +39,12 @@ hardware, fields and lack of API/WebGPU usage. The Detailed tests used a
 
 ![Copyable Docker server startup command](docker-setup.png)
 
-[Published Docker image checks](docker-verification.json) include both native
-architectures, authentication/restart checks and a real car run through the
-fresh Mac Mini API container. See [the Docker guide](../docker-backend.md).
+[Published Docker image checks](docker-verification.json) include native AMD64 and
+ARM64 builds, real four-process MPI car runs, CPU allocation, cancellation and
+restart checks. The self-contained image mounts only saved data. See
+[the Docker guide](../docker-backend.md).
+
+![Native MPI backend result opened in the static frontend](mpi-backend-results.png)
 
 ## Unedited recordings
 

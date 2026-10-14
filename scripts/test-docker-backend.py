@@ -26,10 +26,12 @@ def main():
     parser.add_argument("--cancel", action="store_true", help="Cancel a second case while its MPI solver is active")
     parser.add_argument("--wing", action="store_true", help="Use the sample with its wing assembly")
     parser.add_argument("--keep", help="Keep the test server and write private connection details to this file")
+    parser.add_argument("--data-parent", type=Path, default=Path.home(), help="Parent directory for temporary saved data")
+    parser.add_argument("--named-volume", action="store_true", help="Use temporary Docker-managed data rather than a host folder")
     args = parser.parse_args()
     assert not args.cancel or args.simulate, "Cancellation requires the simulation check"
     name = "easycfd-image-test-" + uuid.uuid4().hex[:10]
-    data = tempfile.mkdtemp(prefix=".easycfd-image-test-", dir=Path.home())
+    data = name + "-data" if args.named_volume else tempfile.mkdtemp(prefix=".easycfd-image-test-", dir=args.data_parent)
     command = ["run", "-d", "--name", name, "--init", "-p", "127.0.0.1::8000", "-v", f"{data}:/data"]
     docker(*command, args.image)
     keep_server = False
@@ -148,11 +150,15 @@ def main():
         if not keep_server:
             try:
                 docker("stop", "-t", "30", name)
-                docker("run", "--rm", "--entrypoint", "python", "-v", f"{data}:/data", args.image,
-                       "-c", "from pathlib import Path; import shutil; [shutil.rmtree(p) for p in Path('/data').iterdir() if p.is_dir()]")
+                if not args.named_volume:
+                    docker("run", "--rm", "--entrypoint", "python", "-v", f"{data}:/data", args.image,
+                           "-c", "from pathlib import Path; import shutil; [shutil.rmtree(p) for p in Path('/data').iterdir() if p.is_dir()]")
             finally:
                 docker("rm", "-f", name)
-                shutil.rmtree(data)
+                if args.named_volume:
+                    docker("volume", "rm", data)
+                else:
+                    shutil.rmtree(data)
 
 
 if __name__ == "__main__":
