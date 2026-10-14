@@ -88,7 +88,7 @@ jobs:
         env:
           VITE_ENABLE_OPENFOAM: 'true'
           SHARD: ${{ matrix.shard }}
-        run: npm run test:e2e -- --shard="${SHARD}/4"
+        run: npm run test:e2e -- --fully-parallel --shard="${SHARD}/4"
       - name: Upload UI verification
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
