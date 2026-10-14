@@ -88,7 +88,7 @@ fallback chunks for browsers without `DecompressionStream`. Every asset is
 at most 8 MiB, below Cloudflare Pages' 25 MiB file limit. The matching GPL source
 archive and license are served with the binaries.
 
-Validation also passed 64 unit tests, the browser preset selection/time-limit
+Before removal of the retired tests, validation passed 64 unit tests, the browser preset selection/time-limit
 checks, the browser results/group/friction and
 cancellation checks, native/remote API UI checks, and a real HTTPS-frontend
 connection to the existing Docker backend.
@@ -107,7 +107,7 @@ run inside the server container. The image has no Docker CLI and needs no Docker
 socket, privileged mode or host-path environment setting. The Tailscale static
 preview passed command visibility and real clipboard checks.
 
-137 backend tests and 64 frontend unit tests passed. These include effective
+The earlier bundled-image validation passed 137 backend tests and 64 frontend unit tests. These include effective
 container memory/CPU limits, missing-runtime detection, cancellation of descendant
 processes with independent process groups, memory-pressure cleanup and preservation
 of the existing API. Three remote connection/clipboard browser tests passed.
@@ -133,3 +133,25 @@ browser storage with API requests blocked. A real screenshot is included with
 
 See [Docker setup and publishing](../docs/docker-backend.md). Automatic Docker Hub
 publishing activates when the workflow is merged into `main`.
+
+## Retired browser solver removal
+
+The numerical shaders, solver, mesh preprocessing, worker, benchmarks, old build
+alias, direct compute typings and compatibility UI are removed. The application
+source and built JavaScript contain no retired compute API or solver references.
+Shared OpenFOAM domain/display-grid helpers and WebGL rendering remain.
+
+After removal, 49 frontend units and all 137 backend tests passed. The complete
+native-enabled browser suite passed 27 checks (7 edition/optional-fixture skips);
+the static connection suite passed 5 checks (1 native-edition skip). Actual static
+production runs completed the sample Quick/Fast, sample wing and imported MX-5
+with backend/off-origin requests blocked, zero compute-API accesses and saved
+result reopening. The MPI image passed another four-rank calculation,
+cancellation, authentication and persistence/restart check, plus the real remote
+frontend run. See [the verification record](../docs/browser-openfoam/removal-verification.json).
+
+Only OpenFOAM results appear in the run library. Unsupported old results require
+a fresh OpenFOAM run from their saved design; no stored data is deleted. GitHub
+checks the source audit, units, static build, production WASM runs and the full
+UI suite, split into four parallel groups. Optional fixture checks retain their
+explicit skip conditions.

@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   web:
-    name: Static build and OpenFOAM browser tests
+    name: Static build, units and production WASM
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -36,11 +36,6 @@ jobs:
       - name: Test OpenFOAM contracts and absence of retired solver code
         working-directory: web
         run: npm test
-      - name: Test browser simulations and native-server integration UI
-        working-directory: web
-        env:
-          VITE_ENABLE_OPENFOAM: 'true'
-        run: npm run test:e2e
       - name: Test static edition and remote-server connection UI
         working-directory: web
         env:
@@ -65,3 +60,53 @@ jobs:
             test-results/browser-openfoam/*/*.webm
             test-results/browser-openfoam/*/solver.log
           retention-days: 7
+
+  ui:
+    name: Browser and server UI (${{ matrix.shard }}/4)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - name: Check out source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install frontend dependencies and Chromium
+        working-directory: web
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Test browser simulations and native-server integration UI
+        working-directory: web
+        env:
+          VITE_ENABLE_OPENFOAM: 'true'
+          SHARD: ${{ matrix.shard }}
+        run: npm run test:e2e -- --shard="${SHARD}/4"
+      - name: Upload UI verification
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: openfoam-ui-${{ matrix.shard }}
+          path: web/test-results/**
+          retention-days: 7
+
+  validated:
+    name: Static build and OpenFOAM browser tests
+    needs: [web, ui]
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require every browser validation job to pass
+        env:
+          WEB_RESULT: ${{ needs.web.result }}
+          UI_RESULT: ${{ needs.ui.result }}
+        run: |
+          test "$WEB_RESULT" = success
+          test "$UI_RESULT" = success
