@@ -5,7 +5,7 @@ serial mode. `blockMesh`, `snappyHexMesh` and `checkMesh` build and check the ca
 mesh. `browserFoam` uses the stock `simpleFoam` SIMPLE equations, k–omega SST,
 and stock boundary conditions on a static mesh. It adds wall integration and
 field sampling for the existing `RunResult`, `VizField` and `SurfaceSample`
-contracts. It does not substitute the old WebGPU solver.
+contracts. It runs the upstream OpenFOAM numerical implementation.
 
 Quick and Fast are light browser presets. Detailed uses a finer car/wake mesh,
 1,000 iterations and a 600,000-cell ceiling, with a 60-minute whole-job limit.

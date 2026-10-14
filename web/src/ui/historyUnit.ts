@@ -1,4 +1,4 @@
-// The x axis of a force history: flow passes (WebGPU) or solver iterations (OpenFOAM).
+// Force histories use OpenFOAM solver iterations.
 
 export interface HistoryUnit {
   one: string;
@@ -8,8 +8,5 @@ export interface HistoryUnit {
   choices: number[];
 }
 
-export const PASSES: HistoryUnit = { one: "pass", many: "passes", axis: "flow passes", choices: [1, 2, 3, 5, 10] };
 /** OpenFOAM reports the mean of the last 50 iterations; windows are in iterations. */
 export const ITERATIONS: HistoryUnit = { one: "iteration", many: "iterations", axis: "iterations", choices: [50, 100, 200, 500] };
-
-export const unitFor = (engine: string | undefined) => (engine === "openfoam" ? ITERATIONS : PASSES);

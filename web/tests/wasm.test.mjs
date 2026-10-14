@@ -4,7 +4,7 @@ import { createServer } from "vite";
 
 let server,prepare,results,types,sample,features,format;
 before(async()=>{
-  server=await createServer({server:{middlewareMode:true,hmr:false},logLevel:"error",appType:"custom"});
+  server=await createServer({ optimizeDeps: {noDiscovery: true, include: []}, server:{middlewareMode:true,hmr:false},logLevel:"error",appType:"custom"});
   const caseModule=await server.ssrLoadModule("/src/engine/wasmCase.ts");prepare=caseModule.prepareWasmCase;
   results=await server.ssrLoadModule("/src/engine/wasmResults.ts");types=await server.ssrLoadModule("/src/solver/types.ts");
   sample=await server.ssrLoadModule("/src/geometry/sample.ts");features=await server.ssrLoadModule("/src/engine/features.ts");
@@ -48,7 +48,6 @@ test("Detailed survives saved settings normalization and prepares a finer 1000-i
   assert.match(text(c,"system/snappyHexMeshDict"),/maxGlobalCells 600000;/);
   assert.match(text(c,"system/snappyHexMeshDict"),/part0 \{level \(4 4\)/);
   assert.equal(features.availableSettings({...saved,engine:"openfoam"}).quality,"fast");
-  assert.equal(features.availableSettings({...saved,engine:"webgpu"}).quality,"fast");
 });
 
 test("OpenFOAM wall integrals retain signs, per-part forces, moments and the last-50 iteration window",()=>{
@@ -76,8 +75,8 @@ test("same 21-byte field format as the server, with invalid cells masked rather 
   assert.throws(()=>results.wasmField(c,new Uint8Array(1)),/invalid flow field/);
 });
 
-test("legacy WebGPU and offline advanced designs migrate to runnable, bounded browser presets",()=>{
-  const s=features.availableSettings({...types.DEFAULT_SETTINGS,engine:"webgpu",quality:"custom",flow_animation:true,max_seconds:9999});
+test("offline advanced designs fall back to runnable, bounded browser presets",()=>{
+  const s=features.availableSettings({...types.DEFAULT_SETTINGS,engine:"openfoam",quality:"custom",flow_animation:true,max_seconds:9999});
   assert.equal(s.engine,"wasm");assert.equal(s.quality,"fast");assert.equal(s.flow_animation,false);assert.equal(s.max_seconds,300);
   assert.equal(features.engineLabel({engine:"openfoam",openfoam:{runtime:"wasm"}}),"OpenFOAM · Browser");
 });

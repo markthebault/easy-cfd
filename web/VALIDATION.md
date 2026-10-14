@@ -2,7 +2,7 @@
 
 Tested on 13 October 2026. The default browser engine is real OpenFOAM v2512
 compiled to WebAssembly, using serial SIMPLE, k–omega SST and double precision.
-The former WebGPU study is preserved in [WEBGPU-VALIDATION.md](WEBGPU-VALIDATION.md).
+The retired browser solver and its archived study have been removed.
 
 ## Static runtime checks
 
@@ -80,8 +80,8 @@ OpenFOAM mesh checks after that transfer was corrected.
 
 Advanced meshes and physical-time recordings use the existing connected
 OpenFOAM backend. Browser results, comparisons, exports and saved runs retain
-the existing viewer contracts. Old WebGPU results still reopen. Browser runs
-have no WebGPU numerical fallback.
+the existing viewer contracts. Only OpenFOAM results reopen; retired solver results are excluded from the library.
+Browser runs have no numerical fallback.
 
 The four compressed modules total approximately 15.3 MiB, with raw static
 fallback chunks for browsers without `DecompressionStream`. Every asset is

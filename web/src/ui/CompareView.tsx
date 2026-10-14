@@ -18,7 +18,7 @@ import { conditionsLine, fmt, fmtDate, groupForces, groupsLine, qualityLabel, si
 
 function conditionDiffs(a: Settings, b: Settings): string[] {
   const out: string[] = [];
-  const ea = a.engine === "wasm" ? "OpenFOAM browser" : a.engine === "openfoam" ? "OpenFOAM server" : "WebGPU", eb = b.engine === "wasm" ? "OpenFOAM browser" : b.engine === "openfoam" ? "OpenFOAM server" : "WebGPU";
+  const ea = a.engine === "wasm" ? "OpenFOAM browser" : "OpenFOAM server", eb = b.engine === "wasm" ? "OpenFOAM browser" : "OpenFOAM server";
   if (ea !== eb) out.push(`solver ${ea} vs ${eb}`);
   if (a.speed_kmh !== b.speed_kmh) out.push(`speed ${a.speed_kmh} vs ${b.speed_kmh} km/h`);
   if (a.yaw_deg !== b.yaw_deg) out.push(`yaw ${a.yaw_deg}° vs ${b.yaw_deg}°`);

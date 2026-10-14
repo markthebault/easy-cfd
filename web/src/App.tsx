@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { domainFor } from "./solver/setup";
+import { domainFor } from "./solver/domain";
 import type { Vec3 } from "./solver/types";
 import { useStore } from "./store/store";
 import { app, init } from "./store/app";
@@ -72,12 +72,6 @@ export function App() {
     return domainFor(design.settings, b.low, b.high) as number[];
   }, [view, design?.settings, report, showBox, step, parts]);
 
-  const detailOutlines = useMemo(() => {
-    const list = design?.settings.detail_boxes ?? [];
-    if (view !== "setup" || step === "car" || design?.settings.engine !== "webgpu" || !list.length) return null;
-    return list.map((b) => [b.x_min, b.x_max, b.y_min, b.y_max, b.z_min, b.z_max]);
-  }, [view, step, design?.settings.detail_boxes]);
-
   const content =
     view === "live" && live
       ? { parts: live.parts, key: `live:${live.designName}:${live.parts.length}:${live.settings.speed_kmh}`, surface: null, field: live.field, ranges: live.ranges, helpers: false }
@@ -116,7 +110,6 @@ export function App() {
           dark={dark}
           box={box}
           fitBox={!!box && showBox}
-          detailBoxes={detailOutlines}
           helpers={content.helpers && !box && step === "car"}
           insets={insets}
           gizmo={gizmo}

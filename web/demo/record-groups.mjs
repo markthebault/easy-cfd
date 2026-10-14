@@ -7,7 +7,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 const d = "demo/groups/";
 const outDir = "/tmp/groups-video";
 mkdirSync(outDir, { recursive: true });
-const b = await chromium.launch({ headless: true, args: ["--enable-unsafe-webgpu", "--use-angle=metal", "--enable-gpu", "--ignore-gpu-blocklist"] });
+const b = await chromium.launch({ headless: true, args: [ "--use-angle=metal", "--enable-gpu", "--ignore-gpu-blocklist"] });
 const ctx = await b.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: "dark", recordVideo: { dir: outDir, size: { width: 1440, height: 900 } } });
 const t0 = Date.now();
 const p = await ctx.newPage();

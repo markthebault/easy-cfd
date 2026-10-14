@@ -1,0 +1,67 @@
+name: OpenFOAM web validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: web-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: Static build and OpenFOAM browser tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install frontend dependencies and Chromium
+        working-directory: web
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Test OpenFOAM contracts and absence of retired solver code
+        working-directory: web
+        run: npm test
+      - name: Test browser simulations and native-server integration UI
+        working-directory: web
+        env:
+          VITE_ENABLE_OPENFOAM: 'true'
+        run: npm run test:e2e
+      - name: Test static edition and remote-server connection UI
+        working-directory: web
+        env:
+          VITE_ENABLE_OPENFOAM: 'false'
+        run: npm run test:e2e -- tests/e2e/edition.spec.ts tests/e2e/remote-openfoam.spec.ts
+      - name: Build entirely static frontend
+        working-directory: web
+        env:
+          VITE_ENABLE_OPENFOAM: 'false'
+        run: npm run build
+      - name: Solve real production WASM cases with backend requests blocked
+        run: node scripts/test-browser-openfoam.mjs
+      - name: Upload browser verification and media
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: openfoam-browser-verification
+          path: |
+            web/test-results/**
+            test-results/browser-openfoam/verification.json
+            test-results/browser-openfoam/*/*.png
+            test-results/browser-openfoam/*/*.webm
+            test-results/browser-openfoam/*/solver.log
+          retention-days: 7

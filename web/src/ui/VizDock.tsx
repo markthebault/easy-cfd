@@ -186,7 +186,7 @@ function AnimationTimeline({ animation, viz, stageIds, particles }: { animation:
   const first = animation.frames[0].time, duration = animation.frames.at(-1)!.time - first;
   const seek = (p: number) => { ids.forEach(id => stages[id]?.seekAnimation(p)); setPosition(p); };
   return <div className="flow-timeline">
-    <div className="flow-timeline-heading"><span className="eyebrow">{animation.sections ? "DDES · DETAILED WAKE" : `${animation.engine === "openfoam" ? "OpenFOAM" : "WebGPU"} · TRANSIENT FLOW`}</span><span>{animation.frames.length} frames</span></div>
+    <div className="flow-timeline-heading"><span className="eyebrow">{animation.sections ? "DDES · DETAILED WAKE" : "OpenFOAM · TRANSIENT FLOW"}</span><span>{animation.frames.length} frames</span></div>
     <p className="muted small">Smoke follows the recorded air velocity through this section. Colour shows the selected flow measurement.</p>
     {particles && <Segmented<"smoke" | "colours"> size="sm" label="Flow appearance" value={viz.animationAppearance ?? "smoke"}
       options={[{value:"smoke",label:"Flowing smoke"},{value:"colours",label:"Colour field"}]}

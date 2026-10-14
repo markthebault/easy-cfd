@@ -120,13 +120,7 @@ export function AeroBalancePanel({ run }: { run: LoadedRun }) {
         })}
       </div>
       <p className="field-hint">
-        {r.provenance?.aggregation === "mean-of-levels" &&
-          "Histories show the fine grid; reported force/moment means include both grids. "}
-        History axis:{" "}
-        {r.engine === "openfoam"
-          ? "OpenFOAM iteration"
-          : "WebGPU pseudo-time (s)"}
-        . Observed spread describes this averaging window, not physical
+        History axis: OpenFOAM iteration. Observed spread describes this averaging window, not physical
         prediction uncertainty.
       </p>
     </div>

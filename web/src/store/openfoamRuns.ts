@@ -1,5 +1,5 @@
 // OpenFOAM engine runs: upload the design to the selected OpenFOAM server, follow the run live, then
-// fetch the flow field and surface values and save the run like a WebGPU run. Also opens runs that
+// fetch the flow field and surface values and save the computed run in the browser library. Also opens runs that
 // were made on the server (for example in the original UI).
 
 import type { Part } from "../geometry/model";
@@ -16,14 +16,13 @@ import {
   getRun,
   historyFromServer,
   liveReport,
-  OPENFOAM_ITERATIONS_PER_UNIT,
   queueRun,
   resultFromRecord,
   runGeometry,
   soupLow,
   type ServerRun,
 } from "../engine/openfoam";
-import { domainFor } from "../solver/setup";
+import { domainFor } from "../solver/domain";
 import { DEFAULT_SETTINGS, type Settings, type Vec3 } from "../solver/types";
 import {
   app,
@@ -197,8 +196,6 @@ async function follow(
         ? (lv.recording_time_seconds ?? 0) / lv.recording_duration_seconds!
         : (done + (lv.iteration ?? 0)) / Math.max(1, total)),
       history,
-      time: lv.iteration,
-      targetTime: total,
       elapsed: (performance.now() - started) / 1000,
     });
     if (lv.status !== "queued" && lv.status !== "running") return getRun(runId);
@@ -299,8 +296,7 @@ export async function startOpenFoamRun() {
   const settings: Settings = {
     ...design.settings,
     engine: "openfoam",
-    quality:
-      design.settings.quality === "custom" ? "medium" : design.settings.quality,
+    quality: design.settings.quality,
   };
   const enabled = s.parts.filter((p) => p.enabled);
   // Every part with its own switch on is uploaded once, so switching groups reuses the project.
@@ -331,10 +327,6 @@ export async function startOpenFoamRun() {
       iterations: total,
       stage: "preparing",
       fraction: 0,
-      time: 0,
-      targetTime: total,
-      passTime: OPENFOAM_ITERATIONS_PER_UNIT,
-      steps: 0,
       elapsed: 0,
       cells: 0,
       history: [],
@@ -496,10 +488,6 @@ function showFetching(
       iterations: rec.iteration ?? 0,
       stage: "saving",
       fraction: 1,
-      time: 0,
-      targetTime: 1,
-      passTime: OPENFOAM_ITERATIONS_PER_UNIT,
-      steps: 0,
       elapsed: 0,
       cells: 0,
       history: historyFromServer(rec.result?.history ?? []),
@@ -542,7 +530,7 @@ export async function importServerRun(id: string) {
       patchLive({stage:/solving/i.test(rec.stage ?? "") ? "solving" : "preparing",
         serverStage:rec.status === "queued" ? "Waiting for the solver (another run is in the queue)" : rec.stage,
         iterations:total,iteration:rec.iteration ?? 0,fraction:Math.min(1,(rec.iteration ?? 0)/total),
-        targetTime:total,time:rec.iteration ?? 0,elapsed});
+        elapsed});
       // Geometry is a saved run snapshot and can load while solver polling continues.
       const previewRecord = rec;
       void (async()=>{

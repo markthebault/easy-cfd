@@ -67,7 +67,7 @@ export async function startRun() {
   let design = s.design;
   if (!design || !s.report || s.report.errors.length || !s.confirmed) return;
   if (!design.settings.axles || design.settings.axles.source === "wheels") {
-    const axles = resolvedAxles(design.settings.axles,toSolverParts(s.parts, s.groups));
+    const axles = resolvedAxles(design.settings.axles,toSolverParts(s.parts));
     if (JSON.stringify(axles) !== JSON.stringify(design.settings.axles)) {
       setSettings({axles});
       design = {...design, settings:{...design.settings,axles}};
@@ -81,7 +81,7 @@ export async function startRun() {
   }
   const settings = { ...design.settings, engine: "wasm" as const };
   const enabled = s.parts.filter((p) => p.enabled && s.groups.find(g=>g.id===p.group)?.enabled !== false);
-  const solverParts = toSolverParts(s.parts, s.groups);
+  const solverParts = toSolverParts(s.parts);
   const geometry = summarize(s.parts, s.report, s.groups);
   const { low, high } = partsBounds(enabled);
   controller = new AbortController();
@@ -90,7 +90,7 @@ export async function startRun() {
     view: "live", viz: vizForCar(s.viz, low, high),
     live: {
       engine: "openfoam", runtime: "wasm", stage: "preparing", serverStage: "Loading browser OpenFOAM", fraction: 0,
-      time: 0, targetTime: 1, passTime: 1, steps: 0, elapsed: 0, cells: 0, history: [],
+      elapsed: 0, cells: 0, history: [],
       field: null, ranges: null, parts: enabled, settings, designName: design.name, snapshots: 0, error: null,
     },
   });
@@ -100,7 +100,7 @@ export async function startRun() {
     const {result,field,surface}=await runBrowserOpenFoam(solverParts,settings,{
       signal,
       onProgress:p=>patchLive({stage:p.stage,serverStage:p.label,iteration:p.iteration,iterations:p.iterations,
-        steps:p.iteration,time:p.iteration,targetTime:p.iterations,fraction:p.iterations?p.iteration/p.iterations:0,
+        fraction:p.iterations?p.iteration/p.iterations:0,
         elapsed:p.elapsed,cells:p.cells,history:p.history}),
       onSnapshot:field=>{
         const live=app.get().live;
@@ -151,6 +151,7 @@ async function partsFor(doc: RunDoc): Promise<Part[]> {
 export async function loadRun(id: string): Promise<LoadedRun> {
   let doc = await get("runs", id);
   if (!doc) throw new Error("That run no longer exists.");
+  if (doc.result.engine !== "openfoam") throw new Error("This result uses a retired solver. Open its design and run it again with OpenFOAM.");
   const fdoc = await get("fields", id);
   let parts: Part[] = [];
   let notice: string | undefined;
@@ -253,7 +254,7 @@ export function exportJSON(doc: RunDoc) {
 export function exportCSV(doc: RunDoc) {
   const analysis = assessedResult(doc);
   const loads = estimateTyreLoads(analysis.balance, doc.tyreLoadAssessment?.inputs ?? doc.settings);
-  const rows = [`${doc.result.engine === "openfoam" ? "iteration" : "pseudo_time_s"},step,cd,cl,cs,pitch_Nm,front_lift_N,rear_lift_N,front_static_N,rear_static_N,front_tyre_total_N,rear_tyre_total_N`, ...analysis.history.map((h) => {
+  const rows = [`iteration,step,cd,cl,cs,pitch_Nm,front_lift_N,rear_lift_N,front_static_N,rear_static_N,front_tyre_total_N,rear_tyre_total_N`, ...analysis.history.map((h) => {
     const front = loads && h.frontLift !== undefined ? loads.front.staticN-h.frontLift : "";
     const rear = loads && h.rearLift !== undefined ? loads.rear.staticN-h.rearLift : "";
     return `${h.time},${h.step},${h.cd},${h.cl},${h.cs},${h.pitch ?? ""},${h.frontLift ?? ""},${h.rearLift ?? ""},${loads?.front.staticN ?? ""},${loads?.rear.staticN ?? ""},${front},${rear}`;

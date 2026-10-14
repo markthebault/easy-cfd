@@ -1,11 +1,11 @@
 // Step 2: driving conditions and the simulation box.
 
 import { useMemo, useRef } from "react";
-import { Box, Plus, Trash2, Wand2 } from "lucide-react";
+import { Box, Wand2 } from "lucide-react";
 import { axleError, detectedAxles, resolvedAxles, suggestAxles } from "../solver/aero";
 import { toSolverParts } from "../store/geometry";
-import { domainFor, validateDomain } from "../solver/setup";
-import type { DetailBox, SimulationBox, Vec3 } from "../solver/types";
+import { domainFor, validateDomain } from "../solver/domain";
+import type { SimulationBox, Vec3 } from "../solver/types";
 import { useStore } from "../store/store";
 import { app, goStep, setSettings } from "../store/app";
 import { gridBounds } from "../store/geometry";
@@ -118,59 +118,6 @@ function YawPreview({ yaw }: { yaw: number }) {
       <rect className="yaw-glass" x={66} y={25} width={20} height={14} rx={4} />
       <text className="yaw-front" x={52} y={58}>front</text>
     </svg>
-  );
-}
-
-/** User-defined detail boxes: finer cells for features inside a larger part (hood vents, holes, gaps). */
-function DetailBoxes({ low, high }: { low: Vec3; high: Vec3 }) {
-  const design = useStore(app, (s) => s.design)!;
-  const boxes = design.settings.detail_boxes ?? [];
-  const set = (list: DetailBox[]) => setSettings({ detail_boxes: list });
-  const add = () => {
-    // Starts over the front of the car (the hood), where vents and louvres usually are.
-    const L = high[0] - low[0], W = high[1] - low[1];
-    const cy = (low[1] + high[1]) / 2;
-    const r = (v: number) => Math.round(v * 100) / 100;
-    set([...boxes, {
-      name: `Detail box ${boxes.length + 1}`,
-      x_min: r(low[0] + 0.1 * L), x_max: r(low[0] + 0.35 * L), y_min: r(cy - 0.3 * W), y_max: r(cy + 0.3 * W), z_min: r(0.4 * high[2]), z_max: r(0.65 * high[2]),
-    }]);
-  };
-  const fields: [keyof DetailBox, string][] = [["x_min", "X min"], ["x_max", "X max"], ["y_min", "Y min"], ["y_max", "Y max"], ["z_min", "Z min"], ["z_max", "Z max"]];
-  return (
-    <div className="group">
-      <div className="group-title">
-        <span>Detail boxes</span>
-        <span className="muted">{boxes.length ? `${boxes.length} box${boxes.length > 1 ? "es" : ""}` : "none"}</span>
-      </div>
-      <small className="field-hint">
-        Finer cells inside a box, for features within a larger part: vents and holes in the hood, gaps, small inlets. Used when detail cells are switched on in the Run step.
-      </small>
-      {boxes.map((b, i) => {
-        const bad = !(b.x_max > b.x_min && b.y_max > b.y_min && b.z_max > b.z_min);
-        return (
-          <div key={i} className="detail-box" data-testid="detail-box">
-            <div className="row gap-s">
-              <input className="detail-box-name" aria-label={`Name of detail box ${i + 1}`} value={b.name ?? ""} onChange={(e) => set(boxes.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))} />
-              <button className="icon-btn xs" aria-label={`Delete detail box ${i + 1}`} onClick={() => set(boxes.filter((_, j) => j !== i))}>
-                <Trash2 size={13} />
-              </button>
-            </div>
-            <div className="box-grid">
-              {fields.map(([k, label]) => (
-                <Field key={k} label={label}>
-                  <NumberField value={b[k] as number} step={0.02} digits={2} unit="m" label={`${label} of detail box ${i + 1}`} invalid={bad} onChange={(v) => set(boxes.map((x, j) => (j === i ? { ...x, [k]: v } : x)))} />
-                </Field>
-              ))}
-            </div>
-            {bad && <p className="inline-error">Each max must be larger than its min.</p>}
-          </div>
-        );
-      })}
-      <button className="btn ghost sm" onClick={add}>
-        <Plus size={15} /> Add detail box
-      </button>
-    </div>
   );
 }
 
@@ -301,7 +248,6 @@ export function ConditionsStep() {
         <VehicleWeightFields value={s} onChange={setSettings} />
         <small className="field-hint">You can also enter these values on a saved result without rerunning CFD.</small>
       </div>
-      {s.engine === "webgpu" && <DetailBoxes low={low} high={high} />}
 
       <button className="btn primary block" disabled={!!boxError || !!weightInputError(s)} onClick={() => goStep("run")}>
         Continue to run

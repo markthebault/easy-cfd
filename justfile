@@ -5,7 +5,7 @@ web_port := "4173"
 default:
     @just --list
 
-# Static UI with WebGPU and optional remote OpenFOAM: build and serve web/dist on 127.0.0.1
+# Static UI with browser OpenFOAM and optional remote backend: build and serve web/dist on 127.0.0.1
 run:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -19,7 +19,7 @@ run:
     echo "EasyCFD Web: http://127.0.0.1:{{web_port}}  (Ctrl-C to stop)"
     exec python3 -m http.server {{web_port}} --bind 127.0.0.1 --directory dist
 
-# Web UI with both engines (WebGPU and the OpenFOAM server): http://127.0.0.1:8000, original UI at /legacy/
+# Web UI with browser and native OpenFOAM: http://127.0.0.1:8000, original UI at /legacy/
 run-openfoam:
     VITE_ENABLE_OPENFOAM=true ./scripts/start.sh
 

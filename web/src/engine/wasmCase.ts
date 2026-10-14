@@ -1,7 +1,7 @@
 // OpenFOAM case files in the same world frame, units and boundary conventions as the server.
 import { writeSTL } from "../geometry/stl";
 import { momentOrigin } from "../solver/aero";
-import { automaticDomain } from "../solver/grid";
+import { automaticDomain } from "../solver/domain";
 import { vizBoxFor, vizGrid } from "../solver/extract";
 import type { Settings, SolverPart, Vec3 } from "../solver/types";
 import { isWasmQuality, WASM_PRESETS } from "./wasmPresets";

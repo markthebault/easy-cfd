@@ -8,7 +8,7 @@ import * as THREE from "three";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 let server, pressure, analysis, streams;
 before(async () => {
-  server = await createServer({ root, server: { middlewareMode: true, hmr: false }, logLevel: "error", appType: "custom" });
+  server = await createServer({ optimizeDeps: {noDiscovery: true, include: []}, root, server: { middlewareMode: true, hmr: false }, logLevel: "error", appType: "custom" });
   [pressure, analysis, streams] = await Promise.all([server.ssrLoadModule("/src/viz/pressureCloud.ts"), server.ssrLoadModule("/src/viz/analysis.ts"), server.ssrLoadModule("/src/viz/streamlines.ts")]);
 });
 after(async () => server?.close());

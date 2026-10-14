@@ -102,16 +102,14 @@ export function applyGroups(parts: Part[], overrides: Record<string, PartOverrid
 
 /**
  * Solver input: every part whose own switch is on. Parts in switched-off groups go along as
- * inactive, so they shape the grid (and its detail refinement) without being simulated: all
- * variants of a design then run on identical cells.
+ * inactive, so OpenFOAM can exclude them while retaining the design geometry.
  */
-export function toSolverParts(parts: Part[], groups: PartGroup[] = []): SolverPart[] {
-  const detail = new Map(groups.map((g) => [g.id, g.detail ?? "auto"] as const));
+export function toSolverParts(parts: Part[]): SolverPart[] {
   return parts
     .filter((p) => p.selfEnabled ?? p.enabled)
     .map((p) => ({
       id: p.id, name: p.name, role: p.role, positions: p.positions, wheel: p.role === "wheel" ? p.wheel : null,
-      active: p.enabled, detail: (p.group && detail.get(p.group)) || "auto", group: p.group,
+      active: p.enabled, group: p.group,
     }));
 }
 

@@ -19,15 +19,8 @@ export type Step = "car" | "conditions" | "run";
 export type View = "setup" | "live" | "results" | "compare";
 export type ThemePref = "system" | "dark" | "light";
 
-export interface GpuState {
-  status: "checking" | "ready" | "software" | "unavailable";
-  adapter: string;
-  message: string;
-}
-
 export interface LiveState {
-  /** Solver of this run (absent: WebGPU). */
-  engine?: "webgpu" | "openfoam";
+  engine: "openfoam";
   runtime?: "wasm";
   /** OpenFOAM: the server's stage text, iteration and iteration budget. */
   serverStage?: string;
@@ -37,11 +30,6 @@ export interface LiveState {
   recordingDuration?: number;
   stage: "preparing" | "solving" | "recording" | "finishing" | "saving";
   fraction: number;
-  time: number;
-  targetTime: number;
-  /** Simulated seconds per flow pass (car length / speed). */
-  passTime: number;
-  steps: number;
   elapsed: number;
   cells: number;
   history: ForceSample[];
@@ -70,7 +58,6 @@ export interface ServerState {
 export interface AppState {
   theme: ThemePref;
   dark: boolean;
-  gpu: GpuState;
   server: ServerState;
   design: DesignDoc | null;
   parts: Part[];
@@ -139,7 +126,6 @@ const initialTheme = (localStorage.getItem(THEME_KEY) as ThemePref | null) ?? "s
 export const app = createStore<AppState>({
   theme: initialTheme,
   dark: initialTheme === "system" ? systemDark() : initialTheme === "dark",
-  gpu: { status: "checking", adapter: "", message: "" },
   server: { status: backendAvailable() ? "checking" : "unavailable", info: null },
   design: null,
   parts: [],
@@ -210,7 +196,7 @@ export async function refreshLists() {
   const [designs, runs] = await Promise.all([getAll("designs"), getAll("runs")]);
   designs.sort((a, b) => b.updatedAt - a.updatedAt);
   runs.sort((a, b) => b.createdAt - a.createdAt);
-  app.set({ designs, runs });
+  app.set({ designs, runs: runs.filter(run => run.result.engine === "openfoam") });
 }
 
 const pause = () => new Promise((r) => setTimeout(r, 30));
@@ -374,7 +360,6 @@ function upsertGroup(id: string, patch: Partial<PartGroup>, resetConfirm = true)
 /** Switching groups does not change the geometry itself, so the checklist stays confirmed. */
 export const setGroupEnabled = (id: string, enabled: boolean) => upsertGroup(id, { enabled }, false);
 export const renameGroup = (id: string, name: string) => upsertGroup(id, { name: name.trim() || "Group" }, false);
-export const setGroupDetail = (id: string, detail: "auto" | "always" | "off") => upsertGroup(id, { detail }, false);
 
 /** Switch on exactly one group among `ids` (e.g. one rear-wing version) and switch the others off. */
 export function soloGroup(id: string, ids: string[]) {

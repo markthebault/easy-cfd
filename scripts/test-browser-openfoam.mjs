@@ -64,7 +64,7 @@ try{
     await page.goto(startUrl.href);
     let settings;
     if(model.startsWith("sample")){
-      if(model.includes("wing"))await page.getByRole("checkbox",{name:"with rear wing"}).check();
+      if(model.includes("wing"))await page.getByRole("switch",{name:"with rear wing"}).check();
       await page.getByTestId("try-sample").click();
     }else{
       const root=join(repo,".wasm-test-models",model.replace(/-(fast|detailed)$/,"")),record=JSON.parse(await readFile(join(root,"record.json"),"utf8"));

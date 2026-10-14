@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createServer } from "vite";
 let server, aero, codec, tyres, analysis;
 before(async () => {
-  server = await createServer({
+  server = await createServer({ optimizeDeps: {noDiscovery: true, include: []},
     root: new URL("..", import.meta.url).pathname,
     server: { middlewareMode: true, hmr: false },
     appType: "custom",
@@ -175,18 +175,4 @@ test("physical stress and validity survive storage without quantization; old sam
     { cp: codec.quantize(s.cp), shear: codec.quantize(s.shear) },
   ])[0];
   assert.equal(old.wallStress, undefined);
-});
-
-test("resource preflight rejects over-budget grids and device buffers before preparation", async () => {
-  const { preflight } = await server.ssrLoadModule("/src/solver/resources.ts");
-  assert.throws(() => preflight(3_000_000, 3_200_000, 10000), /2.5 M/);
-  assert.throws(() => preflight(1_500_000, 1_800_000, 400_000_000), /GiB/);
-  assert.throws(
-    () => preflight(1_500_000, 1_800_000, 1000, 16 * 1024 ** 2),
-    /GPU/,
-  );
-  assert.ok(
-    preflight(1_500_000, 1_800_000, 1000, 128 * 1024 ** 2).bytes <
-      3 * 1024 ** 3,
-  );
 });

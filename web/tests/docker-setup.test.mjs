@@ -4,7 +4,7 @@ import { spawnSync } from "node:child_process";
 import { createServer } from "vite";
 
 test("the copied startup command is a single valid Docker run command",async()=>{
-  const server=await createServer({server:{middlewareMode:true,hmr:false},logLevel:"error",appType:"custom"});
+  const server=await createServer({ optimizeDeps: {noDiscovery: true, include: []}, server:{middlewareMode:true,hmr:false},logLevel:"error",appType:"custom"});
   try{
     const {DOCKER_START_COMMAND}=await server.ssrLoadModule("/src/engine/dockerSetup.ts");
     assert.ok(DOCKER_START_COMMAND.startsWith("docker run -it --rm "));

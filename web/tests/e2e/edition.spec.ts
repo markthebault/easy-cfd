@@ -44,3 +44,26 @@ test("the static edition offers remote connection and makes no automatic backend
   await expect(page.getByTestId("tab-server")).toHaveCount(0);
   expect(apiRequests).toEqual([]);
 });
+
+
+test("unsupported saved results are excluded without deleting their design or stored data", async ({page}) => {
+  await page.goto("/");
+  await page.getByTestId("try-sample").click();
+  const counts = await page.evaluate(async () => {
+    const {put, getAll} = await import("/src/store/db.ts" as string);
+    const {app, refreshLists} = await import("/src/store/app.ts" as string);
+    const design = app.get().design;
+    await put("runs", {id:"unsupported-result",designId:design.id,designName:design.name,createdAt:Date.now(),
+      settings:design.settings,source:design.source,result:{engine:"retired"}});
+    await refreshLists();
+    return {visible:app.get().runs.length,stored:(await getAll("runs")).length,design:app.get().design.id};
+  });
+  expect(counts.visible).toBe(0);
+  expect(counts.stored).toBe(1);
+  expect(counts.design).toBeTruthy();
+  await page.evaluate(async () => {
+    const {openRun} = await import("/src/store/runs.ts" as string);
+    await openRun("unsupported-result");
+  });
+  await expect(page.getByText("This result uses a retired solver. Open its design and run it again with OpenFOAM.", {exact:true})).toBeVisible();
+});

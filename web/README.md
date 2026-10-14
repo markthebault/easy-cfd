@@ -49,8 +49,9 @@ and workers. WebGPU is not required; WebGL still renders the 3D scene.
 Only enabled groups enter a browser mesh. Different designs can generate
 slightly different meshes; grid sensitivity must be assessed separately. Small
 parts and gaps may exceed the light preset's mesh budget and require a server.
-Old WebGPU results still open; their designs migrate to browser OpenFOAM when
-rerun. There is no WebGPU fallback for a failing WASM run.
+Only OpenFOAM results are supported. Retired solver results are excluded from
+the library; their designs remain available for a fresh OpenFOAM run. No stored
+data is deleted. A failed browser solve never falls back to another solver.
 
 ## Integration and validation
 
@@ -72,5 +73,5 @@ WebGPU. It records screenshots, videos and real case files, checks computed
 fields and forces, and reopens saved results. Native comparison uses the exact
 browser-generated mesh with stock OpenFOAM v2512. See [VALIDATION.md](VALIDATION.md).
 
-The old WebGPU solver and validation tools remain in the source tree for
-historical comparisons; they are not the browser simulation engine.
+The retired numerical solver, preprocessing, shaders, benchmarks, compatibility
+UI and direct dependencies have been removed.

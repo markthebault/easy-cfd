@@ -10,7 +10,7 @@ const name = process.argv[5] ?? basename(input);
 mkdirSync(output, { recursive: true });
 const files = readdirSync(input).filter(name => /\.stl$/i.test(name)).map(name => resolve(input, name));
 if (!files.length) throw new Error("The model folder needs STL files, with wheels named wheel*.stl.");
-const browser = await chromium.launch({ headless: true, args: ["--enable-unsafe-webgpu", "--use-angle=metal", "--enable-gpu", "--ignore-gpu-blocklist"] });
+const browser = await chromium.launch({ headless: true, args: [ "--use-angle=metal", "--enable-gpu", "--ignore-gpu-blocklist"] });
 const context = await browser.newContext({ viewport: { width: 1600, height: 1000 }, colorScheme: "dark", recordVideo: { dir: output, size: { width: 1600, height: 1000 } } });
 const started = Date.now();
 const page = await context.newPage();

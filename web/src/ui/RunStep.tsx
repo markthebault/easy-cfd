@@ -87,10 +87,10 @@ export function RunStep() {
     </div>}
     {fineFlow && <p className="field-hint">Detailed wake mesh · up to 2 million cells · 6 GiB. Fine cells surround the car and continue into its wake.</p>}
     {!openfoam && <p className="field-hint">Steady airflow, pressure views and animated particles are included. Recording a changing physical-time wake requires the server engine.</p>}
-    {openfoam?<OpenFoamSummary quality={s.quality} info={server.info}/>:<div className={`gpu-line ${wasmReady?"ready":"unavailable"}`}>
+    {openfoam?<OpenFoamSummary quality={s.quality} info={server.info}/>:<div className={`engine-status ${wasmReady?"ready":"unavailable"}`}>
       <Cpu size={15}/><span>{wasmReady?"OpenFOAM WebAssembly · runs locally in this tab":"WebAssembly and browser workers are required."}</span>
     </div>}
-    {openfoam && <div className={`gpu-line ${serverReady?"ready":"unavailable"}`}>
+    {openfoam && <div className={`engine-status ${serverReady?"ready":"unavailable"}`}>
       {serverReady?<><Server size={15}/><span>OpenFOAM server · {server.info?.cpus ?? "?"} CPUs · {fmt(server.info?.memory_gb ?? 0,1)} GB memory</span></>:<><TriangleAlert size={15}/><span>The OpenFOAM server is not ready.</span></>}
     </div>}
     {weightError && <p className="inline-error" role="alert">{weightError} Edit the weight inputs in Conditions.</p>}

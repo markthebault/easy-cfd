@@ -34,7 +34,7 @@ npm run dev
 
 Browser OpenFOAM is the default engine. The UI also supports both a native server and a token-protected backend URL for advanced analysis, including in static builds with native discovery disabled. See the [technical guide](TECHNICAL_GUIDE.md) for model preparation, solver options, and development checks.
 
-Cloudflare's native GitHub integration deploys every push to `main` to the public frontend. Pull requests get preview URLs, with links posted by Cloudflare on GitHub. The Pages project is `easy-cfd-github`; see the [deployment setup](TECHNICAL_GUIDE.md#two-engines-webgpu-and-openfoam) for build settings and the manual fallback.
+Cloudflare's native GitHub integration deploys every push to `main` to the public frontend. Pull requests get preview URLs, with links posted by Cloudflare on GitHub. The Pages project is `easy-cfd-github`; see the [deployment setup](TECHNICAL_GUIDE.md#two-openfoam-runtimes) for build settings and the manual fallback.
 
 ## Run an OpenFOAM backend with Docker
 
