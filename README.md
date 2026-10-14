@@ -49,16 +49,8 @@ You can use the static frontend at **https://easy-cfd.mthracelab.com/** with a b
 Install Docker with Compose, then from this checkout:
 
 ```sh
-# Use an absolute, persistent path on the machine running the Docker daemon.
-export EASYCFD_HOST_DATA="$PWD/.easycfd-remote"
-mkdir -p "$EASYCFD_HOST_DATA"
-
-# Download the pinned OpenFOAM v2412 solver image (separate from the API image).
-docker pull opencfd/openfoam-default@sha256:1ba02114b1c025c370f2e269a07677c16c9bea8d990fcd75ac8378aff9d41b50
-
-# Build the backend image, then start its single-worker API and persistent queue.
-docker compose build backend
-docker compose up -d backend
+# Build the self-contained OpenFOAM/MPI server, then start its API and queue.
+docker compose up -d --build backend
 
 # The startup log prints the full URL to paste into the frontend, including its token.
 docker compose logs backend
@@ -73,11 +65,15 @@ docker compose up -d backend
 
 Use this value in the connection URL. The token grants access to all projects and runs on that backend. API requests require the token, including health checks, uploads, cancellations and result downloads. The UI extracts it from the URL and sends it as a bearer authorization header; it keeps the connection in this browser tab's session storage and does not export the token with projects or results. Server runs upload the selected model to your backend; Browser OpenFOAM runs compute in the browser.
 
-The Compose service listens on loopback by default. It uses the host Docker socket to launch isolated solver containers, so run it on a machine you trust. The API and solver share the persistent data directory; `EASYCFD_HOST_DATA` must identify that directory on the Docker daemon's host. You can also build the API image directly with `docker build -t easycfd-backend:local .`. Stop the service with `docker compose down`; saved runs and the generated token stay in the data directory.
+The Compose service publishes port 8000 and mounts only its saved-data directory,
+`.easycfd-remote` by default (override with `EASYCFD_DATA_DIR`). The image includes
+OpenFOAM and runs MPI processes inside the API container; no Docker socket is
+mounted. You can also build it with `docker build -t easycfd-backend:local .`.
+Stop the service with `docker compose down`; saved runs and the token remain.
 
 ## Connect to a backend on another computer
 
-Use a reachable **HTTPS** backend URL such as `https://cfd.example.com?token=YOUR_TOKEN` (an `/api` suffix is also accepted). A public server with HTTPS through a reverse proxy needs no tunnel. For a backend behind NAT or a firewall, ngrok or a similar HTTPS tunnel can expose the loopback service:
+Use a reachable **HTTPS** backend URL such as `https://cfd.example.com?token=YOUR_TOKEN` (an `/api` suffix is also accepted). A public server with HTTPS through a reverse proxy needs no tunnel. For a backend behind NAT or a firewall, ngrok or a similar HTTPS tunnel can expose the service:
 
 ```sh
 # After installing ngrok and configuring its account credentials:

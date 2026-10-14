@@ -45,7 +45,7 @@ export function OpenFoamConnection() {
     <p className="field-hint">The connection is saved for this browser tab. Server runs upload your model to the connected server.</p>
     <div className="docker-setup" data-testid="docker-setup">
       <h4 className="docker-setup-title">Start your server with Docker</h4>
-      <p className="field-hint">Start Docker, then paste this into a macOS or Linux terminal. The server creates its data folder and downloads OpenFOAM automatically on first use. The first startup can take a few minutes.</p>
+      <p className="field-hint">Start Docker, then paste this into a macOS or Linux terminal. This image includes OpenFOAM and MPI. Docker creates the data folder automatically; the first image download can take a few minutes.</p>
       <button className="btn ghost sm" type="button" onClick={()=>void copyCommand()} data-testid="copy-docker-command">
         {copied ? "Copied" : "Copy startup command"}
       </button>
@@ -53,7 +53,7 @@ export function OpenFoamConnection() {
       {copyError && <p className="inline-error" role="status">{copyError}</p>}
       <p className="field-hint">Copy the <code>http://localhost:8000?token=…</code> URL printed in the terminal into the connection field above. Allow local-network access if your browser asks.</p>
       <p className="field-hint">Keep the terminal open while using the server. After runs finish, press <code>Ctrl+C</code> to stop it; the container is removed automatically. Runs and the connection token stay in <code>~/easycfd-data</code>. Paste the command again to restart.</p>
-      <p className="field-hint">The Docker socket mount lets the server start and stop the separate OpenFOAM containers that run simulations.</p>
+      <p className="field-hint">OpenFOAM runs inside this server container. Only your saved-data folder is shared.</p>
       <p className="field-hint">For a server on another computer, expose it over HTTPS and paste its URL with the same token.</p>
       <a className="small" href={`https://hub.docker.com/r/${BACKEND_IMAGE.split(":")[0]}`} target="_blank" rel="noreferrer">Docker image and setup guide</a>
     </div>

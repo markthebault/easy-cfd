@@ -14,8 +14,6 @@ checkout, Python install or local image build is required.
 docker run -it --rm --pull=always --name easycfd-openfoam --init \
   -p 8000:8000 \
   -v "$HOME/easycfd-data:/data" \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -e EASYCFD_HOST_DATA="$HOME/easycfd-data" \
   markthebault/easy-cfd-backend:latest
 ```
 
@@ -24,15 +22,19 @@ In EasyCFD, open **Run → OpenFOAM server connection**. Paste the
 network access if the browser asks. Select **OpenFOAM · Server** to run advanced
 analysis. Browser Quick, Fast and Detailed runs continue to work independently.
 
-The backend image contains the API, geometry preparation and persistent queue.
-It launches the pinned OpenCFD v2412 solver in separate Docker containers;
-it downloads that solver automatically on first startup and reuses it afterward.
-Docker creates the data folder automatically. The first startup can take a few
-minutes; download progress appears in the terminal. Keep Docker running.
-The Docker socket mount lets the API start and stop the separate OpenFOAM solver
-containers. It grants access to the host Docker engine, so use an image you trust.
-`EASYCFD_HOST_DATA` tells those solver containers where their shared case files
-live on the Docker host.
+The image includes the API, geometry preparation, OpenCFD v2412 and Open MPI.
+The API starts meshing tools and MPI solver processes directly inside the same
+container. It does not include a Docker CLI or connect to the host Docker engine.
+Only the saved-data directory is mounted; no Docker socket, privileged mode or
+host-path environment setting is needed. Docker creates the data folder
+if it is missing. The first image download can take a few minutes.
+
+Four MPI ranks are used by default. Set `-e EASYCFD_PROCESSES=2` (or another
+rank count) to change this. The backend limits each job's CPU affinity and
+monitors the whole MPI process family's memory, cancellation and elapsed-time
+budget. Optional Docker `--cpus` and `--memory` flags impose limits on the API
+and all solver processes together. Container memory and CPU limits are reflected
+in the backend's readiness and preset checks.
 
 Projects, runs and the generated connection token stay in `~/easycfd-data`.
 Keep the terminal open while using the server. After active runs finish, press
@@ -61,13 +63,15 @@ address; it does not set up HTTPS or create a tunnel.
 To use another port, change the binding to `8001:8000` and add
 `-e EASYCFD_PUBLIC_URL=http://localhost:8001`. Optional settings include
 `EASYCFD_PROCESSES` (4 by default), `EASYCFD_API_TOKEN`, and
-`EASYCFD_CORS_ORIGINS`. The data path must be absolute and identify the same
-directory on the Docker daemon's host; it is shared by the API and solver.
+`EASYCFD_CORS_ORIGINS`. Use an absolute host path for the saved-data volume; the API and MPI solvers
+share its `/data` path inside the container.
 
 ## Automatic publishing
 
 [The Docker backend workflow](../.github/workflows/docker-backend.yml) builds
-and tests both architectures on native GitHub runners. Pull requests only build
+and tests both architectures on native GitHub runners, including a real car
+simulation using four MPI ranks, solver cancellation, authentication and token
+persistence after restart. The test container mounts only its saved-data folder. Pull requests only build
 and test. Every push to `main` publishes the exact tested images and joins their
 digests under `latest`, `main`, and `sha-FULL_COMMIT` tags once the workflow is
 merged to `main`. A manual run on `main`

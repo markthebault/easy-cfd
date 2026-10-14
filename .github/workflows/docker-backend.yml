@@ -52,8 +52,8 @@ jobs:
           build-args: VCS_REF=${{ github.sha }}
           cache-from: type=gha,scope=backend-${{ matrix.arch }}
           cache-to: type=gha,mode=max,scope=backend-${{ matrix.arch }}
-      - name: Check first-use download, API authentication and restart
-        run: python3 scripts/test-docker-backend.py easycfd-backend:test --expect-download
+      - name: Test bundled MPI simulation, cancellation, authentication and restart
+        run: python3 scripts/test-docker-backend.py easycfd-backend:test --simulate --cancel
       - name: Log in to Docker Hub
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4

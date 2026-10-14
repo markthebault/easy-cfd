@@ -4,17 +4,14 @@ services:
     image: easycfd-backend:local
     init: true
     ports:
-      - "127.0.0.1:${EASYCFD_PORT:-8000}:8000"
+      - "${EASYCFD_PORT:-8000}:8000"
     environment:
       EASYCFD_REMOTE: "true"
       EASYCFD_API_TOKEN: "${EASYCFD_API_TOKEN:-}"
       EASYCFD_CORS_ORIGINS: "${EASYCFD_CORS_ORIGINS:-*}"
       EASYCFD_PUBLIC_URL: "${EASYCFD_PUBLIC_URL:-http://localhost:${EASYCFD_PORT:-8000}}"
       EASYCFD_DATA: /data
-      # Docker resolves the solver's mounts on the host, rather than in this container.
-      EASYCFD_HOST_DATA: "${EASYCFD_HOST_DATA:?Set EASYCFD_HOST_DATA to an absolute data directory on the Docker host}"
       EASYCFD_PROCESSES: "${EASYCFD_PROCESSES:-4}"
     volumes:
-      - "${EASYCFD_HOST_DATA}:/data"
-      - "${EASYCFD_DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock"
+      - "${EASYCFD_DATA_DIR:-./.easycfd-remote}:/data"
     stop_grace_period: 30s
