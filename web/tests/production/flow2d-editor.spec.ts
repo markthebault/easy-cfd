@@ -106,6 +106,9 @@ test("dragging a selection box groups shapes for movement, supports Shift, cance
   const initial={tunnel:"legacy",shapes:[rectangle("a","Part A",1,.35,.25,.2),rectangle("b","Part B",1.5,.35,.25,.2),rectangle("c","Part C",2.5,.65,.25,.15)],selectedId:"c",selectedIds:["c"]};
   await page.addInitScript(value=>localStorage.setItem("easycfd.flow2d.v2",JSON.stringify(value)),initial);
   await page.goto("/?workspace=2d&flow-wasm"); await expect(page.locator(".flow-status")).toContainText("Paused");
+  // Keep marquee gestures on the canvas after zooming/panning; the expanded
+  // data panel otherwise covers the start of the final selection rectangle.
+  await page.locator(".flow-metrics > summary").click();
   const selected=page.getByRole("list",{name:"Scene shapes"}).getByRole("button",{pressed:true});
   await page.mouse.move(330,520);await page.mouse.down();await page.mouse.move(630,620,{steps:8});
   await expect(page.getByLabel("Selection box",{exact:true})).toBeVisible();await expect(selected).toHaveCount(2);
