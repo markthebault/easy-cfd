@@ -1,6 +1,6 @@
 // App shell: one full-screen wind tunnel with floating panels on top.
 
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { domainFor } from "./solver/domain";
 import type { Vec3 } from "./solver/types";
@@ -22,6 +22,7 @@ import { VizDock } from "./ui/VizDock";
 import { DrivingDock } from "./ui/DrivingDock";
 
 const NONE: never[] = [];
+const FlowWorkspace = lazy(() => import("./flow2d/FlowWorkspace").then(m => ({ default: m.FlowWorkspace })));
 
 function useViewport() {
   const [size, setSize] = useState({ w: window.innerWidth, h: window.innerHeight });
@@ -34,6 +35,14 @@ function useViewport() {
 }
 
 export function App() {
+  const initialized3d = useRef(false);
+  const [workspace, setWorkspace] = useState<"2d" | "3d">(() => new URLSearchParams(location.search).get("workspace") === "2d" ? "2d" : "3d");
+  const changeWorkspace = (mode: "2d" | "3d") => {
+    setWorkspace(mode);
+    const url = new URL(location.href);
+    if (mode === "2d") url.searchParams.set("workspace", "2d"); else url.searchParams.delete("workspace");
+    history.replaceState(null, "", url);
+  };
   const dark = useStore(app, (s) => s.dark);
   const view = useStore(app, (s) => s.view);
   const design = useStore(app, (s) => s.design);
@@ -52,10 +61,12 @@ export function App() {
   useEffect(() => setSceneFocus(false), [view, design?.id]);
 
   useEffect(() => {
+    if (workspace === "2d" || initialized3d.current) return;
+    initialized3d.current = true;
     init();
     // Test hook (dev server only): lets the e2e scripts reach the stages and the store.
     if (import.meta.env.DEV) (window as unknown as Record<string, unknown>).__easycfd = { stages, app };
-  }, []);
+  }, [workspace]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = dark ? "dark" : "light";
@@ -91,6 +102,8 @@ export function App() {
   );
   const gizmo = useMemo(() => (narrow ? { right: 8, bottom: insets.bottom + 8, size: 76 } : { right: 16, bottom: 16, size: 104 }), [narrow, insets.bottom]);
 
+  if (workspace === "2d") return <Suspense fallback={<div className="busy glass">Opening 2D profiles…</div>}><FlowWorkspace onWorkspaceChange={changeWorkspace} /></Suspense>;
+
   return (
     <div className={`app view-${view} ${sceneFocus ? "scene-focus" : ""}`}>
       {view !== "compare" && (
@@ -115,7 +128,7 @@ export function App() {
           gizmo={gizmo}
         />
       )}
-      <TopBar />
+      <TopBar onWorkspaceChange={changeWorkspace} />
       {view === "compare" ? (
         <CompareView />
       ) : (

@@ -1,5 +1,16 @@
 /* EasyCFD Web. System fonts only; every colour is a token so both themes stay in step. */
 
+.workspace-switch { position: relative; flex-shrink: 0; }
+.workspace-trigger { cursor: pointer; color: var(--text); border: 1px solid var(--border); font: inherit; }
+.workspace-trigger > svg:last-child { color: var(--muted); margin-left: 2px; }
+.workspace-options { position: absolute; top: calc(100% + 10px); left: 0; width: 278px; padding: 6px; border-radius: 14px; box-shadow: var(--shadow); }
+.workspace-options > button { width: 100%; display: flex; align-items: center; gap: 12px; padding: 13px 10px; border: 0; border-radius: 9px; background: transparent; text-align: left; }
+.workspace-options > button:hover { background: var(--field-hover); }
+.workspace-options > button > span { flex: 1; }
+.workspace-options b { display: block; font-size: 13px; font-weight: 550; }
+.workspace-options small { display: block; font-size: 11px; color: var(--muted); margin-top: 4px; }
+.workspace-options [aria-checked="true"] > svg { color: var(--accent-2); }
+
 :root {
   --font: system-ui, -apple-system, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;

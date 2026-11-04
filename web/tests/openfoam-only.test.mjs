@@ -12,13 +12,15 @@ async function sourceFiles(path) {
   return lists.flat();
 }
 
-test("application source has no retired compute API, shaders or solver entrypoints", async () => {
+test("3D source has no retired compute API, shaders or solver entrypoints", async () => {
   const files = await sourceFiles(join(root, "src"));
   const forbidden = /webgpu|wgsl|GPUDevice|GPUBuffer|GPUAdapter|navigator\.gpu|FlowSolver/i;
-  for (const file of files) assert.doesNotMatch(await readFile(file, "utf8"), forbidden, file);
+  // The independent 2D workspace intentionally uses jax-js WebGPU/WASM.
+  // Keep the retired 3D solver guard intact everywhere outside that directory.
+  for (const file of files.filter(file => !file.startsWith(join(root, "src", "flow2d") + "/")))
+    assert.doesNotMatch(await readFile(file, "utf8"), forbidden, file);
   for (const file of ["solver/gpu.ts", "solver/run.ts", "solver/setup.ts", "bench.ts", "workers/case.worker.ts"])
     assert.ok(!files.includes(join(root, "src", file)), file);
   const pkg = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
-  assert.ok(!pkg.devDependencies["@webgpu/types"]);
   assert.ok(!pkg.scripts["build:webgpu"]);
 });
