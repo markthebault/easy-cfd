@@ -61,6 +61,35 @@ jobs:
             test-results/browser-openfoam/*/solver.log
           retention-days: 7
 
+  flow2d:
+    name: 2D cold-start compatibility (Chromium and WebKit)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install frontend dependencies and browsers
+        working-directory: web
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium webkit
+      - name: Test minified 2D worker startup, reset and geometry changes
+        working-directory: web
+        run: npx playwright test --config playwright.flow2d.config.ts tests/production/flow2d.spec.ts
+      - name: Upload 2D startup verification
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: flow2d-startup-verification
+          path: web/test-results/**
+          retention-days: 7
+
   ui:
     name: Browser and server UI (${{ matrix.shard }}/4)
     runs-on: ubuntu-24.04
@@ -99,7 +128,7 @@ jobs:
 
   validated:
     name: Static build and OpenFOAM browser tests
-    needs: [web, ui]
+    needs: [web, ui, flow2d]
     if: always()
     runs-on: ubuntu-24.04
     steps:
@@ -107,6 +136,8 @@ jobs:
         env:
           WEB_RESULT: ${{ needs.web.result }}
           UI_RESULT: ${{ needs.ui.result }}
+          FLOW2D_RESULT: ${{ needs.flow2d.result }}
         run: |
           test "$WEB_RESULT" = success
           test "$UI_RESULT" = success
+          test "$FLOW2D_RESULT" = success

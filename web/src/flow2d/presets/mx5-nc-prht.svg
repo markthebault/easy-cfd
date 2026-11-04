@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <title>Mazda Miata NC body silhouette, wheels removed</title>
+  <desc>Closed body contour traced from the supplied photograph. Windows and wheel openings are filled. Straight underside segments bridge both wheel positions; wheels are excluded. Coordinates match the original 640 by 480 image; physical scale is unspecified.</desc>
+  <rect width="640" height="480" fill="white"/>
+  <path id="car-body" fill="black" d="M 24.8,275.5
+C 24.9,269.3 28.7,262.5 34.4,256.6
+C 43.0,248.0 54.5,241.9 69.7,237.3
+C 89.9,231.0 110.4,227.0 133.8,224.7
+C 158.9,222.5 193.8,221.1 226.6,220.0
+L 232.5,218.5
+C 252.4,207.4 278.2,191.4 303.7,175.5
+L 311.7,170.6
+C 328.6,167.4 348.3,165.6 367.5,165.8
+C 386.0,165.6 401.5,166.6 415.0,170.4
+C 432.1,175.1 447.2,185.5 460.1,195.2
+L 477.7,208.1
+C 500.6,210.2 523.0,212.4 548.5,214.6
+L 593.8,218.0
+L 601.0,217.8
+L 602.1,221.8
+L 601.3,225.1
+C 605.9,232.8 608.2,243.0 609.0,252.6
+C 609.4,256.7 612.3,259.4 617.5,262.3
+L 622.0,267.1
+L 623.4,278.9
+C 624.0,288.9 621.6,298.1 617.0,305.1
+L 609.5,315.0
+L 606.5,319.6
+L 607.0,322.1
+L 604.9,324.1
+L 555.7,325.7
+L 442.8,330.0
+C 359.4,331.0 269.0,331.3 186.5,331.0
+L 67.4,333.0
+L 59.6,332.1
+L 38.6,326.3
+C 34.4,324.9 31.4,322.4 29.8,318.2
+C 26.3,306.7 25.0,293.2 24.8,275.5
+Z"/>
+</svg>

@@ -1,7 +1,7 @@
 // Top bar, camera view buttons, toasts and the drag-and-drop overlay.
 
 import { useEffect, useRef, useState } from "react";
-import { CircleHelp, FolderOpen, Monitor, Moon, Plus, Replace, Sun } from "lucide-react";
+import { Box, Check, ChevronDown, CircleHelp, FolderOpen, Monitor, Moon, Plus, Replace, Sun, Waves } from "lucide-react";
 import { useStore } from "../store/store";
 import { app, importFiles, renameCurrent, setTheme, type ThemePref } from "../store/app";
 import type { ViewName } from "../viz/helpers";
@@ -28,7 +28,30 @@ const THEMES: { value: ThemePref; icon: typeof Sun; label: string }[] = [
   { value: "light", icon: Sun, label: "Light theme" },
 ];
 
-export function TopBar() {
+export function WorkspaceMenu({ mode, onChange }: { mode: "2d" | "3d"; onChange?: (mode: "2d" | "3d") => void }) {
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
+  const running = useStore(app, s => s.view === "live");
+  useEffect(() => {
+    if (!open) return;
+    const close = (event: PointerEvent) => { if (!root.current?.contains(event.target as Node)) setOpen(false); };
+    const escape = (event: KeyboardEvent) => { if (event.key === "Escape") setOpen(false); };
+    window.addEventListener("pointerdown", close); window.addEventListener("keydown", escape);
+    return () => { window.removeEventListener("pointerdown", close); window.removeEventListener("keydown", escape); };
+  }, [open]);
+  return <div className="workspace-switch" ref={root}>
+    <button className="brand workspace-trigger" aria-label="Choose workspace" aria-expanded={open} aria-haspopup="menu" disabled={running} title={running ? "Wait for the current 3D run to finish before switching workspaces." : "Choose workspace"} onClick={() => setOpen(o => !o)}>
+      <Logo /><span className="brand-name">EasyCFD</span><span className="brand-tag">{mode === "2d" ? "2D profiles" : "wind tunnel"}</span><ChevronDown size={15} />
+    </button>
+    {open && <div className="workspace-options glass" role="menu" aria-label="Workspaces">
+      {(["3d", "2d"] as const).map(m => <button key={m} role="menuitemradio" aria-checked={mode === m} onClick={() => { setOpen(false); onChange?.(m); }}>
+        {m === "3d" ? <Box size={19} /> : <Waves size={19} />}<span><b>{m === "3d" ? "3D wind tunnel" : "2D profiles"}</b><small>{m === "3d" ? "Import and analyse a model" : "Draw a shape. Explore the flow."}</small></span>{mode === m && <Check size={15} />}
+      </button>)}
+    </div>}
+  </div>;
+}
+
+export function TopBar({ onWorkspaceChange }: { onWorkspaceChange?: (mode: "2d" | "3d") => void }) {
   const design = useStore(app, (s) => s.design);
   const theme = useStore(app, (s) => s.theme);
   const view = useStore(app, (s) => s.view);
@@ -40,11 +63,7 @@ export function TopBar() {
   const title = view === "results" && run ? null : design;
   return (
     <header className="topbar">
-      <div className="brand">
-        <Logo />
-        <span className="brand-name">EasyCFD</span>
-        <span className="brand-tag">wind tunnel</span>
-      </div>
+      <WorkspaceMenu mode="3d" onChange={onWorkspaceChange} />
       {title && view === "setup" && (
         <input
           className="design-name"
