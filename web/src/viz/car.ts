@@ -103,6 +103,23 @@ export function divergingT(v: number, lo: number, hi: number): number {
  * Vertex colours for Cp. Coincident vertices are averaged (the solver samples each triangle
  * corner separately) so the colour is continuous; vertices without data stay neutral grey.
  */
+export function pressureCoefficients(pos: Float32Array, cp: Float32Array | null): Float32Array | null {
+  const entry = cache.get(pos);
+  if (!entry || !cp || cp.length !== pos.length / 3) return null;
+  const { group, groups } = entry.weld;
+  const sum = new Float32Array(groups), cnt = new Uint16Array(groups);
+  for (let v = 0; v < cp.length; v++) {
+    const c = cp[v];
+    if (Number.isFinite(c)) {
+      sum[group[v]] += c;
+      cnt[group[v]]++;
+    }
+  }
+  const values = new Float32Array(cp.length);
+  for (let v = 0; v < cp.length; v++) { const g = group[v]; values[v] = cnt[g] ? sum[g] / cnt[g] : NaN; }
+  return values;
+}
+
 export function applyPressureColors(pos: Float32Array, cp: Float32Array | null, range: [number, number]): THREE.BufferAttribute | null {
   const entry = cache.get(pos);
   if (!entry || !cp || cp.length !== pos.length / 3) return null;

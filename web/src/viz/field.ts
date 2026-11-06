@@ -94,6 +94,17 @@ vec3 flowFrameAt(vec3 p) {
 }
 `;
 
+/** Four common-grid samples for a precomputed operating-condition map. Normal playback is unchanged. */
+export const BLEND_FIELD_GLSL = FRAME_FIELD_GLSL
+  .replace('vec4 velocityFrameAt(vec3 p) {', `
+${FIELD_GLSL.replace(/\b(uVelocity|uScalars|uOrigin|uExtent|uDims|fieldUVW|insideField|velocityAt|scalarsAt|flowAt)\b/g, "$1Map2")}
+${FIELD_GLSL.replace(/\b(uVelocity|uScalars|uOrigin|uExtent|uDims|fieldUVW|insideField|velocityAt|scalarsAt|flowAt)\b/g, "$1Map3")}
+uniform bool uOperatingMap;
+uniform vec4 uOperatingWeights;
+vec4 velocityFrameAt(vec3 p) {
+  if (uOperatingMap) return uOperatingWeights.x * velocityAt(p) + uOperatingWeights.y * velocityAtNext(p) + uOperatingWeights.z * velocityAtMap2(p) + uOperatingWeights.w * velocityAtMap3(p);
+`);
+
 export function fieldUniforms(g: FieldGPU | null) {
   return {
     uVelocity: { value: g?.velocity ?? null },

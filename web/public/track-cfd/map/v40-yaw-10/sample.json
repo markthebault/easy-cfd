@@ -1,0 +1,47 @@
+{
+  "id": "v40-yaw-10",
+  "runId": "1ded1c7dc2a5106a896162a3555f5c60",
+  "speedKmh": 40,
+  "yawDeg": -10,
+  "field": "map/v40-yaw-10/field.bin.gz",
+  "cp": {
+    "part0": "map/v40-yaw-10/part0-cp.bin.gz",
+    "part1": "map/v40-yaw-10/part1-cp.bin.gz",
+    "part2": "map/v40-yaw-10/part2-cp.bin.gz",
+    "part3": "map/v40-yaw-10/part3-cp.bin.gz",
+    "part4": "map/v40-yaw-10/part4-cp.bin.gz"
+  },
+  "meshHash": "601296c39b369c4a0781eb684d3a15ac1e44c42225b53c0ab2c6a4ae45a7e8fd",
+  "cells": 39383,
+  "freestream": 11.28251790984161,
+  "inlet": [
+    11.11111111111111,
+    -1.9591886745384997,
+    0
+  ],
+  "speedMax": 14.443817138671875,
+  "forceSettled": true,
+  "residualConverged": true,
+  "warnings": [
+    "This run uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+    "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+    "Only 33% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+  ],
+  "hashes": {
+    "map/v40-yaw-10/field.bin.gz": "6221ba03b37911767f83c88b3e3809061e2c4a3d380cbb2d5ed63fb89272212e",
+    "map/v40-yaw-10/part0-cp.bin.gz": "8a39f0f3ddc39c3d521a0caa7f9eaf4df42f0ce949d23d3b3b4c953f77592721",
+    "map/v40-yaw-10/part1-cp.bin.gz": "636fe49f5db4423857872eb5f1eed0f46bbebcfcfb579ded94f5556ad771bc1b",
+    "map/v40-yaw-10/part2-cp.bin.gz": "afbad3292b51667087f0e6ca3f0c944f1d03ed862700df7b671b9d1c10b7431b",
+    "map/v40-yaw-10/part3-cp.bin.gz": "b58d6ef5b2cf23414b07e61000b54598b0827bf3b19f01213016014a3941ec87",
+    "map/v40-yaw-10/part4-cp.bin.gz": "f397ded28fd1a4801e7c15552bfc3efae2c148c98b52f0b4a81fa3121c78e895"
+  },
+  "pipelineHash": "9097761522983227cf509dd105b3b195cea80f9c0e8143909758af11e3bfe901",
+  "image": "opencfd/openfoam-default@sha256:1ba02114b1c025c370f2e269a07677c16c9bea8d990fcd75ac8378aff9d41b50",
+  "loads": {
+    "cl": 0.18953856619779993,
+    "downforceN": -32.51160636237573,
+    "density": 1.225,
+    "referenceArea": 2.2,
+    "cd": 0.34285345627040004
+  }
+}

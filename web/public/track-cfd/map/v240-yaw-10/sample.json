@@ -1,0 +1,47 @@
+{
+  "id": "v240-yaw-10",
+  "runId": "51c337426f3b7a833820a35c706332bd",
+  "speedKmh": 240,
+  "yawDeg": -10,
+  "field": "map/v240-yaw-10/field.bin.gz",
+  "cp": {
+    "part0": "map/v240-yaw-10/part0-cp.bin.gz",
+    "part1": "map/v240-yaw-10/part1-cp.bin.gz",
+    "part2": "map/v240-yaw-10/part2-cp.bin.gz",
+    "part3": "map/v240-yaw-10/part3-cp.bin.gz",
+    "part4": "map/v240-yaw-10/part4-cp.bin.gz"
+  },
+  "meshHash": "601296c39b369c4a0781eb684d3a15ac1e44c42225b53c0ab2c6a4ae45a7e8fd",
+  "cells": 39383,
+  "freestream": 67.69510745904967,
+  "inlet": [
+    66.66666666666667,
+    -11.755132047231,
+    0
+  ],
+  "speedMax": 86.78446197509766,
+  "forceSettled": true,
+  "residualConverged": true,
+  "warnings": [
+    "This run uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+    "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+    "Only 0% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+  ],
+  "hashes": {
+    "map/v240-yaw-10/field.bin.gz": "8df54e51db78cea4fa0f0fac5f3939e618e0f851581922faa24aeaad607f275a",
+    "map/v240-yaw-10/part0-cp.bin.gz": "908b6d8fe58e2c8b665a5b01170f0c9489c51299c040ae43e9cac4eed9318f8e",
+    "map/v240-yaw-10/part1-cp.bin.gz": "3cd71888b8489de8e8c816bb8cb9ab79fac1600a9b1311895ba4158eb5671d57",
+    "map/v240-yaw-10/part2-cp.bin.gz": "1e1a2b31e03e735cbe8d96ef8daeb1b80fb5ca6c877e37c7089c5815d0445de1",
+    "map/v240-yaw-10/part3-cp.bin.gz": "c005b2a9c191fdc559eac10ff4213c7d5054be729c76aa557af7e8300b1202ea",
+    "map/v240-yaw-10/part4-cp.bin.gz": "94ceb2cf3f35fc26e47fe113aaf0b6b22e2d8219e0faeaee61267243a0733964"
+  },
+  "pipelineHash": "9097761522983227cf509dd105b3b195cea80f9c0e8143909758af11e3bfe901",
+  "image": "opencfd/openfoam-default@sha256:1ba02114b1c025c370f2e269a07677c16c9bea8d990fcd75ac8378aff9d41b50",
+  "loads": {
+    "cl": 0.20041315866380002,
+    "downforceN": -1237.5694233681725,
+    "density": 1.225,
+    "referenceArea": 2.2,
+    "cd": 0.34182307693520003
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "id": "v40-yaw10",
+  "runId": "8900396b76aa0bf380068b72527dc614",
+  "speedKmh": 40,
+  "yawDeg": 10,
+  "field": "map/v40-yaw10/field.bin.gz",
+  "cp": {
+    "part0": "map/v40-yaw10/part0-cp.bin.gz",
+    "part1": "map/v40-yaw10/part1-cp.bin.gz",
+    "part2": "map/v40-yaw10/part2-cp.bin.gz",
+    "part3": "map/v40-yaw10/part3-cp.bin.gz",
+    "part4": "map/v40-yaw10/part4-cp.bin.gz"
+  },
+  "meshHash": "601296c39b369c4a0781eb684d3a15ac1e44c42225b53c0ab2c6a4ae45a7e8fd",
+  "cells": 39383,
+  "freestream": 11.28251790984161,
+  "inlet": [
+    11.11111111111111,
+    1.9591886745384997,
+    0
+  ],
+  "speedMax": 14.55661678314209,
+  "forceSettled": true,
+  "residualConverged": true,
+  "warnings": [
+    "This run uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+    "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+    "Only 33% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+  ],
+  "hashes": {
+    "map/v40-yaw10/field.bin.gz": "f27c3cd5c0e86166cfa7b6b3336639fef7695765daa6b982cfaa204fe2df3e65",
+    "map/v40-yaw10/part0-cp.bin.gz": "d58d0ad1c9c85561063082d116be2d4a36e9b4d613003328affba3bf8ac23bc5",
+    "map/v40-yaw10/part1-cp.bin.gz": "f62e30cba75b892a3dc1a3b5f73ef51b86edc8d1fb77cd10d31e01b14e9af676",
+    "map/v40-yaw10/part2-cp.bin.gz": "cb140271e0b67394998d63af7267ea5be0d6a723d4eaa50ce54ca15fb03d2194",
+    "map/v40-yaw10/part3-cp.bin.gz": "bb65e5f2b9cf50ced5167779b936698f1dfe6c9545c5218b7a2e2ff930815dd8",
+    "map/v40-yaw10/part4-cp.bin.gz": "d84bc78ae141598a8f3ee22976df2c75b1e18b7980e34e9c6f549c246d4c1fb2"
+  },
+  "pipelineHash": "9097761522983227cf509dd105b3b195cea80f9c0e8143909758af11e3bfe901",
+  "image": "opencfd/openfoam-default@sha256:1ba02114b1c025c370f2e269a07677c16c9bea8d990fcd75ac8378aff9d41b50",
+  "loads": {
+    "cl": 0.28873939708040003,
+    "downforceN": -49.52755424661765,
+    "density": 1.225,
+    "referenceArea": 2.2,
+    "cd": 0.3497258962948
+  }
+}

@@ -1,0 +1,176 @@
+{
+  "version": 1,
+  "engine": "openfoam",
+  "runId": "d6cf04cb0d504706a73c9c19a45623fe",
+  "created": "2026-10-07T21:58:04.427880+00:00",
+  "sourceName": "MX-5 NC \u00b7 detailed wake \u00b7 DDES \u00b7 continued",
+  "settings": {
+    "speed_kmh": 144,
+    "yaw_deg": 3,
+    "density": 1.225,
+    "reference_area": 2.2,
+    "moving_ground": true,
+    "wheels": true
+  },
+  "bounds": {
+    "low": [
+      -1.9560420513153076,
+      -0.9575023651123047,
+      0.0058
+    ],
+    "high": [
+      2.054018259048462,
+      0.9575023651123047,
+      1.2708603954680264
+    ]
+  },
+  "field": {
+    "file": "field.bin.gz",
+    "origin": [
+      -4.362078237533569,
+      -2.4387686252593994,
+      0
+    ],
+    "spacing": [
+      0.06349262158075969,
+      0.06417812171735261,
+      0.06407057364857756
+    ],
+    "dims": [
+      241,
+      77,
+      49
+    ],
+    "freestream": 40.054893839916836,
+    "inlet": [
+      40,
+      2.0963111713216485,
+      0
+    ],
+    "length": 4.0100603103637695
+  },
+  "parts": [
+    {
+      "id": "part0",
+      "name": "00-body_meters 1",
+      "role": "body",
+      "wheel": null,
+      "vertices": 1050000,
+      "positions": "part0-positions.bin.gz",
+      "cp": "part0-cp.bin.gz"
+    },
+    {
+      "id": "part1",
+      "name": "01-wheel_rear_right_meters 1",
+      "role": "wheel",
+      "wheel": {
+        "radius": 0.3075320723000914,
+        "center": [
+          1.1764750480651855,
+          0.7475349307060242,
+          0.3133321617070586
+        ]
+      },
+      "vertices": 90000,
+      "positions": "part1-positions.bin.gz",
+      "cp": "part1-cp.bin.gz"
+    },
+    {
+      "id": "part2",
+      "name": "02-wheel_rear_left_meters 1",
+      "role": "wheel",
+      "wheel": {
+        "radius": 0.30752813746221364,
+        "center": [
+          1.176484853029251,
+          -0.7475184798240662,
+          0.3133325798708946
+        ]
+      },
+      "vertices": 90000,
+      "positions": "part2-positions.bin.gz",
+      "cp": "part2-cp.bin.gz"
+    },
+    {
+      "id": "part3",
+      "name": "03-wheel_front_right_meters 1",
+      "role": "wheel",
+      "wheel": {
+        "radius": 0.30752848740667105,
+        "center": [
+          -1.153525948524475,
+          0.7450507879257202,
+          0.3133334220193327
+        ]
+      },
+      "vertices": 90000,
+      "positions": "part3-positions.bin.gz",
+      "cp": "part3-cp.bin.gz"
+    },
+    {
+      "id": "part4",
+      "name": "04-wheel_front_left_meters 1",
+      "role": "wheel",
+      "wheel": {
+        "radius": 0.3075293155852705,
+        "center": [
+          -1.153577834367752,
+          -0.744979739189148,
+          0.31332931558527055
+        ]
+      },
+      "vertices": 90000,
+      "positions": "part4-positions.bin.gz",
+      "cp": "part4-cp.bin.gz"
+    }
+  ],
+  "cpRange": [
+    -1.5,
+    1
+  ],
+  "speedMax": 55.70075988769531,
+  "result": {
+    "cd": 0.3154047633566,
+    "cl": 0.10611546704499998,
+    "cells": 1463348,
+    "forceSettled": false,
+    "residualConverged": false,
+    "warnings": [
+      "Residuals have not reached this preset's target. Forces are provisional.",
+      "Forces or pitching/axle balance are still changing. Do not rank designs from this run.",
+      "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+      "Only 50% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review.",
+      "Boundary layers cover 77% of requested surface faces. Inspect near-wall resolution before comparing forces."
+    ],
+    "provenance": {
+      "version": "openfoam-wall-integrals-2",
+      "averaging": {
+        "start": 451,
+        "end": 500,
+        "unit": "iteration"
+      },
+      "origin": [
+        -1.1535518914461136,
+        2.187490463256836e-05,
+        0
+      ],
+      "qualification": "exploratory",
+      "pipeline": "69880ee9a150f3670d56f27ed939cb134b00ac3d890633ae53f24f79fd7f5fc7",
+      "geometry": "ff3fe7615221adfea6d82793e09c9d01197dce9cbf7659231fbcec404c811f02",
+      "mesh": "88d77b4dd944defd727a1697647f64d1aacb7e00844ae43e0edb3f7cf2eed9a8"
+    }
+  },
+  "hashes": {
+    "field.bin": "c0d4402f21b856771da822a1810c8faedb24dc7d41111c3a660003c0b962a50a",
+    "part0-positions.bin": "c305ef1fe113ea04e1a65ebe8eb1b4833c982152e2f15d3866a1f8011f9c26e7",
+    "part0-cp.bin": "c1a44f6a504390737f06bd9d03890132224cfb5a57dfffabbc993184dea934f0",
+    "part1-positions.bin": "e5d0b1b5abcd4c5d956a9d2f5f5f769f44b0d3d3e68ee3527024ca51c27c9f1b",
+    "part1-cp.bin": "9624e5bf29462d51354cd695eaaabf3930d164f3e6ca8c3c6145b4ef459ec6c8",
+    "part2-positions.bin": "afdef487aa64bdef859f7036bbc76f6ebe635f402ca339709e3e4cd0cb2b98cd",
+    "part2-cp.bin": "624723fbb83188ce9121858ba17a78c481cbc3f27326ff8c98a55203ce64f147",
+    "part3-positions.bin": "29f97b06c36138f517d035de97cca72d2b99bef70fdfddb60ec32a8fb4e11258",
+    "part3-cp.bin": "363c4e596f3f202be6ebbbbfa73eb9104d556f35f21f6ad18b2486a3e0a0a008",
+    "part4-positions.bin": "669e5359e64f3e287f54faba5f38c668e00a80438a6d4eed77fa2a32f542ac6c",
+    "part4-cp.bin": "066a03d1ddce8c42d3c2ecb3e6dc8151f4bcca5027c9c25bdef0c37c1515ca88"
+  }
+}
