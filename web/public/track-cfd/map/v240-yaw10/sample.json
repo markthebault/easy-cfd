@@ -1,0 +1,47 @@
+{
+  "id": "v240-yaw10",
+  "runId": "46726eca5736f599b83e17f4a07aba46",
+  "speedKmh": 240,
+  "yawDeg": 10,
+  "field": "map/v240-yaw10/field.bin.gz",
+  "cp": {
+    "part0": "map/v240-yaw10/part0-cp.bin.gz",
+    "part1": "map/v240-yaw10/part1-cp.bin.gz",
+    "part2": "map/v240-yaw10/part2-cp.bin.gz",
+    "part3": "map/v240-yaw10/part3-cp.bin.gz",
+    "part4": "map/v240-yaw10/part4-cp.bin.gz"
+  },
+  "meshHash": "601296c39b369c4a0781eb684d3a15ac1e44c42225b53c0ab2c6a4ae45a7e8fd",
+  "cells": 39383,
+  "freestream": 67.69510745904967,
+  "inlet": [
+    66.66666666666667,
+    11.755132047231,
+    0
+  ],
+  "speedMax": 87.45952606201172,
+  "forceSettled": true,
+  "residualConverged": true,
+  "warnings": [
+    "This run uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+    "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+    "Only 0% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+  ],
+  "hashes": {
+    "map/v240-yaw10/field.bin.gz": "6542450cf6f508c867089598a9339c32f4366a8540cf7eb8d4466c41083cdaa6",
+    "map/v240-yaw10/part0-cp.bin.gz": "f07312f7e2a573f3aab3af5574c679fe215827c634cda086d71308cea4512673",
+    "map/v240-yaw10/part1-cp.bin.gz": "297b93fe56cda99ddca03b069bbb10ffdf5a7a4961d129e2a83e35da52b6e742",
+    "map/v240-yaw10/part2-cp.bin.gz": "f143997136dc7be13ae03f463c549a06e6462e5f961c9177c0fd3505f3b74d95",
+    "map/v240-yaw10/part3-cp.bin.gz": "8cd144e6e2ab75f78bcf51401330e28a8dcdbeb412d52b9db8fdc2d9b2407111",
+    "map/v240-yaw10/part4-cp.bin.gz": "13b403fb26ee07fd9b23b73f99e4be3c0c57bd4cb85f62d1ffc083fa27835057"
+  },
+  "pipelineHash": "9097761522983227cf509dd105b3b195cea80f9c0e8143909758af11e3bfe901",
+  "image": "opencfd/openfoam-default@sha256:1ba02114b1c025c370f2e269a07677c16c9bea8d990fcd75ac8378aff9d41b50",
+  "loads": {
+    "cl": 0.2940683567348,
+    "downforceN": -1815.8987618453614,
+    "density": 1.225,
+    "referenceArea": 2.2,
+    "cd": 0.3486576169234
+  }
+}

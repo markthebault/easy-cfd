@@ -1,0 +1,47 @@
+{
+  "id": "v40-yaw0",
+  "runId": "e976dc733bf1ac123d4401c197f1e811",
+  "speedKmh": 40,
+  "yawDeg": 0,
+  "field": "map/v40-yaw0/field.bin.gz",
+  "cp": {
+    "part0": "map/v40-yaw0/part0-cp.bin.gz",
+    "part1": "map/v40-yaw0/part1-cp.bin.gz",
+    "part2": "map/v40-yaw0/part2-cp.bin.gz",
+    "part3": "map/v40-yaw0/part3-cp.bin.gz",
+    "part4": "map/v40-yaw0/part4-cp.bin.gz"
+  },
+  "meshHash": "601296c39b369c4a0781eb684d3a15ac1e44c42225b53c0ab2c6a4ae45a7e8fd",
+  "cells": 39383,
+  "freestream": 11.11111111111111,
+  "inlet": [
+    11.11111111111111,
+    0.0,
+    0
+  ],
+  "speedMax": 13.929636001586914,
+  "forceSettled": true,
+  "residualConverged": true,
+  "warnings": [
+    "This run uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+    "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+    "Only 37% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+  ],
+  "hashes": {
+    "map/v40-yaw0/field.bin.gz": "f048cfbfcdffa67c3bae6093065438b4d87bbc9053cc2795333eef5f6709b711",
+    "map/v40-yaw0/part0-cp.bin.gz": "d81c54776ed024763ee64dd46d0ad75d15c758d0acb7703c1194b2bd05ce113d",
+    "map/v40-yaw0/part1-cp.bin.gz": "37683ce6ca2a61c25ada7be364bfb2d03a4a6c570359c6a87e06adb2bc1c819b",
+    "map/v40-yaw0/part2-cp.bin.gz": "9a2fdfbabb426aaeef4711aad914a53ecc44c797b105fc4c488378880bd8bcb7",
+    "map/v40-yaw0/part3-cp.bin.gz": "3c4c77605aee94c1b52cec77be900509c272c1629d9d07258545e5028d658a07",
+    "map/v40-yaw0/part4-cp.bin.gz": "44003be9c3b3a40c1a464e6659ce56a8aa30b4ac3393f0e05ddae0c3d54807b7"
+  },
+  "pipelineHash": "9097761522983227cf509dd105b3b195cea80f9c0e8143909758af11e3bfe901",
+  "image": "opencfd/openfoam-default@sha256:1ba02114b1c025c370f2e269a07677c16c9bea8d990fcd75ac8378aff9d41b50",
+  "loads": {
+    "cl": 0.07523443860874,
+    "downforceN": -12.51585259571323,
+    "density": 1.225,
+    "referenceArea": 2.2,
+    "cd": 0.3297587122308
+  }
+}

@@ -20,7 +20,10 @@ import { SetupPanel } from "./ui/SetupPanel";
 import { StageView, stages } from "./ui/StageView";
 import { VizDock } from "./ui/VizDock";
 import { DrivingDock } from "./ui/DrivingDock";
+import type { LoadedRun } from "./store/types";
+import { initialPreferences } from "./track/settings";
 
+const TrackWorkspace = lazy(() => import("./track/TrackWorkspace"));
 const NONE: never[] = [];
 const FlowWorkspace = lazy(() => import("./flow2d/FlowWorkspace").then(m => ({ default: m.FlowWorkspace })));
 
@@ -36,11 +39,15 @@ function useViewport() {
 
 export function App() {
   const initialized3d = useRef(false);
-  const [workspace, setWorkspace] = useState<"2d" | "3d">(() => new URLSearchParams(location.search).get("workspace") === "2d" ? "2d" : "3d");
-  const changeWorkspace = (mode: "2d" | "3d") => {
+  const [trackRun, setTrackRun] = useState<LoadedRun | null>(null);
+  const [trackBase, setTrackBase] = useState<LoadedRun | null>(null);
+  const [trackPreferences, setTrackPreferences] = useState(initialPreferences);
+  const [workspace, setWorkspace] = useState<"2d" | "3d" | "track">(() => new URLSearchParams(location.search).get("workspace") === "track" ? "track" : new URLSearchParams(location.search).get("workspace") === "2d" ? "2d" : "3d");
+  const changeWorkspace = (mode: "2d" | "3d" | "track") => {
+    if (workspace === "3d" && mode === "track" && app.get().view === "results" && app.get().run?.field && app.get().run?.parts.length) setTrackRun(app.get().run);
     setWorkspace(mode);
     const url = new URL(location.href);
-    if (mode === "2d") url.searchParams.set("workspace", "2d"); else url.searchParams.delete("workspace");
+    if (mode !== "3d") url.searchParams.set("workspace", mode); else url.searchParams.delete("workspace");
     history.replaceState(null, "", url);
   };
   const dark = useStore(app, (s) => s.dark);
@@ -61,7 +68,7 @@ export function App() {
   useEffect(() => setSceneFocus(false), [view, design?.id]);
 
   useEffect(() => {
-    if (workspace === "2d" || initialized3d.current) return;
+    if (workspace !== "3d" || initialized3d.current) return;
     initialized3d.current = true;
     init();
     // Test hook (dev server only): lets the e2e scripts reach the stages and the store.
@@ -102,6 +109,7 @@ export function App() {
   );
   const gizmo = useMemo(() => (narrow ? { right: 8, bottom: insets.bottom + 8, size: 76 } : { right: 16, bottom: 16, size: 104 }), [narrow, insets.bottom]);
 
+  if (workspace === "track") return <Suspense fallback={<div>Opening track lab…</div>}><TrackWorkspace onWorkspaceChange={changeWorkspace} vehicleRun={trackRun} baseRun={trackBase} onBaseChange={setTrackBase} onVehicleChange={setTrackRun} preferences={trackPreferences} setPreferences={setTrackPreferences} /></Suspense>;
   if (workspace === "2d") return <Suspense fallback={<div className="busy glass">Opening 2D profiles…</div>}><FlowWorkspace onWorkspaceChange={changeWorkspace} /></Suspense>;
 
   return (

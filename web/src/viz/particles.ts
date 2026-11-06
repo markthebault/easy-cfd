@@ -6,13 +6,13 @@
 
 import * as THREE from "three";
 import { GPUComputationRenderer, type Variable } from "three/examples/jsm/misc/GPUComputationRenderer.js";
-import { FRAME_FIELD_GLSL, fieldUniforms, updateFieldUniforms, type FieldGPU } from "./field";
+import { BLEND_FIELD_GLSL, fieldUniforms, updateFieldUniforms, type FieldGPU } from "./field";
 import { mapTexture } from "./colormap";
 
 const SEGMENTS = 6;
 
 const COMMON = /* glsl */ `
-${FRAME_FIELD_GLSL}
+${BLEND_FIELD_GLSL}
 uniform int uMode;
 uniform int uAxis;
 float hash12(vec2 p) {
@@ -153,12 +153,19 @@ uniform float uOpacity;
 uniform bool uMono;
 uniform vec3 uMonoColor;
 uniform bool uContrast;
+uniform bool uRelativeColour;
+uniform float uReferenceSpeed;
 varying float vSpeed;
 varying float vAlpha;
 varying float vSide;
 void main() {
   float edge = 1.0 - vSide * vSide;
   vec3 col = uMono ? uMonoColor : texture2D(uMap, vec2(clamp(vSpeed / uSpeedMax, 0.0, 1.0), 0.5)).rgb;
+  if (uRelativeColour) {
+    float ratio = vSpeed / max(uReferenceSpeed, 0.01);
+    col = mix(vec3(0.86, 0.9, 0.95), vec3(0.06, 0.3, 0.75), smoothstep(1.04, 1.3, ratio));
+    col = mix(vec3(0.82, 0.23, 0.045), col, smoothstep(0.55, 0.94, ratio));
+  }
   if (uContrast) col = mix(vec3(1.0), vec3(0.015, 0.025, 0.045), smoothstep(0.2, 0.65, abs(vSide)));
   gl_FragColor = vec4(col, vAlpha * uOpacity * edge);
   if (gl_FragColor.a < 0.003) discard;
@@ -179,6 +186,13 @@ export class Particles {
   private fieldU = fieldUniforms(null);
   private nextU = fieldUniforms(null);
   private frameMix = { value: 0 };
+  private map2U = fieldUniforms(null);
+  private map3U = fieldUniforms(null);
+  private operatingMap = { value: false };
+  private operatingWeights = { value: new THREE.Vector4(1, 0, 0, 0) };
+  private mapUniforms() {
+    return { ...Object.fromEntries(Object.entries(this.map2U).map(([k,v]) => [`${k}Map2`,v])), ...Object.fromEntries(Object.entries(this.map3U).map(([k,v]) => [`${k}Map3`,v])), uOperatingMap: this.operatingMap, uOperatingWeights: this.operatingWeights };
+  }
   private history: THREE.WebGLRenderTarget[] = [];
   private historyHead = 0;
   private historyTime = 0;
@@ -201,7 +215,7 @@ export class Particles {
     this.gpu.setVariableDependencies(this.variable, [this.variable]);
     this.simUniforms = this.variable.material.uniforms;
     Object.assign(this.simUniforms, this.fieldU, Object.fromEntries(Object.entries(this.nextU).map(([k,v])=>[`${k}Next`,v])), {
-      uFrameMix: this.frameMix,
+      uFrameMix: this.frameMix, ...this.mapUniforms(),
       uMode: { value: opts.mode },
       uAxis: { value: 0 },
       uDt: { value: 0 },
@@ -243,7 +257,7 @@ export class Particles {
       uniforms: {
         ...this.fieldU,
         ...Object.fromEntries(Object.entries(this.nextU).map(([k,v])=>[`${k}Next`,v])),
-        uFrameMix: this.frameMix,
+        uFrameMix: this.frameMix, ...this.mapUniforms(),
         uHistory: { value: false },
         ...Object.fromEntries(Array.from({length:SEGMENTS}, (_,i)=>[`uHistory${i}`,{value:null}])),
         uMode: this.simUniforms.uMode,
@@ -260,6 +274,8 @@ export class Particles {
         uMono: { value: false },
         uMonoColor: { value: new THREE.Color(1, 1, 1) },
         uContrast: { value: false },
+        uRelativeColour: { value: false },
+        uReferenceSpeed: { value: 1 },
       },
       transparent: true,
       depthWrite: false,
@@ -276,14 +292,26 @@ export class Particles {
   }
 
   setField(g: FieldGPU | null, freestream: number) {
+    this.operatingMap.value = false;
     updateFieldUniforms(this.fieldU, g);
     this.freestream = freestream;
+    this.uniforms.uReferenceSpeed.value = freestream;
     if (g) this.minSpacing = Math.min(g.extent.x / (g.dims.x - 1), g.extent.y / (g.dims.y - 1), g.extent.z / (g.dims.z - 1));
     this.simUniforms.uStall.value = (this.history.length ? 0.001 : 0.015) * freestream;
     this.mesh.visible = !!g && this.mesh.visible;
   }
 
+  /** Same RK2 advection, using bilinear speed/yaw weights over four solved common-grid fields. */
+  setOperatingFields(fields: FieldGPU[], weights: number[], freestream: number) {
+    this.setField(fields[0], freestream);
+    updateFieldUniforms(this.nextU, fields[1]); updateFieldUniforms(this.map2U, fields[2]); updateFieldUniforms(this.map3U, fields[3]);
+    this.operatingMap.value = true;
+    this.operatingWeights.value.fromArray(weights);
+    this.frameMix.value = 0;
+  }
+
   setNextField(g: FieldGPU | null, mix: number) {
+    this.operatingMap.value = false;
     updateFieldUniforms(this.nextU, g);
     this.frameMix.value = g ? mix : 0;
   }

@@ -23,7 +23,7 @@ import solverNotice from "../../../docs/flow2d/README.md?raw";
 import lgpl from "../../../docs/flow2d/licenses/LGPL-3.0.txt?raw";
 import gpl from "../../../docs/flow2d/licenses/GPL-3.0.txt?raw";
 
-export function FlowWorkspace({ onWorkspaceChange }: { onWorkspaceChange: (mode: "2d" | "3d") => void }) {
+export function FlowWorkspace({ onWorkspaceChange }: { onWorkspaceChange: (mode: "2d" | "3d" | "track") => void }) {
   const dark = useStore(app, s => s.dark);
   const [scene, setScene] = useState(restoreScene), [history, setHistory] = useState<Scene[]>([]);
   const [mode, setMode] = useState<EditMode>("select"), [draft, setDraft] = useState<CurveNode[]>([]);

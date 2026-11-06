@@ -1,0 +1,48 @@
+{
+  "id": "v240-yaw0",
+  "runId": "f2ef102f023db018c14c64aa19bb4917",
+  "speedKmh": 240,
+  "yawDeg": 0,
+  "field": "map/v240-yaw0/field.bin.gz",
+  "cp": {
+    "part0": "map/v240-yaw0/part0-cp.bin.gz",
+    "part1": "map/v240-yaw0/part1-cp.bin.gz",
+    "part2": "map/v240-yaw0/part2-cp.bin.gz",
+    "part3": "map/v240-yaw0/part3-cp.bin.gz",
+    "part4": "map/v240-yaw0/part4-cp.bin.gz"
+  },
+  "meshHash": "601296c39b369c4a0781eb684d3a15ac1e44c42225b53c0ab2c6a4ae45a7e8fd",
+  "cells": 39383,
+  "freestream": 66.66666666666667,
+  "inlet": [
+    66.66666666666667,
+    0.0,
+    0
+  ],
+  "speedMax": 83.56690979003906,
+  "forceSettled": false,
+  "residualConverged": true,
+  "warnings": [
+    "Forces or pitching/axle balance are still changing. Do not rank designs from this run.",
+    "This run uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+    "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+    "Only 0% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+  ],
+  "hashes": {
+    "map/v240-yaw0/field.bin.gz": "b88c74d1496e1b7439535ca3601cce9c15b4d845f1427fed54018a9a3d5c10a3",
+    "map/v240-yaw0/part0-cp.bin.gz": "6172642b57d3c45903551a6d161b731630237eb842ddf714c3e931b570f9960d",
+    "map/v240-yaw0/part1-cp.bin.gz": "04cb465a5bd93b0c8f344eab809302365f1813966891f4ca6aedae3aacd7ad96",
+    "map/v240-yaw0/part2-cp.bin.gz": "56c6d44ead44783c95e353d526c7ba2f632f6a0d4a2cdcae2470c272ee816832",
+    "map/v240-yaw0/part3-cp.bin.gz": "14337851815ee934b9d1a6b1acdfd40e6a176376e1cc6f6158383caba15e88d1",
+    "map/v240-yaw0/part4-cp.bin.gz": "2093cd1ffae8d47c97c386ba75f96d392ed3ba0963a5527e9b71e9b446f05af9"
+  },
+  "pipelineHash": "9097761522983227cf509dd105b3b195cea80f9c0e8143909758af11e3bfe901",
+  "image": "opencfd/openfoam-default@sha256:1ba02114b1c025c370f2e269a07677c16c9bea8d990fcd75ac8378aff9d41b50",
+  "loads": {
+    "cl": 0.07755890316154,
+    "downforceN": -464.4916533785564,
+    "density": 1.225,
+    "referenceArea": 2.2,
+    "cd": 0.32812856649440003
+  }
+}

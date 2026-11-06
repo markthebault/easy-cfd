@@ -1,0 +1,345 @@
+{
+  "version": 1,
+  "engine": "openfoam",
+  "quality": "fast",
+  "method": "steady speed/yaw map",
+  "speeds": [
+    40,
+    240
+  ],
+  "yaws": [
+    -10,
+    0,
+    10
+  ],
+  "meshHash": "601296c39b369c4a0781eb684d3a15ac1e44c42225b53c0ab2c6a4ae45a7e8fd",
+  "samples": [
+    {
+      "id": "v40-yaw-10",
+      "runId": "1ded1c7dc2a5106a896162a3555f5c60",
+      "speedKmh": 40,
+      "yawDeg": -10,
+      "field": "map/v40-yaw-10/field.bin.gz",
+      "cp": {
+        "part0": "map/v40-yaw-10/part0-cp.bin.gz",
+        "part1": "map/v40-yaw-10/part1-cp.bin.gz",
+        "part2": "map/v40-yaw-10/part2-cp.bin.gz",
+        "part3": "map/v40-yaw-10/part3-cp.bin.gz",
+        "part4": "map/v40-yaw-10/part4-cp.bin.gz"
+      },
+      "meshHash": "601296c39b369c4a0781eb684d3a15ac1e44c42225b53c0ab2c6a4ae45a7e8fd",
+      "cells": 39383,
+      "freestream": 11.28251790984161,
+      "inlet": [
+        11.11111111111111,
+        -1.9591886745384997,
+        0
+      ],
+      "speedMax": 14.443817138671875,
+      "forceSettled": true,
+      "residualConverged": true,
+      "warnings": [
+        "This run uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+        "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+        "Only 33% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+      ],
+      "hashes": {
+        "map/v40-yaw-10/field.bin.gz": "6221ba03b37911767f83c88b3e3809061e2c4a3d380cbb2d5ed63fb89272212e",
+        "map/v40-yaw-10/part0-cp.bin.gz": "8a39f0f3ddc39c3d521a0caa7f9eaf4df42f0ce949d23d3b3b4c953f77592721",
+        "map/v40-yaw-10/part1-cp.bin.gz": "636fe49f5db4423857872eb5f1eed0f46bbebcfcfb579ded94f5556ad771bc1b",
+        "map/v40-yaw-10/part2-cp.bin.gz": "afbad3292b51667087f0e6ca3f0c944f1d03ed862700df7b671b9d1c10b7431b",
+        "map/v40-yaw-10/part3-cp.bin.gz": "b58d6ef5b2cf23414b07e61000b54598b0827bf3b19f01213016014a3941ec87",
+        "map/v40-yaw-10/part4-cp.bin.gz": "f397ded28fd1a4801e7c15552bfc3efae2c148c98b52f0b4a81fa3121c78e895"
+      },
+      "pipelineHash": "9097761522983227cf509dd105b3b195cea80f9c0e8143909758af11e3bfe901",
+      "image": "opencfd/openfoam-default@sha256:1ba02114b1c025c370f2e269a07677c16c9bea8d990fcd75ac8378aff9d41b50",
+      "loads": {
+        "cl": 0.18953856619779993,
+        "downforceN": -32.51160636237573,
+        "density": 1.225,
+        "referenceArea": 2.2,
+        "cd": 0.34285345627040004
+      }
+    },
+    {
+      "id": "v40-yaw0",
+      "runId": "e976dc733bf1ac123d4401c197f1e811",
+      "speedKmh": 40,
+      "yawDeg": 0,
+      "field": "map/v40-yaw0/field.bin.gz",
+      "cp": {
+        "part0": "map/v40-yaw0/part0-cp.bin.gz",
+        "part1": "map/v40-yaw0/part1-cp.bin.gz",
+        "part2": "map/v40-yaw0/part2-cp.bin.gz",
+        "part3": "map/v40-yaw0/part3-cp.bin.gz",
+        "part4": "map/v40-yaw0/part4-cp.bin.gz"
+      },
+      "meshHash": "601296c39b369c4a0781eb684d3a15ac1e44c42225b53c0ab2c6a4ae45a7e8fd",
+      "cells": 39383,
+      "freestream": 11.11111111111111,
+      "inlet": [
+        11.11111111111111,
+        0.0,
+        0
+      ],
+      "speedMax": 13.929636001586914,
+      "forceSettled": true,
+      "residualConverged": true,
+      "warnings": [
+        "This run uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+        "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+        "Only 37% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+      ],
+      "hashes": {
+        "map/v40-yaw0/field.bin.gz": "f048cfbfcdffa67c3bae6093065438b4d87bbc9053cc2795333eef5f6709b711",
+        "map/v40-yaw0/part0-cp.bin.gz": "d81c54776ed024763ee64dd46d0ad75d15c758d0acb7703c1194b2bd05ce113d",
+        "map/v40-yaw0/part1-cp.bin.gz": "37683ce6ca2a61c25ada7be364bfb2d03a4a6c570359c6a87e06adb2bc1c819b",
+        "map/v40-yaw0/part2-cp.bin.gz": "9a2fdfbabb426aaeef4711aad914a53ecc44c797b105fc4c488378880bd8bcb7",
+        "map/v40-yaw0/part3-cp.bin.gz": "3c4c77605aee94c1b52cec77be900509c272c1629d9d07258545e5028d658a07",
+        "map/v40-yaw0/part4-cp.bin.gz": "44003be9c3b3a40c1a464e6659ce56a8aa30b4ac3393f0e05ddae0c3d54807b7"
+      },
+      "pipelineHash": "9097761522983227cf509dd105b3b195cea80f9c0e8143909758af11e3bfe901",
+      "image": "opencfd/openfoam-default@sha256:1ba02114b1c025c370f2e269a07677c16c9bea8d990fcd75ac8378aff9d41b50",
+      "loads": {
+        "cl": 0.07523443860874,
+        "downforceN": -12.51585259571323,
+        "density": 1.225,
+        "referenceArea": 2.2,
+        "cd": 0.3297587122308
+      }
+    },
+    {
+      "id": "v40-yaw10",
+      "runId": "8900396b76aa0bf380068b72527dc614",
+      "speedKmh": 40,
+      "yawDeg": 10,
+      "field": "map/v40-yaw10/field.bin.gz",
+      "cp": {
+        "part0": "map/v40-yaw10/part0-cp.bin.gz",
+        "part1": "map/v40-yaw10/part1-cp.bin.gz",
+        "part2": "map/v40-yaw10/part2-cp.bin.gz",
+        "part3": "map/v40-yaw10/part3-cp.bin.gz",
+        "part4": "map/v40-yaw10/part4-cp.bin.gz"
+      },
+      "meshHash": "601296c39b369c4a0781eb684d3a15ac1e44c42225b53c0ab2c6a4ae45a7e8fd",
+      "cells": 39383,
+      "freestream": 11.28251790984161,
+      "inlet": [
+        11.11111111111111,
+        1.9591886745384997,
+        0
+      ],
+      "speedMax": 14.55661678314209,
+      "forceSettled": true,
+      "residualConverged": true,
+      "warnings": [
+        "This run uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+        "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+        "Only 33% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+      ],
+      "hashes": {
+        "map/v40-yaw10/field.bin.gz": "f27c3cd5c0e86166cfa7b6b3336639fef7695765daa6b982cfaa204fe2df3e65",
+        "map/v40-yaw10/part0-cp.bin.gz": "d58d0ad1c9c85561063082d116be2d4a36e9b4d613003328affba3bf8ac23bc5",
+        "map/v40-yaw10/part1-cp.bin.gz": "f62e30cba75b892a3dc1a3b5f73ef51b86edc8d1fb77cd10d31e01b14e9af676",
+        "map/v40-yaw10/part2-cp.bin.gz": "cb140271e0b67394998d63af7267ea5be0d6a723d4eaa50ce54ca15fb03d2194",
+        "map/v40-yaw10/part3-cp.bin.gz": "bb65e5f2b9cf50ced5167779b936698f1dfe6c9545c5218b7a2e2ff930815dd8",
+        "map/v40-yaw10/part4-cp.bin.gz": "d84bc78ae141598a8f3ee22976df2c75b1e18b7980e34e9c6f549c246d4c1fb2"
+      },
+      "pipelineHash": "9097761522983227cf509dd105b3b195cea80f9c0e8143909758af11e3bfe901",
+      "image": "opencfd/openfoam-default@sha256:1ba02114b1c025c370f2e269a07677c16c9bea8d990fcd75ac8378aff9d41b50",
+      "loads": {
+        "cl": 0.28873939708040003,
+        "downforceN": -49.52755424661765,
+        "density": 1.225,
+        "referenceArea": 2.2,
+        "cd": 0.3497258962948
+      }
+    },
+    {
+      "id": "v240-yaw-10",
+      "runId": "51c337426f3b7a833820a35c706332bd",
+      "speedKmh": 240,
+      "yawDeg": -10,
+      "field": "map/v240-yaw-10/field.bin.gz",
+      "cp": {
+        "part0": "map/v240-yaw-10/part0-cp.bin.gz",
+        "part1": "map/v240-yaw-10/part1-cp.bin.gz",
+        "part2": "map/v240-yaw-10/part2-cp.bin.gz",
+        "part3": "map/v240-yaw-10/part3-cp.bin.gz",
+        "part4": "map/v240-yaw-10/part4-cp.bin.gz"
+      },
+      "meshHash": "601296c39b369c4a0781eb684d3a15ac1e44c42225b53c0ab2c6a4ae45a7e8fd",
+      "cells": 39383,
+      "freestream": 67.69510745904967,
+      "inlet": [
+        66.66666666666667,
+        -11.755132047231,
+        0
+      ],
+      "speedMax": 86.78446197509766,
+      "forceSettled": true,
+      "residualConverged": true,
+      "warnings": [
+        "This run uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+        "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+        "Only 0% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+      ],
+      "hashes": {
+        "map/v240-yaw-10/field.bin.gz": "8df54e51db78cea4fa0f0fac5f3939e618e0f851581922faa24aeaad607f275a",
+        "map/v240-yaw-10/part0-cp.bin.gz": "908b6d8fe58e2c8b665a5b01170f0c9489c51299c040ae43e9cac4eed9318f8e",
+        "map/v240-yaw-10/part1-cp.bin.gz": "3cd71888b8489de8e8c816bb8cb9ab79fac1600a9b1311895ba4158eb5671d57",
+        "map/v240-yaw-10/part2-cp.bin.gz": "1e1a2b31e03e735cbe8d96ef8daeb1b80fb5ca6c877e37c7089c5815d0445de1",
+        "map/v240-yaw-10/part3-cp.bin.gz": "c005b2a9c191fdc559eac10ff4213c7d5054be729c76aa557af7e8300b1202ea",
+        "map/v240-yaw-10/part4-cp.bin.gz": "94ceb2cf3f35fc26e47fe113aaf0b6b22e2d8219e0faeaee61267243a0733964"
+      },
+      "pipelineHash": "9097761522983227cf509dd105b3b195cea80f9c0e8143909758af11e3bfe901",
+      "image": "opencfd/openfoam-default@sha256:1ba02114b1c025c370f2e269a07677c16c9bea8d990fcd75ac8378aff9d41b50",
+      "loads": {
+        "cl": 0.20041315866380002,
+        "downforceN": -1237.5694233681725,
+        "density": 1.225,
+        "referenceArea": 2.2,
+        "cd": 0.34182307693520003
+      }
+    },
+    {
+      "id": "v240-yaw0",
+      "runId": "f2ef102f023db018c14c64aa19bb4917",
+      "speedKmh": 240,
+      "yawDeg": 0,
+      "field": "map/v240-yaw0/field.bin.gz",
+      "cp": {
+        "part0": "map/v240-yaw0/part0-cp.bin.gz",
+        "part1": "map/v240-yaw0/part1-cp.bin.gz",
+        "part2": "map/v240-yaw0/part2-cp.bin.gz",
+        "part3": "map/v240-yaw0/part3-cp.bin.gz",
+        "part4": "map/v240-yaw0/part4-cp.bin.gz"
+      },
+      "meshHash": "601296c39b369c4a0781eb684d3a15ac1e44c42225b53c0ab2c6a4ae45a7e8fd",
+      "cells": 39383,
+      "freestream": 66.66666666666667,
+      "inlet": [
+        66.66666666666667,
+        0.0,
+        0
+      ],
+      "speedMax": 83.56690979003906,
+      "forceSettled": false,
+      "residualConverged": true,
+      "warnings": [
+        "Forces or pitching/axle balance are still changing. Do not rank designs from this run.",
+        "This run uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+        "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+        "Only 0% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+      ],
+      "hashes": {
+        "map/v240-yaw0/field.bin.gz": "b88c74d1496e1b7439535ca3601cce9c15b4d845f1427fed54018a9a3d5c10a3",
+        "map/v240-yaw0/part0-cp.bin.gz": "6172642b57d3c45903551a6d161b731630237eb842ddf714c3e931b570f9960d",
+        "map/v240-yaw0/part1-cp.bin.gz": "04cb465a5bd93b0c8f344eab809302365f1813966891f4ca6aedae3aacd7ad96",
+        "map/v240-yaw0/part2-cp.bin.gz": "56c6d44ead44783c95e353d526c7ba2f632f6a0d4a2cdcae2470c272ee816832",
+        "map/v240-yaw0/part3-cp.bin.gz": "14337851815ee934b9d1a6b1acdfd40e6a176376e1cc6f6158383caba15e88d1",
+        "map/v240-yaw0/part4-cp.bin.gz": "2093cd1ffae8d47c97c386ba75f96d392ed3ba0963a5527e9b71e9b446f05af9"
+      },
+      "pipelineHash": "9097761522983227cf509dd105b3b195cea80f9c0e8143909758af11e3bfe901",
+      "image": "opencfd/openfoam-default@sha256:1ba02114b1c025c370f2e269a07677c16c9bea8d990fcd75ac8378aff9d41b50",
+      "loads": {
+        "cl": 0.07755890316154,
+        "downforceN": -464.4916533785564,
+        "density": 1.225,
+        "referenceArea": 2.2,
+        "cd": 0.32812856649440003
+      }
+    },
+    {
+      "id": "v240-yaw10",
+      "runId": "46726eca5736f599b83e17f4a07aba46",
+      "speedKmh": 240,
+      "yawDeg": 10,
+      "field": "map/v240-yaw10/field.bin.gz",
+      "cp": {
+        "part0": "map/v240-yaw10/part0-cp.bin.gz",
+        "part1": "map/v240-yaw10/part1-cp.bin.gz",
+        "part2": "map/v240-yaw10/part2-cp.bin.gz",
+        "part3": "map/v240-yaw10/part3-cp.bin.gz",
+        "part4": "map/v240-yaw10/part4-cp.bin.gz"
+      },
+      "meshHash": "601296c39b369c4a0781eb684d3a15ac1e44c42225b53c0ab2c6a4ae45a7e8fd",
+      "cells": 39383,
+      "freestream": 67.69510745904967,
+      "inlet": [
+        66.66666666666667,
+        11.755132047231,
+        0
+      ],
+      "speedMax": 87.45952606201172,
+      "forceSettled": true,
+      "residualConverged": true,
+      "warnings": [
+        "This run uses a coarse mesh without prism layers. Use it for setup and flow exploration.",
+        "No experimental validation for this car. Mesh refinement and physical testing are still needed.",
+        "Only 0% of sampled wall points fall within the target y+ range 30\u2013300. Near-wall resolution needs review."
+      ],
+      "hashes": {
+        "map/v240-yaw10/field.bin.gz": "6542450cf6f508c867089598a9339c32f4366a8540cf7eb8d4466c41083cdaa6",
+        "map/v240-yaw10/part0-cp.bin.gz": "f07312f7e2a573f3aab3af5574c679fe215827c634cda086d71308cea4512673",
+        "map/v240-yaw10/part1-cp.bin.gz": "297b93fe56cda99ddca03b069bbb10ffdf5a7a4961d129e2a83e35da52b6e742",
+        "map/v240-yaw10/part2-cp.bin.gz": "f143997136dc7be13ae03f463c549a06e6462e5f961c9177c0fd3505f3b74d95",
+        "map/v240-yaw10/part3-cp.bin.gz": "8cd144e6e2ab75f78bcf51401330e28a8dcdbeb412d52b9db8fdc2d9b2407111",
+        "map/v240-yaw10/part4-cp.bin.gz": "13b403fb26ee07fd9b23b73f99e4be3c0c57bd4cb85f62d1ffc083fa27835057"
+      },
+      "pipelineHash": "9097761522983227cf509dd105b3b195cea80f9c0e8143909758af11e3bfe901",
+      "image": "opencfd/openfoam-default@sha256:1ba02114b1c025c370f2e269a07677c16c9bea8d990fcd75ac8378aff9d41b50",
+      "loads": {
+        "cl": 0.2940683567348,
+        "downforceN": -1815.8987618453614,
+        "density": 1.225,
+        "referenceArea": 2.2,
+        "cd": 0.3486576169234
+      }
+    }
+  ],
+  "grid": {
+    "file": "field.bin.gz",
+    "origin": [
+      -4.362078237533569,
+      -2.4387686252593994,
+      0
+    ],
+    "spacing": [
+      0.06349262158075969,
+      0.06417812171735261,
+      0.06407057364857756
+    ],
+    "dims": [
+      241,
+      77,
+      49
+    ],
+    "freestream": 40.054893839916836,
+    "inlet": [
+      40,
+      2.0963111713216485,
+      0
+    ],
+    "length": 4.0100603103637695
+  },
+  "cpRange": [
+    -1.5,
+    1
+  ],
+  "geometryHashes": {
+    "part0": "c305ef1fe113ea04e1a65ebe8eb1b4833c982152e2f15d3866a1f8011f9c26e7",
+    "part1": "e5d0b1b5abcd4c5d956a9d2f5f5f769f44b0d3d3e68ee3527024ca51c27c9f1b",
+    "part2": "afdef487aa64bdef859f7036bbc76f6ebe635f402ca339709e3e4cd0cb2b98cd",
+    "part3": "29f97b06c36138f517d035de97cca72d2b99bef70fdfddb60ec32a8fb4e11258",
+    "part4": "669e5359e64f3e287f54faba5f38c668e00a80438a6d4eed77fa2a32f542ac6c"
+  },
+  "speedMax": 87.45952606201172,
+  "limitations": [
+    "Steady straight-flow cases; interpolation is a quasi-steady approximation, not a rotating-frame cornering solve.",
+    "Each case retains its convergence warnings.",
+    "Unsolved accessory packages are not covered."
+  ],
+  "pipelineHash": "9097761522983227cf509dd105b3b195cea80f9c0e8143909758af11e3bfe901",
+  "image": "opencfd/openfoam-default@sha256:1ba02114b1c025c370f2e269a07677c16c9bea8d990fcd75ac8378aff9d41b50"
+}

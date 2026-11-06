@@ -28,7 +28,7 @@ const THEMES: { value: ThemePref; icon: typeof Sun; label: string }[] = [
   { value: "light", icon: Sun, label: "Light theme" },
 ];
 
-export function WorkspaceMenu({ mode, onChange }: { mode: "2d" | "3d"; onChange?: (mode: "2d" | "3d") => void }) {
+export function WorkspaceMenu({ mode, onChange }: { mode: "2d" | "3d" | "track"; onChange?: (mode: "2d" | "3d" | "track") => void }) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const running = useStore(app, s => s.view === "live");
@@ -41,17 +41,17 @@ export function WorkspaceMenu({ mode, onChange }: { mode: "2d" | "3d"; onChange?
   }, [open]);
   return <div className="workspace-switch" ref={root}>
     <button className="brand workspace-trigger" aria-label="Choose workspace" aria-expanded={open} aria-haspopup="menu" disabled={running} title={running ? "Wait for the current 3D run to finish before switching workspaces." : "Choose workspace"} onClick={() => setOpen(o => !o)}>
-      <Logo /><span className="brand-name">EasyCFD</span><span className="brand-tag">{mode === "2d" ? "2D profiles" : "wind tunnel"}</span><ChevronDown size={15} />
+      <Logo /><span className="brand-name">EasyCFD</span><span className="brand-tag">{mode === "track" ? "track lab" : mode === "2d" ? "2D profiles" : "wind tunnel"}</span><ChevronDown size={15} />
     </button>
     {open && <div className="workspace-options glass" role="menu" aria-label="Workspaces">
-      {(["3d", "2d"] as const).map(m => <button key={m} role="menuitemradio" aria-checked={mode === m} onClick={() => { setOpen(false); onChange?.(m); }}>
-        {m === "3d" ? <Box size={19} /> : <Waves size={19} />}<span><b>{m === "3d" ? "3D wind tunnel" : "2D profiles"}</b><small>{m === "3d" ? "Import and analyse a model" : "Draw a shape. Explore the flow."}</small></span>{mode === m && <Check size={15} />}
+      {(["3d", "2d", "track"] as const).map(m => <button key={m} role="menuitemradio" aria-checked={mode === m} onClick={() => { setOpen(false); onChange?.(m); }}>
+        {m === "3d" ? <Box size={19} /> : <Waves size={19} />}<span><b>{m === "track" ? "Track lab" : m === "3d" ? "3D wind tunnel" : "2D profiles"}</b><small>{m === "track" ? "Explore aero and lap time" : m === "3d" ? "Import and analyse a model" : "Draw a shape. Explore the flow."}</small></span>{mode === m && <Check size={15} />}
       </button>)}
     </div>}
   </div>;
 }
 
-export function TopBar({ onWorkspaceChange }: { onWorkspaceChange?: (mode: "2d" | "3d") => void }) {
+export function TopBar({ onWorkspaceChange }: { onWorkspaceChange?: (mode: "2d" | "3d" | "track") => void }) {
   const design = useStore(app, (s) => s.design);
   const theme = useStore(app, (s) => s.theme);
   const view = useStore(app, (s) => s.view);
@@ -75,6 +75,7 @@ export function TopBar({ onWorkspaceChange }: { onWorkspaceChange?: (mode: "2d" 
         />
       )}
       <div className="spacer" />
+      {view === "results" && run && onWorkspaceChange && <button className="btn ghost sm" disabled={!run.field || !run.parts.length} onClick={() => onWorkspaceChange("track")} title="Test this solved car and its enabled parts on a circuit">Test on track</button>}
       <button className="btn ghost sm" onClick={() => app.set({ library: true })} data-testid="open-library">
         <FolderOpen size={16} /> <span className="hide-sm">Designs &amp; runs</span>
       </button>

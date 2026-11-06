@@ -7,6 +7,7 @@ export default defineConfig({
   plugins: [react()],
   optimizeDeps: { include: ["@jax-js/jax"] },
   base: "./",
+  preview: { allowedHosts: ["marks-mac-mini.baboon-trench.ts.net"] },
   worker: {
     format: "es",
     rollupOptions: { output: {
