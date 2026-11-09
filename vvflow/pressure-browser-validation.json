@@ -1,10 +1,10 @@
 [
   {
     "browser": "chromium",
-    "denseDefault": true,
+    "ultraDenseDefault": true,
     "pressureColors": {
-      "blue": 353136,
-      "red": 7070,
+      "blue": 322047,
+      "red": 6818,
       "visible": 812200
     },
     "offlinePressure": true,
@@ -16,10 +16,10 @@
   },
   {
     "browser": "webkit",
-    "denseDefault": true,
+    "ultraDenseDefault": true,
     "pressureColors": {
-      "blue": 353709,
-      "red": 7879,
+      "blue": 321761,
+      "red": 6674,
       "visible": 795533
     },
     "offlinePressure": true,

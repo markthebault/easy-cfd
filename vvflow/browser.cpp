@@ -18,7 +18,9 @@
 double vv_merge_scale=1;
 namespace {
 #include "mx5-outline.inc"
-std::unique_ptr<Space> space;
+std::unique_ptr<Space> space, pressure_copy;
+std::unique_ptr<TSortedTree> pressure_boundary_tree;
+std::unique_ptr<MConvectiveFast> pressure_boundary;
 std::unique_ptr<TSortedTree> tree;
 std::unique_ptr<MConvectiveFast> convective;
 std::unique_ptr<MEpsilonFast> epsilon;
@@ -30,6 +32,7 @@ double stats[10]={};
 std::string error;
 void dispose(){
   if(tree) tree->destroy();
+  pressure_boundary.reset();pressure_boundary_tree.reset();pressure_copy.reset();
   flowmove.reset();diffusive.reset();epsilon.reset();convective.reset();tree.reset();space.reset();
   particles.clear();bodies.clear();pressure_values.clear();collision=nullptr;vv_merge_scale=1;
   std::fill(stats,stats+10,0.0);
@@ -64,7 +67,7 @@ void snapshot(){
 extern "C" {
 void vv_dispose(){dispose();}
 int vv_density(int density){
-  if(density!=1&&density!=2&&density!=4){error="Invalid vortex density";return -1;}
+  if(density!=1&&density!=2&&density!=4&&density!=6){error="Invalid vortex density";return -1;}
   vv_merge_scale=1.0/(density*density);return 0;
 }
 const double* vv_pressure_data(){return pressure_values.data();}
@@ -73,7 +76,12 @@ int vv_pressure(double xmin,double ymin,double spacing,int nx,int ny){
     if(!space||!std::isfinite(xmin)||!std::isfinite(ymin)||!std::isfinite(spacing)||spacing<=0||nx<2||ny<2||nx>192||ny>128)throw std::runtime_error("Invalid pressure sampling grid");
     // Space copies shared body pointers. Deep-copy them before postprocessing,
     // since XPressure sheds vortices and accumulates surface quantities.
-    Space copy=*space;std::map<TBody*,std::shared_ptr<TBody>> clones;
+    if(!pressure_copy){
+      pressure_copy=std::make_unique<Space>();double dl=space->average_segment_length();
+      pressure_boundary_tree=std::make_unique<TSortedTree>(pressure_copy.get(),8,5*dl,100*dl);
+      pressure_boundary=std::make_unique<MConvectiveFast>(pressure_copy.get(),pressure_boundary_tree.get());
+    }
+    *pressure_copy=*space;Space& copy=*pressure_copy;std::map<TBody*,std::shared_ptr<TBody>> clones;
     for(size_t i=0;i<copy.BodyList.size();i++){
       auto original=space->BodyList[i];auto cloned=std::make_shared<TBody>(*original);
       clones[original.get()]=cloned;copy.BodyList[i]=cloned;
@@ -83,8 +91,9 @@ int vv_pressure(double xmin,double ymin,double spacing,int nx,int ny){
     }
     // Recompute unknown boundary circulations at this state's time, before
     // shedding, matching the pre-shed state expected by upstream XPressure.
-    double dl=copy.average_segment_length();TSortedTree pressure_tree(&copy,8,5*dl,100*dl);
-    MConvectiveFast boundary(&copy,&pressure_tree);const void* no_collision=nullptr;
+    TSortedTree& pressure_tree=*pressure_boundary_tree;
+    MConvectiveFast& boundary=*pressure_boundary;boundary.refresh_solution_bindings();
+    const void* no_collision=nullptr;
     pressure_tree.build();
     try {boundary.calc_circulation(&no_collision);}catch(...){pressure_tree.destroy();throw;}
     pressure_tree.destroy();

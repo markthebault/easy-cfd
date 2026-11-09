@@ -8,7 +8,7 @@ for(const [name,engine]of [['chromium',chromium],['webkit',webkit]]){
  const context=await b.newContext({viewport:{width:1440,height:1040}}),p=await context.newPage(),errors=[];
  p.on('pageerror',e=>errors.push(e.message));
  await p.goto(base+'/?workspace=vvflow&profile=mx5-nc');await p.waitForFunction(()=>!document.querySelector('.vv-primary')?.disabled);
- assert.equal(await p.getByLabel('Vortex density').inputValue(),'2');
+ assert.equal(await p.getByLabel('Vortex density').inputValue(),'6');
  await p.getByRole('button',{name:'Run flow',exact:true}).click();await p.waitForFunction(()=>Number(document.querySelector('.vv-time strong')?.textContent)>1.5,{},{timeout:40000});
  await p.getByRole('button',{name:'Pause',exact:true}).click();await p.waitForFunction(()=>document.querySelector('.vv-status')?.textContent?.includes('Paused'));
  const t=await p.locator('.vv-time strong').innerText();
@@ -27,6 +27,6 @@ for(const [name,engine]of [['chromium',chromium],['webkit',webkit]]){
  await context.setOffline(false);await p.setViewportSize({width:390,height:844});await p.waitForTimeout(300);
  assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await p.screenshot({path:`vvflow/build/${name}-pressure-mobile.png`});
  await p.getByLabel('View layer').selectOption('particles');assert.equal(await p.locator('.vv-pressure-key').count(),0);
- assert.deepEqual(errors,[]);results.push({browser:name,denseDefault:true,pressureColors:colors,offlinePressure:true,pausedTimeUnchanged:true,livePressureRefresh:true,extraDense:true,mobile:true,pageErrors:errors});await b.close();console.log(name,'pressure passed');
+ assert.deepEqual(errors,[]);results.push({browser:name,ultraDenseDefault:true,pressureColors:colors,offlinePressure:true,pausedTimeUnchanged:true,livePressureRefresh:true,extraDense:true,mobile:true,pageErrors:errors});await b.close();console.log(name,'pressure passed');
 }
 writeFileSync('vvflow/pressure-browser-validation.json',JSON.stringify(results,null,2)+'\n');

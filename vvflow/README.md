@@ -108,8 +108,10 @@ vehicle section. Reynolds number is based on car length.
 
 ## Vortex density and static pressure
 
-Dense is now the browser default. Standard retains upstream merging criteria;
-Dense and Extra dense divide the distance-based merge threshold by 4 and 16.
+Ultra dense is now the browser default (density level 6, roughly three times
+the domains of the previous Dense default at level 2). Standard retains upstream merging criteria;
+Dense, Extra dense and Ultra dense divide the distance-based merge threshold by
+4, 16 and 36 respectively.
 They retain more actual computed domains, not duplicate display dots. Counts
 vary with flow state. The original opposite-sign neighbour merge rule remains.
 This changes numerical resolution and cost and does not establish convergence.
@@ -126,11 +128,22 @@ Cp = 2 (p-p_infinity)/(rho U_infinity^2). Body interiors and non-finite values
 are masked. The fixed blue-to-red display range is -2.5 to +2.5; raw samples
 remain unclipped. This is a coarse sampled experimental field with potential
 near-vortex singularities, not a validated surface-pressure measurement.
-Pressure is refreshed at most twice per wall-clock second, and once immediately
+Pressure targets 10 refreshes per wall-clock second (100 ms), and once immediately
 on pause/view changes; its sample time is shown. Sampling follows the viewport
-with square spacing, up to 144 x 128 samples. Pan/zoom resamples the field.
+with square spacing, up to 144 x 128 samples. Horizontal display resolution
+adapts between 56 and 144 samples to reserve CPU time for 10 FPS; this does not
+change vortex resolution. Pausing restores the full pressure display grid.
+Pan/zoom resamples the field.
 
 Tests: `node vvflow/check-pressure.mjs` (native image required) and
 `node vvflow/check-pressure-browser.mjs` (static test host on port 5219, or
 set VVFLOW_URL). The first checks native Cp agreement, body masks, exact live
 state and next-step invariance, and increasing vortex counts.
+
+Solver batches end near the next pressure deadline. If reconstruction plus a
+solver step costs more than 100 ms, actual refresh remains below 10 FPS.
+
+For stationary geometry, pressure reuses the upstream inverse-matrix cache.
+The copied state and solution bindings are refreshed every sample; changed
+matrices retain upstream hash invalidation and moving bodies use the upstream
+direct solve. This avoids repeating matrix inversion at every pressure frame.

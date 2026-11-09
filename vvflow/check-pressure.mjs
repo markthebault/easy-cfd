@@ -12,6 +12,8 @@ for(const shape of [0,2,3]){
  const start=performance.now();assert.equal(m._vv_pressure(-.4,-.4,.04,64,32),0,m.UTF8ToString(m._vv_error()));
  const pressure=Array.from(m.HEAPF64.subarray(m._vv_pressure_data()/8,m._vv_pressure_data()/8+64*32));
  assert.deepEqual(state(),before,'Pressure evaluation must not mutate the live solver');
+ assert.equal(m._vv_pressure(-.4,-.4,.04,64,32),0);
+ assert.deepEqual(Array.from(m.HEAPF64.subarray(m._vv_pressure_data()/8,m._vv_pressure_data()/8+64*32)),pressure,'Cached reconstruction must match the first evaluation');
  assert.ok(pressure.filter(Number.isFinite).length>1400);
  assert.ok(pressure.some(v=>v>0)&&pressure.some(v=>v<0));
  const native=JSON.parse(execFileSync('docker',['run','--rm','-v',`${root}:/src`,'easycfd-vvflow-native:local','/src/vvflow/build/native/vvflow',String(shape),'240','20','40000','.005','0','2','1'],{encoding:'utf8',maxBuffer:20e6}));
