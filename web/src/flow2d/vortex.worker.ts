@@ -21,7 +21,7 @@ self.onmessage = (event: MessageEvent<FlowRequest>) => {
       const start = performance.now();
       if (request.type === 'start') {
         version = request.version;steps = 0;reference = request.referenceLength;
-        monitor = new ForceMonitor(TUNNELS[request.tunnel], reference, 'vvflow', request.outlines.length > 0, request.signature, {stepDistance:.005*reference,factor:1,key:'vvflow-section-mean-1-Re40000-dt0.005-panels320-density2-image-ground-2'});
+        monitor = new ForceMonitor(TUNNELS[request.tunnel], reference, 'vvflow', request.outlines.length > 0, request.signature, {stepDistance:.005*reference,factor:1,key:'vvflow-section-mean-1-Re40000-dt0.005-panels320-density2-image-ground-3'});
         module?._vv_dispose();const outlines = vortexOutlines(request.outlines, reference);empty = !outlines.length;
         if (!empty) {
           if (!module) { const path = new URL('/vvflow/vvflow.mjs', self.location.origin).href;

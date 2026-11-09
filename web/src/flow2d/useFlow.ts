@@ -40,13 +40,13 @@ export function useFlow(scene: Scene, restart: number, playing: boolean, draggin
       }
       backend.current = reply.backend;
       if (reply.type === "vortices") {
-        if (reply.steps > 1) vortexStepMs.current = vortexStepMs.current ? .7 * vortexStepMs.current + .3 * reply.elapsed : reply.elapsed; if (!paused.current || reply.steps <= 8 || !renderer.current!.vortexParticles) renderer.current!.vortexParticles = reply.particles;canvas.current?.setAttribute("data-vortex-count", String(reply.particles.length / 4));}
+        if (reply.steps > 2) vortexStepMs.current = vortexStepMs.current ? .7 * vortexStepMs.current + .3 * reply.elapsed : reply.elapsed; if (!paused.current || reply.steps <= 8 || !renderer.current!.vortexParticles) renderer.current!.vortexParticles = reply.particles;canvas.current?.setAttribute("data-vortex-count", String(reply.particles.length / 4));}
       else if (!paused.current || reply.steps <= 8 || !renderer.current!.field) renderer.current!.update(reply.values, reply.steps);
       if (performance.now() - lastStatus > 250 || reply.steps <= 8) {
         if (!paused.current || reply.steps <= 8) setMetrics(reply.metrics);
         setStatus({ steps: reply.steps, backend: reply.backend, ready: true, error: false }); lastStatus = performance.now();
       }
-      tickTimer.current = setTimeout(requestTick, Math.max(0, (backend.current === "vvflow" ? Math.max(50, vortexStepMs.current * 3) / speed.current : 40) - reply.elapsed));
+      tickTimer.current = setTimeout(requestTick, Math.max(0, (backend.current === "vvflow" ? Math.max(1000 / 30, vortexStepMs.current * 2) / speed.current : 40) - reply.elapsed));
     };
     w.onerror = () => { inflight.current = false; paused.current = true;  setMessage("The browser flow engine could not start. Try reloading this page."); setStatus(s => ({ ...s, error: true, ready: false })); };
     return () => { clearTimeout(tickTimer.current); w.terminate(); worker.current = null; };

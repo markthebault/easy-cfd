@@ -31,6 +31,7 @@ const report = [];
 try {
   start(1);
   assert.equal(module._vv_body_count(), 320, 'Image bodies must stay out of exported geometry');
+  const initialBodies = Array.from(module.HEAPF64.subarray(module._vv_bodies() / 8, module._vv_bodies() / 8 + module._vv_body_count() * 3));
   for (let step = 1; step <= 500; step++) {
     assert.equal(module._vv_step(1), 0, module.UTF8ToString(module._vv_error()));
     if (![50, 200, 500].includes(step)) continue;
@@ -39,6 +40,7 @@ try {
     const stats = Array.from(module.HEAPF64.subarray(module._vv_stats() / 8, module._vv_stats() / 8 + 10));
     assert.ok(stats.every(Number.isFinite));
     assert.equal(stats[5], step);
+    assert.deepEqual(Array.from(module.HEAPF64.subarray(module._vv_bodies() / 8, module._vv_bodies() / 8 + module._vv_body_count() * 3)), initialBodies, 'Stationary boundaries must retain their exact coordinates');
     let minY = Infinity, maxX = -Infinity, upperCount = 0, underbodyMinY = Infinity;
     for (let i = 0; i < particles.length; i += 4) {
       const [x, y, circulation, core] = particles.subarray(i, i + 4);

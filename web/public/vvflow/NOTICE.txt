@@ -16,7 +16,8 @@ not included.
 
 The core is vendored unchanged. Generated TSpace omits HDF5 save/load; generated
 TMatrix adapts CLAPACK return types. Generated MEpsilonFast exposes a distance-
-based merging multiplier. The browser adapter replaces desktop orchestration
+based merging multiplier. Generated convection, diffusion and core updates skip
+image targets while preserving their influence on physical targets. The browser adapter replaces desktop orchestration
 and output with an in-memory API. OpenMP directives are ignored.
 
 Compiled dependencies and licences:

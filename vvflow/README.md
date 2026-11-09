@@ -32,7 +32,8 @@ are not simulated. Pressure overlays remain unavailable in this mode.
 Pinned upstream revision: `f6419b3a9f69cee1eaf2655154439cb69dd0fea6`.
 `vendor/libvvhd` is unchanged upstream source; licence `vendor/LICENSE.vvflow`.
 The generator removes HDF5 save/load, adapts LAPACK return types and exposes a
-merge-threshold multiplier. Lua is retained for upstream expressions. CLAPACK
+merge-threshold multiplier. In ground scenes it skips target updates for image
+vortices, while retaining their influence on physical targets. Lua is retained for upstream expressions. CLAPACK
 supplies the actual pivoted LU/inversion routines. No OpenMP threads or backend
 are used. The WASM build no longer includes pressure reconstruction.
 
@@ -69,8 +70,10 @@ Logs: `~/Library/Application Support/EasyCFD-vvflow/{stdout,stderr}.log`.
 ## Playback and drag/lift
 
 Vortex playback sends one solver step per request. At 1x, pacing reserves CPU
-headroom (three measured step costs, with a 50 ms minimum cycle); the slider
-scales the cycle interval from 0.1x to 3x. Slider changes reschedule immediately.
+headroom (two measured step costs, with a 33.3 ms minimum cycle); the slider
+scales the cycle interval from 0.1x to 3x. Slider changes reschedule immediately. The first two startup steps are excluded
+from the steady pacing estimate. Stationary rigid bodies retain exact zero
+velocity so numerical residuals cannot invalidate the boundary-matrix cache.
 This preserves the numerical timestep and allows faster settings to differ even
 when one solver step exceeds the old worker batch budget. Hardware and evolving
 vortex counts still limit the maximum rate.
@@ -91,7 +94,8 @@ metrics, pause and backend switching in Chromium and WebKit.
 
 `node vvflow/check-ground.mjs` checks the current image-ground method at 50, 200
 and 500 steps using the MX-5 editor geometry. It checks upper-surface shedding,
-underbody particle depth, downstream wake growth, finite forces and scene reset.
+underbody particle depth, downstream wake growth, finite forces, exact stationary
+boundaries and scene reset.
 The former finite slip-ground body produced regular underbody bands and removed
 most upper-surface vortices. Screenshots at matching elapsed times caught this
 failure despite the older minimum-y check passing.

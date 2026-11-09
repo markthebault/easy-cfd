@@ -14,6 +14,7 @@
 #include <cstdlib>
 
 double vv_merge_scale=1;
+bool image_ground=false;
 namespace {
 #include "mx5-outline.inc"
 std::unique_ptr<Space> space;
@@ -27,7 +28,6 @@ std::vector<double> particles, bodies;
 double stats[10]={};
 std::string error;
 size_t force_body_count=0;
-bool image_ground=false;
 void keep_physical_vortices() {
   auto& vortices = space->VortexList;
   vortices.erase(std::remove_if(vortices.begin(), vortices.end(),
@@ -188,6 +188,14 @@ int vv_step(int count){
       if(space->VortexList.size()>100000)throw std::runtime_error("100,000-vortex preview limit reached. Reset or choose a coarser surface.");
       if(image_ground){reflect_body_history();reflect_vortices();}
       tree->build();if(collision)convective->calc_circulation(&collision);convective->calc_circulation(&collision);tree->destroy();
+      // Keep prescribed stationary bodies exact. Tiny linear-solve residuals
+      // otherwise move their vertices and invalidate the fixed boundary cache.
+      for (const auto& body : space->BodyList) {
+        if (TBody::isrigid(body->kspring.r.x) && TBody::isrigid(body->kspring.r.y)
+            && TBody::isrigid(body->kspring.o) && body->speed(space->time).iszero()) {
+          body->speed_slae = TVec3D();
+        }
+      }
       flowmove->heat_shed();flowmove->vortex_shed();flowmove->streak_shed();space->calc_forces();
       TVec3D force;for(size_t i=0;i<force_body_count;i++){const auto&b=space->BodyList[i];force=force+b->force_hydro;force.o+=rotl(b->get_axis())*b->force_hydro.r;}
       stats[1]=2*force.r.x;stats[2]=2*force.r.y;stats[3]=2*force.o;stats[9]=double(space->time);

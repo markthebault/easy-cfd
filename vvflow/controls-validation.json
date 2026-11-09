@@ -4,18 +4,18 @@
     "rates": [
       {
         "setting": 0.1,
-        "steps": 1,
-        "elapsedMs": 2585.097209
+        "steps": 7,
+        "elapsedMs": 2566.6137499999995
       },
       {
         "setting": 1,
-        "steps": 6,
-        "elapsedMs": 2578.917875
+        "steps": 54,
+        "elapsedMs": 2560.794375
       },
       {
         "setting": 3,
-        "steps": 17,
-        "elapsedMs": 2599.149458000001
+        "steps": 97,
+        "elapsedMs": 2567.5768750000007
       }
     ],
     "metricsVisible": true,
@@ -31,18 +31,18 @@
     "rates": [
       {
         "setting": 0.1,
-        "steps": 1,
-        "elapsedMs": 2582.1523749999997
+        "steps": 5,
+        "elapsedMs": 2572.9385839999995
       },
       {
         "setting": 1,
-        "steps": 5,
-        "elapsedMs": 2563.729792
+        "steps": 56,
+        "elapsedMs": 2572.2427079999998
       },
       {
         "setting": 3,
-        "steps": 15,
-        "elapsedMs": 2562.449457999999
+        "steps": 106,
+        "elapsedMs": 2567.977084000002
       }
     ],
     "metricsVisible": true,
