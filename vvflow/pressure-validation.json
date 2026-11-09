@@ -1,0 +1,46 @@
+{
+  "note": "Numerical port and state-isolation checks, not physical validation. Cp compared with native adapter using upstream XPressure.",
+  "results": [
+    {
+      "shape": 0,
+      "nativeMaxAbsoluteCpError": 0,
+      "finiteCells": 1595,
+      "liveStateUnchanged": true,
+      "nextStepUnchanged": true,
+      "elapsedMs": 696.1474579999999
+    },
+    {
+      "shape": 2,
+      "nativeMaxAbsoluteCpError": 1.1641532182693481e-10,
+      "finiteCells": 1994,
+      "liveStateUnchanged": true,
+      "nextStepUnchanged": true,
+      "elapsedMs": 511.44508300000007
+    },
+    {
+      "shape": 3,
+      "nativeMaxAbsoluteCpError": 1.7881393432617188e-7,
+      "finiteCells": 1932,
+      "liveStateUnchanged": true,
+      "nextStepUnchanged": true,
+      "elapsedMs": 470.1640830000001
+    }
+  ],
+  "density": [
+    {
+      "level": 1,
+      "vortices": 534,
+      "elapsedMs": 1545.3844589999999
+    },
+    {
+      "level": 2,
+      "vortices": 1232,
+      "elapsedMs": 3932.910709
+    },
+    {
+      "level": 4,
+      "vortices": 2394,
+      "elapsedMs": 10960.622749999999
+    }
+  ]
+}

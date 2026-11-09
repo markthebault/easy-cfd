@@ -229,3 +229,15 @@ batch integration, symmetry and lift-sign reversal for a mirrored section, added
 parts, and GPU/WASM agreement. Production-browser checks cover shape metadata,
 toggles, live measurements, pause, baseline settings, persistence and CSV export.
 These are implementation checks, not physical validation.
+
+## Vortex particles
+
+Animation → Vortex particles selects the browser-only vvflow backend while using
+this same editor and scene. Enabled polygons are merged into exposed solid
+boundaries; edits restart the simulation after pointer release. Particle positions
+and signs come from the solver. This mode shows particles and its own drag/lift data, with no pressure
+overlay. A finite impermeable slip ground has its top at y=0; it has no road
+boundary layer. The ground force is excluded from the reported body coefficients.
+Top/side viewing-box walls are not simulated.
+Other animation choices retain the LBM backend and its original controls.
+See [the port notes](../../vvflow/README.md) for fixed settings and limits.

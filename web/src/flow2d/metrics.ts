@@ -3,7 +3,9 @@ import { cellSize, liveTau, type Grid } from "./grid";
 
 export type ForceSum = { x: number; y: number; steps: number };
 export type ForcePoint = { travel: number; cd: number; cl: number };
+export type ForceMethod = { stepDistance: number; factor: number; key: string };
 export type ForceReport = {
+  backend?: string; instantaneousCd?: number; instantaneousCl?: number;
   key: string; signature: string; steps: number; referenceLength: number; status: "warming" | "sampling" | "settling" | "ready" | "empty";
   progress: number; cd: number | null; cl: number | null; cdVariation: number; clVariation: number;
   cdDrift: number | null; clDrift: number | null; cdTolerance: number; clTolerance: number;
@@ -38,8 +40,14 @@ export class ForceMonitor {
   private drift: { cd: number; cl: number } | null = null;
   private history: ForcePoint[] = [];
   private lastHistoryTravel = -Infinity;
-  constructor(private grid: Grid, readonly referenceLength: number, private backend: string, private hasSolids: boolean, private signature = "") {
-    const policy = forceSampling(grid, referenceLength);
+  private stepDistance: number;
+  private factor: number;
+  private conditions: string;
+  constructor(grid: Grid, readonly referenceLength: number, private backend: string, private hasSolids: boolean, private signature = "", method?: ForceMethod) {
+    this.stepDistance = method?.stepDistance ?? INLET * cellSize(grid);
+    this.factor = method?.factor ?? 2 * cellSize(grid) / (INLET ** 2 * referenceLength);
+    this.conditions = method ? JSON.stringify([method.key, grid.id, grid.width, grid.height, referenceLength, backend, MIN_BLOCKS, REQUIRED_CHECKS]) : forceConditions(grid, referenceLength, backend);
+    const policy = method ? { warmupSteps: Math.ceil(Math.max(4 * referenceLength, grid.width) / this.stepDistance), blockSteps: Math.ceil(Math.max(2 * referenceLength, grid.width / 5) / this.stepDistance) } : forceSampling(grid, referenceLength);
     this.warmupSteps = policy.warmupSteps; this.blockSteps = policy.blockSteps; this.windowSteps = MIN_BLOCKS * this.blockSteps;
   }
   /** Stop exactly at startup/block boundaries, so changing the playback batch
@@ -68,7 +76,7 @@ export class ForceMonitor {
   }
   push(force: ForceSum, steps: number): ForceReport {
     if (![force.x, force.y, force.steps, steps].every(Number.isFinite) || force.steps <= 0) throw new Error("Invalid boundary force sample.");
-    const travel = steps * INLET * cellSize(this.grid) / this.referenceLength, factor = 2 * cellSize(this.grid) / (INLET ** 2 * this.referenceLength);
+    const travel = steps * this.stepDistance / this.referenceLength, factor = this.factor;
     // External callers may not use batchSize: discard any straddling startup
     // batch rather than apportion an unknown transient impulse.
     if (this.hasSolids && steps - force.steps >= this.warmupSteps) {
@@ -86,10 +94,10 @@ export class ForceMonitor {
     const tolerance = this.tolerance(cd ?? 0, cl ?? 0);
     const status = !this.hasSolids ? "empty" : !this.count ? "warming" : this.completed < MIN_BLOCKS ? "sampling" : this.stableChecks < REQUIRED_CHECKS ? "settling" : "ready";
     if (cd !== null && cl !== null && this.hasSolids && travel - this.lastHistoryTravel >= .2) { this.history.push({ travel, cd, cl }); this.lastHistoryTravel = travel; if (this.history.length > 180) this.history.shift(); }
-    return { key: forceConditions(this.grid, this.referenceLength, this.backend), signature: this.signature, steps, referenceLength: this.referenceLength, status,
+    return { backend: this.backend, key: this.conditions, signature: this.signature, steps, referenceLength: this.referenceLength, status,
       progress: status === "warming" ? Math.min(1, steps / this.warmupSteps) : Math.min(1, this.count / this.windowSteps), cd, cl,
       cdVariation: fluctuation("cd", cd), clVariation: fluctuation("cl", cl), cdDrift: this.drift?.cd ?? null, clDrift: this.drift?.cl ?? null, cdTolerance: tolerance.cd, clTolerance: tolerance.cl,
       sampledSteps: this.count, windowSteps: this.windowSteps, warmupSteps: this.warmupSteps, blockSteps: this.blockSteps, blocks: this.completed, stableChecks: this.stableChecks, requiredStableChecks: REQUIRED_CHECKS,
-      averagingTravel: this.count * INLET * cellSize(this.grid) / this.referenceLength, travel, history: [...this.history] };
+      averagingTravel: this.count * this.stepDistance / this.referenceLength, travel, history: [...this.history] };
   }
 }

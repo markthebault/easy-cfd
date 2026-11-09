@@ -1,0 +1,32 @@
+[
+  {
+    "browser": "chromium",
+    "ultraDenseDefault": true,
+    "pressureColors": {
+      "blue": 322047,
+      "red": 6818,
+      "visible": 812200
+    },
+    "offlinePressure": true,
+    "pausedTimeUnchanged": true,
+    "livePressureRefresh": true,
+    "extraDense": true,
+    "mobile": true,
+    "pageErrors": []
+  },
+  {
+    "browser": "webkit",
+    "ultraDenseDefault": true,
+    "pressureColors": {
+      "blue": 321761,
+      "red": 6674,
+      "visible": 795533
+    },
+    "offlinePressure": true,
+    "pausedTimeUnchanged": true,
+    "livePressureRefresh": true,
+    "extraDense": true,
+    "mobile": true,
+    "pageErrors": []
+  }
+]

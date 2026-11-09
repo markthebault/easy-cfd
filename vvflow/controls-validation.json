@@ -1,0 +1,56 @@
+[
+  {
+    "browser": "chromium",
+    "rates": [
+      {
+        "setting": 0.1,
+        "steps": 7,
+        "elapsedMs": 2566.6137499999995
+      },
+      {
+        "setting": 1,
+        "steps": 54,
+        "elapsedMs": 2560.794375
+      },
+      {
+        "setting": 3,
+        "steps": 97,
+        "elapsedMs": 2567.5768750000007
+      }
+    ],
+    "metricsVisible": true,
+    "metricsFromVvflow": true,
+    "instantaneousLabel": true,
+    "ground": true,
+    "pause": true,
+    "switchBackend": true,
+    "pageErrors": []
+  },
+  {
+    "browser": "webkit",
+    "rates": [
+      {
+        "setting": 0.1,
+        "steps": 5,
+        "elapsedMs": 2572.9385839999995
+      },
+      {
+        "setting": 1,
+        "steps": 56,
+        "elapsedMs": 2572.2427079999998
+      },
+      {
+        "setting": 3,
+        "steps": 106,
+        "elapsedMs": 2567.977084000002
+      }
+    ],
+    "metricsVisible": true,
+    "metricsFromVvflow": true,
+    "instantaneousLabel": true,
+    "ground": true,
+    "pause": true,
+    "switchBackend": true,
+    "pageErrors": []
+  }
+]

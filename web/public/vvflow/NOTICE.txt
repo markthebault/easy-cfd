@@ -1,0 +1,33 @@
+EasyCFD Vortex particles mode
+
+Numerical core: vvflow by Yaroslav Dynnikov and Contributors (MIT).
+Pinned upstream revision: f6419b3a9f69cee1eaf2655154439cb69dd0fea6
+https://github.com/vvflow/vvflow/tree/f6419b3a9f69cee1eaf2655154439cb69dd0fea6
+
+Choose Animation > Vortex particles in the existing 2D workspace. The current
+enabled scene boundaries are unioned, normalised by reference length and passed
+to the browser-only WASM solver. Signed vortex domains are red (positive) and
+blue (negative). Dot size/opacity are display choices. The Drag & lift panel uses
+vvflow body forces, excluding image bodies. The ground at y=0 uses reflected
+boundaries and
+opposite-sign image vortices, regenerated after shedding and merging. It is an
+impermeable slip boundary with no road boundary layer. Pressure overlays are
+not included.
+
+The core is vendored unchanged. Generated TSpace omits HDF5 save/load; generated
+TMatrix adapts CLAPACK return types. Generated MEpsilonFast exposes a distance-
+based merging multiplier. Generated convection, diffusion and core updates skip
+image targets while preserving their influence on physical targets. The browser adapter replaces desktop orchestration
+and output with an in-memory API. OpenMP directives are ignored.
+
+Compiled dependencies and licences:
+- vvflow: LICENSE.vvflow.txt
+- Lua 5.2.4: LICENSE.lua.txt
+- CLAPACK 3.2.1 / reference BLAS: LICENSE.clapack.txt
+- f2c helpers: LICENSE.f2c.txt
+
+Geometry union uses polygon-clipping (MIT):
+https://github.com/mfogel/polygon-clipping
+
+All computation occurs in the visiting browser. The host serves static assets.
+Experimental 2D flow only; no validated accuracy or full-vehicle force claim.

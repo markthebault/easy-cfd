@@ -23,3 +23,7 @@ docs/*-demo/*.webm
 docs/*-demo/*.zip
 docs/*-demo/*.stl
 docs/*-demo/project-id.txt
+
+# vvflow experimental compiler outputs
+vvflow/build/
+web/dist/

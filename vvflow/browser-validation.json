@@ -1,0 +1,40 @@
+[
+  {
+    "browser": "chromium",
+    "offlineSimulation": true,
+    "pauseAndStep": true,
+    "csvDownload": true,
+    "movingSpoiler": true,
+    "mobile": true,
+    "pageErrors": [],
+    "requests": [
+      "http://127.0.0.1:5218/?workspace=vvflow",
+      "http://127.0.0.1:5218/assets/main-BrwE3rIN.js",
+      "http://127.0.0.1:5218/assets/main-BP3O_vIq.css",
+      "http://127.0.0.1:5218/assets/Workspace-QF0Z_u-w.js",
+      "http://127.0.0.1:5218/assets/Workspace-CSpJ9Mps.css",
+      "http://127.0.0.1:5218/assets/worker-C2W6zVgu.js",
+      "http://127.0.0.1:5218/vvflow/vvflow.mjs",
+      "http://127.0.0.1:5218/vvflow/vvflow.wasm"
+    ]
+  },
+  {
+    "browser": "webkit",
+    "offlineSimulation": true,
+    "pauseAndStep": true,
+    "csvDownload": true,
+    "movingSpoiler": true,
+    "mobile": true,
+    "pageErrors": [],
+    "requests": [
+      "http://127.0.0.1:5218/?workspace=vvflow",
+      "http://127.0.0.1:5218/assets/main-BrwE3rIN.js",
+      "http://127.0.0.1:5218/assets/main-BP3O_vIq.css",
+      "http://127.0.0.1:5218/assets/Workspace-QF0Z_u-w.js",
+      "http://127.0.0.1:5218/assets/Workspace-CSpJ9Mps.css",
+      "http://127.0.0.1:5218/assets/worker-C2W6zVgu.js",
+      "http://127.0.0.1:5218/vvflow/vvflow.mjs",
+      "http://127.0.0.1:5218/vvflow/vvflow.wasm"
+    ]
+  }
+]

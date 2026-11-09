@@ -16,6 +16,7 @@
   "dependencies": {
     "@jax-js/jax": "^0.1.27",
     "lucide-react": "^0.468.0",
+    "polygon-clipping": "^0.15.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "three": "^0.186.1"

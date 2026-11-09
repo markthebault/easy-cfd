@@ -66,3 +66,13 @@ test('saved configurations retain geometry, fixed values and provisional status 
     values.set(CONFIGURATION_KEY,JSON.stringify([null,{...record,report:{cd:null}},...restored]));assert.equal(restoreConfigurations().length,1);
   }finally{if(savedStorage===undefined)delete globalThis.localStorage;else globalThis.localStorage=savedStorage;}
 });
+
+test('vvflow averages already-normalised coefficients by solver steps without lattice rescaling',()=>{
+ const grid=grids.TUNNELS.large,ref=4,method={stepDistance:.005*ref,factor:1,key:'vvflow-slip-ground-test'};
+ const a=new metrics.ForceMonitor(grid,ref,'vvflow',true,'scene',method);let steps=a.warmupSteps;
+ assert.equal(a.push({x:999,y:999,steps},steps).cd,null);
+ let report;for(let i=0;i<12;i++){steps+=a.blockSteps;report=a.push({x:.7*a.blockSteps,y:-.2*a.blockSteps,steps:a.blockSteps},steps);}
+ assert.equal(report.backend,'vvflow');assert.ok(Math.abs(report.cd-.7)<1e-12);assert.ok(Math.abs(report.cl+.2)<1e-12);assert.equal(report.status,'ready');assert.ok(Math.abs(report.averagingTravel-12*a.blockSteps*.005)<1e-12);
+ assert.notEqual(report.key,metrics.forceConditions(grid,ref,'wasm'));
+ const b=new metrics.ForceMonitor(grid,ref,'vvflow',true,'scene',method);b.push({x:0,y:0,steps:b.warmupSteps},b.warmupSteps);const count=12*b.blockSteps,all=b.push({x:.7*count,y:-.2*count,steps:count},b.warmupSteps+count);assert.ok(Math.abs(all.cd-report.cd)<1e-12);assert.ok(Math.abs(all.cl-report.cl)<1e-12);
+});
