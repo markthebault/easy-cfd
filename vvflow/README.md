@@ -7,7 +7,7 @@ All computation runs in the visiting browser. The host only serves static files.
 ## Scope
 
 - Actual upstream C++ viscous vortex domains core compiled to WASM, single-threaded.
-- Cylinder, NACA-0012 and prescribed moving-spoiler presets.
+- Cylinder, NACA-0012, prescribed moving-spoiler and MX-5 NC PRHT presets.
 - Signed circulation particles rendered with WebGL 2; no synthetic wake forces.
 - Pan/zoom, near/full wake, light/dark, particle size, pause, single step and reset.
 - Reynolds number, surface panels, timestep, angle of attack and sampled force CSV.
@@ -95,3 +95,13 @@ Inspect and save `tailscale serve status --json` before/after installation.
 URL: `https://marks-mac-mini.baboon-trench.ts.net:8458/?workspace=vvflow`
 Logs: `~/Library/Application Support/EasyCFD-vvflow/{stdout,stderr}.log`.
 Cases are presets only; no solver data is uploaded or stored on the host.
+
+## MX-5 NC PRHT
+
+Choose **MX-5 NC**, or open `/?workspace=vvflow&profile=mx5-nc`. This reuses
+the existing Bézier preset from `web/src/flow2d/presets/mx5NcPrht.ts` via
+`node vvflow/generate-mx5.mjs`. Its sampled curve is normalised by the 4 m
+reference length, then uniformly resampled to the requested surface segment
+count. The preset's 150 mm vertical offset is retained; there is no ground
+boundary. The body is the supplied illustrative silhouette, not a measured
+vehicle section. Reynolds number is based on car length.

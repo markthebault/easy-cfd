@@ -14,8 +14,12 @@ plist.parent.mkdir(parents=True,exist_ok=True)
 node=shutil.which('node')
 if not node: raise RuntimeError('Node is required for the static file host')
 config={'Label':label,'ProgramArguments':[node,str(dest/'serve.mjs'),str(dest/'web'),'5218'],'RunAtLoad':True,'KeepAlive':True,'StandardOutPath':str(dest/'stdout.log'),'StandardErrorPath':str(dest/'stderr.log'),'WorkingDirectory':str(dest)}
-subprocess.run(['launchctl','bootout',f'gui/{os.getuid()}/{label}'],capture_output=True)
 plist.write_bytes(plistlib.dumps(config))
-subprocess.run(['launchctl','bootstrap',f'gui/{os.getuid()}',str(plist)],check=True)
+service=f'gui/{os.getuid()}/{label}'
+loaded=subprocess.run(['launchctl','print',service],capture_output=True).returncode == 0
+if loaded:
+    subprocess.run(['launchctl','kickstart','-k',service],check=True)
+else:
+    subprocess.run(['launchctl','bootstrap',f'gui/{os.getuid()}',str(plist)],check=True)
 subprocess.run(['tailscale','serve','--bg','--https=8458','http://127.0.0.1:5218'],check=True)
 print(dest)

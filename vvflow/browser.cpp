@@ -14,6 +14,7 @@
 #include <cstdlib>
 
 namespace {
+#include "mx5-outline.inc"
 std::unique_ptr<Space> space;
 std::unique_ptr<TSortedTree> tree;
 std::unique_ptr<MConvectiveFast> convective;
@@ -63,9 +64,12 @@ const char* vv_error(){return error.c_str();}
 int vv_init(int shape,int panels,double reynolds,double dt,double angle){
   try{
     dispose();error.clear();
-    if(shape<0||shape>2||panels<40||panels>400||reynolds<20||reynolds>100000||dt<.001||dt>.05||!std::isfinite(reynolds)||!std::isfinite(dt)||!std::isfinite(angle)||std::abs(angle)>30)throw std::runtime_error("Invalid case parameters");
+    if(shape<0||shape>3||panels<40||panels>400||reynolds<20||reynolds>100000||dt<.001||dt>.05||!std::isfinite(reynolds)||!std::isfinite(dt)||!std::isfinite(angle)||std::abs(angle)>30)throw std::runtime_error("Invalid case parameters");
     space=std::make_unique<Space>();space->re=reynolds;space->pr=1;space->inf_vx="1";space->dt=TTime::makeWithSecondsDecimal(dt);
     if(shape==0){std::vector<TVec> p;for(int i=0;i<panels;i++){double a=2*M_PI*(1-double(i)/panels);p.emplace_back(.5*cos(a),.5*sin(a));}addBody(p);}
+    else if(shape==3){
+      addBody(resample(mx5_outline,panels));
+    }
     else{
       std::vector<TVec> p;
       // Clockwise closed NACA-0012 contour, uniformly resampled in arclength.

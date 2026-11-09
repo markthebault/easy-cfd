@@ -3,6 +3,47 @@
   "note": "Native adapter with system BLAS/LAPACK versus WASM adapter with CLAPACK; not physical validation or comparison with the original CLI.",
   "results": [
     {
+      "name": "mx5-short",
+      "args": [
+        3,
+        240,
+        20,
+        40000,
+        0.005,
+        0
+      ],
+      "nativeStats": [
+        0.1,
+        0.16861458027619314,
+        -0.09871490259822524,
+        -0.03715156455825053,
+        272,
+        20,
+        0,
+        0.025984450502626016,
+        -0.057980190369901284,
+        0.095
+      ],
+      "wasmStats": [
+        0.1,
+        0.1686145766515441,
+        -0.09871490627584878,
+        -0.037151565978278844,
+        272,
+        20,
+        0,
+        0.025984450467565486,
+        -0.05798019037853459,
+        0.095
+      ],
+      "forceError": 3.6776235390334477e-9,
+      "tolerance": 1e-7,
+      "vortexCountError": 0,
+      "elapsedMs": 76.50074999999998,
+      "acceptance": true,
+      "withinTolerance": true
+    },
+    {
       "name": "cylinder-short",
       "args": [
         0,
@@ -39,7 +80,7 @@
       "forceError": 1.4210854715202004e-14,
       "tolerance": 1e-7,
       "vortexCountError": 0,
-      "elapsedMs": 18.867916999999977,
+      "elapsedMs": 11.098083999999972,
       "acceptance": true,
       "withinTolerance": true
     },
@@ -80,7 +121,7 @@
       "forceError": 0.000041358619413234265,
       "tolerance": 0.001,
       "vortexCountError": 0,
-      "elapsedMs": 123.07133399999998,
+      "elapsedMs": 111.67887500000006,
       "acceptance": true,
       "withinTolerance": true
     },
@@ -121,7 +162,7 @@
       "forceError": 1.4516388091578847e-11,
       "tolerance": 0.005,
       "vortexCountError": 0,
-      "elapsedMs": 99.738292,
+      "elapsedMs": 97.221,
       "acceptance": true,
       "withinTolerance": true
     },
@@ -162,7 +203,7 @@
       "forceError": 3.191891195797325e-14,
       "tolerance": 1e-7,
       "vortexCountError": 0,
-      "elapsedMs": 31.119915999999876,
+      "elapsedMs": 33.06979200000001,
       "acceptance": true,
       "withinTolerance": true
     },
@@ -203,7 +244,7 @@
       "forceError": 0.029214417652015323,
       "tolerance": 0.02,
       "vortexCountError": 7,
-      "elapsedMs": 1796.690083,
+      "elapsedMs": 1826.5558330000003,
       "acceptance": false,
       "withinTolerance": false
     }

@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import assert from 'node:assert/strict';
 const root=resolve(import.meta.dirname,'..');
 const m=await create();
-const cases=[{name:'cylinder-short',args:[0,80,10,100,.02,0],tolerance:1e-7},{name:'cylinder-transient',args:[0,80,100,100,.02,0],tolerance:.001},{name:'airfoil-transient',args:[1,120,100,2000,.01,5],tolerance:.005},{name:'spoiler-short',args:[2,120,20,2000,.01,5],tolerance:1e-7},{name:'spoiler-moving',args:[2,120,800,2000,.01,5],tolerance:.02,characterization:true}];
+const cases=[{name:'mx5-short',args:[3,240,20,40000,.005,0],tolerance:1e-7},{name:'cylinder-short',args:[0,80,10,100,.02,0],tolerance:1e-7},{name:'cylinder-transient',args:[0,80,100,100,.02,0],tolerance:.001},{name:'airfoil-transient',args:[1,120,100,2000,.01,5],tolerance:.005},{name:'spoiler-short',args:[2,120,20,2000,.01,5],tolerance:1e-7},{name:'spoiler-moving',args:[2,120,800,2000,.01,5],tolerance:.02,characterization:true}];
 const results=[];
 for(const {name,args,tolerance,characterization}of cases){
  const [shape,panels,steps,re,dt,angle]=args;
