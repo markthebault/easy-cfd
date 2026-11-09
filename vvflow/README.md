@@ -18,10 +18,13 @@ Coordinates are normalised by the scene reference length, then returned to metre
 for the existing camera. Boundary segments are distributed by perimeter, targeting
 320 total with at least 24 per disjoint solid. Re=40,000 based on reference length,
 U=1, dt=0.005, density=2. These fixed experimental settings prioritise interactive
-exploration; no convergence or engineering-accuracy claim is made. The viewing region has a simulated finite slip-ground solid with its top at
-y=0. The ground is impermeable, with tangential slip and no road boundary layer.
-Its end faces are placed far upstream/downstream and its top is refined beneath
-the bodies and near wake. Ground hatching marks the boundary. Top/side box walls
+exploration. No convergence or engineering-accuracy claim is made.
+The ground at y=0 uses reflected body boundaries and opposite-sign image vortices.
+Images are regenerated after shedding and merging, keeping the slip-wall symmetry
+independent of adaptive merge ordering. Only physical bodies contribute to reported
+forces. Only the physical half-plane is returned to the renderer.
+The ground is impermeable, with tangential slip and no road boundary layer.
+Ground hatching marks the boundary. Top/side box walls
 are not simulated. Pressure overlays remain unavailable in this mode.
 
 ## Port
@@ -80,8 +83,15 @@ cumulative mean and drift diagnostics. The condition key identifies vvflow,
 Re, timestep, surface budget, merging density and slip-ground method, so LBM and
 vvflow baselines are never treated as matching.
 
-`ground-validation.json` records an unclipped WASM test: the same car geometry
-with/without the ground, including minimum vortex y over 400 steps and the
-changed solved forces. This is a boundary-behaviour check, not physical validation.
+`ground-validation.json` is a historical test of the previous finite-ground method.
+It compares the same car geometry with/without the ground, including minimum
+vortex y over 400 steps and the changed solved forces. This is a boundary-behaviour check, not physical validation.
 `node vvflow/check-controls.mjs` verifies actual step rates at 0.1x, 1x and 3x,
 metrics, pause and backend switching in Chromium and WebKit.
+
+`node vvflow/check-ground.mjs` checks the current image-ground method at 50, 200
+and 500 steps using the MX-5 editor geometry. It checks upper-surface shedding,
+underbody particle depth, downstream wake growth, finite forces and scene reset.
+The former finite slip-ground body produced regular underbody bands and removed
+most upper-surface vortices. Screenshots at matching elapsed times caught this
+failure despite the older minimum-y check passing.

@@ -27,10 +27,44 @@ std::vector<double> particles, bodies;
 double stats[10]={};
 std::string error;
 size_t force_body_count=0;
+bool image_ground=false;
+void keep_physical_vortices() {
+  auto& vortices = space->VortexList;
+  vortices.erase(std::remove_if(vortices.begin(), vortices.end(),
+    [](const TObj& vortex){ return vortex.r.y <= 0; }), vortices.end());
+}
+void reflect_vortices() {
+  keep_physical_vortices();
+  auto& vortices = space->VortexList;
+  const size_t count = vortices.size();
+  vortices.reserve(count * 2);
+  for (size_t i = 0; i < count; i++) {
+    TObj image = vortices[i];
+    image.r.y = -image.r.y;
+    image.g = -image.g;
+    image.v.y = -image.v.y;
+    vortices.push_back(image);
+  }
+}
+TVec3D reflect_force(TVec3D force) {
+  force.r.y = -force.r.y;
+  force.o = -force.o;
+  return force;
+}
+void reflect_body_history() {
+  for (size_t i = 0; i < force_body_count; i++) {
+    const auto& body = *space->BodyList[i];
+    auto& image = *space->BodyList[force_body_count + i];
+    image.g_dead = -body.g_dead;
+    image.fdt_dead = reflect_force(body.fdt_dead);
+    image.friction_prev = reflect_force(body.friction_prev);
+    image.speed_slae_prev = reflect_force(body.speed_slae_prev);
+  }
+}
 void dispose(){
   if(tree) tree->destroy();
   flowmove.reset();diffusive.reset();epsilon.reset();convective.reset();tree.reset();space.reset();
-  particles.clear();bodies.clear();collision=nullptr;vv_merge_scale=1;force_body_count=0;
+  particles.clear();bodies.clear();collision=nullptr;vv_merge_scale=1;force_body_count=0;image_ground=false;
   std::fill(stats,stats+10,0.0);
 }
 std::vector<TVec> resample(const std::vector<TVec>& src,int n){
@@ -49,7 +83,8 @@ void addBody(const std::vector<TVec>& points, TVec axis={},bool slip=false){
 }
 void initialize_engine(){
   if(!force_body_count)force_body_count=space->BodyList.size();
-  space->EnumerateBodies();double dl=space->average_segment_length();
+  space->EnumerateBodies();
+  const double dl = space->average_segment_length();
   tree=std::make_unique<TSortedTree>(space.get(),8,5*dl,100*dl);
   convective=std::make_unique<MConvectiveFast>(space.get(),tree.get());
   epsilon=std::make_unique<MEpsilonFast>(space.get(),tree.get());
@@ -63,7 +98,13 @@ void snapshot(){
     particles.insert(particles.end(),{p.r.x,p.r.y,p.g,p._1_eps>0?1/p._1_eps:0});
   }
   int i=0;
-  for(const auto&b:space->BodyList){for(const auto&a:b->alist)bodies.insert(bodies.end(),{a.corner.x,a.corner.y,double(i)});i++;}
+  for (const auto& body : space->BodyList) {
+    if (image_ground && size_t(i) >= force_body_count) break;
+    for (const auto& segment : body->alist) {
+      bodies.insert(bodies.end(), {segment.corner.x, segment.corner.y, double(i)});
+    }
+    i++;
+  }
   stats[0]=double(space->time);stats[4]=space->VortexList.size();stats[5]=space->step_number();
   stats[6]=space->BodyList.size()>1?(space->BodyList[1]->holder.o+space->BodyList[1]->dpos.o):0;
   stats[7]=space->gsum();stats[8]=space->integral();
@@ -121,14 +162,21 @@ int vv_scene(const double* data,int length,int panels,double reynolds,double dt,
     for(size_t i=0;i<outlines.size();i++)addBody(resample(outlines[i],std::max(24,int(std::ceil(panels*lengths[i]/total)))));
     force_body_count=space->BodyList.size();
     if(ground){
-      double left=std::numeric_limits<double>::infinity(),right=-left;
-      for(const auto&p:outlines)for(const auto&v:p){left=std::min(left,v.x);right=std::max(right,v.x);if(v.y<=0)throw std::runtime_error("Keep shapes above the ground.");}
-      // Finite impermeable slip-ground solid, refined below the scene and wake.
-      std::vector<TVec> floor{{left-12,0}};double start=left-2,end=right+5;
-      int n=std::max(1,int(std::ceil((end-start)/.08)));
-      for(int i=0;i<=n;i++)floor.emplace_back(start+(end-start)*i/n,0);
-      floor.emplace_back(right+24,0);floor.emplace_back(right+24,-8);floor.emplace_back(left-12,-8);
-      addBody(floor,{},true);
+      for (const auto& outline : outlines) {
+        for (const auto& point : outline) {
+          if (point.y <= 0) throw std::runtime_error("Keep shapes above the ground.");
+        }
+      }
+      image_ground = true;
+      // Reflection across y=0 gives an infinite slip wall without a second
+      // length scale or distant closing faces in the boundary system.
+      for (size_t i = 0; i < force_body_count; i++) {
+        std::vector<TVec> image;
+        for(auto point = space->BodyList[i]->alist.rbegin(); point != space->BodyList[i]->alist.rend(); point++){
+          image.emplace_back(point->corner.x, -point->corner.y);
+        }
+        addBody(image);
+      }
     }
     initialize_engine();snapshot();return 0;
   }catch(const std::exception&e){error=e.what();dispose();return -1;}
@@ -138,14 +186,24 @@ int vv_step(int count){
     if(!space||count<1||count>32)throw std::runtime_error("Invalid advance request");
     for(int k=0;k<count;k++){
       if(space->VortexList.size()>100000)throw std::runtime_error("100,000-vortex preview limit reached. Reset or choose a coarser surface.");
+      if(image_ground){reflect_body_history();reflect_vortices();}
       tree->build();if(collision)convective->calc_circulation(&collision);convective->calc_circulation(&collision);tree->destroy();
       flowmove->heat_shed();flowmove->vortex_shed();flowmove->streak_shed();space->calc_forces();
       TVec3D force;for(size_t i=0;i<force_body_count;i++){const auto&b=space->BodyList[i];force=force+b->force_hydro;force.o+=rotl(b->get_axis())*b->force_hydro.r;}
       stats[1]=2*force.r.x;stats[2]=2*force.r.y;stats[3]=2*force.o;stats[9]=double(space->time);
       if(!std::isfinite(stats[1])||!std::isfinite(stats[2])||!std::isfinite(stats[3]))throw std::runtime_error("Non-finite force; reset with a smaller timestep.");
-      space->zero_forces();tree->build();epsilon->CalcEpsilonFast(true);convective->process_all_lists();
+      space->zero_forces();
+      if(image_ground) reflect_vortices();
+      tree->build();epsilon->CalcEpsilonFast(true);
+      // Adaptive merging is applied to the physical half. Rebuild exact images
+      // afterwards so unequal merge order cannot inject ground-normal velocity.
+      if(image_ground){tree->destroy();reflect_vortices();tree->build();}
+      convective->process_all_lists();
       diffusive->process_vort_list();diffusive->process_heat_list();tree->destroy();
+      // Images contribute to velocities but only physical domains are advected.
+      if(image_ground) keep_physical_vortices();
       flowmove->move_and_clean(true,&collision);flowmove->heat_crop();space->finish_step();
+      if(image_ground) keep_physical_vortices();
     }
     snapshot();return 0;
   }catch(const std::exception&e){error=e.what();if(tree)tree->destroy();return -1;}

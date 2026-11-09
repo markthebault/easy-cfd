@@ -7,9 +7,12 @@ https://github.com/vvflow/vvflow/tree/f6419b3a9f69cee1eaf2655154439cb69dd0fea6
 Choose Animation > Vortex particles in the existing 2D workspace. The current
 enabled scene boundaries are unioned, normalised by reference length and passed
 to the browser-only WASM solver. Signed vortex domains are red (positive) and
-blue (negative). Dot size/opacity are display choices. The Drag & lift panel uses vvflow body forces, excluding the additional
-ground body. Its top at y=0 is an impermeable slip boundary with no road boundary
-layer. Pressure overlays are not included.
+blue (negative). Dot size/opacity are display choices. The Drag & lift panel uses
+vvflow body forces, excluding image bodies. The ground at y=0 uses reflected
+boundaries and
+opposite-sign image vortices, regenerated after shedding and merging. It is an
+impermeable slip boundary with no road boundary layer. Pressure overlays are
+not included.
 
 The core is vendored unchanged. Generated TSpace omits HDF5 save/load; generated
 TMatrix adapts CLAPACK return types. Generated MEpsilonFast exposes a distance-

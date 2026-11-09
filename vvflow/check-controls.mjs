@@ -11,7 +11,7 @@ for(const [name,engine]of[['chromium',chromium],['webkit',webkit]]){
    const slider=p.getByLabel('Animation speed');await slider.press('Home');if(setting===3)await slider.press('End');if(setting===1)for(let i=0;i<9;i++)await slider.press('ArrowRight');
    assert.ok(Math.abs(Number(await slider.inputValue())-setting)<1e-9);
    const first=await p.evaluate(()=>window.vortexFrames.at(-1).steps);const start=performance.now();await p.getByRole('button',{name:'Resume simulation'}).click();await p.waitForTimeout(2300);await p.getByRole('button',{name:'Pause simulation'}).click();await p.waitForTimeout(200);
-   const last=await p.evaluate(()=>window.vortexFrames.at(-1));assert.ok(last.minY>=0,`Particles crossed ground at ${last.minY}`);assert.equal(last.metrics.backend,'vvflow');assert.ok(last.metrics.key.includes('slip-ground'));assert.ok(Number.isFinite(last.metrics.instantaneousCd)&&Number.isFinite(last.metrics.instantaneousCl));
+   const last=await p.evaluate(()=>window.vortexFrames.at(-1));assert.ok(last.minY>=0,`Particles crossed ground at ${last.minY}`);assert.equal(last.metrics.backend,'vvflow');assert.ok(last.metrics.key.includes('image-ground-2'));assert.ok(Number.isFinite(last.metrics.instantaneousCd)&&Number.isFinite(last.metrics.instantaneousCl));
    rates.push({setting,steps:last.steps-first,elapsedMs:performance.now()-start});
  }
  assert.ok(rates[1].steps>rates[0].steps*4);assert.ok(rates[2].steps>rates[1].steps*1.5,JSON.stringify(rates));
