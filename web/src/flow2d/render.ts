@@ -6,7 +6,7 @@ import { INLET } from "./lattice";
 import { FlowDye } from "./dye";
 import { isEnabled, sceneMask, type Shape } from "./scene";
 
-export type AnimationMode = "smoke" | "trails" | "arrows" | "none";
+export type AnimationMode = "smoke" | "trails" | "arrows" | "none" | "vortex";
 export type Layer = "flow" | "pressure" | "vorticity";
 export type Viewport = { x: number; y: number; scale: number; width: number; height: number; domain: Grid };
 export type Camera = { zoom: number; pan: Point };
@@ -34,6 +34,7 @@ export function zoomCamera(camera: Camera, zoom: number, width: number, height: 
 
 export class FlowRenderer {
   field: Float32Array | null = null;
+  vortexParticles: Float32Array | null = null;
   shapes: Shape[] = [];
   animation: AnimationMode = "smoke";
   private solid!: Float32Array;
@@ -69,7 +70,7 @@ export class FlowRenderer {
     return { x: randomX ? Math.random() * DOMAIN.width : .01, y: DOMAIN.height * (.015 + (lane + Math.random() * .3) / 40 * .97), age: 0, life: 3 + Math.random() * 9, trail: [], lane };
   }
   update(field: Float32Array, steps = this.lastSteps) { const {nx: NX} = this.grid, DOMAIN = this.grid; this.flowTime += Math.max(0, steps - this.lastSteps) * INLET * DOMAIN.width / (NX - 1); this.lastSteps = steps; this.field = field; this.dirty = true; this.coreLines = this.layer === "vorticity" ? coreContours(vortexCores(field, this.solid, this.grid), 5 * 4.2 / this.grid.width, this.grid) : []; this.gpuSmoke?.update(field, this.solid); }
-  clear(shapes: Shape[], grid = this.grid) { if (grid !== this.grid) { this.gpuSmoke?.dispose(); this.grid = grid; this.allocateGrid(); } this.shapes = shapes; this.solid = sceneMask(shapes.filter(isEnabled).map(s => s.points), grid.nx, grid.ny, grid); this.field = null; this.dirty = true; this.coreLines = []; this.dye.reset(); this.gpuSmoke?.reset(); this.lastSteps = 0; this.flowTime = 0; this.animationTime = 0; this.particles = this.particles.map(() => this.seed(true)); }
+  clear(shapes: Shape[], grid = this.grid) { if (grid !== this.grid) { this.gpuSmoke?.dispose(); this.grid = grid; this.allocateGrid(); } this.shapes = shapes; this.solid = sceneMask(shapes.filter(isEnabled).map(s => s.points), grid.nx, grid.ny, grid); this.field = null; this.vortexParticles = null; this.dirty = true; this.coreLines = []; this.dye.reset(); this.gpuSmoke?.reset(); this.lastSteps = 0; this.flowTime = 0; this.animationTime = 0; this.particles = this.particles.map(() => this.seed(true)); }
   setAnimation(animation: AnimationMode) { this.animation = animation; this.particles.forEach(p => { p.trail = []; }); }
   sample(x: number, y: number, component: number) {
     const {nx: NX, ny: NY} = this.grid, DOMAIN = this.grid;
@@ -114,6 +115,7 @@ export class FlowRenderer {
     for (let x = 0; x <= DOMAIN.width; x += DOMAIN.width / 42) for (let y = 0; y <= DOMAIN.height; y += DOMAIN.width / 42) {
       const p = screenPoint({ x, y }, v); ctx.fillRect(p.x, p.y, 1, 1);
     }
+    if (this.animation !== "vortex") {
     if (this.dirty) this.heatmap();
     ctx.imageSmoothingEnabled = true;
     ctx.drawImage(this.heat, v.x, v.y, DOMAIN.width * scale, DOMAIN.height * scale);
@@ -188,6 +190,20 @@ export class FlowRenderer {
         ctx.globalAlpha = .35 + (bin % 4) * .15; ctx.fill(heads[bin]); ctx.globalAlpha = 1;
       }
     }
+    }
+    if (this.animation === "vortex" && this.vortexParticles) {
+      let max = 0;const values = this.vortexParticles;
+      for (let i = 2; i < values.length; i += 4) max = Math.max(max, Math.abs(values[i]));
+      const paths = Array.from({length: 8}, () => new Path2D());
+      for (let i = 0; i < values.length; i += 4) {
+        const strength = Math.sqrt(Math.abs(values[i + 2]) / Math.max(max, 1e-12));
+        if (!Number.isFinite(strength) || Math.abs(values[i + 2]) < 1e-12) continue;
+        const p = screenPoint({x: values[i], y: values[i + 1]}, v), radius = .8 + Math.min(2, strength * 2);
+        const bin = (values[i + 2] > 0 ? 4 : 0) + Math.min(3, Math.floor(strength * 4));
+        paths[bin].moveTo(p.x + radius, p.y);paths[bin].arc(p.x, p.y, radius, 0, 2 * Math.PI);
+      }
+      for (let i = 0; i < paths.length; i++) {ctx.fillStyle = i >= 4 ? "#fa7569" : "#66aaff";ctx.globalAlpha = .35 + i % 4 * .2;ctx.fill(paths[i]);}ctx.globalAlpha = 1;
+    }
     ctx.restore();
     // The body covers the field and trails, including antialiased boundary cells.
     for (const shape of this.shapes) {
@@ -197,11 +213,13 @@ export class FlowRenderer {
       ctx.shadowColor = this.dark ? "#9ccce744" : "transparent"; ctx.shadowBlur = 16;
       ctx.lineWidth = 1.7; ctx.strokeStyle = this.dark ? "#b3c7d7" : "#344a60"; ctx.stroke(); ctx.shadowBlur = 0; ctx.restore();
     }
+    if (this.animation !== "vortex") {
     ctx.strokeStyle = this.dark ? "#7692a953" : "#6c879d70"; ctx.lineWidth = 1;
     const groundLeft = Math.max(0, v.x), groundRight = Math.min(width, v.x + DOMAIN.width * scale);
     ctx.beginPath(); ctx.moveTo(groundLeft, ground + 8); ctx.lineTo(groundRight, ground + 8); ctx.stroke();
     ctx.strokeStyle = this.dark ? "#7692a925" : "#6c879d35";
     for (let x = v.x + Math.ceil((groundLeft - v.x) / 18) * 18; x < groundRight; x += 18) { ctx.beginPath(); ctx.moveTo(x, ground + 9); ctx.lineTo(x - 10, ground + 19); ctx.stroke(); }
+    }
     ctx.font = "10px ui-monospace, monospace"; ctx.fillStyle = this.dark ? "#7692a9" : "#60758a";
     const ideal = Math.min(180, width * .25) / scale, power = 10 ** Math.floor(Math.log10(ideal));
     const rulerMetres = ([1, 2, 5, 10].filter(n => n <= ideal / power).at(-1) ?? 1) * power;

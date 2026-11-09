@@ -1,0 +1,26 @@
+[
+  {
+    "browser": "chromium",
+    "sceneImported": true,
+    "particlesEvolve": true,
+    "editing": true,
+    "duplicateUnion": true,
+    "enableToggle": true,
+    "svgImport": true,
+    "backendSwitch": true,
+    "mobile": true,
+    "pageErrors": []
+  },
+  {
+    "browser": "webkit",
+    "sceneImported": true,
+    "particlesEvolve": true,
+    "editing": true,
+    "duplicateUnion": true,
+    "enableToggle": true,
+    "svgImport": true,
+    "backendSwitch": true,
+    "mobile": true,
+    "pageErrors": []
+  }
+]

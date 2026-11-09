@@ -26,15 +26,3 @@ e=(root/'vendor/libvvhd/src/MEpsilonFast.cpp').read_text()
 e=e.replace('using std::vector;', 'extern double vv_merge_scale;\nusing std::vector;')
 e=e.replace('0.16 * nearestAtt->dl.abs2()', '0.16 * vv_merge_scale * nearestAtt->dl.abs2()')
 (build/'MEpsilonFast.cpp').write_text(e)
-# Upstream XPressure owns a tree without a destructor. Release it after each
-# browser pressure sample, including on exceptional exits.
-pressure_include=build/'pressure-include'
-pressure_include.mkdir(exist_ok=True)
-h=(root/'vendor/libvvhd/headers/XPressure.hpp').read_text()
-h=h.replace('    double eps_mult;', '    ~XPressure() { tree.destroy(); }\n    double eps_mult;')
-(pressure_include/'XPressure.hpp').write_text(h)
-# Pressure sampling reuses the upstream inverse-matrix cache. Always refresh
-# solution pointers because each pressure evaluation owns freshly cloned bodies.
-c=(root/'vendor/libvvhd/headers/MConvectiveFast.hpp').read_text()
-c=c.replace('        void process_all_lists();', '        void refresh_solution_bindings() { if (matrix.size()) matrix.fillWithZeros(); }\n        void process_all_lists();')
-(pressure_include/'MConvectiveFast.hpp').write_text(c)

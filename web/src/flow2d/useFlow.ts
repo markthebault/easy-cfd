@@ -5,6 +5,7 @@ import type { ForceReport } from "./metrics";
 import type { FlowReply, FlowRequest } from "./flow.worker";
 
 export function useFlow(scene: Scene, restart: number, playing: boolean, dragging: boolean, playback: number, layer: Layer, animation: AnimationMode, dark: boolean, camera: Camera) {
+  const vortexMode = animation === "vortex";
   const canvas = useRef<HTMLCanvasElement>(null), worker = useRef<Worker | null>(null);
   const renderer = useRef<FlowRenderer | null>(null), current = useRef(scene); current.current = scene;
   const view = useRef(camera); view.current = camera;
@@ -19,13 +20,13 @@ export function useFlow(scene: Scene, restart: number, playing: boolean, draggin
   const requestTick = () => {
     if (paused.current || inflight.current || !worker.current) return;
     inflight.current = true;
-    worker.current.postMessage({ type: "tick", count: Math.round((backend.current === "webgpu" ? 128 : 16) * speed.current), version: version.current } satisfies FlowRequest);
+    worker.current.postMessage({ type: "tick", count: Math.max(1, Math.round(backend.current === "vvflow" ? 4 * Math.max(1, speed.current) : (backend.current === "webgpu" ? 128 : 16) * speed.current)), version: version.current } satisfies FlowRequest);
   };
   useEffect(() => {
     // Treat an explicit example link as a one-time load; reload then restores edits.
     const url = new URL(location.href);
     if (url.searchParams.has("profile") || url.searchParams.has("tunnel")) { url.searchParams.delete("profile"); url.searchParams.delete("tunnel"); window.history.replaceState(null, "", url); }
-    const w = new Worker(new URL("./flow.worker.ts", import.meta.url), { type: "module" });
+    const w = vortexMode ? new Worker(new URL("./vortex.worker.ts", import.meta.url), { type: "module" }) : new Worker(new URL("./flow.worker.ts", import.meta.url), { type: "module" });
     worker.current = w;
     let lastStatus = 0;
     w.onmessage = (e: MessageEvent<FlowReply>) => {
@@ -37,26 +38,27 @@ export function useFlow(scene: Scene, restart: number, playing: boolean, draggin
         setStatus(s => ({ ...s, error: true, ready: false })); return;
       }
       backend.current = reply.backend;
-      if (!paused.current || reply.steps <= 8 || !renderer.current!.field) renderer.current!.update(reply.values, reply.steps);
+      if (reply.type === "vortices") { if (!paused.current || reply.steps <= 8 || !renderer.current!.vortexParticles) renderer.current!.vortexParticles = reply.particles;canvas.current?.setAttribute("data-vortex-count", String(reply.particles.length / 4));setMetrics(null); }
+      else if (!paused.current || reply.steps <= 8 || !renderer.current!.field) renderer.current!.update(reply.values, reply.steps);
       if (performance.now() - lastStatus > 250 || reply.steps <= 8) {
-        if (!paused.current || reply.steps <= 8) setMetrics(reply.metrics);
+        if (!paused.current || reply.steps <= 8) setMetrics(reply.type === "field" ? reply.metrics : null);
         setStatus({ steps: reply.steps, backend: reply.backend, ready: true, error: false }); lastStatus = performance.now();
       }
-      tickTimer.current = setTimeout(requestTick, Math.max(0, 40 - reply.elapsed));
+      tickTimer.current = setTimeout(requestTick, Math.max(0, (backend.current === "vvflow" ? 40 / Math.min(1, speed.current) : 40) - reply.elapsed));
     };
     w.onerror = () => { inflight.current = false; paused.current = true;  setMessage("The browser flow engine could not start. Try reloading this page."); setStatus(s => ({ ...s, error: true, ready: false })); };
     return () => { clearTimeout(tickTimer.current); w.terminate(); worker.current = null; };
-  }, []);
+  }, [vortexMode]);
 
   useEffect(() => {
     version.current++; clearTimeout(tickTimer.current); inflight.current = true;
     const grid = sceneGrid(current.current);
-    renderer.current!.clear(current.current.shapes, grid); setStatus({ steps: 0, backend: "", ready: false, error: false }); setMetrics(null);
+    canvas.current?.setAttribute("data-vortex-count", "0");renderer.current!.clear(current.current.shapes, grid); setMessage("");setStatus({ steps: 0, backend: "", ready: false, error: false }); setMetrics(null);
     worker.current?.postMessage({ type: "start", outlines: enabledShapes(current.current).map(s => s.points), referenceLength: referenceLengthFor(current.current), signature: simulationKey(current.current), tunnel: grid.id, version: version.current, forceWasm: new URLSearchParams(location.search).has("flow-wasm") } satisfies FlowRequest);
     try { localStorage.setItem(SCENE_KEY, JSON.stringify(current.current)); } catch { /* Storage is optional */ }
   // Edits restart only after pointer release, represented by restart.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [restart]);
+  }, [restart, vortexMode]);
   useEffect(() => { paused.current = !playing || dragging; if (!paused.current) requestTick(); }, [playing, dragging]);
   useEffect(() => { renderer.current!.setLayer(layer); }, [layer]);
   useEffect(() => { renderer.current!.setAnimation(animation); }, [animation]);

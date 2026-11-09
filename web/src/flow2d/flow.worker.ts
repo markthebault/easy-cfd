@@ -6,7 +6,7 @@ import { GpuLBM } from "./gpu";
 import { ForceMonitor, type ForceReport } from "./metrics";
 
 export type FlowRequest = { type: "start"; outlines: Point[][]; referenceLength: number; signature: string; tunnel: TunnelId; version: number; forceWasm?: boolean } | { type: "tick"; count: number; version: number };
-export type FlowReply = { type: "field"; values: Float32Array; metrics: ForceReport; steps: number; version: number; backend: string; elapsed: number } | { type: "error"; message: string; version: number };
+export type FlowReply = { type: "vortices"; particles: Float32Array; steps: number; version: number; backend: string; elapsed: number } | { type: "field"; values: Float32Array; metrics: ForceReport; steps: number; version: number; backend: string; elapsed: number } | { type: "error"; message: string; version: number };
 let solver: BrowserLBM | GpuLBM | undefined, backend = "", version = 0;
 let monitor: ForceMonitor;
 // Serialize initialization and stepping. Geometry may change while a readback is pending.

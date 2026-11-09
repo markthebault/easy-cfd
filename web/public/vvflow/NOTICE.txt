@@ -1,29 +1,28 @@
-EasyCFD vvflow browser experiment
+EasyCFD Vortex particles mode
 
 Numerical core: vvflow by Yaroslav Dynnikov and Contributors (MIT).
 Pinned upstream revision: f6419b3a9f69cee1eaf2655154439cb69dd0fea6
 https://github.com/vvflow/vvflow/tree/f6419b3a9f69cee1eaf2655154439cb69dd0fea6
 
-Browser adapter and renderer: EasyCFD. The numerical core is vendored unchanged.
-Desktop HDF5/file output and CLI orchestration are replaced by an in-memory API.
-Generated TSpace excludes save/load; generated TMatrix adapts LAPACK return types.
-Density adapts the distance-based merge threshold in generated MEpsilonFast.
-Static Cp uses upstream XPressure, with deep-copy isolation and tree cleanup.
-Cp = 2(p-p_infinity)/(rho U_infinity^2); display clips to +/-2.5 only.
-Single-threaded; upstream OpenMP pragmas are ignored.
+Choose Animation > Vortex particles in the existing 2D workspace. The current
+enabled scene boundaries are unioned, normalised by reference length and passed
+to the browser-only WASM solver. Signed vortex domains are red (positive) and
+blue (negative). Dot size/opacity are display choices. There is no pressure or
+force overlay in this mode, and no simulated ground boundary.
 
-Numerical dependencies compiled into WebAssembly:
-- Lua 5.2.4, MIT: LICENSE.lua.txt
-- CLAPACK 3.2.1, including reference BLAS: LICENSE.clapack.txt
-- f2c string comparison and integer rounding: LICENSE.f2c.txt
+The core is vendored unchanged. Generated TSpace omits HDF5 save/load; generated
+TMatrix adapts CLAPACK return types. Generated MEpsilonFast exposes a distance-
+based merging multiplier. The browser adapter replaces desktop orchestration
+and output with an in-memory API. OpenMP directives are ignored.
+
+Compiled dependencies and licences:
 - vvflow: LICENSE.vvflow.txt
+- Lua 5.2.4: LICENSE.lua.txt
+- CLAPACK 3.2.1 / reference BLAS: LICENSE.clapack.txt
+- f2c helpers: LICENSE.f2c.txt
 
-No solver API or backend. Static files are served over HTTPS; the user's browser
-runs the solver. CSV values are instantaneous 2D section coefficients, with
-U=1, rho=1 and reference length=1. Moment is about the global origin.
-Startup loads are included; no settled-mean or engineering-accuracy claim.
-Particle centres and signed circulations come from the solver. Softness, size
-and opacity are display choices, not resolved vortex-core or pressure contours.
+Geometry union uses polygon-clipping (MIT):
+https://github.com/mfogel/polygon-clipping
 
-This prototype is not an exact reproduction of the linked spoiler video.
-The spoiler is a separate, finite-thickness plate with a small clearance.
+All computation occurs in the visiting browser. The host serves static assets.
+Experimental 2D flow only; no validated accuracy or full-vehicle force claim.
