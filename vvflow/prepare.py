@@ -21,3 +21,15 @@ m=(root/'vendor/libvvhd/src/TMatrix.cpp').read_text()
 # value is unused, but WASM enforces an exact function signature.
 m=m.replace('void dgesv_', 'int dgesv_').replace('void dgetrf_', 'int dgetrf_').replace('void dgetri_', 'int dgetri_')
 (build/'TMatrix.cpp').write_text(m)
+# Keep more computed domains at higher density; preserve the upstream default.
+e=(root/'vendor/libvvhd/src/MEpsilonFast.cpp').read_text()
+e=e.replace('using std::vector;', 'extern double vv_merge_scale;\nusing std::vector;')
+e=e.replace('0.16 * nearestAtt->dl.abs2()', '0.16 * vv_merge_scale * nearestAtt->dl.abs2()')
+(build/'MEpsilonFast.cpp').write_text(e)
+# Upstream XPressure owns a tree without a destructor. Release it after each
+# browser pressure sample, including on exceptional exits.
+pressure_include=build/'pressure-include'
+pressure_include.mkdir(exist_ok=True)
+h=(root/'vendor/libvvhd/headers/XPressure.hpp').read_text()
+h=h.replace('    double eps_mult;', '    ~XPressure() { tree.destroy(); }\n    double eps_mult;')
+(pressure_include/'XPressure.hpp').write_text(h)

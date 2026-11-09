@@ -7,6 +7,9 @@ https://github.com/vvflow/vvflow/tree/f6419b3a9f69cee1eaf2655154439cb69dd0fea6
 Browser adapter and renderer: EasyCFD. The numerical core is vendored unchanged.
 Desktop HDF5/file output and CLI orchestration are replaced by an in-memory API.
 Generated TSpace excludes save/load; generated TMatrix adapts LAPACK return types.
+Density adapts the distance-based merge threshold in generated MEpsilonFast.
+Static Cp uses upstream XPressure, with deep-copy isolation and tree cleanup.
+Cp = 2(p-p_infinity)/(rho U_infinity^2); display clips to +/-2.5 only.
 Single-threaded; upstream OpenMP pragmas are ignored.
 
 Numerical dependencies compiled into WebAssembly:

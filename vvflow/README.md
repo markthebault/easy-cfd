@@ -14,7 +14,7 @@ All computation runs in the visiting browser. The host only serves static files.
 - Each reset terminates its worker and creates a new instance.
 - Stops at t*=40 or 100,000 vortices. WASM memory capped at 1 GiB.
 
-No editor/SVG import, moving ground, pressure-field view, performance comparison
+No editor/SVG import, moving ground, performance comparison
 against LBM, grid/time convergence or physical validation is included yet.
 The two solvers have different flow conditions; do not compare their displayed
 loads as a matched benchmark. Browser CPU computes the flow; GPU draws particles.
@@ -105,3 +105,32 @@ reference length, then uniformly resampled to the requested surface segment
 count. The preset's 150 mm vertical offset is retained; there is no ground
 boundary. The body is the supplied illustrative silhouette, not a measured
 vehicle section. Reynolds number is based on car length.
+
+## Vortex density and static pressure
+
+Dense is now the browser default. Standard retains upstream merging criteria;
+Dense and Extra dense divide the distance-based merge threshold by 4 and 16.
+They retain more actual computed domains, not duplicate display dots. Counts
+vary with flow state. The original opposite-sign neighbour merge rule remains.
+This changes numerical resolution and cost and does not establish convergence.
+`prepare.py` generates `MEpsilonFast.cpp` with this one threshold multiplier.
+
+View offers Particles, Pressure, and Pressure + particles. Static pressure uses
+upstream `XPressure` with static reference frame `s`. It includes unsteady vortex
+and boundary contributions, rather than a speed-only Bernoulli approximation.
+The adapter recomputes boundary circulations on a deep copy at the current state
+time, then reconstructs pressure without advancing or changing the live solver.
+The temporary pressure tree is released by a generated RAII destructor.
+
+Cp = 2 (p-p_infinity)/(rho U_infinity^2). Body interiors and non-finite values
+are masked. The fixed blue-to-red display range is -2.5 to +2.5; raw samples
+remain unclipped. This is a coarse sampled experimental field with potential
+near-vortex singularities, not a validated surface-pressure measurement.
+Pressure is refreshed at most twice per wall-clock second, and once immediately
+on pause/view changes; its sample time is shown. Sampling follows the viewport
+with square spacing, up to 144 x 128 samples. Pan/zoom resamples the field.
+
+Tests: `node vvflow/check-pressure.mjs` (native image required) and
+`node vvflow/check-pressure-browser.mjs` (static test host on port 5219, or
+set VVFLOW_URL). The first checks native Cp agreement, body masks, exact live
+state and next-step invariance, and increasing vortex counts.

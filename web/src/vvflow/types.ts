@@ -1,6 +1,7 @@
-export type Case = { shape: number; panels: number; re: number; dt: number; angle: number };
+export type Case = { shape: number; panels: number; re: number; dt: number; angle: number; density: number };
 export type Frame = { type: 'frame'; particles: Float32Array; bodies: Float32Array; stats: number[]; elapsed: number; running: boolean };
-export type Message = Frame | { type: 'error'; error: string } | { type: 'ready' };
+export type PressureField = { values: Float32Array; xmin: number; ymin: number; spacing: number; nx: number; ny: number; time: number; elapsed: number };
+export type Message = Frame | { type: 'pressure'; field: PressureField } | { type: 'pressure-error'; error: string } | { type: 'error'; error: string } | { type: 'ready' };
 export interface VVModule {
   HEAPF64: Float64Array;
   UTF8ToString(pointer: number): string;
@@ -13,4 +14,7 @@ export interface VVModule {
   _vv_stats(): number;
   _vv_error(): number;
   _vv_dispose(): void;
+  _vv_density(density: number): number;
+  _vv_pressure(xmin: number, ymin: number, spacing: number, nx: number, ny: number): number;
+  _vv_pressure_data(): number;
 }

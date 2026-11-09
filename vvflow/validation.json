@@ -39,7 +39,7 @@
       "forceError": 3.6776235390334477e-9,
       "tolerance": 1e-7,
       "vortexCountError": 0,
-      "elapsedMs": 76.50074999999998,
+      "elapsedMs": 87.402042,
       "acceptance": true,
       "withinTolerance": true
     },
@@ -80,7 +80,7 @@
       "forceError": 1.4210854715202004e-14,
       "tolerance": 1e-7,
       "vortexCountError": 0,
-      "elapsedMs": 11.098083999999972,
+      "elapsedMs": 8.774583000000007,
       "acceptance": true,
       "withinTolerance": true
     },
@@ -121,7 +121,7 @@
       "forceError": 0.000041358619413234265,
       "tolerance": 0.001,
       "vortexCountError": 0,
-      "elapsedMs": 111.67887500000006,
+      "elapsedMs": 117.29124999999999,
       "acceptance": true,
       "withinTolerance": true
     },
@@ -162,7 +162,7 @@
       "forceError": 1.4516388091578847e-11,
       "tolerance": 0.005,
       "vortexCountError": 0,
-      "elapsedMs": 97.221,
+      "elapsedMs": 103.70704099999989,
       "acceptance": true,
       "withinTolerance": true
     },
@@ -203,7 +203,7 @@
       "forceError": 3.191891195797325e-14,
       "tolerance": 1e-7,
       "vortexCountError": 0,
-      "elapsedMs": 33.06979200000001,
+      "elapsedMs": 32.4058329999998,
       "acceptance": true,
       "withinTolerance": true
     },
@@ -244,7 +244,7 @@
       "forceError": 0.029214417652015323,
       "tolerance": 0.02,
       "vortexCountError": 7,
-      "elapsedMs": 1826.5558330000003,
+      "elapsedMs": 2004.476917,
       "acceptance": false,
       "withinTolerance": false
     }

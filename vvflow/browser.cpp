@@ -5,6 +5,8 @@
 #include "MEpsilonFast.hpp"
 #include "MDiffusiveFast.hpp"
 #include "MFlowmove.hpp"
+#include "XPressure.hpp"
+#include <map>
 #include <algorithm>
 #include <memory>
 #include <stdexcept>
@@ -13,6 +15,7 @@
 #include <cstdio>
 #include <cstdlib>
 
+double vv_merge_scale=1;
 namespace {
 #include "mx5-outline.inc"
 std::unique_ptr<Space> space;
@@ -22,13 +25,13 @@ std::unique_ptr<MEpsilonFast> epsilon;
 std::unique_ptr<MDiffusiveFast> diffusive;
 std::unique_ptr<MFlowmove> flowmove;
 const void* collision=nullptr;
-std::vector<double> particles, bodies;
+std::vector<double> particles, bodies, pressure_values;
 double stats[10]={};
 std::string error;
 void dispose(){
   if(tree) tree->destroy();
   flowmove.reset();diffusive.reset();epsilon.reset();convective.reset();tree.reset();space.reset();
-  particles.clear();bodies.clear();collision=nullptr;
+  particles.clear();bodies.clear();pressure_values.clear();collision=nullptr;vv_merge_scale=1;
   std::fill(stats,stats+10,0.0);
 }
 std::vector<TVec> resample(const std::vector<TVec>& src,int n){
@@ -60,6 +63,40 @@ void snapshot(){
 }
 extern "C" {
 void vv_dispose(){dispose();}
+int vv_density(int density){
+  if(density!=1&&density!=2&&density!=4){error="Invalid vortex density";return -1;}
+  vv_merge_scale=1.0/(density*density);return 0;
+}
+const double* vv_pressure_data(){return pressure_values.data();}
+int vv_pressure(double xmin,double ymin,double spacing,int nx,int ny){
+  try{
+    if(!space||!std::isfinite(xmin)||!std::isfinite(ymin)||!std::isfinite(spacing)||spacing<=0||nx<2||ny<2||nx>192||ny>128)throw std::runtime_error("Invalid pressure sampling grid");
+    // Space copies shared body pointers. Deep-copy them before postprocessing,
+    // since XPressure sheds vortices and accumulates surface quantities.
+    Space copy=*space;std::map<TBody*,std::shared_ptr<TBody>> clones;
+    for(size_t i=0;i<copy.BodyList.size();i++){
+      auto original=space->BodyList[i];auto cloned=std::make_shared<TBody>(*original);
+      clones[original.get()]=cloned;copy.BodyList[i]=cloned;
+    }
+    for(size_t i=0;i<copy.BodyList.size();i++){
+      if(auto parent=space->BodyList[i]->root_body.lock())copy.BodyList[i]->root_body=clones.at(parent.get());
+    }
+    // Recompute unknown boundary circulations at this state's time, before
+    // shedding, matching the pre-shed state expected by upstream XPressure.
+    double dl=copy.average_segment_length();TSortedTree pressure_tree(&copy,8,5*dl,100*dl);
+    MConvectiveFast boundary(&copy,&pressure_tree);const void* no_collision=nullptr;
+    pressure_tree.build();
+    try {boundary.calc_circulation(&no_collision);}catch(...){pressure_tree.destroy();throw;}
+    pressure_tree.destroy();
+    XPressure field(copy,xmin,ymin,spacing,nx,ny);field.ref_frame='s';field.eps_mult=2;field.evaluate();
+    pressure_values.resize(nx*ny);const double u2=copy.inf_speed().abs2();
+    for(int y=0;y<ny;y++)for(int x=0;x<nx;x++){
+      TVec p(xmin+spacing*x,ymin+spacing*y);double cp=2*field.at(x,y)/u2;
+      pressure_values[y*nx+x]=copy.point_is_in_body(p)||!std::isfinite(cp)?std::numeric_limits<double>::quiet_NaN():cp;
+    }
+    return 0;
+  }catch(const std::exception&e){error=e.what();pressure_values.clear();return -1;}
+}
 const char* vv_error(){return error.c_str();}
 int vv_init(int shape,int panels,double reynolds,double dt,double angle){
   try{
@@ -122,8 +159,14 @@ int main(int argc,char**argv){
  int shape=argc>1?atoi(argv[1]):0,panels=argc>2?atoi(argv[2]):80,steps=argc>3?atoi(argv[3]):100;
  double re=argc>4?atof(argv[4]):100,dt=argc>5?atof(argv[5]):.02,angle=argc>6?atof(argv[6]):0;
  if(vv_init(shape,panels,re,dt,angle)){fprintf(stderr,"%s\n",vv_error());return 1;}
+ if(vv_density(argc>7?atoi(argv[7]):1)){fprintf(stderr,"%s\n",vv_error());return 1;}
  for(int i=0;i<steps;i++){if(vv_step(1)){fprintf(stderr,"%s\n",vv_error());return 1;}}
  printf("{\"stats\":[");for(int i=0;i<10;i++)printf("%s%.17g",i?",":"",stats[i]);printf("],\"particles\":[");
- for(size_t i=0;i<particles.size();i++)printf("%s%.17g",i?",":"",particles[i]);printf("]}\n");dispose();
+ for(size_t i=0;i<particles.size();i++)printf("%s%.17g",i?",":"",particles[i]);printf("]");
+ if(argc>8&&atoi(argv[8])){
+   if(vv_pressure(-.4,-.4,.04,64,32)){fprintf(stderr,"%s\n",vv_error());return 1;}
+   printf(",\"pressure\":[");for(size_t i=0;i<pressure_values.size();i++){if(std::isfinite(pressure_values[i]))printf("%s%.17g",i?",":"",pressure_values[i]);else printf("%snull",i?",":"");}printf("]");
+ }
+ printf("}\n");dispose();
 }
 #endif
