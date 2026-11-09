@@ -26,10 +26,11 @@ const void* collision=nullptr;
 std::vector<double> particles, bodies;
 double stats[10]={};
 std::string error;
+size_t force_body_count=0;
 void dispose(){
   if(tree) tree->destroy();
   flowmove.reset();diffusive.reset();epsilon.reset();convective.reset();tree.reset();space.reset();
-  particles.clear();bodies.clear();collision=nullptr;vv_merge_scale=1;
+  particles.clear();bodies.clear();collision=nullptr;vv_merge_scale=1;force_body_count=0;
   std::fill(stats,stats+10,0.0);
 }
 std::vector<TVec> resample(const std::vector<TVec>& src,int n){
@@ -40,13 +41,14 @@ std::vector<TVec> resample(const std::vector<TVec>& src,int n){
     double f=(target-length[j])/(length[j+1]-length[j]);result.push_back(src[j]*(1-f)+src[(j+1)%src.size()]*f);}
   return result;
 }
-void addBody(const std::vector<TVec>& points, TVec axis={}){
+void addBody(const std::vector<TVec>& points, TVec axis={},bool slip=false){
   auto b=std::make_shared<TBody>();
-  for(auto p:points)b->alist.emplace_back(p,false);
+  for(auto p:points)b->alist.emplace_back(p,slip);
   b->holder.r=axis;b->doUpdateSegments();b->doFillProperties();b->validate(true);
   space->BodyList.push_back(b);
 }
 void initialize_engine(){
+  if(!force_body_count)force_body_count=space->BodyList.size();
   space->EnumerateBodies();double dl=space->average_segment_length();
   tree=std::make_unique<TSortedTree>(space.get(),8,5*dl,100*dl);
   convective=std::make_unique<MConvectiveFast>(space.get(),tree.get());
@@ -103,7 +105,7 @@ int vv_init(int shape,int panels,double reynolds,double dt,double angle){
   }catch(const std::exception&e){error=e.what();dispose();return -1;}
 }
 // Encoded polygons: [point count, x, y, ...] in Lref-normalised coordinates.
-int vv_scene(const double* data,int length,int panels,double reynolds,double dt){
+int vv_scene(const double* data,int length,int panels,double reynolds,double dt,int ground){
   try{
     dispose();error.clear();
     if(!data||length<7||length>40000||panels<40||panels>640||!std::isfinite(reynolds)||reynolds<20||reynolds>100000||!std::isfinite(dt)||dt<.001||dt>.05)throw std::runtime_error("Invalid scene parameters");
@@ -117,6 +119,17 @@ int vv_scene(const double* data,int length,int panels,double reynolds,double dt)
       if(area>0)std::reverse(p.begin(),p.end());outlines.push_back(p);lengths.push_back(perimeter);total+=perimeter;
     }
     for(size_t i=0;i<outlines.size();i++)addBody(resample(outlines[i],std::max(24,int(std::ceil(panels*lengths[i]/total)))));
+    force_body_count=space->BodyList.size();
+    if(ground){
+      double left=std::numeric_limits<double>::infinity(),right=-left;
+      for(const auto&p:outlines)for(const auto&v:p){left=std::min(left,v.x);right=std::max(right,v.x);if(v.y<=0)throw std::runtime_error("Keep shapes above the ground.");}
+      // Finite impermeable slip-ground solid, refined below the scene and wake.
+      std::vector<TVec> floor{{left-12,0}};double start=left-2,end=right+5;
+      int n=std::max(1,int(std::ceil((end-start)/.08)));
+      for(int i=0;i<=n;i++)floor.emplace_back(start+(end-start)*i/n,0);
+      floor.emplace_back(right+24,0);floor.emplace_back(right+24,-8);floor.emplace_back(left-12,-8);
+      addBody(floor,{},true);
+    }
     initialize_engine();snapshot();return 0;
   }catch(const std::exception&e){error=e.what();dispose();return -1;}
 }
@@ -127,7 +140,7 @@ int vv_step(int count){
       if(space->VortexList.size()>100000)throw std::runtime_error("100,000-vortex preview limit reached. Reset or choose a coarser surface.");
       tree->build();if(collision)convective->calc_circulation(&collision);convective->calc_circulation(&collision);tree->destroy();
       flowmove->heat_shed();flowmove->vortex_shed();flowmove->streak_shed();space->calc_forces();
-      TVec3D force;for(const auto&b:space->BodyList){force=force+b->force_hydro;force.o+=rotl(b->get_axis())*b->force_hydro.r;}
+      TVec3D force;for(size_t i=0;i<force_body_count;i++){const auto&b=space->BodyList[i];force=force+b->force_hydro;force.o+=rotl(b->get_axis())*b->force_hydro.r;}
       stats[1]=2*force.r.x;stats[2]=2*force.r.y;stats[3]=2*force.o;stats[9]=double(space->time);
       if(!std::isfinite(stats[1])||!std::isfinite(stats[2])||!std::isfinite(stats[3]))throw std::runtime_error("Non-finite force; reset with a smaller timestep.");
       space->zero_forces();tree->build();epsilon->CalcEpsilonFast(true);convective->process_all_lists();

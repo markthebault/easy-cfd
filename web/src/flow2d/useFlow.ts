@@ -10,6 +10,7 @@ export function useFlow(scene: Scene, restart: number, playing: boolean, draggin
   const renderer = useRef<FlowRenderer | null>(null), current = useRef(scene); current.current = scene;
   const view = useRef(camera); view.current = camera;
   const version = useRef(0), inflight = useRef(false), paused = useRef(!playing), speed = useRef(playback), backend = useRef(""); speed.current = playback;
+  const vortexStepMs = useRef(0);
   const tickTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [status, setStatus] = useState({ steps: 0, backend: "", ready: false, error: false });
   const [message, setMessage] = useState("");
@@ -20,7 +21,7 @@ export function useFlow(scene: Scene, restart: number, playing: boolean, draggin
   const requestTick = () => {
     if (paused.current || inflight.current || !worker.current) return;
     inflight.current = true;
-    worker.current.postMessage({ type: "tick", count: Math.max(1, Math.round(backend.current === "vvflow" ? 4 * Math.max(1, speed.current) : (backend.current === "webgpu" ? 128 : 16) * speed.current)), version: version.current } satisfies FlowRequest);
+    worker.current.postMessage({ type: "tick", count: Math.max(1, Math.round(backend.current === "vvflow" ? 1 : (backend.current === "webgpu" ? 128 : 16) * speed.current)), version: version.current } satisfies FlowRequest);
   };
   useEffect(() => {
     // Treat an explicit example link as a one-time load; reload then restores edits.
@@ -38,20 +39,21 @@ export function useFlow(scene: Scene, restart: number, playing: boolean, draggin
         setStatus(s => ({ ...s, error: true, ready: false })); return;
       }
       backend.current = reply.backend;
-      if (reply.type === "vortices") { if (!paused.current || reply.steps <= 8 || !renderer.current!.vortexParticles) renderer.current!.vortexParticles = reply.particles;canvas.current?.setAttribute("data-vortex-count", String(reply.particles.length / 4));setMetrics(null); }
+      if (reply.type === "vortices") {
+        if (reply.steps > 1) vortexStepMs.current = vortexStepMs.current ? .7 * vortexStepMs.current + .3 * reply.elapsed : reply.elapsed; if (!paused.current || reply.steps <= 8 || !renderer.current!.vortexParticles) renderer.current!.vortexParticles = reply.particles;canvas.current?.setAttribute("data-vortex-count", String(reply.particles.length / 4));}
       else if (!paused.current || reply.steps <= 8 || !renderer.current!.field) renderer.current!.update(reply.values, reply.steps);
       if (performance.now() - lastStatus > 250 || reply.steps <= 8) {
-        if (!paused.current || reply.steps <= 8) setMetrics(reply.type === "field" ? reply.metrics : null);
+        if (!paused.current || reply.steps <= 8) setMetrics(reply.metrics);
         setStatus({ steps: reply.steps, backend: reply.backend, ready: true, error: false }); lastStatus = performance.now();
       }
-      tickTimer.current = setTimeout(requestTick, Math.max(0, (backend.current === "vvflow" ? 40 / Math.min(1, speed.current) : 40) - reply.elapsed));
+      tickTimer.current = setTimeout(requestTick, Math.max(0, (backend.current === "vvflow" ? Math.max(50, vortexStepMs.current * 3) / speed.current : 40) - reply.elapsed));
     };
     w.onerror = () => { inflight.current = false; paused.current = true;  setMessage("The browser flow engine could not start. Try reloading this page."); setStatus(s => ({ ...s, error: true, ready: false })); };
     return () => { clearTimeout(tickTimer.current); w.terminate(); worker.current = null; };
   }, [vortexMode]);
 
   useEffect(() => {
-    version.current++; clearTimeout(tickTimer.current); inflight.current = true;
+    version.current++; vortexStepMs.current = 0;clearTimeout(tickTimer.current); inflight.current = true;
     const grid = sceneGrid(current.current);
     canvas.current?.setAttribute("data-vortex-count", "0");renderer.current!.clear(current.current.shapes, grid); setMessage("");setStatus({ steps: 0, backend: "", ready: false, error: false }); setMetrics(null);
     worker.current?.postMessage({ type: "start", outlines: enabledShapes(current.current).map(s => s.points), referenceLength: referenceLengthFor(current.current), signature: simulationKey(current.current), tunnel: grid.id, version: version.current, forceWasm: new URLSearchParams(location.search).has("flow-wasm") } satisfies FlowRequest);
@@ -60,6 +62,7 @@ export function useFlow(scene: Scene, restart: number, playing: boolean, draggin
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restart, vortexMode]);
   useEffect(() => { paused.current = !playing || dragging; if (!paused.current) requestTick(); }, [playing, dragging]);
+  useEffect(() => { clearTimeout(tickTimer.current);if (!paused.current) requestTick(); }, [playback]);
   useEffect(() => { renderer.current!.setLayer(layer); }, [layer]);
   useEffect(() => { renderer.current!.setAnimation(animation); }, [animation]);
   useEffect(() => {

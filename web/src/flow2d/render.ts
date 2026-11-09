@@ -213,13 +213,11 @@ export class FlowRenderer {
       ctx.shadowColor = this.dark ? "#9ccce744" : "transparent"; ctx.shadowBlur = 16;
       ctx.lineWidth = 1.7; ctx.strokeStyle = this.dark ? "#b3c7d7" : "#344a60"; ctx.stroke(); ctx.shadowBlur = 0; ctx.restore();
     }
-    if (this.animation !== "vortex") {
     ctx.strokeStyle = this.dark ? "#7692a953" : "#6c879d70"; ctx.lineWidth = 1;
     const groundLeft = Math.max(0, v.x), groundRight = Math.min(width, v.x + DOMAIN.width * scale);
     ctx.beginPath(); ctx.moveTo(groundLeft, ground + 8); ctx.lineTo(groundRight, ground + 8); ctx.stroke();
     ctx.strokeStyle = this.dark ? "#7692a925" : "#6c879d35";
     for (let x = v.x + Math.ceil((groundLeft - v.x) / 18) * 18; x < groundRight; x += 18) { ctx.beginPath(); ctx.moveTo(x, ground + 9); ctx.lineTo(x - 10, ground + 19); ctx.stroke(); }
-    }
     ctx.font = "10px ui-monospace, monospace"; ctx.fillStyle = this.dark ? "#7692a9" : "#60758a";
     const ideal = Math.min(180, width * .25) / scale, power = 10 ** Math.floor(Math.log10(ideal));
     const rulerMetres = ([1, 2, 5, 10].filter(n => n <= ideal / power).at(-1) ?? 1) * power;

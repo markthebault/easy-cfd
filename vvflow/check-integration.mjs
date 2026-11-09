@@ -6,7 +6,7 @@ for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
  await p.goto(base+'/?workspace=2d&animation=vortex&profile=mx5-nc-prht');await p.waitForFunction(()=>Number(document.querySelector('.flow-canvas')?.getAttribute('data-vortex-count'))>0,{},{timeout:30000});
  assert.equal(await p.getByLabel('Flow animation').inputValue(),'vortex');assert.equal(await p.getByRole('group',{name:'Flow display',exact:true}).count(),0);assert.equal(await p.getByLabel('View layer').count(),0);
  const stored=await p.evaluate(()=>localStorage.getItem('easycfd.flow2d.v2'));assert.ok(stored.includes('MX-5'));
- await p.getByRole('button',{name:'Resume simulation'}).click();await p.waitForFunction(()=>Number((document.querySelector('.flow-status small')?.textContent||'').split(' steps')[0].replace(/[^0-9]/g,''))>250,{},{timeout:30000});await p.getByRole('button',{name:'Pause simulation'}).click();
+ await p.getByLabel('Animation speed').press('End');await p.getByRole('button',{name:'Resume simulation'}).click();await p.waitForFunction(()=>Number((document.querySelector('.flow-status small')?.textContent||'').split(' steps')[0].replace(/[^0-9]/g,''))>250,{},{timeout:60000});await p.getByRole('button',{name:'Pause simulation'}).click();
  await p.screenshot({path:`vvflow/build/${name}-integrated.png`});assert.equal(await p.getByRole('alert').count(),0);
  // Editor changes restart the actual vvflow scene. Disabled geometry disappears.
  await p.getByLabel('Add shape').selectOption('rectangle');await p.waitForTimeout(400);assert.equal(await p.getByRole('listitem').count(),2);assert.equal(await p.getByRole('alert').count(),0);

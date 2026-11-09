@@ -18,9 +18,11 @@ Coordinates are normalised by the scene reference length, then returned to metre
 for the existing camera. Boundary segments are distributed by perimeter, targeting
 320 total with at least 24 per disjoint solid. Re=40,000 based on reference length,
 U=1, dt=0.005, density=2. These fixed experimental settings prioritise interactive
-exploration; no convergence or engineering-accuracy claim is made. The domain is
-a viewing region in free air, without a simulated road or box walls. No ground
-hatching, pressure overlay or force measurements are shown in this mode.
+exploration; no convergence or engineering-accuracy claim is made. The viewing region has a simulated finite slip-ground solid with its top at
+y=0. The ground is impermeable, with tangential slip and no road boundary layer.
+Its end faces are placed far upstream/downstream and its top is refined beneath
+the bodies and near wake. Ground hatching marks the boundary. Top/side box walls
+are not simulated. Pressure overlays remain unavailable in this mode.
 
 ## Port
 
@@ -60,3 +62,26 @@ LaunchAgent `local.easycfd.vvflow-preview`. The static host listens on
 `127.0.0.1:5218`, served by Tailscale HTTPS port 8458. It performs no simulation.
 Preserve and compare existing Tailscale routes around deployment.
 Logs: `~/Library/Application Support/EasyCFD-vvflow/{stdout,stderr}.log`.
+
+## Playback and drag/lift
+
+Vortex playback sends one solver step per request. At 1x, pacing reserves CPU
+headroom (three measured step costs, with a 50 ms minimum cycle); the slider
+scales the cycle interval from 0.1x to 3x. Slider changes reschedule immediately.
+This preserves the numerical timestep and allows faster settings to differ even
+when one solver step exceeds the old worker batch budget. Hardware and evolving
+vortex counts still limit the maximum rate.
+
+The existing Drag & lift panel uses vvflow hydrodynamic forces on scene solids
+only; the extra ground body's forces are excluded. Instantaneous coefficients
+are labelled during warmup; they are not saved or exported as averaged data.
+After the startup window, every numerical step contributes to the original
+cumulative mean and drift diagnostics. The condition key identifies vvflow,
+Re, timestep, surface budget, merging density and slip-ground method, so LBM and
+vvflow baselines are never treated as matching.
+
+`ground-validation.json` records an unclipped WASM test: the same car geometry
+with/without the ground, including minimum vortex y over 400 steps and the
+changed solved forces. This is a boundary-behaviour check, not physical validation.
+`node vvflow/check-controls.mjs` verifies actual step rates at 0.1x, 1x and 3x,
+metrics, pause and backend switching in Chromium and WebKit.
