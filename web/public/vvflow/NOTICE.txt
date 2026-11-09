@@ -1,0 +1,26 @@
+EasyCFD vvflow browser experiment
+
+Numerical core: vvflow by Yaroslav Dynnikov and Contributors (MIT).
+Pinned upstream revision: f6419b3a9f69cee1eaf2655154439cb69dd0fea6
+https://github.com/vvflow/vvflow/tree/f6419b3a9f69cee1eaf2655154439cb69dd0fea6
+
+Browser adapter and renderer: EasyCFD. The numerical core is vendored unchanged.
+Desktop HDF5/file output and CLI orchestration are replaced by an in-memory API.
+Generated TSpace excludes save/load; generated TMatrix adapts LAPACK return types.
+Single-threaded; upstream OpenMP pragmas are ignored.
+
+Numerical dependencies compiled into WebAssembly:
+- Lua 5.2.4, MIT: LICENSE.lua.txt
+- CLAPACK 3.2.1, including reference BLAS: LICENSE.clapack.txt
+- f2c string comparison and integer rounding: LICENSE.f2c.txt
+- vvflow: LICENSE.vvflow.txt
+
+No solver API or backend. Static files are served over HTTPS; the user's browser
+runs the solver. CSV values are instantaneous 2D section coefficients, with
+U=1, rho=1 and reference length=1. Moment is about the global origin.
+Startup loads are included; no settled-mean or engineering-accuracy claim.
+Particle centres and signed circulations come from the solver. Softness, size
+and opacity are display choices, not resolved vortex-core or pressure contours.
+
+This prototype is not an exact reproduction of the linked spoiler video.
+The spoiler is a separate, finite-thickness plate with a small clearance.

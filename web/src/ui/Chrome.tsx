@@ -47,6 +47,7 @@ export function WorkspaceMenu({ mode, onChange }: { mode: "2d" | "3d"; onChange?
       {(["3d", "2d"] as const).map(m => <button key={m} role="menuitemradio" aria-checked={mode === m} onClick={() => { setOpen(false); onChange?.(m); }}>
         {m === "3d" ? <Box size={19} /> : <Waves size={19} />}<span><b>{m === "3d" ? "3D wind tunnel" : "2D profiles"}</b><small>{m === "3d" ? "Import and analyse a model" : "Draw a shape. Explore the flow."}</small></span>{mode === m && <Check size={15} />}
       </button>)}
+      <button role="menuitem" onClick={() => { location.href = '/?workspace=vvflow'; }}><Waves size={19} /><span><b>vvflow lab</b><small>Experimental browser vortex solver</small></span></button>
     </div>}
   </div>;
 }
